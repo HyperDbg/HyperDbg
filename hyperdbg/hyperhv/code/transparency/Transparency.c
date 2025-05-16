@@ -380,56 +380,35 @@ TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
 PVOID
 TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr) 
 {
-    PVOID buf = PlatformMemAllocateZeroedNonPagedPool(sizeof(OBJECT_ATTRIBUTES));
-
-    OBJECT_ATTRIBUTES buf = { 0 }; // move  allocations to stack  +  start with capitalLet
-
-    if (buf == NULL)
-    {
-        LogError("Err, insufficient memory");
-        return NULL;
-    }
+    //PVOID buf = PlatformMemAllocateZeroedNonPagedPool(sizeof(OBJECT_ATTRIBUTES));
+    OBJECT_ATTRIBUTES Buf = { 0 };
     
     //
     // Read the OBJECT_ATTRIBUTES structure from the virtual address pointer
     //
-    if (MemoryMapperReadMemorySafeOnTargetProcess(virtPtr, buf, sizeof(OBJECT_ATTRIBUTES))) {
+    if (MemoryMapperReadMemorySafeOnTargetProcess(virtPtr, &Buf, sizeof(OBJECT_ATTRIBUTES))) {
 
-        PVOID Namebuf = PlatformMemAllocateZeroedNonPagedPool(sizeof(UNICODE_STRING));
-
-        if (Namebuf == NULL)
-        {
-            LogInfo("Error allocating ImageName memory buffer");
-            PlatformMemFreePool(buf);
-
-            return NULL;
-        }
+        //PVOID Namebuf = PlatformMemAllocateZeroedNonPagedPool(sizeof(UNICODE_STRING));
+        UNICODE_STRING NameBuf = { 0 };
 
         //
         // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by OBJECT_ATTRIBUTES.ObjectName struct entry
         //
-        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)((PCOBJECT_ATTRIBUTES)buf)->ObjectName, Namebuf, sizeof(UNICODE_STRING)))
+        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Buf.ObjectName, &NameBuf, sizeof(UNICODE_STRING)))
         {
             LogInfo("BadRead");
-            PlatformMemFreePool(Namebuf);
-            PlatformMemFreePool(buf);
-
             return NULL;
         }
-
-        PlatformMemFreePool(buf);
 
         //
         // The OBJECT_ATTRIBUTES structure contains a PUNICODE_STRING pointer to a guest virtual address which contains this UNICODE_STRING
         // This in turn will contain another pointer, this time a PWCHAR, to another virtual address, which will contain the wide char string we need
         //
-        PUNICODE_STRING unicodeName = (PUNICODE_STRING)Namebuf;
-        PVOID ObjectNameBuf = PlatformMemAllocateZeroedNonPagedPool(unicodeName->Length + sizeof(WCHAR));
+        PVOID ObjectNameBuf = PlatformMemAllocateZeroedNonPagedPool(NameBuf.Length + sizeof(WCHAR));
 
         if (ObjectNameBuf == NULL)
         {
             LogInfo("Error allocating ImageName memory buffer");
-            PlatformMemFreePool(Namebuf);
 
             return NULL;
         }
@@ -437,16 +416,13 @@ TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr)
         //
         // Read the PWCHAR string from a virtual address pointer, pointed to by OBJECT_ATTRIBUTES.ObjectName.Buffer struct entry
         //
-        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)unicodeName->Buffer, ObjectNameBuf, unicodeName->Length + sizeof(WCHAR)))
+        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)NameBuf.Buffer, ObjectNameBuf, NameBuf.Length + sizeof(WCHAR)))
         {
             LogInfo("BadRead");
             PlatformMemFreePool(ObjectNameBuf);
-            PlatformMemFreePool(Namebuf);
 
             return NULL;
         }
-
-        PlatformMemFreePool(Namebuf);
 
         //
         // The caller is responsible for freeing the memory buffer, using PlatformMemFreePool()
@@ -478,8 +454,8 @@ TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // From the POBJECT_ATTRIBUTES structure obtain the wide character string of the requested file path
         //   
-        PVOID pathBuf = (PWCH)TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r10);
-        PWCH filePath = (PWCH)pathBuf;
+        PVOID PathBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r10);
+        PWCH FilePath = (PWCH)PathBuf;
                 
         //
         // If the file Attributes request is for a listed file, insert the SYSCALL trap flag and continue execution
@@ -487,9 +463,8 @@ TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         for (UINT16 j = 0; j < (sizeof(HV_FILES) / sizeof(HV_FILES[0])); j++)
         {
 
-            if (wcsstr(filePath, HV_FILES[j]))
+            if (wcsstr(FilePath, HV_FILES[j]))
             {
-
                 TransparentSetTrapFlagAfterSyscall(VCpu,
                                                     HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                     HANDLE_TO_UINT32(PsGetCurrentThreadId()),
@@ -503,7 +478,7 @@ TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // Free the allocated copy of the directory path, obtained from TransparentGetObjectNameFromAttributesVirtualPointer()
         // 
-        PlatformMemFreePool(pathBuf);
+        PlatformMemFreePool(PathBuf);
             
     }   
 }
@@ -533,10 +508,10 @@ TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // From the POBJECT_ATTRIBUTES structure obtain the wide character string of the requested directory path
         //
-        PVOID pathBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
-        PWCH dirPath = (PWCH)pathBuf;
+        PVOID PathBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+        PWCH DirPath = (PWCH)PathBuf;
 
-        if (dirPath == NULL)
+        if (DirPath == NULL)
         {
             return;
         }
@@ -546,7 +521,7 @@ TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         for (UINT16 j = 0; j < (sizeof(HV_DIRS) / sizeof(HV_DIRS[0])); j++)
         {
-            if (wcsstr(dirPath, HV_DIRS[j]))
+            if (wcsstr(DirPath, HV_DIRS[j]))
             {
                 TransparentSetTrapFlagAfterSyscall(VCpu,
                                     HANDLE_TO_UINT32(PsGetCurrentProcessId()),
@@ -561,7 +536,7 @@ TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // Free the allocated copy of the directory path, obtained from TransparentGetObjectNameFromAttributesVirtualPointer()
         // 
-        PlatformMemFreePool(pathBuf);
+        PlatformMemFreePool(PathBuf);
     }   
 }
 
@@ -579,8 +554,6 @@ TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE* VCpu)
     VCpu->Regs->r9 = 0x0;
 
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-
-    //PCHAR test = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());        //gets the process name and loginfo the name; ignore the windows processes. skip hooking
 
     TransparentSetTrapFlagAfterSyscall(VCpu,
                                            HANDLE_TO_UINT32(PsGetCurrentProcessId()),
@@ -613,7 +586,7 @@ TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE* VCpu)
     TransparentSetTrapFlagAfterSyscall(VCpu,
                                        HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                       SysNtQueryInformationProcess,
+                                       VCpu->Regs->rax,
                                        &ContextParams);
 }
 
@@ -635,8 +608,9 @@ TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // From the OBJECT_ATTRIBUTES struct pointer extract the file path for which this syscall is called
         //
-        PWCH name = (PWCH)TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
-        if (name == NULL)
+        PVOID NameBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+        PWCH FileName = (PWCH)NameBuf;
+        if (FileName == NULL)
         {
             return;
         }
@@ -647,7 +621,7 @@ TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         for (UINT16 j = 0; j < (sizeof(HV_FILES) / sizeof(HV_FILES[0])); j++)
         {
-            if (wcsstr(name, HV_FILES[j]))
+            if (wcsstr(FileName, HV_FILES[j]))
             {
                 LogInfo("A call to NtOpenFile systemcall for a hypervisor specific file was made");
 
@@ -673,7 +647,7 @@ TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         //Clean up the allocated memory
         //
-        PlatformMemFreePool((PVOID)name);
+        PlatformMemFreePool(NameBuf);
     }   
 }
 
@@ -696,9 +670,10 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         // From the OBJECT_ATTRIBUTES struct pointer extract the registry key path for which this syscall is called
         //
-        PWCH name = (PWCH)TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+        PVOID NameBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+        PWCH KeyName = (PWCH)NameBuf;
 
-        if (name == NULL)
+        if (KeyName == NULL)
         {
             LogInfo("BADRET");
             return;
@@ -709,7 +684,7 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         for (UINT16 j = 0; j < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); j++)
         {
-            if (wcsstr(name, HV_REGKEYS[j]) > 0)
+            if (wcsstr(KeyName, HV_REGKEYS[j]) > 0)
             {
                 //
                 // If a match was found, corrupt the user-mode pointer in CPU registers, so that, when the kernel-mode execution continues, it would fail.
@@ -719,12 +694,12 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
-                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = { 0 };
                 TransparentSetTrapFlagAfterSyscall(VCpu,
-                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                       VCpu->Regs->rax,
-                                                       &ContextParams);
+                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                    VCpu->Regs->rax,
+                                                    &ContextParams);
 
                 break;
             }
@@ -733,8 +708,8 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         //Clean up the allocated memory
         //
-        PlatformMemFreePool((PVOID)name);
-    }   
+        PlatformMemFreePool(NameBuf);
+    }
 }
 
 /**
@@ -752,7 +727,9 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
     //
     if (CheckAccessValidityAndSafety(VCpu->Regs->rdx, sizeof(UNICODE_STRING)))
     {
+
         UNICODE_STRING NameUString = { 0 };
+
 
         //
         // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by RDX struct entry
@@ -797,21 +774,10 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
 
                 ContextParams.OptionalParam1 = VCpu->Regs->r8;
                 ContextParams.OptionalParam2 = VCpu->Regs->r9;
-                
 
-                if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x30, sizeof(UINT64)))
-                {
-                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
-                }
-                else
-                {
-                    LogInfo("Process 0x%llx on thread %llx executed NtQueryValueKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                                                                                                                     HANDLE_TO_UINT32(PsGetCurrentThreadId()));
-                    
-                    PlatformMemFreePool(NameBuf);
-                    return;
-                }
-
+                //
+                // Read the 5th argument of the system call from the stack at location %RSP + 0x28
+                //
                 if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x28, sizeof(UINT64)))
                 {
                     MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
@@ -825,6 +791,26 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
                     return;
                 }
 
+                //
+                // Read the 6th argument of the system call from the stack at location %RSP + 0x30
+                //
+                if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x30, sizeof(UINT64)))
+                {
+                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
+                }
+                else
+                {
+                    LogInfo("Process 0x%llx on thread %llx executed NtQueryValueKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                                                                                                     HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+                    
+                    PlatformMemFreePool(NameBuf);
+                    return;
+                }
+
+                
+                //
+                // Set the trap flag to intercept the SYSRET instruction
+                //
                 TransparentSetTrapFlagAfterSyscall(VCpu,
                                                     HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                     HANDLE_TO_UINT32(PsGetCurrentThreadId()),
@@ -856,6 +842,9 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
                 VCpu->Regs->rdx = 0x0;
                 VCpu->Regs->r9 = 0x0;
 
+                //
+                // Set the trap flag to intercept the SYSRET instruction
+                //
                 TransparentSetTrapFlagAfterSyscall(VCpu,
                                                     HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                     HANDLE_TO_UINT32(PsGetCurrentThreadId()),
@@ -890,6 +879,9 @@ TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
     ContextParams.OptionalParam1 = VCpu->Regs->r8;
     ContextParams.OptionalParam2 = VCpu->Regs->r9;
 
+    //
+    // Read the 5th argument of the system call from the stack at location %RSP + 0x28
+    //
     if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x28, sizeof(UINT64)))
     {
         MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
@@ -901,6 +893,9 @@ TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
         return;
     }
 
+    //
+    // Read the 6th argument of the system call from the stack at location %RSP + 0x30
+    //
     if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x30, sizeof(UINT64)))
     {
         MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
@@ -911,6 +906,11 @@ TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
                                                                                                                                         HANDLE_TO_UINT32(PsGetCurrentThreadId()));
         return;
     }
+
+    //
+    // If the call was made without an allocated buffer (with size 0)
+    // we have no need to intercept it
+    //
     if (ContextParams.OptionalParam3 == 0)
     {
         return;
@@ -1203,15 +1203,16 @@ ReturnResult:
 BOOLEAN
 TransparentHandleModuleInformationQuery(PVOID ptr, UINT64 virtualAddress, UINT32 bufferSize)
 {
-    PSYSTEM_MODULE_INFORMATION p = (PSYSTEM_MODULE_INFORMATION)ptr;
-    PSYSTEM_MODULE_ENTRY moduleList = p->Module;
+    PSYSTEM_MODULE_INFORMATION StructBuf = (PSYSTEM_MODULE_INFORMATION)ptr;
+    PSYSTEM_MODULE_ENTRY ModuleList = StructBuf->Module;
 
     //
     // Traverse the list of system modules and remove the system drivers
     // matching a known list of hypervisor drivers based on their filename
     //
-    for (UINT16 i = 0; i < p->Count; i++) {
-        PCHAR path = (PCHAR)moduleList[i].FullPathName;
+    for (UINT16 i = 0; i < StructBuf->Count; i++)
+    {
+        PCHAR path = (PCHAR)ModuleList[i].FullPathName;
 
         for (UINT16 j = 0; j < (sizeof(HV_DRIVER) / sizeof(HV_DRIVER[0])); j++)
         {
@@ -1220,28 +1221,26 @@ TransparentHandleModuleInformationQuery(PVOID ptr, UINT64 virtualAddress, UINT32
                 //
                 // If a module file name matches, remove the entry from the list by shifting it forward by one entry
                 //
-                for (UINT16 k = i; k < p->Count - 1; k++)
+                for (UINT16 k = i; k < StructBuf->Count - 1; k++)
                 {
-                    moduleList[k] = moduleList[k + 1];
+                    ModuleList[k] = ModuleList[k + 1];
                 }
 
                 //
                 // Decrement the list size as one entry has been removed
                 //
                 i--;
-                p->Count--;
+                StructBuf->Count--;
 
                 break;
             }
         }
 
     }
-
     if(!MemoryMapperWriteMemorySafeOnTargetProcess(virtualAddress, ptr, bufferSize))
     { 
         return FALSE;
     }
-    
     return TRUE;
 }
 
@@ -1260,40 +1259,40 @@ BOOLEAN
 TransparentHandleProcessInformationQuery(PVOID ptr) 
 {
 
-    PSYSTEM_PROCESS_INFORMATION p = (PSYSTEM_PROCESS_INFORMATION)ptr;
+    PSYSTEM_PROCESS_INFORMATION StructBuf = (PSYSTEM_PROCESS_INFORMATION)ptr;
 
     //
     // Loop through all the entries and filter out the offending ones
     //
     do 
     {
-        if(p->ImageName.Length != 0)
+        if(StructBuf->ImageName.Length != 0)
         {
 
             //
             // We need to modify the Image name of the process which requires extra allocation
             //
-            PVOID buf = PlatformMemAllocateZeroedNonPagedPool(p->ImageName.Length + sizeof(WCHAR));
+            PVOID StringBuf = PlatformMemAllocateZeroedNonPagedPool(StructBuf->ImageName.Length + sizeof(WCHAR));
 
-            if (buf == NULL)
+            if (StringBuf == NULL)
             {
                 LogInfo("Error allocating ImageName memory buffer");
 
                 return FALSE;
             }
 
-            if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)p->ImageName.Buffer, buf, p->ImageName.Length + sizeof(WCHAR)))
+            if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)StructBuf->ImageName.Buffer, StringBuf, StructBuf->ImageName.Length + sizeof(WCHAR)))
             {
-                PlatformMemFreePool(buf);
+                PlatformMemFreePool(StringBuf);
 
                 return FALSE;
             }
             
-            PWCH imageName = (PWCH)buf;
+            PWCH ImageName = (PWCH)StringBuf;
 
-            if (imageName == NULL)
+            if (ImageName == NULL)
             {
-                PlatformMemFreePool(buf);
+                PlatformMemFreePool(StringBuf);
 
                 return FALSE;
             }
@@ -1303,15 +1302,19 @@ TransparentHandleProcessInformationQuery(PVOID ptr)
             //
             for (UINT16 i = 0; i < (sizeof(HV_Processes) / sizeof(HV_Processes[0])); i++) 
             {
-                if (!_wcsnicmp(imageName, HV_Processes[i], (p->ImageName.Length) / 2)) 
-                {   
+                if (!_wcsnicmp(ImageName, HV_Processes[i], (StructBuf->ImageName.Length) / 2))
+                {
                     //
                     // If the name matches, randomize it
                     //
-                    for (UINT16 j = 0; j < (p->ImageName.Length / sizeof(WCHAR) - 4); j++)
+                    for (UINT16 j = 0; j < ((StructBuf->ImageName.Length / sizeof(WCHAR)) - 4); j++)
                     {
                         UINT32 r = (TransparentGetRand() % 26) + 97;
-                        imageName[j] = (WCHAR)r;
+                        if (ImageName[j] && r)
+                        {
+                            ImageName[j] = (WCHAR)r;
+                        }
+                        
                     }
 
                     break;
@@ -1321,24 +1324,24 @@ TransparentHandleProcessInformationQuery(PVOID ptr)
             //
             // Write the modified name back to the usermode buffer
             //
-            MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)p->ImageName.Buffer, buf, p->ImageName.Length + sizeof(WCHAR));
+            MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)StructBuf->ImageName.Buffer, StringBuf, StructBuf->ImageName.Length + sizeof(WCHAR));
 
-            PlatformMemFreePool(buf);
+            PlatformMemFreePool(StringBuf);
         }
 
         //
         // Move to the next process entry
         //
-        p = (PSYSTEM_PROCESS_INFORMATION)((PBYTE)p + p->NextEntryOffset);
+        StructBuf = (PSYSTEM_PROCESS_INFORMATION)((PBYTE)StructBuf + StructBuf->NextEntryOffset);
 
         //
         // Some internal Windows calls to this system call use different offsetting/entry structure layout and causes errors 
         //
-        if (!CheckAccessValidityAndSafety((UINT64)p, sizeof(SYSTEM_PROCESS_INFORMATION)))
+        if (!CheckAccessValidityAndSafety((UINT64)StructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
         {
             return FALSE;
         }
-    } while (p->NextEntryOffset != 0);
+    } while (StructBuf->NextEntryOffset != 0);
 
     return TRUE;
 }
@@ -1800,18 +1803,18 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_C
         //
         if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3)) {
 
-            SYSTEM_CODEINTEGRITY_INFORMATION temp = { 0 };
+            SYSTEM_CODEINTEGRITY_INFORMATION Temp = { 0 };
 
             //
             // Read data from the saved pointer of the now filled information buffer
             //
-            MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, &temp, Params->OptionalParam3);
+            MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, Params->OptionalParam3);
 
             //
             // Modify the data and write it back to the information buffer to be passed to user mode
             //
-            temp.CodeIntegrityOptions = 0x01;
-            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &temp, Params->OptionalParam3);
+            Temp.CodeIntegrityOptions = 0x01;
+            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, Params->OptionalParam3);
 
         }
         else
@@ -1834,8 +1837,8 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_C
             //
             // Allocate a buffer to copy user buffer data to for modification
             //
-            PVOID buf = PlatformMemAllocateZeroedNonPagedPool(Params->OptionalParam3);
-            if (buf == NULL)
+            PVOID Buf = PlatformMemAllocateZeroedNonPagedPool(Params->OptionalParam3);
+            if (Buf == NULL)
             {
                 LogError("Err, insufficient memory");
                 break;
@@ -1844,13 +1847,13 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_C
             //
             // Copy over the data and perform the modifications
             //
-            if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, buf, Params->OptionalParam3)) {
+            if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3)) {
                 LogInfo("Error reading memory buffer given by the usermode call");
             }
             else
             {
-                if ((Params->OptionalParam1 == SystemProcessInformation && !TransparentHandleProcessInformationQuery(buf)) ||
-                    (Params->OptionalParam1 == SystemModuleInformation && !TransparentHandleModuleInformationQuery(buf, Params->OptionalParam2, (UINT32)Params->OptionalParam3)))
+                if ((Params->OptionalParam1 == SystemProcessInformation && !TransparentHandleProcessInformationQuery(Buf)) ||
+                    (Params->OptionalParam1 == SystemModuleInformation && !TransparentHandleModuleInformationQuery(Buf, Params->OptionalParam2, (UINT32)Params->OptionalParam3)))
                 {
                     //
                     // Some internal Windows calls to these system calls use different offsetting/entry structure layout and causes errors 
@@ -1860,7 +1863,7 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_C
                 }
             }
 
-            PlatformMemFreePool(buf);
+            PlatformMemFreePool(Buf);
 
         }
         break;
@@ -1875,8 +1878,8 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_C
             //
             // Write to the output buffer 0x0001 for "Debugger not present"
             //
-            WORD temp = 0x0100;
-            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &temp, 2);
+            WORD Temp = 0x0100;
+            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, 2);
         }
     }
     case SystemFirmwareTableInformation:
@@ -1924,7 +1927,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     // Handle the memory buffer and return code modification after NtQuerySystemInformation system call
     //
     case SysNtQuerySystemInformation:
-    case SysNtQuerySystemInformationEx:
     {
 
         TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(Params);
@@ -1943,33 +1945,27 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
         //
         if (CheckAccessValidityAndSafety(Params->OptionalParam1, sizeof(FILE_BASIC_INFORMATION)))
         {
-            PVOID buf = PlatformMemAllocateZeroedNonPagedPool(sizeof(FILE_BASIC_INFORMATION));
-            if (buf == NULL)
-            {
-                LogError("Err, insufficient memory");
-                break;
-            }
+
+            FILE_BASIC_INFORMATION Buf = { 0 };
             //
             // Copy over the data from the output buffer pointer
             //
-            if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam1, buf, sizeof(FILE_BASIC_INFORMATION)))
+            if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam1, &Buf, sizeof(FILE_BASIC_INFORMATION)))
             {
                 LogError("Err, Virtual memory read failed");
-                PlatformMemFreePool(buf);
                 break;
             }
 
             //
             // Modify the file attribute to INVALID_FILE_ATTRIBUTES and write it back to the pointer
             //
-            ((PFILE_BASIC_INFORMATION)buf)->FileAttributes = ((DWORD)-1);
+            Buf.FileAttributes = ((DWORD)-1);
 
-            if (!MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam1, buf, sizeof(FILE_BASIC_INFORMATION)))
+            if (!MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam1, &Buf, sizeof(FILE_BASIC_INFORMATION)))
             {
                 LogError("Err, Virtual memory write failed");
             }
 
-            PlatformMemFreePool(buf);
         }
         else {
             LogInfo("A call for the NtQueryAttributeFile system call for a marked file was made, but the output buffer was not captured");
@@ -2001,7 +1997,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
 
         switch (Params->OptionalParam1)
         {
-        case 0x07: 
+        case 0x07:
         {
 
             DWORD_PTR notDebugged = 0x0;
@@ -2061,7 +2057,11 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Handle the return code modification after NtNtQueryValueKey system call
     // 
-    // NOTE: No transparent mitigations of this call have been implemented
+    // NOTE: The transparent mitigation will replace all occurances of a hypervisor vendor string in the registry
+    // key data to a randomized real hardware vendor string, no matter the meaning of the key, 
+    // This can cause some keys to illogical data, for example, 
+    // a disk drive ID having a vendor string of ASUS even though(as far as I know) ASUS doesnt produce storage devices.
+    // or a case where only a part of a string(the matching part) is replaced and cases like ASUS_Virtual are returned to the user-mode
     //
     case SysNtQueryValueKey:
     {
@@ -2101,9 +2101,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
         break;
     }
 
-    //
-    // Handle the memory buffer modification after NtEnumerateKey system call
-    //
     case SysNtEnumerateKey:
     {
         
@@ -2126,7 +2123,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
 
         break;
     }
-    
     default:
 
         //
