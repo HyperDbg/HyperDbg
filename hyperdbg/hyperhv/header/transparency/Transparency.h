@@ -168,6 +168,63 @@ typedef struct _SYSTEM_PROCESS_INFORMATION {
     LARGE_INTEGER Reserved7[6];
 } SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
 
+static const PWCHAR TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[] = {
+    L"",
+
+    L"VEN_8086",  // Intel  
+    L"VEN_10DE",  // NVIDIA  
+    L"VEN_1002",  // AMD  
+    L"VEN_10EC",  // Realtek
+
+};
+
+static const PWCHAR TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[] = {
+    L"",
+
+    L"ASUS",
+    L"ASUSTeK Computer INC.",
+    L"ASUSTek",
+    L"ASUSTEK COMPUTER INC.",
+
+    // MSI
+    L"Micro-Star International Co., Ltd.",
+    L"MSI",
+    L"MICRO-STAR INTERNATIONAL CO., LTD",
+
+    // Gigabyte
+    L"Gigabyte Technology Co., Ltd.",
+    L"GIGABYTE",
+    L"Gigabyte Technology",
+
+    // ASRock
+    L"ASRock",
+    L"ASRock Incorporation",
+    L"ASRock Inc.",
+
+    // Dell
+    L"Dell Inc.",
+    L"DELL",
+    L"Dell Computer Corporation",
+
+    // HP
+    L"Hewlett-Packard",
+    L"Hewlett Packard",
+    L"HP",
+    L"HP Inc.",
+
+    // Lenovo
+    L"LENOVO",
+    L"Lenovo Group Limited",
+
+    // Intel
+    L"Intel Corporation",
+    L"Intel",
+
+    // EVGA
+    L"EVGA Corporation",
+    L"EVGA",
+};
+
 /**
  * @brief A list of common Hypervisor specific process executables
  *
@@ -235,6 +292,7 @@ static const PWCH HV_Processes[] = {
  */
 static const PCHAR HV_DRIVER[] = {
     "hyperkd",
+    "hyperhv",
 
     //
     // Drivers from VBox
@@ -329,7 +387,6 @@ static const PWCH HV_FILES[] = {
         L"VMWare",
 
 
-
         //
         // VirtualBox Files
         //
@@ -391,34 +448,94 @@ static const PWCH HV_DIRS[] = {
     L"Virtio-Win",
     L"qemu-ga",
     L"SPICE Guest Tools",
-    L"VMWare",
+    L"VMware",
+    L"VMWARE",
     L"virtualbox guest additions",
+    L"VirtualBox Guest Additions",
 };
 
-/**
- * @brief A list of common Hypervisor firmware entries
- * 
- * @details The list contains both a normal and uppercase versions of the entries, for better compatibility
- *
- */
-static const PWCH HV_FIRM_NAMES[] = {
-    "VMWARE",
-    "VMware",
-    "VS2005R2",
-    "VirtualBox",
-    "VIRTUALBOX",
-    "Oracle",
-    "ORACLE",
-    "Innotek",
-    "INNOTEK",
+static const PWCH HV_REGKEYS[] = {
+    //
+    // PCI device vendor id's
+    //
+    L"VEN_80EE",
+    L"VEN_15AD",
+    L"VEN_5333",
+
+    //
+    // VMWare
+    //
+    L"VMware Tools",
+    L"VMware, Inc.",
+    L"vmusbmouse",
+    L"VMware",
+    L"VMWARE",
+    L"vmdebug",
+    L"vmmouse",
+    L"VMTools",
+    L"VMMEMCTL",
+    L"vmware tools",
+    L"VMW0001",
+    L"VMW0002",
+    L"VMW0003",
+
+    L"sandbox",
+    L"Sandboxie",
+
+    //
+    // VirtualBox
+    //
+    L"VirtualBox Guest Additions",
+    L"VBOX__",
+    L"VBoxGuest",
+    L"VBoxMouse",
+    L"VBoxService",
+    L"VBoxSF",
+    L"VBoxVideo",
+    L"VIRTUALBOX",
+    L"SUN MICROSYSTEMS",
+    L"VBOXVER",
+    L"VBOXAPIC",
+    L"INNOTEK GMBH",
+
+    //
+    // QEMU
+    //
+    L"qemu-ga",
+    L"SPICE Guest Tools",
+
+    //
+    // VPC
+    //
+    L"vpcbus",
+    L"vpc-s3",
+    L"vpcuhub",
+    L"msvmmouf",
+    L"Wine",
+    L"xen",
+    L"VIRTUAL MACHINE",
+    L"GOOGLE COMPUTE ENGINE",
+    L"sandbox",
+    L"Sandboxie",
+
+    //
+    // KVM
+    //
+    L"vioscsi",
+    L"viostor",
+    L"VirtIO-FS Service",
+    L"VirtioSerial",
+    L"BALLOON",
+    L"BalloonService",
+    L"netkvm",
+
 };
 
-/**
- * @brief A list of Registry keys that might contain indetifiable hypervisor vendor data
- * 
- * @details The keys are spread out in the registry with different paths, where only the final key name is matched
- *
- */
+//
+// @brief A list of registry keys which might contain hypervisor vendor information in their data
+// 
+// NOTE: This is not a complete list, there are a lot of generic keys that also can have the identifiable data
+//
 static const PWCH TRANSPARENT_DETECTABLE_REGISTRY_KEYS[] = {
     L"Identifier",
     L"SystemBiosVersion",
@@ -433,29 +550,31 @@ static const PWCH TRANSPARENT_DETECTABLE_REGISTRY_KEYS[] = {
     L"DisplayName",
     L"ProviderName",
     L"Device Description",
-
+    L"BIOSVendor",
+    L"DriverDesc",
+    L"InfSection",
+    L"Service",
+    L"0",
+    L"1",
+    L"00000000",
 };
 
 /**
- * @brief A list of Registry keys speciffic indetifiable hypervisor vendors
+ * @brief A list of common Hypervisor firmware entries
  * 
+ * @details The list contains both a normal and uppercase versions of the entries, for better compatibility
  *
  */
-static const PWCH HV_REGKEYS[] = {
-    L"VMware Tools",
-    L"qemu-ga",
-    L"SPICE Guest Tools",
-    L"VMware",
-    L"VMWARE",
-    L"VEN_15A",
-    L"VMware, Inc.",
-    L"INNOTEK GMBH",
-    L"VIRTUALBOX",
-    L"SUN MICROSYSTEMS",
-    L"VBOXVER",
-    L"VIRTUAL MACHINE",
-    L"GOOGLE COMPUTE ENGINE",
-    L"VBOXAPIC",
+static const PCHAR HV_FIRM_NAMES[] = {
+    "VMWARE",
+    "VMware",
+    "VS2005R2",
+    "VirtualBox",
+    "VIRTUALBOX",
+    "Oracle",
+    "ORACLE",
+    "Innotek",
+    "INNOTEK",
 };
 //////////////////////////////////////////////////
 //				   Functions					//
@@ -493,6 +612,9 @@ VOID
 TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu);
 
 VOID
+TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
+VOID
 TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu);
 
 VOID
@@ -506,6 +628,9 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu);
 
 VOID
 TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu);
+
+VOID
+TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE* VCpu);
 
 UINT32
 TransparentGetRand();

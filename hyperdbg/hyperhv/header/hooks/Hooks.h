@@ -150,8 +150,8 @@ NTSTATUS(*NtCreateFileOrig)
 
 enum _WIN_SYSTEM_CALLS
 {
-    NtQuerySystemInformation        = 0x0036,
-    NtQuerySystemInformationEx      = 0x0162, // On 22H2, changes on each windows version
+    SysNtQuerySystemInformation        = 0x0036,
+    SysNtQuerySystemInformationEx      = 0x0162, // On 22H2, changes on each windows version
     
     SysNtQueryVolumeInformationFile = 0x0049,
     SysNtSystemDebugControl         = 0x01bf, // On 22H2, changes on each windows version
@@ -167,6 +167,7 @@ enum _WIN_SYSTEM_CALLS
     SysNtOpenKeyEx                  = 0x0121,
     SysNtQueryValueKey              = 0x0017,
     SysNtOpenKeyTransacted          = 0x0122, // On 22H2, changes on each windows version
+    SysNtEnumerateKey               = 0x0032,
 
 };
 //////////////////////////////////////////////////

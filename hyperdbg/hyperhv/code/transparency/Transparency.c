@@ -156,10 +156,10 @@ VOID
 TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
 {
 
-    switch(VCpu->Regs->rax)
+    switch(VCpu->Regs->rax & 0x00000000ffffffff)
     {
-    case NtQuerySystemInformation:
-    case NtQuerySystemInformationEx:
+    case SysNtQuerySystemInformation:
+    case SysNtQuerySystemInformationEx:
     {
         //
         // Handle the NtQuerySystemInformation System call
@@ -260,9 +260,17 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
         TransparentHandleNtQueryValueKeySyscall(VCpu);
         break;
     }
+    case SysNtEnumerateKey:
+    {
+        //
+        // Handle the NtEnumerateKey System call
+        //
+        TransparentHandleNtEnumerateKeySyscall(VCpu);
+        break;
+    }
     default:
     {
-        return;
+        break;
     }
     }
 }
@@ -348,10 +356,10 @@ TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
         ContextParams.OptionalParam3                  = VCpu->Regs->r8;
 
         TransparentSetTrapFlagAfterSyscall(VCpu,
-                                        HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                        VCpu->Regs->rax,
-                                        &ContextParams);
+                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                           VCpu->Regs->rax,
+                                           &ContextParams);
         break;
     }
     default:
@@ -374,6 +382,8 @@ TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr)
 {
     PVOID buf = PlatformMemAllocateZeroedNonPagedPool(sizeof(OBJECT_ATTRIBUTES));
 
+    OBJECT_ATTRIBUTES buf = { 0 }; // move  allocations to stack  +  start with capitalLet
+
     if (buf == NULL)
     {
         LogError("Err, insufficient memory");
@@ -394,6 +404,7 @@ TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr)
 
             return NULL;
         }
+
         //
         // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by OBJECT_ATTRIBUTES.ObjectName struct entry
         //
@@ -569,6 +580,8 @@ TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE* VCpu)
 
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
 
+    //PCHAR test = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());        //gets the process name and loginfo the name; ignore the windows processes. skip hooking
+
     TransparentSetTrapFlagAfterSyscall(VCpu,
                                            HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                            HANDLE_TO_UINT32(PsGetCurrentThreadId()),
@@ -600,7 +613,7 @@ TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE* VCpu)
     TransparentSetTrapFlagAfterSyscall(VCpu,
                                        HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                       VCpu->Regs->rax,
+                                       SysNtQueryInformationProcess,
                                        &ContextParams);
 }
 
@@ -725,7 +738,7 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
 }
 
 /**
- * @brief Handle The NtQueryValueKey system call 
+ * @brief Handle The NtQueryValueKey system call
  * when the Transparent mode is enabled
  *
  * @param VCpu The virtual processor's state
@@ -737,42 +750,34 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
     //
     // Check if the user-mode pointer in RDX to a UNICODE_STRING struct is valid
     //
-    if (CheckAccessValidityAndSafety(VCpu->Regs->rdx, sizeof(UNICODE_STRING))) 
+    if (CheckAccessValidityAndSafety(VCpu->Regs->rdx, sizeof(UNICODE_STRING)))
     {
-        PVOID buf = PlatformMemAllocateZeroedNonPagedPool(sizeof(UNICODE_STRING));
-        if (buf == NULL)
-        {
-            return;
-        }
+        UNICODE_STRING NameUString = { 0 };
 
         //
         // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by RDX struct entry
         //
-        if (!MemoryMapperReadMemorySafeOnTargetProcess(VCpu->Regs->rdx, buf, sizeof(UNICODE_STRING)))
-        {
-            PlatformMemFreePool(buf);
-            return;
-        }
+        if (!MemoryMapperReadMemorySafeOnTargetProcess(VCpu->Regs->rdx, &NameUString, sizeof(UNICODE_STRING))) return;
 
-        PCUNICODE_STRING nameUString = (PCUNICODE_STRING)buf;
-        
+
         //
         // Read the PWCH wide char string from the address pointer in the UNICODE_STRING
         //
-        PVOID nameBuf = PlatformMemAllocateZeroedNonPagedPool(nameUString->Length + sizeof(WCHAR));
-        if (nameBuf == NULL)
+        PVOID NameBuf = PlatformMemAllocateZeroedNonPagedPool(NameUString.Length + sizeof(WCHAR));
+        if (NameBuf == NULL)
         {
             return;
         }
 
-        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)nameUString->Buffer, nameBuf, nameUString->Length + sizeof(WCHAR)))
+        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)NameUString.Buffer, NameBuf, NameUString.Length + sizeof(WCHAR)))
         {
-            PlatformMemFreePool(buf);
+            PlatformMemFreePool(NameBuf);
             return;
         }
-    
-        PlatformMemFreePool(buf);
-        PWCH name = (PWCH)nameBuf;
+
+        PWCH KeyName = (PWCH)NameBuf;
+
+
 
         //
         // If the registry key request was for kay that could contain hypervisor specific information in its data, 
@@ -780,25 +785,56 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         for (ULONG i = 0; i < (sizeof(TRANSPARENT_DETECTABLE_REGISTRY_KEYS) / sizeof(TRANSPARENT_DETECTABLE_REGISTRY_KEYS[0])); i++)
         {
-            if (wcsstr(name, TRANSPARENT_DETECTABLE_REGISTRY_KEYS[i]))
+            if (!wcscmp(KeyName, TRANSPARENT_DETECTABLE_REGISTRY_KEYS[i]))
             {
                 //
                 // If a match is found, set up the context values and set the trap flag for the SYSRET callback
                 //
+
+                //LogInfo("Regs: R10: %llx, RDX: %llx, R8: %llx, R9: %llx", VCpu->Regs->r10, VCpu->Regs->rdx, VCpu->Regs->r8, VCpu->Regs->r9);
+
                 TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-                ContextParams.OptionalParam1 = 1;                   // 1 for bufffer modification
+
+                ContextParams.OptionalParam1 = VCpu->Regs->r8;
                 ContextParams.OptionalParam2 = VCpu->Regs->r9;
+                
+
+                if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x30, sizeof(UINT64)))
+                {
+                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
+                }
+                else
+                {
+                    LogInfo("Process 0x%llx on thread %llx executed NtQueryValueKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                                                                                                     HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+                    
+                    PlatformMemFreePool(NameBuf);
+                    return;
+                }
+
+                if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x28, sizeof(UINT64)))
+                {
+                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
+                }
+                else
+                {
+                    LogInfo("Process 0x%llx on thread %llx executed NtQueryValueKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                                                                                                     HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+                    
+                    PlatformMemFreePool(NameBuf);
+                    return;
+                }
 
                 TransparentSetTrapFlagAfterSyscall(VCpu,
-                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                           VCpu->Regs->rax,
-                                                           &ContextParams);
+                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                    VCpu->Regs->rax,
+                                                    &ContextParams);
 
                 //
                 // Clean-up and return to guest exection
                 //
-                PlatformMemFreePool((PVOID)name);
+                PlatformMemFreePool(NameBuf);
                 return;
             }
         }
@@ -809,7 +845,7 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         for (UINT16 j = 1; j < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); j++)
         {
-            if (wcsstr(name, HV_REGKEYS[j]) > 0)
+            if (wcsstr(KeyName, HV_REGKEYS[j]) > 0)
             {
                 //
                 // When the match is found, corrupt the buffer pointers in the registers
@@ -821,10 +857,10 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
                 VCpu->Regs->r9 = 0x0;
 
                 TransparentSetTrapFlagAfterSyscall(VCpu,
-                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                       SysNtOpenKey,
-                                                       &ContextParams);
+                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                    VCpu->Regs->rax,
+                                                    &ContextParams);
                 
                 break;
             }
@@ -833,8 +869,61 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //
         //Clean up the allocated memory
         //
-        PlatformMemFreePool((PVOID)name);
+        PlatformMemFreePool(NameBuf);
     }  
+}
+
+/**
+ * @brief Handle The NtEnumerateKey system call
+ * when the Transparent mode is enabled
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
+{
+    //
+    // Set up the context parameters for the interception callback
+    //
+    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = { 0 };
+    ContextParams.OptionalParam1 = VCpu->Regs->r8;
+    ContextParams.OptionalParam2 = VCpu->Regs->r9;
+
+    if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x28, sizeof(UINT64)))
+    {
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
+    }
+    else
+    {
+        LogInfo("Process 0x%llx on thread %llx executed NtEnumerateKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                                                                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+        return;
+    }
+
+    if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x30, sizeof(UINT64)))
+    {
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
+    }
+    else
+    {
+        LogInfo("Process 0x%llx on thread %llx executed NtEnumerateKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                                                                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+        return;
+    }
+    if (ContextParams.OptionalParam3 == 0)
+    {
+        return;
+    }
+
+    //
+    // Set the trap flag to intercept the SYSRET instruction
+    //
+    TransparentSetTrapFlagAfterSyscall(VCpu,
+                                        HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                        VCpu->Regs->rax,
+                                        &ContextParams);
 }
 
 /**
@@ -1332,6 +1421,363 @@ TransparentHandleFirmwareInformationQuery(UINT64 ptr, UINT32 size)
 }
 
 /**
+ * @brief Replace occurances of a hypervisor specific strings with legitimate vendor strings in a provided buffer
+ * 
+ * @param Params        Set transparent callback params that contain:
+                        in OptionalParam2 a pointer to a valid read/writable memory buffer that contains both, a WCHAR string and its length in bytes
+                        in OptionalParam3 max size in bytes of the allocatec buffer
+                        in OptionalParam4 a pointer to a ULONG containing current size of the buffer
+ *
+ * @param DataOffset    Offset in bytes from OptionalParam2 to the start of the WCHAR data string
+ * 
+ * @param DataLenOffset Offset in bytes from OptionalParam2 to a ULONG containing the string length(in bytes)
+ * 
+ * @return UINT64
+ */
+UINT64
+TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS* Params, ULONG DataOffset, ULONG DataLenOffset)
+{
+    PVOID Buf = NULL;
+    BOOL PoolAlloc = FALSE;
+
+    //
+    // Check that the user provided pointers are safe to read from
+    //
+    if (CheckAccessValidityAndSafety(Params->OptionalParam4, sizeof(ULONG)))
+    {
+        //
+        // Read the size of the data that the kernel wrote to the buffer
+        //
+        ULONG BufSize = 0;
+        if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG)))
+        {
+            goto ReturnWithError;
+        }
+
+        //
+        // If the data the kernel wanted to write is bigger than what was allocated by the user
+        //
+        if (BufSize > Params->OptionalParam3 || BufSize == 0)
+        {
+            //
+            // NOTE: might need zeroing the memory if the kernel did infact write to the pointer
+            //
+
+            return 0;
+        }
+
+        //
+        // Check that the user provided pointers are safe to read from
+        //
+        if (!CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+        {
+            goto ReturnWithError;
+        }
+
+        //
+        // If the buffer is small, e.g. for just a single word, store it on the stack
+        // else, allocate a nonpaged memory buffer
+        //
+        CHAR StackBuf[MAX_PATH] = { 0 };
+
+        if (Params->OptionalParam3 + sizeof(WCHAR) > MAX_PATH)
+        {
+            Buf = PlatformMemAllocateZeroedNonPagedPool(Params->OptionalParam3 + sizeof(WCHAR));
+            PoolAlloc = TRUE;
+        }
+        else
+        {
+            Buf = &StackBuf;
+        }
+     
+        if (!Buf || !MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3))
+        {
+            goto ReturnWithError;
+        }
+        
+        //
+        // Get the actual data we are trying to modify(in wide char form)
+        //
+        PWCH StringBuf = (PWCH)((PBYTE)Buf + DataOffset);
+
+        //
+        // Traverse the list of registry key names and vendor strings that are specific to common hypervisors
+        // if a match is found perform the modification
+        //
+        for (UINT16 i = 0; i < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); i++)
+        {
+            PWCH MatchStart = wcsstr(StringBuf, HV_REGKEYS[i]);
+            if (MatchStart != 0)
+            {
+                PWCH NewVendorString = NULL;
+
+                //
+                // If the match was for a device id, the replacement should be with a different ID string not vendor name
+                //
+                if (i < 3)
+                {
+                    //
+                    // SPOOFS PCI device ID's(in the registry), This might be implemented in other ways that are not part of this implementation
+                    //
+                    
+                    NewVendorString = TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[1];
+                }
+                else
+                {
+                    //
+                    // Obtain the replacement vendor name string, randomized when the transparency mode was enabled
+                    //
+                    NewVendorString = TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[1]; 
+                }
+
+                //
+                // Obtain the lengths of all the strings and substring
+                //
+                ULONG tempSize = (ULONG)wcslen(NewVendorString) * sizeof(WCHAR);
+
+                ULONG MatchedStringLen = (ULONG)wcslen(HV_REGKEYS[i]) * sizeof(WCHAR);
+                ULONG oldLength = *((PBYTE)Buf + DataLenOffset);
+
+                ULONG NewStringSize = oldLength - MatchedStringLen + tempSize;
+
+                //
+                // Check if the buffer size allows the modification, in case of expansion
+                //
+                if (BufSize - MatchedStringLen + tempSize > Params->OptionalParam3)
+                {
+                    //
+                    // If adding the new string exceeds the user allocated size,
+                    // zero out the buffer
+                    //
+                    memset(Buf, 0x0, Params->OptionalParam3);
+                    MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3);
+
+                    //
+                    // Update the required buffer size for the next call
+                    //
+                    BufSize = (tempSize - MatchedStringLen) + oldLength;
+                    MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG));
+                    
+                    //
+                    // And return STATUS_BUFFER_OVERFLOW error
+                    //
+
+                    if(PoolAlloc) PlatformMemFreePool(Buf);
+                    return (UINT64)(UINT32)STATUS_BUFFER_OVERFLOW;
+                }
+
+                //
+                // Calculate the positions of the replacement
+                //
+                ULONG MatchOffset = (ULONG)((MatchStart - StringBuf));
+                PWCH MatchEnd = StringBuf + MatchOffset + (MatchedStringLen / sizeof(WCHAR));
+
+                //
+                // Move the data after the matched string forward
+                // and replace the identified hypervisor string with the genuine one
+                //
+                memmove((PVOID)(StringBuf + MatchOffset + (tempSize / sizeof(WCHAR))), (PVOID)MatchEnd, oldLength - MatchedStringLen - (MatchOffset * sizeof(WCHAR)));
+                memcpy((PVOID)MatchStart, (PVOID)NewVendorString, tempSize);
+                        
+                *(PULONG)((PBYTE)Buf + DataLenOffset) = NewStringSize;
+                BufSize = BufSize - MatchedStringLen + tempSize;
+
+                //
+                // Write the changes back to the user buffers
+                //
+                if (!MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, BufSize)) 
+                {
+                    goto ReturnWithError;
+                }
+
+                if (!MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG)))
+                {
+                    goto ReturnWithError;
+                }
+
+                //
+                // Cleanup
+                //
+                if(PoolAlloc) PlatformMemFreePool(Buf);
+
+                return 0;
+            }
+   
+        }
+
+        //
+        // The data buffer contained no detectable strings
+        //
+        if(PoolAlloc) PlatformMemFreePool(Buf);
+        return 0;
+    }
+
+//
+// An error occured while performing the mitigations, the user buffer might be left unmodified
+//
+ReturnWithError:
+    LogInfo("A call for to read a registry entry, which could contain hypervisor specific data, was intercepted but the mitigations failed");
+    LogInfo("The caller process recieved the results in this virtual address: %llx", Params->OptionalParam2);
+
+    if (Buf != NULL) {
+        if(PoolAlloc) PlatformMemFreePool(Buf);
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Callback function to handle the returns from the NtQueryValueKey syscall
+ *
+ * @param Params        The set transparent callback params that contain:
+                        in OptionalParam1 the KEY_VALUE_INFORMATION_CLASS enum value 
+                        in OptionalParam2 a pointer to a valid read/writable memory buffer that contains both, a WCHAR string and its length in bytes
+                        in OptionalParam3 max size in bytes of the allocatec buffer
+                        in OptionalParam4 a pointer to a ULONG containing current size of the buffer
+ *
+ * @return UINT64 
+ */
+UINT64
+TransparentCallbackHandleAfterNtQueryValueKeySyscall(TRANSPARENT_MODE_CONTEXT_PARAMS* Params)
+{
+    ULONG LenOffset = 0;
+    ULONG BufOffset = 0;
+
+    //
+    // Based on the KEY_VALUE_INFORMATION_CLASS given, set the struct offsets for the data buffer and its length fields
+    //
+    switch (Params->OptionalParam1)
+    {
+
+    //
+    // KeyValueBasicInformation and queries for a key that has a hypervisor specific name
+    //
+    case 0x0:
+    {
+        
+        if (Params->OptionalParam2 != 0) return 0;
+
+        //
+        // If the key query was for a registry key that has a hypervisor specific name, return an error code
+        //
+        return (UINT64)(UINT32)STATUS_OBJECT_NAME_NOT_FOUND;
+    }
+
+    //
+    // KeyValuePartialInformation
+    //
+    case 0x2:
+    {
+        LenOffset = sizeof(ULONG) * 2;
+        BufOffset = sizeof(ULONG) * 3;
+
+        break;
+    }
+
+    //
+    // KeyValueFullInformation
+    //
+    case 0x3:
+    case 0x1:
+    {
+        LenOffset = sizeof(ULONG) * 3;
+        BufOffset = sizeof(ULONG) * 4; //Name offset, Data is after it
+
+        break;
+    }
+
+    //
+    // KeyValuePartialInformationAlign64
+    //
+    case 0x4:
+    {
+        LenOffset = sizeof(ULONG) * 1;
+        BufOffset = sizeof(ULONG) * 2;
+
+        break;
+    }   
+    default:
+    {
+        LogInfo("NtQueryValueKey was called with KeyValueInformationClass 0x%x, a handler for which has not been implemented", Params->OptionalParam1);
+        return 0;
+    }
+    }
+
+    //
+    // Given the user buffer, read and exchange any Hypervisor vendor strings in the registry key data
+    //
+    return TransparentReplaceVendorStringFromBufferWChar(Params, BufOffset, LenOffset);
+
+}
+
+/**
+ * @brief Callback function to handle the returns from the NtQueryValueKey syscall
+ *
+ * @param Params        The set transparent callback params that contain:
+                        in OptionalParam1 the KEY_VALUE_INFORMATION_CLASS enum value 
+                        in OptionalParam2 a pointer to a valid read/writable memory buffer that contains both, a WCHAR string and its length in bytes
+                        in OptionalParam3 max size in bytes of the allocatec buffer
+                        in OptionalParam4 a pointer to a ULONG containing current size of the buffer
+ *
+ * @return UINT64 
+ */
+UINT64
+TransparentCallbackHandleAfterNtEnumerateKeySyscall(TRANSPARENT_MODE_CONTEXT_PARAMS* Params)
+{
+    ULONG LenOffset = 0;
+    ULONG BufOffset = 0;
+
+    //
+    // Based on the KEY_INFORMATION_CLASS given, set the struct offsets for the data buffer and its length fields
+    //
+    switch (Params->OptionalParam1)
+    {
+
+    //
+    // KeyBasicInformation
+    //
+    case 0x0:
+    {
+
+        LenOffset = sizeof(LARGE_INTEGER) + sizeof(ULONG);
+        BufOffset = sizeof(LARGE_INTEGER) + (sizeof(ULONG) * 2);
+
+        break;
+    }
+
+    //
+    // KeyNodeInformation
+    //
+    case 0x1:
+    {
+        return 0;
+    }
+
+    //
+    // KeyNameInformation
+    //
+    case 0x3:
+    {
+        LenOffset = 0;
+        BufOffset = sizeof(ULONG);
+
+        break;
+    }   
+    default:
+    {
+        LogInfo("NtEnumerateKey was called with KeyInformationClass 0x%x, a handler for which has not been implemented", Params->OptionalParam1);
+        return 0;
+    }
+    }
+
+    //
+    // Given the user buffer, read and exchange any Hypervisor vendor strings in the registry key names
+    //
+    return TransparentReplaceVendorStringFromBufferWChar(Params, BufOffset, LenOffset);
+
+}
+
+/**
  * @brief Callback function to handle the returns from the NtQuerySystemInformation syscall
  *
  * @param VCpu The virtual processor's state
@@ -1477,7 +1923,8 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Handle the memory buffer and return code modification after NtQuerySystemInformation system call
     //
-    case NtQuerySystemInformation:
+    case SysNtQuerySystemInformation:
+    case SysNtQuerySystemInformationEx:
     {
 
         TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(Params);
@@ -1554,7 +2001,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
 
         switch (Params->OptionalParam1)
         {
-        case 0x07:
+        case 0x07: 
         {
 
             DWORD_PTR notDebugged = 0x0;
@@ -1618,20 +2065,24 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     //
     case SysNtQueryValueKey:
     {
-        if (Params->OptionalParam1 == 1) {
+        UINT64 RetVal;
 
-            if (!CheckAccessValidityAndSafety(Params->OptionalParam2, 16)) break;
+        //
+        // Call the handler of NtQueryValueKey syscall callback
+        //
+        RetVal = TransparentCallbackHandleAfterNtQueryValueKeySyscall(Params);
 
-            LogInfo("Process: %x, on thread %x tried to read a Registry key which might contain hypervisor vendor data",
-                    ProcessId,
-                    ThreadId);
-            LogInfo("No action to mitigate this was performed, but the user-mode data buffer that this data was written is: %p", Params->OptionalParam2);
-
-            //
-            break;               // Comented out for hypervisor detection test passing, removes smbios data from the registry(as it appears to the user), which is not a valid windows setup
-            //
+        //
+        // If a custom(Specific to transparency) error code should be returned,
+        // set it to %RAX
+        // Else leave it to what the kernel already set it to
+        //
+        if (RetVal != 0)
+        {
+            VCpu->Regs->rax = RetVal;
         }
-        
+
+        break;
     }
 
     //
@@ -1650,6 +2101,32 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
         break;
     }
 
+    //
+    // Handle the memory buffer modification after NtEnumerateKey system call
+    //
+    case SysNtEnumerateKey:
+    {
+        
+        UINT64 RetVal;
+
+        //
+        // Call the handler of NtEnumerateKey syscall callback
+        //
+        RetVal = TransparentCallbackHandleAfterNtEnumerateKeySyscall(Params);
+
+        //
+        // If a custom(Specific to transparency) error code should be returned,
+        // set it to %RAX
+        // Else leave it to what the kernel already set it to
+        //
+        if (RetVal != 0)
+        {
+            VCpu->Regs->rax = RetVal;
+        }
+
+        break;
+    }
+    
     default:
 
         //
