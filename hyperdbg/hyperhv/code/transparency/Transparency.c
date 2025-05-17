@@ -24,45 +24,53 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transparent
     // Check whether the transparent-mode was already initialized or not
     //
     if (!g_TransparentMode)
-{
-
-    //
-    // Insert EPT memory page hook for Windows system call handler, KiSystemCall64()
-    //
-    MSR Msr = {0};
-    Msr.Flags = __readmsr(IA32_LSTAR);
-
-    if (!EptHook((PVOID)(Msr.Flags + 3), (UINT32)(ULONG_PTR)PsGetCurrentProcessId())) {
-        LogInfo("Error while inserting EPT page hook for Windows system call handler at address 0x%p+3", Msr.Flags);
+    {
         
-        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
-        return FALSE;
+
+        //
+        // Insert EPT memory page hook for Windows system call handler, KiSystemCall64()
+        //
+        MSR Msr = {0};
+        Msr.Flags = __readmsr(IA32_LSTAR);
+
+        if (!EptHook((PVOID)(Msr.Flags + 3), (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
+        {
+            LogInfo("Error while inserting EPT page hook for Windows system call handler at address 0x%p+3", Msr.Flags);
+            
+            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+            return FALSE;
+        }
+        else
+        {
+            LogInfo("EPT page hook inserted");
+        }
+
+        //
+        // Allocate buffer for the transparent-mode trap flag state
+        //
+        g_TransparentModeTrapFlagState = (TRANSPARENT_MODE_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(TRANSPARENT_MODE_TRAP_FLAG_STATE));
+
+        //
+        // Intercept trap flags #DBs and #BPs for the transparent-mode
+        //
+        BroadcastEnableDbAndBpExitingAllCores();
+
+        //
+        // Choose a random genuine vendor string to replace hypervisor vendor data
+        //
+        TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = TransparentGetRand() % (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
+
+        //
+        // Enable the transparent-mode
+        //
+        g_TransparentMode                    = TRUE;
+        TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        
+        //
+        // Successfully enabled the transparent-mode
+        //
+        return TRUE;
     }
-    else {
-        LogInfo("EPT page hook inserted");
-    }
-
-    //
-    // Allocate buffer for the transparent-mode trap flag state
-    //
-    g_TransparentModeTrapFlagState = (TRANSPARENT_MODE_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(TRANSPARENT_MODE_TRAP_FLAG_STATE));
-
-    //
-    // Intercept trap flags #DBs and #BPs for the transparent-mode
-    //
-    BroadcastEnableDbAndBpExitingAllCores();
-
-    //
-    // Enable the transparent-mode
-    //
-    g_TransparentMode                    = TRUE;
-    TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    
-    //
-    // Successfully enabled the transparent-mode
-    //
-    return TRUE;
-}
     else
     {
         TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_ALREADY_HIDE;
@@ -348,20 +356,27 @@ TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
                                            &ContextParams);
         break;
     }
-    case SystemFirmwareTableInformation:
-    {
+    
+    //
+    // Currently SystemFirmwareTableInformation transparent handler is not implemented
+    // As the queries produce a data buffer too large to safely copy and modify in root-mode
+    //
 
-        ContextParams.OptionalParam1                  = SystemFirmwareTableInformation;
-        ContextParams.OptionalParam2                  = VCpu->Regs->rdx;
-        ContextParams.OptionalParam3                  = VCpu->Regs->r8;
-
-        TransparentSetTrapFlagAfterSyscall(VCpu,
-                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           VCpu->Regs->rax,
-                                           &ContextParams);
-        break;
-    }
+//    case SystemFirmwareTableInformation:
+//    {
+//
+//        ContextParams.OptionalParam1                  = SystemFirmwareTableInformation;
+//        ContextParams.OptionalParam2                  = VCpu->Regs->rdx;
+//        ContextParams.OptionalParam3                  = VCpu->Regs->r8;
+//        ContextParams.OptionalParam4                  = VCpu->Regs->r9;
+//
+//        TransparentSetTrapFlagAfterSyscall(VCpu,
+//                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+//                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+//                                           VCpu->Regs->rax,
+//                                           &ContextParams);
+//        break;
+//    }
     default:
     {
         return;
@@ -1470,9 +1485,9 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS* P
         }
 
         //
-        // Check that the user provided pointers are safe to read from
+        // Check that the user provided pointers are safe to read from and the buffer is not too large
         //
-        if (!CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+        if (Params->OptionalParam3 >= 0xC00 || !CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
         {
             goto ReturnWithError;
         }
@@ -1502,7 +1517,7 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS* P
         // Get the actual data we are trying to modify(in wide char form)
         //
         PWCH StringBuf = (PWCH)((PBYTE)Buf + DataOffset);
-
+        
         //
         // Traverse the list of registry key names and vendor strings that are specific to common hypervisors
         // if a match is found perform the modification
@@ -1510,7 +1525,8 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS* P
         for (UINT16 i = 0; i < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); i++)
         {
             PWCH MatchStart = wcsstr(StringBuf, HV_REGKEYS[i]);
-            if (MatchStart != 0)
+            
+            while (MatchStart != 0)
             {
                 PWCH NewVendorString = NULL;
 
@@ -1522,15 +1538,15 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS* P
                     //
                     // SPOOFS PCI device ID's(in the registry), This might be implemented in other ways that are not part of this implementation
                     //
-                    
-                    NewVendorString = TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[1];
+                    WORD Idx = TRANSPARENT_GENUINE_VENDOR_STRING_INDEX % (sizeof(TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[0])); 
+                    NewVendorString = TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[Idx];
                 }
                 else
                 {
                     //
                     // Obtain the replacement vendor name string, randomized when the transparency mode was enabled
                     //
-                    NewVendorString = TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[1]; 
+                    NewVendorString = TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[TRANSPARENT_GENUINE_VENDOR_STRING_INDEX]; 
                 }
 
                 //
@@ -1601,9 +1617,11 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS* P
                 //
                 // Cleanup
                 //
-                if(PoolAlloc) PlatformMemFreePool(Buf);
+                
+                MatchStart = wcsstr(StringBuf, HV_REGKEYS[i]);
 
-                return 0;
+                if (!MatchStart) i = 0;
+
             }
    
         }

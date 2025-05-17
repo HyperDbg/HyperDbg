@@ -12,6 +12,12 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				     Globals 	    			//
+//////////////////////////////////////////////////
+
+static WORD TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = 0;
+
+//////////////////////////////////////////////////
 //				      Locks 	    			//
 //////////////////////////////////////////////////
 
@@ -169,8 +175,6 @@ typedef struct _SYSTEM_PROCESS_INFORMATION {
 } SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
 
 static const PWCHAR TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[] = {
-    L"",
-
     L"VEN_8086",  // Intel  
     L"VEN_10DE",  // NVIDIA  
     L"VEN_1002",  // AMD  
@@ -179,8 +183,6 @@ static const PWCHAR TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[] = {
 };
 
 static const PWCHAR TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[] = {
-    L"",
-
     L"ASUS",
     L"ASUSTeK Computer INC.",
     L"ASUSTek",
@@ -345,97 +347,97 @@ static const PCHAR HV_DRIVER[] = {
  *
  */
 static const PWCH HV_FILES[] = {
-        //
-        // Hyperdbg Files
-        //
-        L"hyperhv",
-        L"hyperkd"
-        L"hyperlog",
-        L"libhyperdbg",
+    //
+    // Hyperdbg Files
+    //
+    L"hyperhv",
+    L"hyperkd"
+    L"hyperlog",
+    L"libhyperdbg",
 
 
 
-        //
-        // VMWare Files
-        //
-        L"vmmouse.sys",
-        L"Vmmouse.sys",
-        L"vmusbmouse.sys",
-        L"Vmusbmouse.sys",
-        L"vm3dgl.dll",
-        L"vmdum.dll",
-        L"VmGuestLibJava.dll",
-        L"vm3dver.dll",
-        L"vmtray.dll",
-        L"VMToolsHook.dll",
-        L"vmGuestLib.dll",
-        L"vmhgfs.dll",
-        L"vmhgfs.sys",
-        L"vm3dum64_loader.dll",
-        L"vm3dum64_10.dll",
-        L"vmnet.sys",
-        L"vmusb.sys",
-        L"vm3dmp.sys",
-        L"vmci.sys",
-        L"vmmemctl.sys",
-        L"vmx86.sys",
-        L"vmrawdsk.sys",
-        L"vmkdb.sys",
-        L"vmnetuserif.sys",
-        L"vmnetadapter.sys",
-        L"VMware Tools",
-        L"VMWare",
+    //
+    // VMWare Files
+    //
+    L"vmmouse.sys",
+    L"Vmmouse.sys",
+    L"vmusbmouse.sys",
+    L"Vmusbmouse.sys",
+    L"vm3dgl.dll",
+    L"vmdum.dll",
+    L"VmGuestLibJava.dll",
+    L"vm3dver.dll",
+    L"vmtray.dll",
+    L"VMToolsHook.dll",
+    L"vmGuestLib.dll",
+    L"vmhgfs.dll",
+    L"vmhgfs.sys",
+    L"vm3dum64_loader.dll",
+    L"vm3dum64_10.dll",
+    L"vmnet.sys",
+    L"vmusb.sys",
+    L"vm3dmp.sys",
+    L"vmci.sys",
+    L"vmmemctl.sys",
+    L"vmx86.sys",
+    L"vmrawdsk.sys",
+    L"vmkdb.sys",
+    L"vmnetuserif.sys",
+    L"vmnetadapter.sys",
+    L"VMware Tools",
+    L"VMWare",
 
 
-        //
-        // VirtualBox Files
-        //
-        L"VBoxMouse.sys",
-        L"VBoxGuest.sys",
-        L"VBoxSF.sys",
-        L"VBoxVideo.sys",
-        L"vboxoglpackspu.dll",
-        L"vboxoglpassthroughspu.dll",
-        L"vboxservice.exe",
-        L"vboxoglcrutil.dll",
-        L"vboxdisp.dll",
-        L"vboxhook.dll",
-        L"vboxmrxnp.dll",
-        L"vboxogl.dll",
-        L"vboxtray.exe",
-        L"VBoxControl.exe",
-        L"vboxoglerrorspu.dll",
-        L"vboxoglfeedbackspu.dll",
-        L"vboxoglarrayspu.dll",
-        L"vboxmrxnp.dll",
-        L"virtualbox guest additions",
+    //
+    // VirtualBox Files
+    //
+    L"VBoxMouse.sys",
+    L"VBoxGuest.sys",
+    L"VBoxSF.sys",
+    L"VBoxVideo.sys",
+    L"vboxoglpackspu.dll",
+    L"vboxoglpassthroughspu.dll",
+    L"vboxservice.exe",
+    L"vboxoglcrutil.dll",
+    L"vboxdisp.dll",
+    L"vboxhook.dll",
+    L"vboxmrxnp.dll",
+    L"vboxogl.dll",
+    L"vboxtray.exe",
+    L"VBoxControl.exe",
+    L"vboxoglerrorspu.dll",
+    L"vboxoglfeedbackspu.dll",
+    L"vboxoglarrayspu.dll",
+    L"vboxmrxnp.dll",
+    L"virtualbox guest additions",
 
-        //
-        // KVM files
-        //
-        L"balloon.sys",
-        L"netkvm.sys",
-        L"pvpanic.sys",
-        L"viofs.sys",
-        L"viogpudo.sys",
-        L"vioinput.sys",
-        L"viorng.sys",
-        L"vioscsi.sys",
-        L"vioser.sys",
-        L"viostor.sys",
+    //
+    // KVM files
+    //
+    L"balloon.sys",
+    L"netkvm.sys",
+    L"pvpanic.sys",
+    L"viofs.sys",
+    L"viogpudo.sys",
+    L"vioinput.sys",
+    L"viorng.sys",
+    L"vioscsi.sys",
+    L"vioser.sys",
+    L"viostor.sys",
 
-        //
-        // VPC files
-        //
-        L"vmsrvc.sys",
-        L"vmusrvc.sys",
-        L"vmsrvc.exe",
-        L"vmusrvc.exe",
-        L"vpc-s3.sys",
-        L"Virtio-Win",
-        
-        L"qemu-ga",
-        L"SPICE Guest Tools",
+    //
+    // VPC files
+    //
+    L"vmsrvc.sys",
+    L"vmusrvc.sys",
+    L"vmsrvc.exe",
+    L"vmusrvc.exe",
+    L"vpc-s3.sys",
+    L"Virtio-Win",
+    
+    L"qemu-ga",
+    L"SPICE Guest Tools",
 };
 
 /**
@@ -470,6 +472,7 @@ static const PWCH HV_REGKEYS[] = {
     L"vmusbmouse",
     L"VMware",
     L"VMWARE",
+    L"VMWare",
     L"vmdebug",
     L"vmmouse",
     L"VMTools",
@@ -566,8 +569,12 @@ static const PWCH TRANSPARENT_DETECTABLE_REGISTRY_KEYS[] = {
  *
  */
 static const PCHAR HV_FIRM_NAMES[] = {
+    "440BX Desktop Reference Platform",
+    "VMWARE, INC.",
+    "VMware, Inc.",
     "VMWARE",
     "VMware",
+    "VMW",
     "VS2005R2",
     "VirtualBox",
     "VIRTUALBOX",
@@ -575,6 +582,8 @@ static const PCHAR HV_FIRM_NAMES[] = {
     "ORACLE",
     "Innotek",
     "INNOTEK",
+    "Virtual",
+
 };
 //////////////////////////////////////////////////
 //				   Functions					//
