@@ -127,17 +127,22 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
             // when the guest operating system is Windows to indicate the OS identifier
             //
-            if(g_TransparentMode && (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
-            {
+            // Sina: Needs more investigation since injecting #GP on Nested-virtualization environments
+            // will crash the VM on Meteor Lake processors since the OS expects to use synthetic timers
+            // (HV_REGISTER_STIMER0_CONFIG and HV_REGISTER_STIMER0_COUNT) to receive interrupts
+            // Ref: https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/tlfs/timers
+            //
 
-                LogInfo("RDMSR attempts to read from a reserved MSR range. MSR: %x, from: %llx", 
-                    TargetMsr, 
-                    VCpu->LastVmexitRip);
-            
-                EventInjectGeneralProtection();
-
-                return;
-            }
+            // if (g_TransparentMode && (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
+            // {
+            //     LogInfo("RDMSR attempts to read from a reserved MSR range. MSR: %x, from: %llx",
+            //             TargetMsr,
+            //             VCpu->LastVmexitRip);
+            //
+            //     EventInjectGeneralProtection();
+            //
+            //     return;
+            // }
 
             //
             // Msr is valid
@@ -275,29 +280,29 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
 
         default:
 
-            if(g_TransparentMode && (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
+            if (g_TransparentMode && (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
             {
+                //
+                // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
+                // when the guest operating system is Windows to indicate the OS identifier
+                //
 
-            //
-            // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
-            // when the guest operating system is Windows to indicate the OS identifier
-            //
-        
-            LogInfo("WRMSR attempts to write to a reserved MSR range. MSR: %x, rax: %llx, rdx: %llx, from: %llx", 
-                TargetMsr,
-                GuestRegs->rax,
-                GuestRegs->rdx,
-                VCpu->LastVmexitRip);
-        
-            EventInjectGeneralProtection();
-            
-            return;
-        }
+                LogInfo("WRMSR attempts to write to a reserved MSR range. MSR: %x, rax: %llx, rdx: %llx, from: %llx",
+                        TargetMsr,
+                        GuestRegs->rax,
+                        GuestRegs->rdx,
+                        VCpu->LastVmexitRip);
+
+                EventInjectGeneralProtection();
+
+                return;
+            }
 
             //
             // Perform the WRMSR
             //
             __writemsr((unsigned long)GuestRegs->rcx, Msr.Flags);
+
             break;
         }
     }

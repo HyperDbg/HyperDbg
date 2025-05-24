@@ -273,6 +273,29 @@ enum hv_isolation_type
 #define HV_X64_MSR_TIME_REF_COUNT HV_REGISTER_TIME_REF_COUNT
 #define HV_X64_MSR_REFERENCE_TSC  HV_REGISTER_REFERENCE_TSC
 
+//
+// Define the synthetic timer configuration structure
+//
+typedef struct _HV_X64_MSR_STIMER_CONFIG_CONTENTS
+{
+    union
+    {
+        UINT64 AsUINT64;
+        struct
+        {
+            UINT64 Enable : 1;
+            UINT64 Periodic : 1;
+            UINT64 Lazy : 1;
+            UINT64 AutoEnable : 1;
+            UINT64 ApicVector : 8;
+            UINT64 DirectMode : 1;
+            UINT64 ReservedZ1 : 1;
+            UINT64 SINTx : 4;
+            UINT64 ReservedZ2 : 44;
+        };
+    };
+} HV_X64_MSR_STIMER_CONFIG_CONTENTS, *PHV_X64_MSR_STIMER_CONFIG_CONTENTS;
+
 /* Hyper-V memory host visibility */
 enum hv_mem_host_visibility
 {
