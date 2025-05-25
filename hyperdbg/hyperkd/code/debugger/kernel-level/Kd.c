@@ -2578,6 +2578,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // Feel the callstack frames the buffers
                 //
                 if (CallstackWalkthroughStack(CallstackFrameBuffer,
+                                              &CallstackPacket->FrameCount,
                                               CallstackPacket->BaseAddress,
                                               CallstackPacket->Size,
                                               CallstackPacket->Is32Bit))

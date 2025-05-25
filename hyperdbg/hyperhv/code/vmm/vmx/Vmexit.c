@@ -139,12 +139,10 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_RDMSR:
     {
-        break;
-    }
-    case VMX_EXIT_REASON_IO_SMI:
-    case VMX_EXIT_REASON_SMI:
-    {
-        LogInfo("VM-exit reason SMM %llx | qual: %llx", ExitReason, VCpu->ExitQualification);
+        //
+        // Handle vm-exit, events, dispatches and perform MSR read
+        //
+        DispatchEventRdmsr(VCpu);
 
         break;
     }
@@ -154,6 +152,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         // Handle vm-exit, events, dispatches and perform changes
         //
         DispatchEventWrmsr(VCpu);
+
+        break;
+    }
+    case VMX_EXIT_REASON_IO_SMI:
+    case VMX_EXIT_REASON_SMI:
+    {
+        LogInfo("VM-exit reason SMM %llx | qual: %llx", ExitReason, VCpu->ExitQualification);
 
         break;
     }

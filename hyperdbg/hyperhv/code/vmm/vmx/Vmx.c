@@ -1035,7 +1035,7 @@ VmxVmresume()
     // prefer to break
     //
 
-    LogError("Err,  in executing VMRESUME , status : 0x%llx, last VM-exit reason: 0x%x",
+    LogError("Err, in executing VMRESUME, status : 0x%llx, last VM-exit reason: 0x%x",
              ErrorCode,
              g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].ExitReason);
 }
