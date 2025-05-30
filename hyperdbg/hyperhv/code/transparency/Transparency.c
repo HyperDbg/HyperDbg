@@ -1217,14 +1217,16 @@ ReturnResult:
  *          The revealing list entries are removed and overwritten, but the memory buffer is not reallocated, so
  *          it is possible to still detect that some tampering was done from the user space
  *
- * @param ptr The pointer to a valid read/writable SYSTEM_MODULE_INFORMATION memory buffer 
+ * @param Ptr The pointer to a valid read/writable SYSTEM_MODULE_INFORMATION memory buffer 
+ * @param VirualAddress A pointer to a user-mode virual address
+ * @param BufferSize Size of the user-mode buffer
  *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentHandleModuleInformationQuery(PVOID ptr, UINT64 virtualAddress, UINT32 bufferSize)
+TransparentHandleModuleInformationQuery(PVOID Ptr, UINT64 VirtualAddress, UINT32 BufferSize)
 {
-    PSYSTEM_MODULE_INFORMATION StructBuf = (PSYSTEM_MODULE_INFORMATION)ptr;
+    PSYSTEM_MODULE_INFORMATION StructBuf = (PSYSTEM_MODULE_INFORMATION)Ptr;
     PSYSTEM_MODULE_ENTRY ModuleList = StructBuf->Module;
 
     //
@@ -1258,7 +1260,7 @@ TransparentHandleModuleInformationQuery(PVOID ptr, UINT64 virtualAddress, UINT32
         }
 
     }
-    if(!MemoryMapperWriteMemorySafeOnTargetProcess(virtualAddress, ptr, bufferSize))
+    if(!MemoryMapperWriteMemorySafeOnTargetProcess(VirtualAddress, Ptr, BufferSize))
     { 
         return FALSE;
     }
@@ -1266,12 +1268,14 @@ TransparentHandleModuleInformationQuery(PVOID ptr, UINT64 virtualAddress, UINT32
 }
 
 
-//**
+/**
  * @brief Handle the request for SystemProcessInformation
  * 
  * @details This function removes entries from a list of active system processes that could reveal the presence of hypervisors
  *
- * @param ptr The pointer to a valid read/writable SYSTEM_PROCESS_INFORMATION memory buffer 
+ * @param Params        Preset transparent callback params that contain:
+                        in OptionalParam2 a pointer to a valid read/writable memory buffer that contains a SYSTEM_PROCESS_INFORMATION structure
+                        in OptionalParam3 max size in bytes of the allocated buffer
  *
  * @return BOOLEAN
  */
