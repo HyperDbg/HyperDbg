@@ -966,6 +966,7 @@ DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     if (g_TransparentMode) 
     {
         TransparentHandleSystemCallHook(VCpu);
+        g_Callbacks.VmmCallbackTriggerEvents = NULL;
     }
 
     //
