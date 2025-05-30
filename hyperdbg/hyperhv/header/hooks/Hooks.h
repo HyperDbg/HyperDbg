@@ -143,33 +143,6 @@ NTSTATUS(*NtCreateFileOrig)
     PVOID              EaBuffer,
     ULONG              EaLength);
 
-/**
- * @brief Windows System call values that are intercepted by transparency mode
- *
-*/
-
-enum _WIN_SYSTEM_CALLS
-{
-    SysNtQuerySystemInformation        = 0x0036,
-    SysNtQuerySystemInformationEx      = 0x0162, // On 22H2, changes on each windows version
-    
-    SysNtQueryVolumeInformationFile = 0x0049,
-    SysNtSystemDebugControl         = 0x01bf, // On 22H2, changes on each windows version
-    SysNtQueryAttributesFile        = 0x003d,
-    SysNtOpenDirectoryObject        = 0x0058,
-    SysNtQueryDirectoryObject       = 0x0114, // On 22H2, changes on each windows version
-    SysNtQueryInformationProcess    = 0x0019,
-    SysNtSetInformationProcess      = 0x001c,
-    SysNtQueryInformationThread     = 0x0025,
-    SysNtSetInformationThread       = 0x000d,
-    SysNtOpenFile                   = 0x0033,
-    SysNtOpenKey                    = 0x0012,
-    SysNtOpenKeyEx                  = 0x0121,
-    SysNtQueryValueKey              = 0x0017,
-    SysNtOpenKeyTransacted          = 0x0122, // On 22H2, changes on each windows version
-    SysNtEnumerateKey               = 0x0032,
-
-};
 //////////////////////////////////////////////////
 //		     Syscall Hooks Functions			//
 //////////////////////////////////////////////////

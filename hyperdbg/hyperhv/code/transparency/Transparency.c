@@ -61,7 +61,7 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transparent
         TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = TransparentGetRand() % (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
 
         //
-        // Enable the transparent-mode
+        // Enable the transparent mode
         //
         g_TransparentMode                    = TRUE;
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
@@ -93,29 +93,29 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
         // Disable the transparent-mode
         //
         g_TransparentMode = FALSE;
-    
+
         //
         // Unset the trap flags #DBs and #BPs for the transparent-mode
         //
         BroadcastDisableDbAndBpExitingAllCores();
-    
+
         //
         // Free the buffer for the transparent-mode trap flag state
         //
         PlatformMemFreePool(g_TransparentModeTrapFlagState);
-    
-    
+
+
         MSR Msr = {0};
         Msr.Flags = __readmsr(IA32_LSTAR);
-    
+
         
         if (!EptHookUnHookSingleAddress((UINT64)(Msr.Flags + 3), (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId())) {
             LogInfo("Error while removing the EPT hook from windows syscall handler at address 0x%p+3", Msr.Flags);
-    
+
             TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
             return FALSE;
         }
-    
+
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
     }
@@ -149,7 +149,7 @@ TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs)
         //
         // When transparent, all CPUID leaves in the 0x40000000+ range should contain no usable data
         //
-        CpuInfo[0] = CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
+        CpuInfo[0] = CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0x40000000;
     }
 }
 
@@ -163,8 +163,20 @@ TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs)
 VOID
 TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
 {
+    PCHAR CallingProcess = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
 
-    switch(VCpu->Regs->rax & 0x00000000ffffffff)
+    //
+    // Skip the transparent mitigations of system calls when the caller process is a Windows process that should receive unmodified data.
+    //
+    for (ULONG i = 0; i < (sizeof(TRANSPARENT_WIN_PROCESS_IGNORE) / sizeof(TRANSPARENT_WIN_PROCESS_IGNORE[0])); i++)
+    {
+        if (strstr(CallingProcess, TRANSPARENT_WIN_PROCESS_IGNORE[i]))
+        {
+            return;
+        }
+    }
+
+    switch(VCpu->Regs->rax)
     {
     case SysNtQuerySystemInformation:
     case SysNtQuerySystemInformationEx:
@@ -175,15 +187,6 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
 
         TransparentHandleNtQuerySystemInformationSyscall(VCpu);
         
-        break;
-    }
-    case SysNtQueryVolumeInformationFile:
-    {
-        //
-        // Handle the NtQueryVolumeInformationFile System call
-        //
-        //TransparentHandleNtQueryVolumeInformationFileSyscall(VCpu);
-
         break;
     }
     case SysNtSystemDebugControl:
@@ -250,7 +253,6 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu)
 
         break;
     }
-    case SysNtOpenKeyTransacted:
     case SysNtOpenKeyEx:
     case SysNtOpenKey:
     {
@@ -356,7 +358,7 @@ TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
                                            &ContextParams);
         break;
     }
-    
+
     //
     // Currently SystemFirmwareTableInformation transparent handler is not implemented
     // As the queries produce a data buffer too large to safely copy and modify in root-mode
@@ -471,7 +473,7 @@ TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu)
         //   
         PVOID PathBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r10);
         PWCH FilePath = (PWCH)PathBuf;
-                
+
         //
         // If the file Attributes request is for a listed file, insert the SYSCALL trap flag and continue execution
         //
@@ -565,11 +567,16 @@ TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu)
 VOID
 TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE* VCpu)
 {
-    VCpu->Regs->rdx = 0x0;
+    //
+    // Corrupt the system call arguments, to cause the kernel to return an error
+    //
     VCpu->Regs->r9 = 0x0;
 
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
 
+    //
+    // Set the trap flag to intercept the SYSRET instruction
+    //
     TransparentSetTrapFlagAfterSyscall(VCpu,
                                            HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                            HANDLE_TO_UINT32(PsGetCurrentThreadId()),
@@ -593,7 +600,7 @@ TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE* VCpu)
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
     ContextParams.OptionalParam1 = VCpu->Regs->rdx; // ProcessInformationClass
     ContextParams.OptionalParam2 = VCpu->Regs->r8;  // BufferPtr
-    ContextParams.OptionalParam2 = VCpu->Regs->r9;  // BufferSize
+    ContextParams.OptionalParam3 = VCpu->Regs->r9;  // BufferSize
 
     //
     // Set the trap flag to intercept the SYSRET instruction
@@ -711,10 +718,10 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
                 //
                 TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = { 0 };
                 TransparentSetTrapFlagAfterSyscall(VCpu,
-                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                    VCpu->Regs->rax,
-                                                    &ContextParams);
+                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                   VCpu->Regs->rax,
+                                                   &ContextParams);
 
                 break;
             }
@@ -779,11 +786,10 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
         {
             if (!wcscmp(KeyName, TRANSPARENT_DETECTABLE_REGISTRY_KEYS[i]))
             {
+
                 //
                 // If a match is found, set up the context values and set the trap flag for the SYSRET callback
                 //
-
-                //LogInfo("Regs: R10: %llx, RDX: %llx, R8: %llx, R9: %llx", VCpu->Regs->r10, VCpu->Regs->rdx, VCpu->Regs->r8, VCpu->Regs->r9);
 
                 TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
 
@@ -827,10 +833,10 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
                 // Set the trap flag to intercept the SYSRET instruction
                 //
                 TransparentSetTrapFlagAfterSyscall(VCpu,
-                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                    VCpu->Regs->rax,
-                                                    &ContextParams);
+                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                   VCpu->Regs->rax,
+                                                   &ContextParams);
 
                 //
                 // Clean-up and return to guest exection
@@ -861,10 +867,10 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
                 // Set the trap flag to intercept the SYSRET instruction
                 //
                 TransparentSetTrapFlagAfterSyscall(VCpu,
-                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                    VCpu->Regs->rax,
-                                                    &ContextParams);
+                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                   VCpu->Regs->rax,
+                                                   &ContextParams);
                 
                 break;
             }
@@ -935,10 +941,10 @@ TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE* VCpu)
     // Set the trap flag to intercept the SYSRET instruction
     //
     TransparentSetTrapFlagAfterSyscall(VCpu,
-                                        HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                        VCpu->Regs->rax,
-                                        &ContextParams);
+                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                       VCpu->Regs->rax,
+                                       &ContextParams);
 }
 
 /**
@@ -1260,34 +1266,57 @@ TransparentHandleModuleInformationQuery(PVOID ptr, UINT64 virtualAddress, UINT32
 }
 
 
-/**
+//**
  * @brief Handle the request for SystemProcessInformation
  * 
  * @details This function removes entries from a list of active system processes that could reveal the presence of hypervisors
- *          Currently, the revealing system processes only have their Image Name renamed and some detectable trails are still left
  *
  * @param ptr The pointer to a valid read/writable SYSTEM_PROCESS_INFORMATION memory buffer 
  *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentHandleProcessInformationQuery(PVOID ptr) 
+TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS* Params) 
 {
+    SYSTEM_PROCESS_INFORMATION PrevStructBuf = { 0 };
+    SYSTEM_PROCESS_INFORMATION CurStructBuf = { 0 };
 
-    PSYSTEM_PROCESS_INFORMATION StructBuf = (PSYSTEM_PROCESS_INFORMATION)ptr;
+    ULONG ReadOffset, WriteOffset;
+    BOOLEAN MatchFound = FALSE;
+    ULONG PrevOffset = 0;
+
+    if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, &PrevStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+    {
+        return FALSE;
+    }
+
+    ReadOffset = PrevStructBuf.NextEntryOffset;
+    WriteOffset = 0;
+    
+
+    //
+    // The first entry will always be System Idle Process, which can be skipped
+    //
+    if (PrevStructBuf.NextEntryOffset == 0 ||
+        !MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2 + ReadOffset, &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+    {
+        return FALSE;
+    }
 
     //
     // Loop through all the entries and filter out the offending ones
     //
     do 
     {
-        if(StructBuf->ImageName.Length != 0)
+        MatchFound = FALSE;
+
+        if(CurStructBuf.ImageName.Length != 0)
         {
 
             //
-            // We need to modify the Image name of the process which requires extra allocation
+            // We need to search for the Image name of the process which requires extra allocation
             //
-            PVOID StringBuf = PlatformMemAllocateZeroedNonPagedPool(StructBuf->ImageName.Length + sizeof(WCHAR));
+            PVOID StringBuf = PlatformMemAllocateZeroedNonPagedPool(CurStructBuf.ImageName.Length + sizeof(WCHAR));
 
             if (StringBuf == NULL)
             {
@@ -1296,7 +1325,10 @@ TransparentHandleProcessInformationQuery(PVOID ptr)
                 return FALSE;
             }
 
-            if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)StructBuf->ImageName.Buffer, StringBuf, StructBuf->ImageName.Length + sizeof(WCHAR)))
+            //
+            // Read the WCHAR process image name from the user-mode pointer
+            //
+            if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)CurStructBuf.ImageName.Buffer, StringBuf, CurStructBuf.ImageName.Length + sizeof(WCHAR)))
             {
                 PlatformMemFreePool(StringBuf);
 
@@ -1317,46 +1349,103 @@ TransparentHandleProcessInformationQuery(PVOID ptr)
             //
             for (UINT16 i = 0; i < (sizeof(HV_Processes) / sizeof(HV_Processes[0])); i++) 
             {
-                if (!_wcsnicmp(ImageName, HV_Processes[i], (StructBuf->ImageName.Length) / 2))
+                if (!_wcsnicmp(ImageName, HV_Processes[i], (CurStructBuf.ImageName.Length) / sizeof(WCHAR)))
                 {
                     //
-                    // If the name matches, randomize it
+                    // If the name matches, bypass it by increasing the previous entries .nextEntryOffset value
                     //
-                    for (UINT16 j = 0; j < ((StructBuf->ImageName.Length / sizeof(WCHAR)) - 4); j++)
+                    
+                    //
+                    // The offset to this matching entry need to preserved for zeroing later
+                    //
+                    PrevOffset = PrevStructBuf.NextEntryOffset;
+
+                    PrevStructBuf.NextEntryOffset = PrevStructBuf.NextEntryOffset + CurStructBuf.NextEntryOffset;
+                    
+                    MatchFound = TRUE;
+
+                    //
+                    // Write the modified offset back to the usermode buffer
+                    //
+                    if (!MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset), &PrevStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
                     {
-                        UINT32 r = (TransparentGetRand() % 26) + 97;
-                        if (ImageName[j] && r)
-                        {
-                            ImageName[j] = (WCHAR)r;
-                        }
-                        
+                        LogError("Failed to modify memory buffer for the SystemProcessInformation query system call");
+                    }
+
+                    //
+                    // The entry gets bypassed, but since the Image name is a pointer in the struct, to completely clear any presence of these processes
+                    // zero out the name buffer as well
+                    //
+                    memset(StringBuf, 0x0, CurStructBuf.ImageName.Length);
+                    ULONG BufOffset = (ULONG)((PBYTE)&CurStructBuf.ImageName.Length - (PBYTE)&CurStructBuf) + sizeof(USHORT);
+
+                    if(!MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset + PrevOffset + BufOffset), StringBuf, CurStructBuf.ImageName.Length))
+                    {
+                        LogError("Failed to modify memory buffer for the SystemProcessInformation query system call");
                     }
 
                     break;
                 }
             }
 
-            //
-            // Write the modified name back to the usermode buffer
-            //
-            MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)StructBuf->ImageName.Buffer, StringBuf, StructBuf->ImageName.Length + sizeof(WCHAR));
+            
 
             PlatformMemFreePool(StringBuf);
         }
 
         //
-        // Move to the next process entry
+        // If the last entry been reached, exit
         //
-        StructBuf = (PSYSTEM_PROCESS_INFORMATION)((PBYTE)StructBuf + StructBuf->NextEntryOffset);
+        if (CurStructBuf.NextEntryOffset == 0)
+        {
+            return TRUE;
+        }
+
+        //
+        // If the current entry didnt match any process names, move forward
+        //
+        if (!MatchFound)
+        {
+        WriteOffset += PrevStructBuf.NextEntryOffset;
+
+        PrevStructBuf = CurStructBuf;
+        }
+
+        //
+        // Move over to the next entry
+        //
+        ReadOffset += CurStructBuf.NextEntryOffset;
+
 
         //
         // Some internal Windows calls to this system call use different offsetting/entry structure layout and causes errors 
         //
-        if (!CheckAccessValidityAndSafety((UINT64)StructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+        if (!CheckAccessValidityAndSafety((UINT64)(Params->OptionalParam2 + ReadOffset), sizeof(SYSTEM_PROCESS_INFORMATION)))
         {
             return FALSE;
         }
-    } while (StructBuf->NextEntryOffset != 0);
+
+        //
+        // Zero out the matching entry, so that its data doesnt remain in memory
+        // 
+        if (MatchFound) {
+            CurStructBuf = (SYSTEM_PROCESS_INFORMATION){ 0 };
+            if (!MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset + PrevOffset), &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+            {
+                return FALSE;
+            }
+            
+        }
+
+        //
+        // Read from the user buffer the next process entry
+        //
+        if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2 + ReadOffset, &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+        {
+            return FALSE;
+        }
+
+    } while (TRUE);
 
     return TRUE;
 }
@@ -1365,77 +1454,180 @@ TransparentHandleProcessInformationQuery(PVOID ptr)
  * @brief Handle the request for SystemFirmwareTableInformation
  * 
  * @param ptr The pointer to a valid read/writable SYSTEM_FIRMWARE_TABLE_INFORMATION memory buffer 
+ * @param BufMaxSize The size of the allocated user-mode buffer
+ * @param BufSizePtr A pointer to a ULONG field containing the size of the written data
  *
  * @return BOOLEAN
  */
-BOOLEAN
-TransparentHandleFirmwareInformationQuery(UINT64 ptr, UINT32 size)
+UINT64
+TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 BufSizePtr)
 {
+    ULONG BufSize = 0;
+
+    //
+    // Read the size of the data the kernel wrote in the buffer
+    //
+    if (!CheckAccessValidityAndSafety(BufSizePtr, sizeof(ULONG)) ||
+        !MemoryMapperReadMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG)))
+    {
+        return 0;
+    }
+
+    //
+    // If the memory buffer was too small for the kernel to write the needed information, bypass the mitigations
+    //
+    if (BufSize > BufMaxSize)
+    {
+        //
+        // NOTE: might need zeroing the memory if the kernel did infact write to the pointer
+        //
+        return 0;
+    }
+    
+    //
+    // If the buffer size is too big, we cant do any mitigations with the current implementation an it exceeds
+    // the size of an EPT page, risking curruption when allocating the copy buffer space in root-mode.
+    //
+    if (BufMaxSize > ALIGNMENT_PAGE_SIZE / 2) {
+        LogInfo("The intercepted data buffer was too large for modification, in total 0x%x bytes", BufMaxSize);
+        LogInfo("The system call return value was set to STATUS_INVALID_INFO_CLASS, but this could be detected as hypervisor intervention");
+
+        return (UINT64)(UINT32)STATUS_INVALID_INFO_CLASS;
+    }
+
+
+    if (BufSize == 0) {
+        BufSize = BufMaxSize;
+    }
     //
     // From the user-mode pointer, read the SYSTEM_FIRMWARE_TABLE_INFORMATION struct
     //
-    PVOID buf = PlatformMemAllocateZeroedNonPagedPool(size + 1);
-    if (buf == NULL) {
-        return FALSE;
-    }
- 
-    if (!MemoryMapperReadMemorySafeOnTargetProcess(ptr, buf, size))
-    {
-        PlatformMemFreePool(buf);
-        return FALSE;
+    PVOID Buf = PlatformMemAllocateZeroedNonPagedPool(BufMaxSize + 1);
+    if (Buf == NULL) {
+        return 0;
     }
 
-    PSYSTEM_FIRMWARE_TABLE_INFORMATION temp = (PSYSTEM_FIRMWARE_TABLE_INFORMATION)buf;
+
+    if (!MemoryMapperReadMemorySafeOnTargetProcess(Ptr, Buf, BufSize))
+    {
+        PlatformMemFreePool(Buf);
+        return 0;
+    }
+
+    PSYSTEM_FIRMWARE_TABLE_INFORMATION StructBuf = (PSYSTEM_FIRMWARE_TABLE_INFORMATION)Buf;
 
     //
     // The request needs to be a "get" request for an existing table
     // with 'RSMB', 'ACPI' or 'FIRM' table providers
     //
-    if (temp->Action == SystemFirmwareTable_Get &&
-        temp->TableID != 0                      &&
-        (temp->ProviderSignature == 0x52534D42 ||
-        temp->ProviderSignature == 0x41435049  ||
-        temp->ProviderSignature == 0x4649524D))
+    if (StructBuf->Action == SystemFirmwareTable_Get &&
+        StructBuf->TableID != 0 &&
+        (StructBuf->ProviderSignature == 0x52534D42 ||
+            StructBuf->ProviderSignature == 0x41435049 ||
+            StructBuf->ProviderSignature == 0x4649524D))
     {
+        PCHAR StringBuf = (PCHAR)StructBuf->TableBuffer;
+
         for (ULONG i = 0; i < (sizeof(HV_FIRM_NAMES) / sizeof(HV_FIRM_NAMES[0])); i++)
         {
-            ULONGLONG nameLen = strlen(HV_FIRM_NAMES[i]);
-            if (temp->TableBufferLength < nameLen) continue;
-            
-            //
-            // Walk the buffer to find the matching firmware strings
-            //
-            for (ULONG pos = 0; pos < (temp->TableBufferLength - nameLen); pos++)
+            for (ULONG j = 0; j < StructBuf->TableBufferLength; j++)
             {
+                WORD Count = 0;
+                PCHAR MatchStart = strstr(StringBuf + j, HV_FIRM_NAMES[i]);
+                if (MatchStart != 0)
+                {
+                    LogInfo("Found Match for %s", HV_FIRM_NAMES[i]);
 
-                if (!memcmp((PCHAR)(temp->TableBuffer + pos), HV_FIRM_NAMES[i], nameLen)) {
-                    LogInfo("Query for system firmware was called, no mitigation was performed");
-                    LogInfo("Query matched a known hypervisor: %s", HV_FIRM_NAMES[i]);
+                    PCHAR NewVendorString = NULL;
+                    ULONG NewSubstringSize = 0;
 
-                    // 
-                    // A temporary solution that just changes a single character in the firmware string to a random value
-                    // This bypasses current firmware data checks, but can easily be detected anyway
                     //
-                    UINT32 r = (TransparentGetRand() % 26) + 97;
-                    (temp->TableBuffer + pos)[pos % nameLen] = (CHAR)r;
+                    // Replace the first occurace of the vendor string with AMERICAN MEGATRENDS INC.
+                    // The rest with To Be Filled By O.E.M.
+                    //
+                    if (Count == 0)
+                    {
+                        NewVendorString = "AMERICAN MEGATRENDS INC.";
+                        NewSubstringSize = 24 * sizeof(CHAR);
+                    }
+                    else
+                    {
+                        NewVendorString = "To Be Filled By O.E.M.";
+                        NewSubstringSize = 22 * sizeof(CHAR);
+                    }
 
-                    
-                }                         
+                    //
+                    // Obtain the lengths of all the strings and substring
+                    //
+
+                    ULONG MatchedStringLen = (ULONG)strlen(HV_FIRM_NAMES[i]);
+                    ULONG oldLength = StructBuf->TableBufferLength;
+
+                    ULONG NewStringSize = oldLength - MatchedStringLen + NewSubstringSize;
+
+                    //
+                    // Check if the buffer size allows the modification, in case of expansion
+                    //
+                    if (BufSize - MatchedStringLen + NewSubstringSize > BufMaxSize)
+                    {
+                        //
+                        // If adding the new string exceeds the user allocated size,
+                        // zero out the buffer
+                        //
+                        memset(Buf, 0x0, BufMaxSize);
+                        MemoryMapperWriteMemorySafeOnTargetProcess(Ptr, Buf, BufMaxSize);
+
+                        //
+                        // Update the required buffer size for the next call
+                        //
+                        BufSize = (BufSize - oldLength) + NewStringSize;
+                        MemoryMapperWriteMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG));
+
+                        //
+                        // And return STATUS_BUFFER_TOO_SMALL error
+                        //
+
+                        PlatformMemFreePool(Buf);
+                        return (UINT64)(UINT32)STATUS_BUFFER_TOO_SMALL;
+                    }
+
+                    //
+                    // Calculate the positions of the replacement
+                    //
+                    ULONG MatchOffset = (ULONG)((MatchStart - StringBuf));
+                    PCHAR MatchEnd = StringBuf + MatchOffset + MatchedStringLen;
+
+                    //
+                    // Move the data after the matched string forward
+                    // and replace the identified hypervisor string with the genuine one
+                    //
+                    memmove((PVOID)(StringBuf + MatchOffset + NewSubstringSize), (PVOID)MatchEnd, oldLength - MatchedStringLen - MatchOffset);
+                    memcpy((PVOID)MatchStart, (PVOID)NewVendorString, NewSubstringSize);
+
+                    StructBuf->TableBufferLength = NewStringSize;
+                    BufSize = BufSize - MatchedStringLen + NewSubstringSize;
+
+                    //
+                    // Write the changes back to the user buffers
+                    //
+                    if (!MemoryMapperWriteMemorySafeOnTargetProcess(Ptr, Buf, BufSize))
+                    {
+                        LogInfo("Error writing to user-mode buffer: %llx", Ptr);
+                    }
+
+                    if (!MemoryMapperWriteMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG)))
+                    {
+                        LogInfo("Error writing to user-mode buffer: %llx", BufSizePtr);
+                    }
+
+                }
             }
 
         }
-
-        //
-        // Write the modified struct back to the user-mode buffer pointer
-        //
-        if (!MemoryMapperWriteMemorySafeOnTargetProcess(ptr, buf, size))
-        {
-            PlatformMemFreePool(buf);
-            return FALSE;
-        }
     }
-    PlatformMemFreePool(buf);
-    return TRUE;
+
+    PlatformMemFreePool(Buf);
+    return 1;
 }
 
 /**
@@ -1541,6 +1733,14 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS* P
                     WORD Idx = TRANSPARENT_GENUINE_VENDOR_STRING_INDEX % (sizeof(TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[0])); 
                     NewVendorString = TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[Idx];
                 }
+                
+                //
+                // Remove common VM strings from the data
+                //
+                else if (i < 9)
+                {
+                    NewVendorString = L" ";
+                }
                 else
                 {
                     //
@@ -1593,10 +1793,15 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS* P
 
                 //
                 // Move the data after the matched string forward
-                // and replace the identified hypervisor string with the genuine one
                 //
                 memmove((PVOID)(StringBuf + MatchOffset + (tempSize / sizeof(WCHAR))), (PVOID)MatchEnd, oldLength - MatchedStringLen - (MatchOffset * sizeof(WCHAR)));
+
+                //
+                // Replace the identified hypervisor string with the genuine one, if needed
+                //
                 memcpy((PVOID)MatchStart, (PVOID)NewVendorString, tempSize);
+
+                
                         
                 *(PULONG)((PBYTE)Buf + DataLenOffset) = NewStringSize;
                 BufSize = BufSize - MatchedStringLen + tempSize;
@@ -1807,7 +2012,7 @@ TransparentCallbackHandleAfterNtEnumerateKeySyscall(TRANSPARENT_MODE_CONTEXT_PAR
  * @return VOID
  */
 VOID
-TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
+TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu, TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
 {
     //
     // Handle each defined SYSTEM_INFORMATION_CLASS
@@ -1843,6 +2048,27 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_C
         break;
     }
     case SystemProcessInformation:
+    case SystemExtendedProcessInformation:
+    {
+        //
+        // Check if the obtained buffer pointer is valid
+        //
+        if (Params->OptionalParam2 != 0x0 &&
+            Params->OptionalParam3 != 0x0 &&
+            CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3)) 
+        {
+            if(!TransparentHandleProcessInformationQuery(Params))
+            {
+                    //
+                    // Some internal Windows calls to these system calls use different offsetting/entry structure layout and causes errors 
+                    // 
+
+                    // LogInfo("Error while modifying the buffer for data query 0x02x", Params->OptionalParam1);
+            }
+        }
+        break;
+    }
+
     case SystemModuleInformation:
     {
         //
@@ -1870,8 +2096,7 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_C
             }
             else
             {
-                if ((Params->OptionalParam1 == SystemProcessInformation && !TransparentHandleProcessInformationQuery(Buf)) ||
-                    (Params->OptionalParam1 == SystemModuleInformation && !TransparentHandleModuleInformationQuery(Buf, Params->OptionalParam2, (UINT32)Params->OptionalParam3)))
+                if (!TransparentHandleModuleInformationQuery(Buf, Params->OptionalParam2, (UINT32)Params->OptionalParam3))
                 {
                     //
                     // Some internal Windows calls to these system calls use different offsetting/entry structure layout and causes errors 
@@ -1902,10 +2127,22 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(TRANSPARENT_MODE_C
     }
     case SystemFirmwareTableInformation:
     {
-        if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3) &&
-            !TransparentHandleFirmwareInformationQuery(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+        if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
         {
-            LogInfo("A query for SystemFirmwareTableInformation was made, but the transparent mitigation failed");
+            UINT64 RetVal = TransparentHandleFirmwareInformationQuery(Params->OptionalParam2, (UINT32)Params->OptionalParam3, Params->OptionalParam4);
+            if (RetVal == 0x0)
+            {
+                LogInfo("A query for SystemFirmwareTableInformation was made, but the transparent mitigation failed");
+            }
+            else if (RetVal != 0x1)
+            {
+                LogInfo("Changing to %llx", RetVal);
+                VCpu->Regs->rax = RetVal;
+            }
+        }
+        else
+        {
+            LogInfo("A query for SystemFirmwareTableInformation was made, but the user-mode buffer was not captured");
         }
         break;
     }
@@ -1947,7 +2184,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     case SysNtQuerySystemInformation:
     {
 
-        TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(Params);
+        TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(VCpu, Params);
 
         break;
     }
@@ -2017,16 +2254,24 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
         {
         case 0x07:
         {
-
-            DWORD_PTR notDebugged = 0x0;
-            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &notDebugged, sizeof(DWORD_PTR));
+            if (CheckAccessValidityAndSafety(Params->OptionalParam2, sizeof(DWORD_PTR)))
+            {
+                //
+                // Zero out the return buffer to user-mode
+                //
+                DWORD_PTR NoDebugPort = 0x0;
+               
+                MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &NoDebugPort, sizeof(DWORD_PTR));
+            }
             break;
         }
         case 0x1f:
         {
-
-            DWORD notDebugged = 0x0;
-            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &notDebugged, sizeof(DWORD));
+            //
+            // Zero out the return buffer to user-mode
+            //
+            ULONG notDebugged = 0x0;
+            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &notDebugged, sizeof(ULONG));
             break;
         }
         case 0x1e:
@@ -2034,7 +2279,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
 
             if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
             {
-                LogInfo("ProcessDebugObject");
+                LogInfo("Process %llx called the NtQueryInformationProcess system call with the ProcessDebugObject class, no transparent mitigations were performed", ProcessId);
             }
             break;
         }
@@ -2079,7 +2324,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     // key data to a randomized real hardware vendor string, no matter the meaning of the key, 
     // This can cause some keys to illogical data, for example, 
     // a disk drive ID having a vendor string of ASUS even though(as far as I know) ASUS doesnt produce storage devices.
-    // or a case where only a part of a string(the matching part) is replaced and cases like ASUS_Virtual are returned to the user-mode
     //
     case SysNtQueryValueKey:
     {
@@ -2108,7 +2352,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
     //
     case SysNtOpenKey:
     case SysNtOpenKeyEx:
-    case SysNtOpenKeyTransacted:
     {
         //
         // In the entry handler, the Syscall number was changed to corrupt this call if the request was for a known hypervisor registry key
@@ -2147,15 +2390,15 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE * VCpu,
         // A SYSRET trap flag was inserted for a System call that does not have a transparency handler implemented
         //
         LogInfo("Transparent callback  for an unimplemented system call handle with the trap flag for process: %x, thread: %x, rip: %llx, context: %llx RAX: %llx (p1: %llx, p2: %llx, p3: %llx, p4: %llx) \n",
-                        ProcessId,
-                        ThreadId,
-                        VCpu->LastVmexitRip,
-                        Context,
-                        VCpu->Regs->rax,
-                        Params->OptionalParam1,
-                        Params->OptionalParam2,
-                        Params->OptionalParam3,
-                        Params->OptionalParam4);
+                    ProcessId,
+                    ThreadId,
+                    VCpu->LastVmexitRip,
+                    Context,
+                    VCpu->Regs->rax,
+                    Params->OptionalParam1,
+                    Params->OptionalParam2,
+                    Params->OptionalParam3,
+                    Params->OptionalParam4);
         break;
     }
 

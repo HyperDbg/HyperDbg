@@ -15,6 +15,10 @@
 //				     Globals 	    			//
 //////////////////////////////////////////////////
 
+/**
+ * @brief A variable holding the randomly chosen index for the genuine vendor list.
+ *        This is used for transparent vendor spoofing
+ */
 static WORD TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = 0;
 
 //////////////////////////////////////////////////
@@ -174,6 +178,78 @@ typedef struct _SYSTEM_PROCESS_INFORMATION {
     LARGE_INTEGER Reserved7[6];
 } SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
 
+/**
+ * @brief Windows System call values that are intercepted by transparency mode
+ * 
+ * NOTE: Windows system calls can change values on each version.
+ *       The current values will reliably only work on Win11 24H2
+ *
+*/
+const enum _WIN_SYSTEM_CALLS
+{
+    SysNtQuerySystemInformation        = 0x0036,
+    SysNtQuerySystemInformationEx      = 0x016e, // On 24H2, changes on each windows version
+    
+    SysNtSystemDebugControl            = 0x01d0, // On 24H2, changes on each windows version
+    SysNtQueryAttributesFile           = 0x003d,
+    SysNtOpenDirectoryObject           = 0x0058,
+    SysNtQueryDirectoryObject          = 0x014e, // On 24H2, changes on each windows version
+    SysNtQueryInformationProcess       = 0x0019,
+    SysNtSetInformationProcess         = 0x001c,
+    SysNtQueryInformationThread        = 0x0025,
+    SysNtSetInformationThread          = 0x000d,
+    SysNtOpenFile                      = 0x0033,
+    SysNtOpenKey                       = 0x0012,
+    SysNtOpenKeyEx                     = 0x012b, // On 24H2, changes on each windows version
+    SysNtQueryValueKey                 = 0x0017,
+    SysNtEnumerateKey                  = 0x0032,
+
+
+};
+
+/*
+* System call numbers for Windows 10 22H2
+* 
+const enum _WIN_SYSTEM_CALLS
+{
+    SysNtQuerySystemInformation        = 0x0036,
+    SysNtQuerySystemInformationEx      = 0x0162, // On 22H2, changes on each windows version
+    
+    SysNtSystemDebugControl            = 0x01bf, // On 22H2, changes on each windows version
+    SysNtQueryAttributesFile           = 0x003d,
+    SysNtOpenDirectoryObject           = 0x0058,
+    SysNtQueryDirectoryObject          = 0x0114, // On 22H2, changes on each windows version
+    SysNtQueryInformationProcess       = 0x0019,
+    SysNtSetInformationProcess         = 0x001c,
+    SysNtQueryInformationThread        = 0x0025,
+    SysNtSetInformationThread          = 0x000d,
+    SysNtOpenFile                      = 0x0033,
+    SysNtOpenKey                       = 0x0012,
+    SysNtOpenKeyEx                     = 0x0121, // On 22H2, changes on each windows version
+    SysNtQueryValueKey                 = 0x0017,
+    SysNtEnumerateKey                  = 0x0032,
+
+
+};
+*/
+
+/**
+* @brief A list of windows processes, for which to ignore systemcall requests
+* when the transparency mode is enabled
+*
+*/
+static const PCHAR TRANSPARENT_WIN_PROCESS_IGNORE[] = {
+    "winlogon.exe",
+    "wininit.exe",
+    "csrss.exe",
+    "sihost.exe",
+    "explorer.exe",
+};
+
+/**
+ * @brief A brief list of genuine system vendors device ID's used for manufacturer spoofing
+ *
+ */
 static const PWCHAR TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[] = {
     L"VEN_8086",  // Intel  
     L"VEN_10DE",  // NVIDIA  
@@ -182,6 +258,10 @@ static const PWCHAR TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[] = {
 
 };
 
+/**
+ * @brief A list of genuine system vendors used for manufacturer spoofing
+ *
+ */
 static const PWCHAR TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[] = {
     L"ASUS",
     L"ASUSTeK Computer INC.",
@@ -284,7 +364,7 @@ static const PWCH HV_Processes[] = {
     L"cheatengine-x86_64.exe",
     L"cheatengine-x86_64-SSE4-AVX2.exe",
     L"frida-helper-32.exe",
-    L"frida-helper-64.exe"
+    L"frida-helper-64.exe",
 
 };
 
@@ -354,8 +434,6 @@ static const PWCH HV_FILES[] = {
     L"hyperkd"
     L"hyperlog",
     L"libhyperdbg",
-
-
 
     //
     // VMWare Files
@@ -435,7 +513,7 @@ static const PWCH HV_FILES[] = {
     L"vmusrvc.exe",
     L"vpc-s3.sys",
     L"Virtio-Win",
-    
+        
     L"qemu-ga",
     L"SPICE Guest Tools",
 };
@@ -456,13 +534,29 @@ static const PWCH HV_DIRS[] = {
     L"VirtualBox Guest Additions",
 };
 
+/**
+ * @brief A list of common Hypervisor specific registry keys
+ *
+ */
 static const PWCH HV_REGKEYS[] = {
     //
     // PCI device vendor id's
+    // 
+    // NOTE: These need to stay at the top of the list
     //
     L"VEN_80EE",
     L"VEN_15AD",
     L"VEN_5333",
+
+    //
+    // Common names
+    //
+    L"Virtual",
+    L"VIRTUAL",
+    L"virtual",
+    L"Hypervisor",
+    L"hypervisor",
+    L"HYPERVISOR",
 
     //
     // VMWare
@@ -540,13 +634,13 @@ static const PWCH HV_REGKEYS[] = {
 // NOTE: This is not a complete list, there are a lot of generic keys that also can have the identifiable data
 //
 static const PWCH TRANSPARENT_DETECTABLE_REGISTRY_KEYS[] = {
+    L"AcpiData",
+    L"SMBiosData",
     L"Identifier",
     L"SystemBiosVersion",
     L"VideoBiosVersion",
     L"ProductID",
     L"SystemManufacturer",
-    L"AcpiData",
-    L"SMBiosData",
     L"SystemProductName",
     L"DeviceDesc",
     L"FriendlyName",
@@ -585,6 +679,7 @@ static const PCHAR HV_FIRM_NAMES[] = {
     "Virtual",
 
 };
+
 //////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
