@@ -613,6 +613,12 @@ VmFuncVmxCompatibleWcslen(const wchar_t * s)
     return VmxCompatibleWcslen(s);
 }
 
+VOID
+VmFuncVmxCompatibleMicroSleep(UINT64 us)
+{
+    VmxCompatibleMicroSleep(us);
+}
+
 /**
  * @brief Inject #PF and configure CR2 register
  *

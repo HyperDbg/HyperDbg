@@ -781,6 +781,41 @@ ScriptEngineFunctionWcslen(const wchar_t * Address)
     return Result;
 }
 
+#ifdef SCRIPT_ENGINE_USER_MODE
+void UserModeMicroSleep(UINT64 us) {
+    LARGE_INTEGER start, end, frequency;
+    QueryPerformanceFrequency(&frequency);
+
+    LONGLONG tickPerUs = frequency.QuadPart / 1000000;
+    LONGLONG ticks = tickPerUs * us;
+
+
+    QueryPerformanceCounter(&start);
+    while (TRUE) {
+        QueryPerformanceCounter(&end);
+        if (end.QuadPart - start.QuadPart > ticks) break;
+    }
+}
+#endif // SCRIPT_ENGINE_USER_MODE
+
+/**
+ * @brief Implementation of microsleep function
+ *
+ * @param delay in micro second
+ */
+VOID
+ScriptEngineFunctionMicroSleep(UINT64 us) {
+#ifdef SCRIPT_ENGINE_USER_MODE
+    UserModeMicroSleep(us);
+#endif
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    VmFuncVmxCompatibleMicroSleep(us);
+#endif
+}
+
+
+
 /**
  * @brief Implementation of interlocked_exchange function
  *

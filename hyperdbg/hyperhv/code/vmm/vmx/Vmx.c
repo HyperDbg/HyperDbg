@@ -1462,6 +1462,21 @@ VmxCompatibleWcslen(const wchar_t * S)
     __writecr3(OriginalCr3.Flags);
 }
 
+VOID
+VmxCompatibleMicroSleep(UINT64 us) {
+    LARGE_INTEGER start, end, frequency;
+    KeQueryPerformanceCounter(&frequency);
+
+    LONGLONG ticks = (frequency.QuadPart / 1000000) * us;
+
+    start = KeQueryPerformanceCounter(NULL);
+
+    while (TRUE) {
+        end = KeQueryPerformanceCounter(NULL);
+        if (end.QuadPart - start.QuadPart > ticks) break;
+    }
+}
+
 /**
  * @brief implementation of vmx-root mode compatible strcmp and strncmp
  * @param Address1
