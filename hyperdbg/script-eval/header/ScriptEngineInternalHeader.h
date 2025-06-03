@@ -186,6 +186,12 @@ ScriptEngineFunctionWcslen(const wchar_t * Address);
 VOID
 ScriptEngineFunctionMicroSleep(UINT64 us);
 
+UINT64
+ScriptEngineFunctionRdtsc();
+
+UINT64
+ScriptEngineFunctionRdtscp();
+
 long long
 ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
                                         long long            Value,

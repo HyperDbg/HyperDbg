@@ -31,10 +31,14 @@
 # OneOpFunc4 input is a number or a wstring and returns a number.
 .OneOpFunc4->wcslen
 
+
 # TwoOpFunc4 the two inputs are numbers or wstrings and returns a number.
 .TwoOpFunc4->wcscmp
 
 .ZeroOpFunc1->pause flush event_trace_step event_trace_step_in event_trace_step_out event_trace_instrumentation_step event_trace_instrumentation_step_in
+
+# ZeroOpFunc2 no input and returns a number
+.ZeroOpFunc2->rdtsc rdtscp
 
 .VarArgFunc1->printf 
 
@@ -117,6 +121,7 @@ ASSIGNMENT_STATEMENT'->|= EXPRESSION @OR_ASSIGNMENT
 CALL_FUNC_STATEMENT->.OneOpFunc2 ( EXPRESSION @.OneOpFunc2 )
 CALL_FUNC_STATEMENT->.VarArgFunc1 ( STRING @VARGSTART VA @.VarArgFunc1 )
 CALL_FUNC_STATEMENT->.ZeroOpFunc1 ( @.ZeroOpFunc1 )
+CALL_FUNC_STATEMENT->.ZeroOpFunc2 ( @.ZeroOpFunc2 ) @IGNORE_LVALUE
 CALL_FUNC_STATEMENT->.TwoOpFunc2 ( EXPRESSION , EXPRESSION @.TwoOpFunc2 ) 
 CALL_FUNC_STATEMENT->.OneOpFunc1 ( EXPRESSION @.OneOpFunc1 ) @IGNORE_LVALUE
 CALL_FUNC_STATEMENT->.TwoOpFunc1 ( EXPRESSION , EXPRESSION @.TwoOpFunc1 ) @IGNORE_LVALUE 
@@ -209,8 +214,7 @@ E5'->eps
 
 
 
-
-
+E12->.ZeroOpFunc2 ( @.ZeroOpFunc2 )
 E12->.OneOpFunc1 ( EXPRESSION @.OneOpFunc1 ) 
 E12->.TwoOpFunc1 ( EXPRESSION , EXPRESSION @.TwoOpFunc1 ) 
 E12->.ThreeOpFunc1 ( EXPRESSION , EXPRESSION , EXPRESSION @.ThreeOpFunc1 ) 

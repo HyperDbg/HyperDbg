@@ -804,7 +804,8 @@ void UserModeMicroSleep(UINT64 us) {
  * @param delay in micro second
  */
 VOID
-ScriptEngineFunctionMicroSleep(UINT64 us) {
+ScriptEngineFunctionMicroSleep(UINT64 us)
+{
 #ifdef SCRIPT_ENGINE_USER_MODE
     UserModeMicroSleep(us);
 #endif
@@ -814,7 +815,26 @@ ScriptEngineFunctionMicroSleep(UINT64 us) {
 #endif
 }
 
+/**
+ * @brief Implementation of rdtsc function
+ *
+ */
+UINT64 
+ScriptEngineFunctionRdtsc()
+{
+    return __rdtsc();
+}
 
+/**
+ * @brief Implementation of rdtscp function
+ *
+ */
+UINT64
+ScriptEngineFunctionRdtscp()
+{
+    unsigned int aux;
+    return __rdtscp(&aux);
+}
 
 /**
  * @brief Implementation of interlocked_exchange function
