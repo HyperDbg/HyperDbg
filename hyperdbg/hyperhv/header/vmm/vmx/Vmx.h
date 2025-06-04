@@ -423,3 +423,6 @@ INT32
 VmxCompatibleMemcmp(const CHAR * Address1,
                     const CHAR * Address2,
                     size_t       Count);
+
+VOID
+VmxCompatibleMicroSleep(UINT64 ns);

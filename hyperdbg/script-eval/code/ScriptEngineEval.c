@@ -1643,6 +1643,38 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
 
         break;
 
+    case FUNC_MICROSLEEP:
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+            (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
+
+        ScriptEngineFunctionMicroSleep(SrcVal0);
+        break;
+
+    case FUNC_RDTSC:
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+            (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionRdtsc();
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+        break;
+
+    case FUNC_RDTSCP:
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+            (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionRdtscp();
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+        break;
+        break;
+
     case FUNC_INTERLOCKED_INCREMENT:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +

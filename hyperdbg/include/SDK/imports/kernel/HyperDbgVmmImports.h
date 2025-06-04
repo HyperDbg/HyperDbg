@@ -189,6 +189,9 @@ VmFuncVmxCompatibleStrlen(const CHAR * s);
 IMPORT_EXPORT_VMM UINT32
 VmFuncVmxCompatibleWcslen(const wchar_t * s);
 
+IMPORT_EXPORT_VMM VOID
+VmFuncVmxCompatibleMicroSleep(UINT64 us);
+
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncNmiBroadcastRequest(UINT32 CoreId);
 

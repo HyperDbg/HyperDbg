@@ -1402,6 +1402,22 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         {
             PushSymbol(CodeBuffer, OperatorSymbol);
         }
+        else if (IsType16Func(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+
+
+            Temp = NewTemp(Error);
+            Push(MatchedStack, Temp);
+            TempSymbol = ToSymbol(Temp, Error);
+
+            PushSymbol(CodeBuffer, TempSymbol);
+
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+        }
         else if (!strcmp(Operator->Value, "@IGNORE_LVALUE"))
         {
             Op0 = Pop(MatchedStack);
