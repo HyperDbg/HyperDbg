@@ -184,7 +184,7 @@ UINT64
 ScriptEngineFunctionWcslen(const wchar_t * Address);
 
 VOID
-ScriptEngineFunctionMicroSleep(UINT64 us);
+ScriptEngineFunctionMicroSleep(UINT64 Us);
 
 UINT64
 ScriptEngineFunctionRdtsc();

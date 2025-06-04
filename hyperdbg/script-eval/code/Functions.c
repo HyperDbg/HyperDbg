@@ -782,18 +782,25 @@ ScriptEngineFunctionWcslen(const wchar_t * Address)
 }
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-void UserModeMicroSleep(UINT64 us) {
-    LARGE_INTEGER start, end, frequency;
-    QueryPerformanceFrequency(&frequency);
+VOID
+UserModeMicroSleep(UINT64 Us)
+{
+    LARGE_INTEGER Start, End, Frequency;
+    QueryPerformanceFrequency(&Frequency);
 
-    LONGLONG tickPerUs = frequency.QuadPart / 1000000;
-    LONGLONG ticks = tickPerUs * us;
+    LONGLONG TickPerUs = Frequency.QuadPart / 1000000;
+    LONGLONG Ticks     = TickPerUs * Us;
 
+    QueryPerformanceCounter(&Start);
 
-    QueryPerformanceCounter(&start);
-    while (TRUE) {
-        QueryPerformanceCounter(&end);
-        if (end.QuadPart - start.QuadPart > ticks) break;
+    while (TRUE)
+    {
+        QueryPerformanceCounter(&End);
+
+        if (End.QuadPart - Start.QuadPart > Ticks)
+        {
+            break;
+        }
     }
 }
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -801,17 +808,17 @@ void UserModeMicroSleep(UINT64 us) {
 /**
  * @brief Implementation of microsleep function
  *
- * @param delay in micro second
+ * @param Us delay in micro second
  */
 VOID
-ScriptEngineFunctionMicroSleep(UINT64 us)
+ScriptEngineFunctionMicroSleep(UINT64 Us)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    UserModeMicroSleep(us);
+    UserModeMicroSleep(Us);
 #endif
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    VmFuncVmxCompatibleMicroSleep(us);
+    VmFuncVmxCompatibleMicroSleep(Us);
 #endif
 }
 
@@ -819,7 +826,7 @@ ScriptEngineFunctionMicroSleep(UINT64 us)
  * @brief Implementation of rdtsc function
  *
  */
-UINT64 
+UINT64
 ScriptEngineFunctionRdtsc()
 {
     return __rdtsc();
@@ -832,8 +839,8 @@ ScriptEngineFunctionRdtsc()
 UINT64
 ScriptEngineFunctionRdtscp()
 {
-    unsigned int aux;
-    return __rdtscp(&aux);
+    unsigned int Aux;
+    return __rdtscp(&Aux);
 }
 
 /**

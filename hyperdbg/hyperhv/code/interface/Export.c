@@ -613,10 +613,16 @@ VmFuncVmxCompatibleWcslen(const wchar_t * s)
     return VmxCompatibleWcslen(s);
 }
 
+/**
+ * @brief VMX-root compatible micro sleep
+ * @param Us Delay in micro seconds
+ *
+ * @return VOID
+ */
 VOID
-VmFuncVmxCompatibleMicroSleep(UINT64 us)
+VmFuncVmxCompatibleMicroSleep(UINT64 Us)
 {
-    VmxCompatibleMicroSleep(us);
+    VmxCompatibleMicroSleep(Us);
 }
 
 /**

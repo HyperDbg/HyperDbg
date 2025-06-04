@@ -1462,18 +1462,27 @@ VmxCompatibleWcslen(const wchar_t * S)
     __writecr3(OriginalCr3.Flags);
 }
 
+/**
+ * @brief VMX-root compatible micro sleep
+ * @param Us Delay in micro seconds
+ *
+ * @return VOID
+ */
 VOID
-VmxCompatibleMicroSleep(UINT64 us) {
-    LARGE_INTEGER start, end, frequency;
-    KeQueryPerformanceCounter(&frequency);
+VmxCompatibleMicroSleep(UINT64 Us)
+{
+    LARGE_INTEGER Start, End, Frequency;
+    KeQueryPerformanceCounter(&Frequency);
 
-    LONGLONG ticks = (frequency.QuadPart / 1000000) * us;
+    LONGLONG Ticks = (Frequency.QuadPart / 1000000) * Us;
 
-    start = KeQueryPerformanceCounter(NULL);
+    Start = KeQueryPerformanceCounter(NULL);
 
-    while (TRUE) {
-        end = KeQueryPerformanceCounter(NULL);
-        if (end.QuadPart - start.QuadPart > ticks) break;
+    while (TRUE)
+    {
+        End = KeQueryPerformanceCounter(NULL);
+        if (End.QuadPart - Start.QuadPart > Ticks)
+            break;
     }
 }
 
