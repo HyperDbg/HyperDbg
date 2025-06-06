@@ -155,26 +155,26 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Add customize interrupt handlers
     //
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler0, &VmxHostIdt[0]);
-    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler1, &VmxHostIdt[1]); // #DB
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler2, &VmxHostIdt[2]);
-    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler3, &VmxHostIdt[3]); // #BP
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler4, &VmxHostIdt[4]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler5, &VmxHostIdt[5]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler6, &VmxHostIdt[6]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler7, &VmxHostIdt[7]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler8, &VmxHostIdt[8]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler10, &VmxHostIdt[10]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler11, &VmxHostIdt[11]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler12, &VmxHostIdt[12]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler13, &VmxHostIdt[13]);
-    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler14, &VmxHostIdt[14]); // #PF
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler16, &VmxHostIdt[16]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler17, &VmxHostIdt[17]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler18, &VmxHostIdt[18]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler19, &VmxHostIdt[19]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler20, &VmxHostIdt[20]);
-    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler30, &VmxHostIdt[30]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler0, &VmxHostIdt[EXCEPTION_VECTOR_DIVIDE_ERROR]);
+    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler1, &VmxHostIdt[EXCEPTION_VECTOR_DEBUG_BREAKPOINT]); // #DB
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler2, &VmxHostIdt[EXCEPTION_VECTOR_NMI]);
+    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler3, &VmxHostIdt[EXCEPTION_VECTOR_BREAKPOINT]); // #BP
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler4, &VmxHostIdt[EXCEPTION_VECTOR_OVERFLOW]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler5, &VmxHostIdt[EXCEPTION_VECTOR_BOUND_RANGE_EXCEEDED]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler6, &VmxHostIdt[EXCEPTION_VECTOR_UNDEFINED_OPCODE]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler7, &VmxHostIdt[EXCEPTION_VECTOR_NO_MATH_COPROCESSOR]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler8, &VmxHostIdt[EXCEPTION_VECTOR_DOUBLE_FAULT]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler10, &VmxHostIdt[EXCEPTION_VECTOR_INVALID_TASK_SEGMENT_SELECTOR]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler11, &VmxHostIdt[EXCEPTION_VECTOR_SEGMENT_NOT_PRESENT]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler12, &VmxHostIdt[EXCEPTION_VECTOR_STACK_SEGMENT_FAULT]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler13, &VmxHostIdt[EXCEPTION_VECTOR_GENERAL_PROTECTION_FAULT]);
+    // IdtEmulationCreateInterruptGate((PVOID)InterruptHandler14, &VmxHostIdt[EXCEPTION_VECTOR_PAGE_FAULT]); // #PF
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler16, &VmxHostIdt[EXCEPTION_VECTOR_MATH_FAULT]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler17, &VmxHostIdt[EXCEPTION_VECTOR_ALIGNMENT_CHECK]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler18, &VmxHostIdt[EXCEPTION_VECTOR_MACHINE_CHECK]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler19, &VmxHostIdt[EXCEPTION_VECTOR_SIMD_FLOATING_POINT_NUMERIC_ERROR]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler20, &VmxHostIdt[EXCEPTION_VECTOR_VIRTUAL_EXCEPTION]);
+    IdtEmulationCreateInterruptGate((PVOID)InterruptHandler30, &VmxHostIdt[EXCEPTION_VECTOR_RESERVED11]);
 }
 
 /**
@@ -188,10 +188,12 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
 {
-    UINT64 PageFaultCr2;
-    ULONG  CurrentCore;
-    CurrentCore                  = KeGetCurrentProcessorNumberEx(NULL);
-    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCore];
+    UINT64                     PageFaultCr2;
+    ULONG                      CurrentCore;
+    BOOLEAN                    Interruptible;
+    VMX_INTERRUPTIBILITY_STATE InterruptibilityState = {0};
+    CurrentCore                                      = KeGetCurrentProcessorNumberEx(NULL);
+    VIRTUAL_MACHINE_STATE * VCpu                     = &g_GuestState[CurrentCore];
 
     //
     // Store the latest exception vector
@@ -215,9 +217,38 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         if (!VmxBroadcastHandleNmiCallback((PVOID)IntrTrapFrame, FALSE))
         {
             //
-            // Inject NMI when the NMI Window opened
+            // We cannot just use the NMI Window Exiting here becasue
+            // in certain scenarios, VMRESUME with Error 0x7 will happen
+            // Which means that the layout of the VMCS is wrong
             //
-            HvSetNmiWindowExiting(TRUE);
+            // For the future reference, I think using NMI Windows Exiting
+            // here is also not useful but in theory it should serve as a
+            // backup plan if the system is not ready to receive NMIs, then
+            // we could inject it when the NMI Window is open but in reality
+            // it will corrupt the VMCS layout (VMRESUME 0x7 error)
+            //
+
+            //
+            // Check if interruptibility state allows NMIs or not
+            //
+            VmxVmread32P(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState.AsUInt);
+
+            Interruptible = !InterruptibilityState.BlockingByNmi;
+
+            if (Interruptible)
+            {
+                //
+                // Re-inject the NMI
+                //
+                EventInjectNmi(VCpu);
+            }
+            else
+            {
+                //
+                // Inject NMI when the NMI Window opened
+                //
+                HvSetNmiWindowExiting(TRUE);
+            }
         }
 
         break;

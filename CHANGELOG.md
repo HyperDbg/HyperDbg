@@ -4,13 +4,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.13.2.0] - 2025-XX-XX
+## [0.14.0.0] - 2025-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
+- **microsleep(microseconds)** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/microsleep))
+- **rdtsc()** and **rdtscp()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/rdtsc))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/rdtscp))
+- Added functions to get system-call number from the running system
+
+### Changed
+- The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022
+
+## [0.13.2.0] - 2025-05-26
+New release of the HyperDbg Debugger.
+
+### Added
+- Intercepting system-call return results using the TRAP flag for the transparent-mode
+- Added optional parameters and context for the transparent-mode system-call return interceptions
 
 ### Changed
 - Set variable length (stack frames) for showing the callstack ([link](https://docs.hyperdbg.org/commands/debugging-commands/k))
+- Fixed VMCS layout corruption due to NMI injection (VMRESUME 0x7 error) in nested-virtualization on Meteor Lake processors
+- Restore RDMSR handler for VM-exits
 
 ## [0.13.1.0] - 2025-04-14
 New release of the HyperDbg Debugger.

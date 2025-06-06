@@ -113,6 +113,12 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
     UINT64          BuffLength,
     BOOLEAN         Isx86_64);
 
+UINT32
+HyperDbgGetImmediateValueOnEaxForSyscallNumber(
+    unsigned char * BufferToDisassemble,
+    UINT64          BuffLength,
+    BOOLEAN         Isx86_64);
+
 VOID
 HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
                                 UINT64                       Address,

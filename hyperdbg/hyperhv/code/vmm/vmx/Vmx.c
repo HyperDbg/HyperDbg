@@ -1035,7 +1035,7 @@ VmxVmresume()
     // prefer to break
     //
 
-    LogError("Err,  in executing VMRESUME , status : 0x%llx, last VM-exit reason: 0x%x",
+    LogError("Err, in executing VMRESUME, status : 0x%llx, last VM-exit reason: 0x%x",
              ErrorCode,
              g_GuestState[KeGetCurrentProcessorNumberEx(NULL)].ExitReason);
 }
@@ -1460,6 +1460,30 @@ VmxCompatibleWcslen(const wchar_t * S)
     // Move back to original cr3
     //
     __writecr3(OriginalCr3.Flags);
+}
+
+/**
+ * @brief VMX-root compatible micro sleep
+ * @param Us Delay in micro seconds
+ *
+ * @return VOID
+ */
+VOID
+VmxCompatibleMicroSleep(UINT64 Us)
+{
+    LARGE_INTEGER Start, End, Frequency;
+    KeQueryPerformanceCounter(&Frequency);
+
+    LONGLONG Ticks = (Frequency.QuadPart / 1000000) * Us;
+
+    Start = KeQueryPerformanceCounter(NULL);
+
+    while (TRUE)
+    {
+        End = KeQueryPerformanceCounter(NULL);
+        if (End.QuadPart - Start.QuadPart > Ticks)
+            break;
+    }
 }
 
 /**

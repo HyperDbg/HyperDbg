@@ -183,6 +183,15 @@ ScriptEngineFunctionDisassembleLen(PVOID Address, BOOLEAN Is32Bit);
 UINT64
 ScriptEngineFunctionWcslen(const wchar_t * Address);
 
+VOID
+ScriptEngineFunctionMicroSleep(UINT64 Us);
+
+UINT64
+ScriptEngineFunctionRdtsc();
+
+UINT64
+ScriptEngineFunctionRdtscp();
+
 long long
 ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
                                         long long            Value,

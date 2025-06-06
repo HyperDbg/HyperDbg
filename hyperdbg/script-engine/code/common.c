@@ -983,6 +983,26 @@ IsType15Func(PTOKEN Operator)
 }
 
 /**
+ * @brief Checks whether this Token type is ZeroOpFunc2
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType16Func(PTOKEN Operator)
+{
+    unsigned int n = ZEROOPFUNC2_LENGTH;
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, ZeroOpFunc2[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
  * @brief Checks whether this Token type is assignemnt operator
  *
  * @param Operator

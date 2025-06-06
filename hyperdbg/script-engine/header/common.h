@@ -248,6 +248,9 @@ char
 IsType15Func(PTOKEN Operator);
 
 char
+IsType16Func(PTOKEN Operator);
+
+char
 IsAssignmentOperator(PTOKEN Operator);
 
 char
