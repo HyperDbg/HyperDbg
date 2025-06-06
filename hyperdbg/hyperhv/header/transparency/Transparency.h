@@ -184,54 +184,6 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
     LARGE_INTEGER  Reserved7[6];
 } SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
 
-/*
-const enum _WIN_SYSTEM_CALLS {
-    SysNtQuerySystemInformation   = 0x0036,
-    SysNtQuerySystemInformationEx = 0x016e, // On 24H2, changes on each windows version
-
-    SysNtSystemDebugControl      = 0x01d0, // On 24H2, changes on each windows version
-    SysNtQueryAttributesFile     = 0x003d,
-    SysNtOpenDirectoryObject     = 0x0058,
-    SysNtQueryDirectoryObject    = 0x014e, // On 24H2, changes on each windows version
-    SysNtQueryInformationProcess = 0x0019,
-    SysNtSetInformationProcess   = 0x001c,
-    SysNtQueryInformationThread  = 0x0025,
-    SysNtSetInformationThread    = 0x000d,
-    SysNtOpenFile                = 0x0033,
-    SysNtOpenKey                 = 0x0012,
-    SysNtOpenKeyEx               = 0x012b, // On 24H2, changes on each windows version
-    SysNtQueryValueKey           = 0x0017,
-    SysNtEnumerateKey            = 0x0032,
-
-};
-*/
-
-/*
-* System call numbers for Windows 10 22H2
-*
-const enum _WIN_SYSTEM_CALLS
-{
-    SysNtQuerySystemInformation        = 0x0036,
-    SysNtQuerySystemInformationEx      = 0x0162, // On 22H2, changes on each windows version
-
-    SysNtSystemDebugControl            = 0x01bf, // On 22H2, changes on each windows version
-    SysNtQueryAttributesFile           = 0x003d,
-    SysNtOpenDirectoryObject           = 0x0058,
-    SysNtQueryDirectoryObject          = 0x0114, // On 22H2, changes on each windows version
-    SysNtQueryInformationProcess       = 0x0019,
-    SysNtSetInformationProcess         = 0x001c,
-    SysNtQueryInformationThread        = 0x0025,
-    SysNtSetInformationThread          = 0x000d,
-    SysNtOpenFile                      = 0x0033,
-    SysNtOpenKey                       = 0x0012,
-    SysNtOpenKeyEx                     = 0x0121, // On 22H2, changes on each windows version
-    SysNtQueryValueKey                 = 0x0017,
-    SysNtEnumerateKey                  = 0x0032,
-
-
-};
-*/
-
 /**
  * @brief A list of windows processes, for which to ignore systemcall requests
  * when the transparency mode is enabled

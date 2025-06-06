@@ -28,6 +28,13 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transparent
     if (!g_TransparentMode)
     {
         //
+        // Store the system-call numbers information
+        //
+        RtlCopyBytes(&g_SystemCallNumbersInformation,
+                     &TransparentModeRequest->SystemCallNumbersInformation,
+                     sizeof(SYSTEM_CALL_NUMBERS_INFORMATION));
+
+        //
         // Insert EPT memory page hook for Windows system call handler, KiSystemCall64()
         //
         Msr.Flags = __readmsr(IA32_LSTAR);
