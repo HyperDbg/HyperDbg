@@ -963,10 +963,9 @@ DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     //
     // In Transparency mode a hidden hook for the system call handler gets inserted
     //
-    if (g_TransparentMode) 
+    if (g_TransparentMode && Context == g_SystemCallHookAddress)
     {
         TransparentHandleSystemCallHook(VCpu);
-        g_Callbacks.VmmCallbackTriggerEvents = NULL;
     }
 
     //

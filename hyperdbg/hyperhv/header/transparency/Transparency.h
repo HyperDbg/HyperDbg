@@ -21,6 +21,11 @@
  */
 static WORD TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = 0;
 
+/**
+ * @brief System call numbers information
+ */
+SYSTEM_CALL_NUMBERS_INFORMATION g_SystemCallNumbersInformation;
+
 //////////////////////////////////////////////////
 //				      Locks 	    			//
 //////////////////////////////////////////////////
@@ -152,69 +157,63 @@ typedef struct _SYSTEM_CODEINTEGRITY_INFORMATION
  * @brief System Information for running processes
  *
  */
-typedef struct _SYSTEM_PROCESS_INFORMATION {
-    ULONG NextEntryOffset;
-    ULONG NumberOfThreads;
-    BYTE Reserved1[48];
+typedef struct _SYSTEM_PROCESS_INFORMATION
+{
+    ULONG          NextEntryOffset;
+    ULONG          NumberOfThreads;
+    BYTE           Reserved1[48];
     UNICODE_STRING ImageName;
-    KPRIORITY BasePriority;
-    HANDLE UniqueProcessId;
-    PVOID Reserved2;
-    ULONG HandleCount;
-    ULONG SessionId;
-    PVOID Reserved3;
-    SIZE_T PeakVirtualSize;
-    SIZE_T VirtualSize;
-    ULONG Reserved4;
-    SIZE_T PeakWorkingSetSize;
-    SIZE_T WorkingSetSize;
-    PVOID Reserved5;
-    SIZE_T QuotaPagedPoolUsage;
-    PVOID Reserved6;
-    SIZE_T QuotaNonPagedPoolUsage;
-    SIZE_T PagefileUsage;
-    SIZE_T PeakPagefileUsage;
-    SIZE_T PrivatePageCount;
-    LARGE_INTEGER Reserved7[6];
+    KPRIORITY      BasePriority;
+    HANDLE         UniqueProcessId;
+    PVOID          Reserved2;
+    ULONG          HandleCount;
+    ULONG          SessionId;
+    PVOID          Reserved3;
+    SIZE_T         PeakVirtualSize;
+    SIZE_T         VirtualSize;
+    ULONG          Reserved4;
+    SIZE_T         PeakWorkingSetSize;
+    SIZE_T         WorkingSetSize;
+    PVOID          Reserved5;
+    SIZE_T         QuotaPagedPoolUsage;
+    PVOID          Reserved6;
+    SIZE_T         QuotaNonPagedPoolUsage;
+    SIZE_T         PagefileUsage;
+    SIZE_T         PeakPagefileUsage;
+    SIZE_T         PrivatePageCount;
+    LARGE_INTEGER  Reserved7[6];
 } SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
 
-/**
- * @brief Windows System call values that are intercepted by transparency mode
- * 
- * NOTE: Windows system calls can change values on each version.
- *       The current values will reliably only work on Win11 24H2
- *
-*/
-const enum _WIN_SYSTEM_CALLS
-{
-    SysNtQuerySystemInformation        = 0x0036,
-    SysNtQuerySystemInformationEx      = 0x016e, // On 24H2, changes on each windows version
-    
-    SysNtSystemDebugControl            = 0x01d0, // On 24H2, changes on each windows version
-    SysNtQueryAttributesFile           = 0x003d,
-    SysNtOpenDirectoryObject           = 0x0058,
-    SysNtQueryDirectoryObject          = 0x014e, // On 24H2, changes on each windows version
-    SysNtQueryInformationProcess       = 0x0019,
-    SysNtSetInformationProcess         = 0x001c,
-    SysNtQueryInformationThread        = 0x0025,
-    SysNtSetInformationThread          = 0x000d,
-    SysNtOpenFile                      = 0x0033,
-    SysNtOpenKey                       = 0x0012,
-    SysNtOpenKeyEx                     = 0x012b, // On 24H2, changes on each windows version
-    SysNtQueryValueKey                 = 0x0017,
-    SysNtEnumerateKey                  = 0x0032,
+/*
+const enum _WIN_SYSTEM_CALLS {
+    SysNtQuerySystemInformation   = 0x0036,
+    SysNtQuerySystemInformationEx = 0x016e, // On 24H2, changes on each windows version
 
+    SysNtSystemDebugControl      = 0x01d0, // On 24H2, changes on each windows version
+    SysNtQueryAttributesFile     = 0x003d,
+    SysNtOpenDirectoryObject     = 0x0058,
+    SysNtQueryDirectoryObject    = 0x014e, // On 24H2, changes on each windows version
+    SysNtQueryInformationProcess = 0x0019,
+    SysNtSetInformationProcess   = 0x001c,
+    SysNtQueryInformationThread  = 0x0025,
+    SysNtSetInformationThread    = 0x000d,
+    SysNtOpenFile                = 0x0033,
+    SysNtOpenKey                 = 0x0012,
+    SysNtOpenKeyEx               = 0x012b, // On 24H2, changes on each windows version
+    SysNtQueryValueKey           = 0x0017,
+    SysNtEnumerateKey            = 0x0032,
 
 };
+*/
 
 /*
 * System call numbers for Windows 10 22H2
-* 
+*
 const enum _WIN_SYSTEM_CALLS
 {
     SysNtQuerySystemInformation        = 0x0036,
     SysNtQuerySystemInformationEx      = 0x0162, // On 22H2, changes on each windows version
-    
+
     SysNtSystemDebugControl            = 0x01bf, // On 22H2, changes on each windows version
     SysNtQueryAttributesFile           = 0x003d,
     SysNtOpenDirectoryObject           = 0x0058,
@@ -234,10 +233,10 @@ const enum _WIN_SYSTEM_CALLS
 */
 
 /**
-* @brief A list of windows processes, for which to ignore systemcall requests
-* when the transparency mode is enabled
-*
-*/
+ * @brief A list of windows processes, for which to ignore systemcall requests
+ * when the transparency mode is enabled
+ *
+ */
 static const PCHAR TRANSPARENT_WIN_PROCESS_IGNORE[] = {
     "winlogon.exe",
     "wininit.exe",
@@ -251,10 +250,10 @@ static const PCHAR TRANSPARENT_WIN_PROCESS_IGNORE[] = {
  *
  */
 static const PWCHAR TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[] = {
-    L"VEN_8086",  // Intel  
-    L"VEN_10DE",  // NVIDIA  
-    L"VEN_1002",  // AMD  
-    L"VEN_10EC",  // Realtek
+    L"VEN_8086", // Intel
+    L"VEN_10DE", // NVIDIA
+    L"VEN_1002", // AMD
+    L"VEN_10EC", // Realtek
 
 };
 
@@ -427,8 +426,9 @@ static const PCHAR HV_DRIVER[] = {
  *
  */
 static const PWCH HV_FILES[] = {
+
     //
-    // Hyperdbg Files
+    // HyperDbg Files
     //
     L"hyperhv",
     L"hyperkd"
@@ -436,7 +436,7 @@ static const PWCH HV_FILES[] = {
     L"libhyperdbg",
 
     //
-    // VMWare Files
+    // VMware Files
     //
     L"vmmouse.sys",
     L"Vmmouse.sys",
@@ -465,7 +465,6 @@ static const PWCH HV_FILES[] = {
     L"vmnetadapter.sys",
     L"VMware Tools",
     L"VMWare",
-
 
     //
     // VirtualBox Files
@@ -513,7 +512,7 @@ static const PWCH HV_FILES[] = {
     L"vmusrvc.exe",
     L"vpc-s3.sys",
     L"Virtio-Win",
-        
+
     L"qemu-ga",
     L"SPICE Guest Tools",
 };
@@ -539,9 +538,10 @@ static const PWCH HV_DIRS[] = {
  *
  */
 static const PWCH HV_REGKEYS[] = {
+
     //
     // PCI device vendor id's
-    // 
+    //
     // NOTE: These need to stay at the top of the list
     //
     L"VEN_80EE",
@@ -630,7 +630,7 @@ static const PWCH HV_REGKEYS[] = {
 
 //
 // @brief A list of registry keys which might contain hypervisor vendor information in their data
-// 
+//
 // NOTE: This is not a complete list, there are a lot of generic keys that also can have the identifiable data
 //
 static const PWCH TRANSPARENT_DETECTABLE_REGISTRY_KEYS[] = {
@@ -658,7 +658,7 @@ static const PWCH TRANSPARENT_DETECTABLE_REGISTRY_KEYS[] = {
 
 /**
  * @brief A list of common Hypervisor firmware entries
- * 
+ *
  * @details The list contains both a normal and uppercase versions of the entries, for better compatibility
  *
  */
@@ -685,7 +685,7 @@ static const PCHAR HV_FIRM_NAMES[] = {
 //////////////////////////////////////////////////
 
 VOID
-TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs);
+TransparentCpuid(INT32 CpuInfo[], PGUEST_REGS Regs);
 
 BOOLEAN
 TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
@@ -707,34 +707,34 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
                                       TRANSPARENT_MODE_CONTEXT_PARAMS * Params);
 
 VOID
-TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
-TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE* VCpu);
+TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE * VCpu);
 
 UINT32
 TransparentGetRand();

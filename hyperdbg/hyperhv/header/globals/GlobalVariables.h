@@ -69,6 +69,12 @@ BOOLEAN g_IsEptHook2sDetourListInitialized;
 BOOLEAN g_TransparentMode;
 
 /**
+ * @brief Target hook address for the system call handler
+ *
+ */
+PVOID g_SystemCallHookAddress;
+
+/**
  * @brief State of transparent-mode trap-flags
  *
  */
