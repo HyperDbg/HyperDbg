@@ -10,6 +10,7 @@ New release of the HyperDbg Debugger.
 ### Added
 - **microsleep(microseconds)** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/microsleep))
 - **rdtsc()** and **rdtscp()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/rdtsc))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/rdtscp))
+- Added functions to get system-call number from the running system
 
 ### Changed
 - The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022
