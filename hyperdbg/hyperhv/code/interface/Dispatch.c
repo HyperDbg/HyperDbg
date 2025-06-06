@@ -961,6 +961,15 @@ DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     BOOLEAN PostEventTriggerReq = FALSE;
 
     //
+    // In Transparency mode a hidden hook for the system call handler gets inserted
+    //
+    if (g_TransparentMode) 
+    {
+        TransparentHandleSystemCallHook(VCpu);
+        g_Callbacks.VmmCallbackTriggerEvents = NULL;
+    }
+
+    //
     // Triggering the pre-event (This command only support the
     // pre-event, the post-event doesn't make sense in this command)
     //

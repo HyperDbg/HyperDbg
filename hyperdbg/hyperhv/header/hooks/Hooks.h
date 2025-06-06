@@ -103,7 +103,7 @@ typedef struct _SYSTEM_MODULE_ENTRY
 typedef struct _SYSTEM_MODULE_INFORMATION
 {
     ULONG               Count;
-    SYSTEM_MODULE_ENTRY Module;
+    SYSTEM_MODULE_ENTRY Module[1];
 
 } SYSTEM_MODULE_INFORMATION, *PSYSTEM_MODULE_INFORMATION;
 
@@ -113,8 +113,13 @@ typedef struct _SYSTEM_MODULE_INFORMATION
  */
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
-    SystemModuleInformation         = 11,
-    SystemKernelDebuggerInformation = 35
+    SystemProcessInformation            = 0x05,
+    SystemExtendedProcessInformation    = 0x39,
+    SystemFullProcessInformation        = 0x94,
+    SystemModuleInformation             = 0x0B,
+    SystemKernelDebuggerInformation     = 0x23,
+    SystemCodeIntegrityInformation      = 0x67,
+    SystemFirmwareTableInformation      = 0x4C,
 } SYSTEM_INFORMATION_CLASS,
     *PSYSTEM_INFORMATION_CLASS;
 
