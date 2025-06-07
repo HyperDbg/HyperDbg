@@ -30,12 +30,13 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     //
 
     //
-    // Fill the callbacks for using hyperlog in VMM
+    // Fill the callbacks for using hyperlog in hyperevade
+    // We use the callbacks directly to avoid two calls to the same function
     //
-    // HyperevadeCallbacks.LogCallbackPrepareAndSendMessageToQueueWrapper = LogCallbackPrepareAndSendMessageToQueue;
-    HyperevadeCallbacks.LogCallbackSendMessageToQueue  = LogCallbackSendMessageToQueue;
-    HyperevadeCallbacks.LogCallbackSendBuffer          = LogCallbackSendBuffer;
-    HyperevadeCallbacks.LogCallbackCheckIfBufferIsFull = LogCallbackCheckIfBufferIsFull;
+    HyperevadeCallbacks.LogCallbackPrepareAndSendMessageToQueueWrapper = g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper;
+    HyperevadeCallbacks.LogCallbackSendMessageToQueue                  = g_Callbacks.LogCallbackSendMessageToQueue;
+    HyperevadeCallbacks.LogCallbackSendBuffer                          = g_Callbacks.LogCallbackSendBuffer;
+    HyperevadeCallbacks.LogCallbackCheckIfBufferIsFull                 = g_Callbacks.LogCallbackCheckIfBufferIsFull;
 
     //
     // Memory callbacks
@@ -54,8 +55,14 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     //
     HyperevadeCallbacks.SyscallCallbackSetTrapFlagAfterSyscall = SyscallCallbackSetTrapFlagAfterSyscall;
 
-    // SYSCALL_CALLBACK_INITIALIZE                  SyscallCallbackInitialize;
-    // SYSCALL_CALLBACK_UNINITIALIZE                SyscallCallbackUninitialize;
+    //
+    // Initialize the syscall callback mechanism from hypervisor
+    //
+    if (!SyscallCallbackInitialize())
+    {
+        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+        return FALSE;
+    }
 
     //
     // Call the hyperevade hide debugger function
@@ -72,5 +79,10 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
 BOOLEAN
 TransparentUnhideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
+    //
+    // Unitialize the syscall callback mechanism from hypervisor
+    //
+    SyscallCallbackUninitialize();
+
     return TransparentUnhideDebugger(TransparentModeRequest);
 }

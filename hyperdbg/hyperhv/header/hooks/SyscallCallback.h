@@ -74,6 +74,13 @@ typedef struct _SYSCALL_CALLBACK_TRAP_FLAG_STATE
 //////////////////////////////////////////////////
 //				    Functions   				//
 //////////////////////////////////////////////////
+
+BOOLEAN
+SyscallCallbackInitialize();
+
+BOOLEAN
+SyscallCallbackUninitialize();
+
 BOOLEAN
 SyscallCallbackSetTrapFlagAfterSyscall(GUEST_REGS *                      Regs,
                                        UINT32                            ProcessId,

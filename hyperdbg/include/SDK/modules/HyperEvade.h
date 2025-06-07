@@ -73,18 +73,6 @@ typedef BOOLEAN (*MEMORY_MAPPER_WRITE_MEMORY_SAFE_ON_TARGET_PROCESS)(UINT64 Dest
 typedef PCHAR (*COMMON_GET_PROCESS_NAME_FROM_PROCESS_CONTROL_BLOCK)(PVOID Eprocess);
 
 /**
- * @brief A function that initializes the syscall callback
- *
- */
-typedef BOOLEAN (*SYSCALL_CALLBACK_INITIALIZE)();
-
-/**
- * @brief A function that uninitializes the syscall callback
- *
- */
-typedef BOOLEAN (*SYSCALL_CALLBACK_UNINITIALIZE)();
-
-/**
  * @brief A function that sets the trap flag after a syscall
  *
  */
@@ -131,8 +119,6 @@ typedef struct _HYPEREVADE_CALLBACKS
     //
     // System call callbacks
     //
-    SYSCALL_CALLBACK_INITIALIZE                  SyscallCallbackInitialize;
-    SYSCALL_CALLBACK_UNINITIALIZE                SyscallCallbackUninitialize;
     SYSCALL_CALLBACK_SET_TRAP_FLAG_AFTER_SYSCALL SyscallCallbackSetTrapFlagAfterSyscall;
 
 } HYPEREVADE_CALLBACKS, *PHYPEREVADE_CALLBACKS;

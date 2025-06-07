@@ -55,15 +55,6 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
                      sizeof(SYSTEM_CALL_NUMBERS_INFORMATION));
 
         //
-        // Initialize the syscall callback mechanism from hypervisor
-        //
-        if (!g_Callbacks.SyscallCallbackInitialize())
-        {
-            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
-            return FALSE;
-        }
-
-        //
         // Choose a random genuine vendor string to replace hypervisor vendor data
         //
         TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = TransparentGetRand() %
@@ -102,11 +93,6 @@ TransparentUnhideDebugger(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Transpar
         // Disable the transparent-mode
         //
         g_TransparentMode = FALSE;
-
-        //
-        // Unitialize the syscall callback mechanism from hypervisor
-        //
-        g_Callbacks.SyscallCallbackUninitialize();
 
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
