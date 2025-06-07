@@ -299,6 +299,23 @@ typedef struct _DIRECT_VMCALL_PARAMETERS
 } DIRECT_VMCALL_PARAMETERS, *PDIRECT_VMCALL_PARAMETERS;
 
 //////////////////////////////////////////////////
+//             Syscall Callbacks                //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The (optional) context parameters for the transparent-mode
+ *
+ */
+typedef struct _SYSCALL_CALLBACK_CONTEXT_PARAMS
+{
+    UINT64 OptionalParam1; // Optional parameter
+    UINT64 OptionalParam2; // Optional parameter
+    UINT64 OptionalParam3; // Optional parameter
+    UINT64 OptionalParam4; // Optional parameter
+
+} SYSCALL_CALLBACK_CONTEXT_PARAMS, *PSYSCALL_CALLBACK_CONTEXT_PARAMS;
+
+//////////////////////////////////////////////////
 //                  EPT Hook                    //
 //////////////////////////////////////////////////
 

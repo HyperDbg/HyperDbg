@@ -12,14 +12,8 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//				      Locks 	    			//
+//			    	   Globals	    			//
 //////////////////////////////////////////////////
-
-/**
- * @brief The lock for modifying list of process/thread for transparent-mode trap flags
- *
- */
-volatile LONG TransparentModeTrapListLock;
 
 /**
  * @brief List of callbacks
@@ -75,22 +69,6 @@ typedef enum _SYSTEM_INFORMATION_CLASS
 //////////////////////////////////////////////////
 
 /**
- * @brief General MSR Structure
- *
- */
-typedef union _MSR
-{
-    struct
-    {
-        ULONG Low;
-        ULONG High;
-    } Fields;
-
-    UINT64 Flags;
-
-} MSR, *PMSR;
-
-/**
  * @brief The measurements from user-mode and kernel-mode
  *
  */
@@ -121,53 +99,6 @@ typedef struct _TRANSPARENCY_PROCESS
     LIST_ENTRY OtherProcesses;
 
 } TRANSPARENCY_PROCESS, *PTRANSPARENCY_PROCESS;
-
-/**
- * @brief The thread/process information
- *
- */
-typedef struct _TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION
-{
-    union
-    {
-        UINT64 asUInt;
-
-        struct
-        {
-            UINT32 ProcessId;
-            UINT32 ThreadId;
-        } Fields;
-    };
-
-} TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION, *PTRANSPARENT_MODE_PROCESS_THREAD_INFORMATION;
-
-/**
- * @brief The (optional) context parameters for the transparent-mode
- *
- */
-typedef struct _TRANSPARENT_MODE_CONTEXT_PARAMS
-{
-    UINT64 OptionalParam1; // Optional parameter
-    UINT64 OptionalParam2; // Optional parameter
-    UINT64 OptionalParam3; // Optional parameter
-    UINT64 OptionalParam4; // Optional parameter
-
-} TRANSPARENT_MODE_CONTEXT_PARAMS, *PTRANSPARENT_MODE_CONTEXT_PARAMS;
-
-/**
- * @brief The threads that we expect to get the trap flag
- *
- * @details Used for keeping track of the threads that we expect to get the trap flag
- *
- */
-typedef struct _TRANSPARENT_MODE_TRAP_FLAG_STATE
-{
-    UINT32                                      NumberOfItems;
-    TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ThreadInformation[MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS];
-    UINT64                                      Context[MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS];
-    TRANSPARENT_MODE_CONTEXT_PARAMS             Params[MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS];
-
-} TRANSPARENT_MODE_TRAP_FLAG_STATE, *PTRANSPARENT_MODE_TRAP_FLAG_STATE;
 
 /**
  * @brief System Information for Code Integrity
@@ -297,18 +228,6 @@ static WORD TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = 0;
  * @brief System call numbers information
  */
 SYSTEM_CALL_NUMBERS_INFORMATION g_SystemCallNumbersInformation;
-
-/**
- * @brief Target hook address for the system call handler
- *
- */
-PVOID g_SystemCallHookAddress;
-
-/**
- * @brief State of transparent-mode trap-flags
- *
- */
-TRANSPARENT_MODE_TRAP_FLAG_STATE * g_TransparentModeTrapFlagState;
 
 //////////////////////////////////////////////////
 //				   Constants        			//
@@ -765,28 +684,6 @@ static const PCHAR HV_FIRM_NAMES[] = {
 //////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
-
-BOOLEAN
-TransparentSetTrapFlagAfterSyscall(GUEST_REGS *                      Regs,
-                                   UINT32                            ProcessId,
-                                   UINT32                            ThreadId,
-                                   UINT64                            Context,
-                                   TRANSPARENT_MODE_CONTEXT_PARAMS * Params);
-
-BOOLEAN
-TransparentCheckAndHandleAfterSyscallTrapFlags(GUEST_REGS * Regs,
-                                               UINT32       ProcessId,
-                                               UINT32       ThreadId);
-
-VOID
-TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
-                                      UINT32                            ProcessId,
-                                      UINT32                            ThreadId,
-                                      UINT64                            Context,
-                                      TRANSPARENT_MODE_CONTEXT_PARAMS * Params);
-
-VOID
-TransparentHandleSystemCallHook(GUEST_REGS * Regs);
 
 VOID
 TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs);

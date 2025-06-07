@@ -121,8 +121,8 @@
 #include "vmm/vmx/VmxMechanisms.h"
 #include "hooks/Hooks.h"
 #include "hooks/ModeBasedExecHook.h"
+#include "hooks/SyscallCallback.h"
 #include "interface/Callback.h"
-#include "components/interface/HyperLogCallback.h"
 #include "features/DirtyLogging.h"
 #include "features/CompatibilityChecks.h"
 #include "mmio/MmioShadowing.h"
@@ -172,8 +172,10 @@
 //
 #include "SDK/modules/HyperLog.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
+#include "components/interface/HyperLogCallback.h"
 
 //
 // Transparent-mode (hyperevade) headers
 //
+#include "SDK/modules/HyperEvade.h"
 #include "SDK/imports/kernel/HyperDbgHyperEvade.h"

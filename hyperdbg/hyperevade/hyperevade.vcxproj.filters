@@ -19,15 +19,6 @@
     <Filter Include="code\platform">
       <UniqueIdentifier>{21f0281e-fc2a-4e13-97ac-e4b35a05a31e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\components">
-      <UniqueIdentifier>{2b724a5d-3764-4d38-8eaa-e2bd63347dba}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\components\spinlock">
-      <UniqueIdentifier>{53987f38-4829-4f43-b9d9-2da7f1322173}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\components\optimizations">
-      <UniqueIdentifier>{59dad3aa-35fc-463e-b9f8-6ab05b0a6343}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\components">
       <UniqueIdentifier>{890885f8-de8f-41df-9202-3ec320d7d816}</UniqueIdentifier>
     </Filter>
@@ -91,21 +82,6 @@
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\Mem.h">
       <Filter>header\platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
-      <Filter>header\components\spinlock</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\components\optimizations\header\AvlTree.h">
-      <Filter>header\components\optimizations</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h">
-      <Filter>header\components\optimizations</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h">
-      <Filter>header\components\optimizations</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h">
-      <Filter>header\components\optimizations</Filter>
     </ClInclude>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
       <Filter>header\interface</Filter>

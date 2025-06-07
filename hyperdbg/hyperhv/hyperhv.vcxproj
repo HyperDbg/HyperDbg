@@ -82,7 +82,7 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\hyperevade.lib</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
       <ModuleDefinitionFile>hyperhv.def</ModuleDefinitionFile>
     </Link>
@@ -98,7 +98,7 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\hyperevade.lib</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
       <ModuleDefinitionFile>hyperhv.def</ModuleDefinitionFile>
     </Link>
@@ -150,11 +150,13 @@
     <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c" />
     <ClCompile Include="code\hooks\ept-hook\ExecTrap.c" />
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c" />
+    <ClCompile Include="code\hooks\syscall-hook\SyscallCallback.c" />
     <ClCompile Include="code\interface\Callback.c" />
     <ClCompile Include="code\interface\Configuration.c" />
     <ClCompile Include="code\interface\DirectVmcall.c" />
     <ClCompile Include="code\interface\Dispatch.c" />
     <ClCompile Include="code\interface\Export.c" />
+    <ClCompile Include="code\interface\HyperEvade.c" />
     <ClCompile Include="code\memory\AddressCheck.c" />
     <ClCompile Include="code\memory\Conversion.c" />
     <ClCompile Include="code\memory\Layout.c" />
@@ -256,6 +258,7 @@
     <ClInclude Include="header\hooks\Hooks.h" />
     <ClInclude Include="header\hooks\ModeBasedExecHook.h" />
     <ClInclude Include="header\hooks\ExecTrap.h" />
+    <ClInclude Include="header\hooks\SyscallCallback.h" />
     <ClInclude Include="header\interface\Callback.h" />
     <ClInclude Include="header\interface\DirectVmcall.h" />
     <ClInclude Include="header\interface\Dispatch.h" />

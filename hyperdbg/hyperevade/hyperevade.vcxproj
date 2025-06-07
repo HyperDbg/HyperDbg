@@ -112,11 +112,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
-    <ClInclude Include="..\include\components\optimizations\header\AvlTree.h" />
-    <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h" />
-    <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h" />
-    <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h" />
-    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\Mem.h" />
     <ClInclude Include="header\Transparency.h" />

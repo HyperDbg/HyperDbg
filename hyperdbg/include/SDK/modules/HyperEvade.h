@@ -49,30 +49,6 @@ typedef BOOLEAN (*LOG_CALLBACK_SEND_BUFFER)(_In_ UINT32                         
 typedef BOOLEAN (*LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL)(BOOLEAN Priority);
 
 /**
- * @brief A function that broadcasts the enablement of #DB and #BP vm-exit on all cores
- *
- */
-typedef VOID (*BROADCAST_ENABLE_DB_AND_BP_EXITING_ALL_CORES)();
-
-/**
- * @brief A function that broadcasts the disablement of #DB and #BP vm-exit on all cores
- *
- */
-typedef VOID (*BROADCAST_DISABLE_DB_AND_BP_EXITING_ALL_CORES)();
-
-/**
- * @brief A function that sets the monitor trap flag
- *
- */
-typedef VOID (*HV_SET_RFLAG_TRAP_FLAG)(BOOLEAN Set);
-
-/**
- * @brief A function that gets the current value of RFLAGS
- *
- */
-typedef UINT64 (*HV_GET_RFLAGS)();
-
-/**
  * @brief A function that checks the validity and safety of the target address
  *
  */
@@ -91,22 +67,32 @@ typedef BOOLEAN (*MEMORY_MAPPER_READ_MEMORY_SAFE_ON_TARGET_PROCESS)(UINT64 VaAdd
 typedef BOOLEAN (*MEMORY_MAPPER_WRITE_MEMORY_SAFE_ON_TARGET_PROCESS)(UINT64 Destination, PVOID Source, SIZE_T Size);
 
 /**
- * @brief A function that set EPT hook on the target address
- *
- */
-typedef BOOLEAN (*CONFIGURE_EPT_HOOK)(PVOID TargetAddress, UINT32 ProcessId);
-
-/**
- * @brief A function that unhook EPT hook on the target address
- *
- */
-typedef BOOLEAN (*CONFIGURE_EPT_HOOK_UNHOOK_SINGLE_ADDRESS)(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
-
-/**
  * @brief A function that gets the process name from the process control block
  *
  */
 typedef PCHAR (*COMMON_GET_PROCESS_NAME_FROM_PROCESS_CONTROL_BLOCK)(PVOID Eprocess);
+
+/**
+ * @brief A function that initializes the syscall callback
+ *
+ */
+typedef BOOLEAN (*SYSCALL_CALLBACK_INITIALIZE)();
+
+/**
+ * @brief A function that uninitializes the syscall callback
+ *
+ */
+typedef BOOLEAN (*SYSCALL_CALLBACK_UNINITIALIZE)();
+
+/**
+ * @brief A function that sets the trap flag after a syscall
+ *
+ */
+typedef BOOLEAN (*SYSCALL_CALLBACK_SET_TRAP_FLAG_AFTER_SYSCALL)(GUEST_REGS *                      Regs,
+                                                                UINT32                            ProcessId,
+                                                                UINT32                            ThreadId,
+                                                                UINT64                            Context,
+                                                                SYSCALL_CALLBACK_CONTEXT_PARAMS * Params);
 
 //////////////////////////////////////////////////
 //			   Callback Structure               //
@@ -131,18 +117,6 @@ typedef struct _HYPEREVADE_CALLBACKS
     //
 
     //
-    // Broadcasting callbacks
-    //
-    BROADCAST_ENABLE_DB_AND_BP_EXITING_ALL_CORES  BroadcastEnableDbAndBpExitingAllCores;
-    BROADCAST_DISABLE_DB_AND_BP_EXITING_ALL_CORES BroadcastDisableDbAndBpExitingAllCores;
-
-    //
-    // Hypervisor callbacks
-    //
-    HV_SET_RFLAG_TRAP_FLAG HvSetRflagTrapFlag;
-    HV_GET_RFLAGS          HvGetRflags;
-
-    //
     // Memory callbacks
     //
     CHECK_ACCESS_VALIDITY_AND_SAFETY                  CheckAccessValidityAndSafety;
@@ -150,14 +124,15 @@ typedef struct _HYPEREVADE_CALLBACKS
     MEMORY_MAPPER_WRITE_MEMORY_SAFE_ON_TARGET_PROCESS MemoryMapperWriteMemorySafeOnTargetProcess;
 
     //
-    // EPT hook callback
-    //
-    CONFIGURE_EPT_HOOK                       ConfigureEptHook;
-    CONFIGURE_EPT_HOOK_UNHOOK_SINGLE_ADDRESS ConfigureEptHookUnhookSingleAddress;
-
-    //
     // Common callbacks
     //
     COMMON_GET_PROCESS_NAME_FROM_PROCESS_CONTROL_BLOCK CommonGetProcessNameFromProcessControlBlock;
+
+    //
+    // System call callbacks
+    //
+    SYSCALL_CALLBACK_INITIALIZE                  SyscallCallbackInitialize;
+    SYSCALL_CALLBACK_UNINITIALIZE                SyscallCallbackUninitialize;
+    SYSCALL_CALLBACK_SET_TRAP_FLAG_AFTER_SYSCALL SyscallCallbackSetTrapFlagAfterSyscall;
 
 } HYPEREVADE_CALLBACKS, *PHYPEREVADE_CALLBACKS;

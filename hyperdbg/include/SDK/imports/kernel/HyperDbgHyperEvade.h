@@ -20,5 +20,22 @@
 //            hyperevade functions 	    		//
 //////////////////////////////////////////////////
 
+IMPORT_EXPORT_HYPEREVADE BOOLEAN
+TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        HyperevadeCallbacks,
+                        DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest);
+
+IMPORT_EXPORT_HYPEREVADE BOOLEAN
+TransparentUnhideDebugger(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest);
+
 IMPORT_EXPORT_HYPEREVADE VOID
 TransparentCheckAndModifyCpuid(INT32 CpuInfo[], PGUEST_REGS Regs);
+
+IMPORT_EXPORT_HYPEREVADE VOID
+TransparentHandleSystemCallHook(GUEST_REGS * Regs);
+
+IMPORT_EXPORT_HYPEREVADE VOID
+TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
+                                      UINT32                            ProcessId,
+                                      UINT32                            ThreadId,
+                                      UINT64                            Context,
+                                      SYSCALL_CALLBACK_CONTEXT_PARAMS * Params);

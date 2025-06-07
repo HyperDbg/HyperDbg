@@ -23,8 +23,6 @@ BOOLEAN
 TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        HyperevadeCallbacks,
                         DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
-    MSR Msr = {0};
-
     //
     // Check if any of the required callbacks are NULL
     //
@@ -57,42 +55,19 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
                      sizeof(SYSTEM_CALL_NUMBERS_INFORMATION));
 
         //
-        // Insert EPT memory page hook for Windows system call handler, KiSystemCall64()
+        // Initialize the syscall callback mechanism from hypervisor
         //
-        Msr.Flags = __readmsr(IA32_LSTAR);
-
-        //
-        // We set the hook at the address of the system call handler + 3
-        // because we don't want to hook the first 3 bytes of the system call handler
-        // which is SWAPGS instruction
-        //
-        g_SystemCallHookAddress = (PVOID)(Msr.Flags + 3);
-
-        //
-        // Apply the hook from vmx non-root mode
-        //
-        if (!g_Callbacks.ConfigureEptHook(g_SystemCallHookAddress, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
+        if (!g_Callbacks.SyscallCallbackInitialize())
         {
-            // LogInfo("Error while inserting EPT page hook for Windows system call handler at address 0x%p+3", Msr.Flags);
-
             TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
             return FALSE;
         }
 
         //
-        // Allocate buffer for the transparent-mode trap flag state
-        //
-        g_TransparentModeTrapFlagState = (TRANSPARENT_MODE_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(TRANSPARENT_MODE_TRAP_FLAG_STATE));
-
-        //
-        // Intercept trap flags #DBs and #BPs for the transparent-mode
-        //
-        g_Callbacks.BroadcastEnableDbAndBpExitingAllCores();
-
-        //
         // Choose a random genuine vendor string to replace hypervisor vendor data
         //
-        TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = TransparentGetRand() % (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
+        TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = TransparentGetRand() %
+                                                  (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
 
         //
         // Enable the transparent mode
@@ -119,7 +94,7 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE TransparentModeRequest)
+TransparentUnhideDebugger(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
     if (g_TransparentMode)
     {
@@ -129,25 +104,9 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
         g_TransparentMode = FALSE;
 
         //
-        // Unset the trap flags #DBs and #BPs for the transparent-mode
+        // Unitialize the syscall callback mechanism from hypervisor
         //
-        g_Callbacks.BroadcastDisableDbAndBpExitingAllCores();
-
-        //
-        // Free the buffer for the transparent-mode trap flag state
-        //
-        PlatformMemFreePool(g_TransparentModeTrapFlagState);
-
-        MSR Msr   = {0};
-        Msr.Flags = __readmsr(IA32_LSTAR);
-
-        if (!g_Callbacks.ConfigureEptHookUnhookSingleAddress((UINT64)(Msr.Flags + 3), (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
-        {
-            LogInfo("Error while removing the EPT hook from windows syscall handler at address 0x%p+3", Msr.Flags);
-
-            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
-            return FALSE;
-        }
+        g_Callbacks.SyscallCallbackUninitialize();
 
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
@@ -309,7 +268,7 @@ TransparentHandleSystemCallHook(GUEST_REGS * Regs)
 VOID
 TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
 {
-    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+    SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
 
     switch (Regs->r10)
     {
@@ -320,11 +279,11 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
         ContextParams.OptionalParam2 = Regs->rdx;
         ContextParams.OptionalParam3 = Regs->r8 - 0x400;
 
-        TransparentSetTrapFlagAfterSyscall(Regs,
-                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           Regs->rax,
-                                           &ContextParams);
+        g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           Regs->rax,
+                                                           &ContextParams);
 
         break;
     }
@@ -334,11 +293,11 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
         ContextParams.OptionalParam2 = Regs->rdx;
         ContextParams.OptionalParam3 = Regs->r8;
 
-        TransparentSetTrapFlagAfterSyscall(Regs,
-                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           Regs->rax,
-                                           &ContextParams);
+        g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           Regs->rax,
+                                                           &ContextParams);
 
         break;
     }
@@ -348,11 +307,11 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
         ContextParams.OptionalParam2 = Regs->rdx;
         ContextParams.OptionalParam3 = Regs->r8;
 
-        TransparentSetTrapFlagAfterSyscall(Regs,
-                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           Regs->rax,
-                                           &ContextParams);
+        g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           Regs->rax,
+                                                           &ContextParams);
         break;
     }
     case SystemCodeIntegrityInformation:
@@ -361,11 +320,11 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
         ContextParams.OptionalParam2 = Regs->rdx;
         ContextParams.OptionalParam3 = 0x8;
 
-        TransparentSetTrapFlagAfterSyscall(Regs,
-                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           Regs->rax,
-                                           &ContextParams);
+        g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           Regs->rax,
+                                                           &ContextParams);
         break;
     }
 
@@ -382,7 +341,7 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
     //        ContextParams.OptionalParam3                  = Regs->r8;
     //        ContextParams.OptionalParam4                  = Regs->r9;
     //
-    //        TransparentSetTrapFlagAfterSyscall(Regs,
+    //        g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
     //                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
     //                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
     //                                           Regs->rax,
@@ -469,7 +428,7 @@ TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr)
 VOID
 TransparentHandleNtQueryAttributesFileSyscall(GUEST_REGS * Regs)
 {
-    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+    SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
     ContextParams.OptionalParam1                  = Regs->rdx;
 
     //
@@ -490,11 +449,11 @@ TransparentHandleNtQueryAttributesFileSyscall(GUEST_REGS * Regs)
         {
             if (wcsstr(FilePath, HV_FILES[j]))
             {
-                TransparentSetTrapFlagAfterSyscall(Regs,
-                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   Regs->rax,
-                                                   &ContextParams);
+                g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   Regs->rax,
+                                                                   &ContextParams);
 
                 break;
             }
@@ -520,7 +479,7 @@ TransparentHandleNtOpenDirectoryObjectSyscall(GUEST_REGS * Regs)
     //
     // Set up the context data for the callback after SYSRET
     //
-    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+    SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
     ContextParams.OptionalParam1                  = Regs->r10;
 
     //
@@ -546,11 +505,11 @@ TransparentHandleNtOpenDirectoryObjectSyscall(GUEST_REGS * Regs)
         {
             if (wcsstr(DirPath, HV_DIRS[j]))
             {
-                TransparentSetTrapFlagAfterSyscall(Regs,
-                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   Regs->rax,
-                                                   &ContextParams);
+                g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   Regs->rax,
+                                                                   &ContextParams);
 
                 break;
             }
@@ -578,16 +537,16 @@ TransparentHandleNtSystemDebugControlSyscall(GUEST_REGS * Regs)
     //
     Regs->r9 = 0x0;
 
-    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+    SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
 
     //
     // Set the trap flag to intercept the SYSRET instruction
     //
-    TransparentSetTrapFlagAfterSyscall(Regs,
-                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                       Regs->rax,
-                                       &ContextParams);
+    g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                       Regs->rax,
+                                                       &ContextParams);
 }
 
 /**
@@ -603,7 +562,7 @@ TransparentHandleNtQueryInformationProcessSyscall(GUEST_REGS * Regs)
     //
     // Set up the context parameters for the interception callback
     //
-    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+    SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
     ContextParams.OptionalParam1                  = Regs->rdx; // ProcessInformationClass
     ContextParams.OptionalParam2                  = Regs->r8;  // BufferPtr
     ContextParams.OptionalParam3                  = Regs->r9;  // BufferSize
@@ -611,11 +570,11 @@ TransparentHandleNtQueryInformationProcessSyscall(GUEST_REGS * Regs)
     //
     // Set the trap flag to intercept the SYSRET instruction
     //
-    TransparentSetTrapFlagAfterSyscall(Regs,
-                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                       Regs->rax,
-                                       &ContextParams);
+    g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                       Regs->rax,
+                                                       &ContextParams);
 }
 
 /**
@@ -662,12 +621,12 @@ TransparentHandleNtOpenFileSyscall(GUEST_REGS * Regs)
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
-                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-                TransparentSetTrapFlagAfterSyscall(Regs,
-                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   Regs->rax,
-                                                   &ContextParams);
+                SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
+                g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   Regs->rax,
+                                                                   &ContextParams);
 
                 break;
             }
@@ -721,12 +680,12 @@ TransparentHandleNtOpenKeySyscall(GUEST_REGS * Regs)
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
-                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-                TransparentSetTrapFlagAfterSyscall(Regs,
-                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   Regs->rax,
-                                                   &ContextParams);
+                SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
+                g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   Regs->rax,
+                                                                   &ContextParams);
 
                 break;
             }
@@ -791,7 +750,7 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 // If a match is found, set up the context values and set the trap flag for the SYSRET callback
                 //
 
-                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+                SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
 
                 ContextParams.OptionalParam1 = Regs->r8;
                 ContextParams.OptionalParam2 = Regs->r9;
@@ -829,11 +788,11 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
-                TransparentSetTrapFlagAfterSyscall(Regs,
-                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   Regs->rax,
-                                                   &ContextParams);
+                g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   Regs->rax,
+                                                                   &ContextParams);
 
                 //
                 // Clean-up and return to guest exection
@@ -855,7 +814,7 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 // When the match is found, corrupt the buffer pointers in the registers
                 // and set the SYSRET callback trap flag
                 //
-                TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+                SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
 
                 Regs->rdx = 0x0;
                 Regs->r9  = 0x0;
@@ -863,11 +822,11 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
-                TransparentSetTrapFlagAfterSyscall(Regs,
-                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   Regs->rax,
-                                                   &ContextParams);
+                g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   Regs->rax,
+                                                                   &ContextParams);
 
                 break;
             }
@@ -893,7 +852,7 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
     //
     // Set up the context parameters for the interception callback
     //
-    TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
+    SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
     ContextParams.OptionalParam1                  = Regs->r8;
     ContextParams.OptionalParam2                  = Regs->r9;
 
@@ -935,273 +894,11 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
     //
     // Set the trap flag to intercept the SYSRET instruction
     //
-    TransparentSetTrapFlagAfterSyscall(Regs,
-                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                       Regs->rax,
-                                       &ContextParams);
-}
-
-/**
- * @brief This function makes sure to unset the RFLAGS.TF on next trigger of #DB
- * on the target process/thread
- * @param ProcessId
- * @param ThreadId
- * @param Context
- * @param Params
- *
- * @return BOOLEAN
- */
-BOOLEAN
-TransparentStoreProcessInformation(UINT32                            ProcessId,
-                                   UINT32                            ThreadId,
-                                   UINT64                            Context,
-                                   TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
-{
-    UINT32                                      Index;
-    BOOLEAN                                     Result;
-    BOOLEAN                                     SuccessfullyStored;
-    TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
-
-    //
-    // Form the process id and thread id into a 64-bit value
-    //
-    ProcThrdInfo.Fields.ProcessId = ProcessId;
-    ProcThrdInfo.Fields.ThreadId  = ThreadId;
-
-    //
-    // Make sure, nobody is in the middle of modifying the list
-    //
-    SpinlockLock(&TransparentModeTrapListLock);
-
-    //
-    // *** Search the list of processes/threads for the current process's trap flag state ***
-    //
-    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
-                                           g_TransparentModeTrapFlagState->NumberOfItems,
-                                           &Index,
-                                           ProcThrdInfo.asUInt);
-
-    if (Result)
-    {
-        //
-        // It means that we already find this entry in the stored list
-        // so, just imply that the addition was successful (no need for extra addition)
-        //
-        SuccessfullyStored = TRUE;
-        goto Return;
-    }
-    else
-    {
-        //
-        // Insert the thread into the list as the item is not already present
-        //
-        SuccessfullyStored = InsertionSortInsertItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
-                                                     &g_TransparentModeTrapFlagState->NumberOfItems,
-                                                     MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS,
-                                                     &Index,
-                                                     ProcThrdInfo.asUInt);
-
-        if (SuccessfullyStored)
-        {
-            //
-            // Successfully inserted the thread/process into the list
-            // Now let's store the context of the caller along with parameters
-            //
-            g_TransparentModeTrapFlagState->Context[Index] = Context;
-            memcpy(&g_TransparentModeTrapFlagState->Params[Index], Params, sizeof(TRANSPARENT_MODE_CONTEXT_PARAMS));
-        }
-
-        goto Return;
-    }
-
-Return:
-    //
-    // Unlock the list modification lock
-    //
-    SpinlockUnlock(&TransparentModeTrapListLock);
-
-    return SuccessfullyStored;
-}
-
-/**
- * @brief Set the trap flag in the guest after a syscall
- *
- * @param Regs The virtual processor's state of registers
- * @param ProcessId The process id of the thread
- * @param ThreadId The thread id of the thread
- * @param Context The context of the caller
- * @param Params The (optional) parameters of the caller
- *
- * @return BOOLEAN
- */
-BOOLEAN
-TransparentSetTrapFlagAfterSyscall(GUEST_REGS *                      Regs,
-                                   UINT32                            ProcessId,
-                                   UINT32                            ThreadId,
-                                   UINT64                            Context,
-                                   TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
-{
-    //
-    // Do not add anything to the list if the transparent-mode is not enabled (or disabled by the user)
-    //
-    if (!g_TransparentMode)
-    {
-        //
-        // Transparent-mode is not enabled
-        //
-        return FALSE;
-    }
-
-    //
-    // Insert the thread/process into the list of processes/threads
-    //
-    if (!TransparentStoreProcessInformation(ProcessId, ThreadId, Context, Params))
-    {
-        //
-        // Failed to store the process/thread information
-        //
-        return FALSE;
-    }
-
-    //
-    // *** Successfully stored the process/thread information ***
-    //
-
-    //
-    // Set the trap flag to TRUE because we want to intercept the thread again
-    // once it returns to the user-mode (SYSRET) instruction
-    //
-    // Here the RFLAGS is in the R11 register (See Intel manual about the SYSCALL register)
-    //
-    Regs->r11 |= X86_FLAGS_TF;
-
-    //
-    // Create log message for the syscall
-    //
-    // LogInfo("Transparent set trap flag for process: %x, thread: %x\n", ProcessId, ThreadId);
-
-    return TRUE;
-}
-
-/**
- * @brief Handle the trap flags as the result of interception of the return of the
- * system-call
- *
- * @param Regs The virtual processor's state of registers
- * @param ProcessId The process id of the thread
- * @param ThreadId The thread id of the thread
- *
- * @return BOOLEAN
- */
-BOOLEAN
-TransparentCheckAndHandleAfterSyscallTrapFlags(GUEST_REGS * Regs,
-                                               UINT32       ProcessId,
-                                               UINT32       ThreadId)
-{
-    RFLAGS                                      Rflags = {0};
-    UINT32                                      Index;
-    UINT64                                      Context = NULL64_ZERO;
-    TRANSPARENT_MODE_CONTEXT_PARAMS             Params;
-    TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
-    BOOLEAN                                     Result;
-    BOOLEAN                                     ResultToReturn;
-
-    //
-    // Read the trap flag
-    //
-    Rflags.AsUInt = g_Callbacks.HvGetRflags();
-
-    if (!Rflags.TrapFlag)
-    {
-        //
-        // The trap flag is not set, so we don't need to do anything
-        //
-        return FALSE;
-    }
-
-    //
-    // Form the process id and thread id into a 64-bit value
-    //
-    ProcThrdInfo.Fields.ProcessId = ProcessId;
-    ProcThrdInfo.Fields.ThreadId  = ThreadId;
-
-    //
-    // Make sure, nobody is in the middle of modifying the list
-    //
-    SpinlockLock(&TransparentModeTrapListLock);
-
-    //
-    // *** Search the list of processes/threads for the current process's trap flag state ***
-    //
-    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
-                                           g_TransparentModeTrapFlagState->NumberOfItems,
-                                           &Index,
-                                           ProcThrdInfo.asUInt);
-
-    //
-    // Check whether this thread is expected to have trap flag
-    // by the transparent-mode or not
-    //
-    if (Result)
-    {
-        //
-        // Read the context of the caller
-        //
-        Context = g_TransparentModeTrapFlagState->Context[Index];
-
-        //
-        // Read the (optional) parameters of the caller
-        //
-        memcpy(&Params, &g_TransparentModeTrapFlagState->Params[Index], sizeof(TRANSPARENT_MODE_CONTEXT_PARAMS));
-
-        //
-        // Clear the trap flag from the RFLAGS register
-        //
-        g_Callbacks.HvSetRflagTrapFlag(FALSE);
-
-        //
-        // Remove the thread/process from the list of processes/threads
-        //
-        InsertionSortDeleteItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
-                                &g_TransparentModeTrapFlagState->NumberOfItems,
-                                Index);
-
-        //
-        // Handled by the transparent-mode
-        //
-        ResultToReturn = TRUE;
-
-        goto ReturnResult;
-    }
-    else
-    {
-        //
-        // Not related to the transparent-mode
-        //
-        ResultToReturn = FALSE;
-
-        goto ReturnResult;
-    }
-
-ReturnResult:
-
-    //
-    // Unlock the list modification lock
-    //
-    SpinlockUnlock(&TransparentModeTrapListLock);
-
-    //
-    // Call the callback function to handle the trap flag if its needed
-    // Note that we call it here so we already unlocked the list lock
-    // to optimize the performance (avoid holding the lock for a long time)
-    //
-    if (ResultToReturn)
-    {
-        TransparentCallbackHandleAfterSyscall(Regs, ProcessId, ThreadId, Context, &Params);
-    }
-
-    return ResultToReturn;
+    g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
+                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                       Regs->rax,
+                                                       &ContextParams);
 }
 
 /**
@@ -1273,7 +970,7 @@ TransparentHandleModuleInformationQuery(PVOID Ptr, UINT64 VirtualAddress, UINT32
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
+TransparentHandleProcessInformationQuery(SYSCALL_CALLBACK_CONTEXT_PARAMS * Params)
 {
     SYSTEM_PROCESS_INFORMATION PrevStructBuf = {0};
     SYSTEM_PROCESS_INFORMATION CurStructBuf  = {0};
@@ -1636,7 +1333,7 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
  * @return UINT64
  */
 UINT64
-TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS * Params, ULONG DataOffset, ULONG DataLenOffset)
+TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * Params, ULONG DataOffset, ULONG DataLenOffset)
 {
     PVOID Buf       = NULL;
     BOOL  PoolAlloc = FALSE;
@@ -1856,7 +1553,7 @@ ReturnWithError:
  * @return UINT64
  */
 UINT64
-TransparentCallbackHandleAfterNtQueryValueKeySyscall(TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
+TransparentCallbackHandleAfterNtQueryValueKeySyscall(SYSCALL_CALLBACK_CONTEXT_PARAMS * Params)
 {
     ULONG LenOffset = 0;
     ULONG BufOffset = 0;
@@ -1938,7 +1635,7 @@ TransparentCallbackHandleAfterNtQueryValueKeySyscall(TRANSPARENT_MODE_CONTEXT_PA
  * @return UINT64
  */
 UINT64
-TransparentCallbackHandleAfterNtEnumerateKeySyscall(TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
+TransparentCallbackHandleAfterNtEnumerateKeySyscall(SYSCALL_CALLBACK_CONTEXT_PARAMS * Params)
 {
     ULONG LenOffset = 0;
     ULONG BufOffset = 0;
@@ -1999,7 +1696,7 @@ TransparentCallbackHandleAfterNtEnumerateKeySyscall(TRANSPARENT_MODE_CONTEXT_PAR
  * @return VOID
  */
 VOID
-TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(GUEST_REGS * Regs, TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
+TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(GUEST_REGS * Regs, SYSCALL_CALLBACK_CONTEXT_PARAMS * Params)
 {
     //
     // Handle each defined SYSTEM_INFORMATION_CLASS
@@ -2156,7 +1853,7 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
                                       UINT32                            ProcessId,
                                       UINT32                            ThreadId,
                                       UINT64                            Context,
-                                      TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
+                                      SYSCALL_CALLBACK_CONTEXT_PARAMS * Params)
 {
     //
     // Handle each defined system call separately, after the kernel execution has finished(at the SYSRET instruction)

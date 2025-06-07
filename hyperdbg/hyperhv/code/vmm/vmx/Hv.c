@@ -894,7 +894,10 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     // 32 bits results in a #GP(0) exception.
     // (ref: Vol3B[17.2.6(Debug Registers and Intel 64 Processors)])
     //
-    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR && (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 || ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) && (GpRegister >> 32) != 0)
+    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR &&
+        (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 ||
+         ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) &&
+        (GpRegister >> 32) != 0)
     {
         EventInjectGeneralProtection();
 

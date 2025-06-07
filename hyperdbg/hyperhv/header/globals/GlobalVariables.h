@@ -112,6 +112,24 @@ BOOLEAN g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger;
  */
 BOOLEAN g_ModeBasedExecutionControlState;
 
+/**
+ * @brief State of syscall callback trap flags
+ *
+ */
+SYSCALL_CALLBACK_TRAP_FLAG_STATE * g_SyscallCallbackTrapFlagState;
+
+/**
+ * @brief Shows whether the syscall callback is enabled or not
+ *
+ */
+BOOLEAN g_SyscallCallbackStatus;
+
+/**
+ * @brief Target hook address for the system call handler
+ *
+ */
+PVOID g_SystemCallHookAddress;
+
 //////////////////////////////////////////////////
 //  	Global Variable (debugger-related)	    //
 //////////////////////////////////////////////////
@@ -189,7 +207,7 @@ UINT64 g_PageFaultInjectionAddressTo;
  */
 UINT32 g_PageFaultInjectionErrorCode;
 
-///////////////////////////////////-------------------------- REMOVE
+// ------------------------------------------------------------- SHOULD BE REPLACED WITH HYPEREVADE ROUTINES
 
 /**
  * @brief Shows whether the debugger transparent mode
@@ -198,10 +216,4 @@ UINT32 g_PageFaultInjectionErrorCode;
  */
 BOOLEAN g_TransparentMode;
 
-/**
- * @brief Target hook address for the system call handler
- *
- */
-PVOID g_SystemCallHookAddress;
-
-///////////////////////////////////-------------------------- END REMOVE
+// -------------------------------------------------------------

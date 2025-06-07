@@ -965,7 +965,7 @@ DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     //
     if (g_TransparentMode && Context == g_SystemCallHookAddress)
     {
-        TransparentHandleSystemCallHook(VCpu);
+        SyscallCallbackHandleSystemCallHook(VCpu);
     }
 
     //
