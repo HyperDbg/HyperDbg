@@ -150,7 +150,6 @@
     <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c" />
     <ClCompile Include="code\hooks\ept-hook\ExecTrap.c" />
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c" />
-    <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c" />
     <ClCompile Include="code\interface\Callback.c" />
     <ClCompile Include="code\interface\Configuration.c" />
     <ClCompile Include="code\interface\DirectVmcall.c" />

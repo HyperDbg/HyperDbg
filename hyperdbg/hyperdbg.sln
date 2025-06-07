@@ -170,6 +170,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user", "user", "{3C04357D-9
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{947577A8-A9A5-4F90-8883-5FB722FE58E2}"
 	ProjectSection(SolutionItems) = preProject
+		include\SDK\imports\kernel\HyperDbgHyperEvade.h = include\SDK\imports\kernel\HyperDbgHyperEvade.h
 		include\SDK\Imports\Kernel\HyperDbgHyperLogImports.h = include\SDK\Imports\Kernel\HyperDbgHyperLogImports.h
 		include\SDK\Imports\Kernel\HyperDbgHyperLogIntrinsics.h = include\SDK\Imports\Kernel\HyperDbgHyperLogIntrinsics.h
 		include\SDK\Imports\Kernel\HyperDbgVmmImports.h = include\SDK\Imports\Kernel\HyperDbgVmmImports.h

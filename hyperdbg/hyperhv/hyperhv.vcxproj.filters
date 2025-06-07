@@ -233,9 +233,6 @@
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c">
       <Filter>code\hooks\syscall-hook</Filter>
     </ClCompile>
-    <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c">
-      <Filter>code\hooks\syscall-hook</Filter>
-    </ClCompile>
     <ClCompile Include="code\broadcast\Broadcast.c">
       <Filter>code\broadcast</Filter>
     </ClCompile>

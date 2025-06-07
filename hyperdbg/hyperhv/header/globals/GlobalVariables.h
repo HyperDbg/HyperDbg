@@ -188,3 +188,20 @@ UINT64 g_PageFaultInjectionAddressTo;
  *
  */
 UINT32 g_PageFaultInjectionErrorCode;
+
+///////////////////////////////////-------------------------- REMOVE
+
+/**
+ * @brief Shows whether the debugger transparent mode
+ * is enabled (true) or not (false)
+ *
+ */
+BOOLEAN g_TransparentMode;
+
+/**
+ * @brief Target hook address for the system call handler
+ *
+ */
+PVOID g_SystemCallHookAddress;
+
+///////////////////////////////////-------------------------- END REMOVE

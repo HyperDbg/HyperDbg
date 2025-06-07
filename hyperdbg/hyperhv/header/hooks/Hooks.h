@@ -12,6 +12,22 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				   Structures					//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Details of detours style EPT hooks
+ *
+ */
+typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
+{
+    LIST_ENTRY OtherHooksList;
+    PVOID      HookedFunctionAddress;
+    PVOID      ReturnAddress;
+
+} HIDDEN_HOOKS_DETOUR_DETAILS, *PHIDDEN_HOOKS_DETOUR_DETAILS;
+
+//////////////////////////////////////////////////
 //				   Syscall Hook					//
 //////////////////////////////////////////////////
 
@@ -49,9 +65,6 @@
 //////////////////////////////////////////////////
 //		     Syscall Hooks Functions			//
 //////////////////////////////////////////////////
-
-VOID
-SyscallHookTest();
 
 VOID
 SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscallHook);

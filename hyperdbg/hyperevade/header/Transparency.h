@@ -228,18 +228,6 @@ typedef struct _SSDTStruct
 } SSDTStruct, *PSSDTStruct;
 
 /**
- * @brief Details of detours style EPT hooks
- *
- */
-typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
-{
-    LIST_ENTRY OtherHooksList;
-    PVOID      HookedFunctionAddress;
-    PVOID      ReturnAddress;
-
-} HIDDEN_HOOKS_DETOUR_DETAILS, *PHIDDEN_HOOKS_DETOUR_DETAILS;
-
-/**
  * @brief Module entry
  *
  */
@@ -777,9 +765,6 @@ static const PCHAR HV_FIRM_NAMES[] = {
 //////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
-
-VOID
-TransparentCpuid(INT32 CpuInfo[], PGUEST_REGS Regs);
 
 BOOLEAN
 TransparentSetTrapFlagAfterSyscall(GUEST_REGS *                      Regs,

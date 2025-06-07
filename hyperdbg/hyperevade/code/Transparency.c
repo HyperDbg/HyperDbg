@@ -168,7 +168,7 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
  * @return VOID
  */
 VOID
-TransparentCpuid(INT32 CpuInfo[], PGUEST_REGS Regs)
+TransparentCheckAndModifyCpuid(INT32 CpuInfo[], PGUEST_REGS Regs)
 {
     if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
     {

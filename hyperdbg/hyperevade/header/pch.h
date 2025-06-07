@@ -36,7 +36,7 @@
 // Scope definitions
 //
 #define HYPERDBG_KERNEL_MODE
-#define HYPERDBG_HYPER_LOG
+#define HYPERDBG_HYPEREVADE
 
 //
 // Macros
@@ -95,3 +95,8 @@
 // Hyper-V TLFS
 //
 #include "hyper-v/HypervTlfs.h"
+
+//
+// Export functions
+//
+#include "SDK/imports/kernel/HyperDbgHyperEvade.h"
