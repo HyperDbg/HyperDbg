@@ -40,6 +40,12 @@
     <Filter Include="code\components\optimizations">
       <UniqueIdentifier>{da60b9fe-3816-4f3c-a6a9-21accd463156}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\interface">
+      <UniqueIdentifier>{895edb89-17e8-4a1e-a648-b0ea360e98f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\interface">
+      <UniqueIdentifier>{7c6fe4d9-4baf-4fd2-93e0-ee395cbc2ee9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\Transparency.c">
@@ -69,6 +75,9 @@
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c">
       <Filter>code\components\optimizations</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Transparency.h">
@@ -97,6 +106,9 @@
     </ClInclude>
     <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h">
       <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
+      <Filter>header\interface</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -317,6 +317,9 @@
     <ClCompile Include="code\mmio\MmioShadowing.c">
       <Filter>code\mmio</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -585,6 +588,9 @@
     </ClInclude>
     <ClInclude Include="header\mmio\MmioShadowing.h">
       <Filter>header\mmio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
+      <Filter>header\interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

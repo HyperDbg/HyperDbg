@@ -71,7 +71,7 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
         //
         // Apply the hook from vmx non-root mode
         //
-        if (!EptHook(g_SystemCallHookAddress, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
+        if (!g_Callbacks.ConfigureEptHook(g_SystemCallHookAddress, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
         {
             // LogInfo("Error while inserting EPT page hook for Windows system call handler at address 0x%p+3", Msr.Flags);
 
@@ -87,7 +87,7 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
         //
         // Intercept trap flags #DBs and #BPs for the transparent-mode
         //
-        BroadcastEnableDbAndBpExitingAllCores();
+        g_Callbacks.BroadcastEnableDbAndBpExitingAllCores();
 
         //
         // Choose a random genuine vendor string to replace hypervisor vendor data
@@ -131,7 +131,7 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
         //
         // Unset the trap flags #DBs and #BPs for the transparent-mode
         //
-        BroadcastDisableDbAndBpExitingAllCores();
+        g_Callbacks.BroadcastDisableDbAndBpExitingAllCores();
 
         //
         // Free the buffer for the transparent-mode trap flag state
@@ -141,7 +141,7 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
         MSR Msr   = {0};
         Msr.Flags = __readmsr(IA32_LSTAR);
 
-        if (!EptHookUnHookSingleAddress((UINT64)(Msr.Flags + 3), (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
+        if (!g_Callbacks.ConfigureEptHookUnhookSingleAddress((UINT64)(Msr.Flags + 3), (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
         {
             LogInfo("Error while removing the EPT hook from windows syscall handler at address 0x%p+3", Msr.Flags);
 
@@ -197,7 +197,7 @@ TransparentCpuid(INT32 CpuInfo[], PGUEST_REGS Regs)
 VOID
 TransparentHandleSystemCallHook(GUEST_REGS * Regs)
 {
-    PCHAR  CallingProcess = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
+    PCHAR  CallingProcess = g_Callbacks.CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
     UINT64 Context        = Regs->rax;
 
     //
@@ -413,7 +413,7 @@ TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr)
     //
     // Read the OBJECT_ATTRIBUTES structure from the virtual address pointer
     //
-    if (MemoryMapperReadMemorySafeOnTargetProcess(virtPtr, &Buf, sizeof(OBJECT_ATTRIBUTES)))
+    if (g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(virtPtr, &Buf, sizeof(OBJECT_ATTRIBUTES)))
     {
         // PVOID Namebuf = PlatformMemAllocateZeroedNonPagedPool(sizeof(UNICODE_STRING));
         UNICODE_STRING NameBuf = {0};
@@ -421,7 +421,7 @@ TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr)
         //
         // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by OBJECT_ATTRIBUTES.ObjectName struct entry
         //
-        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Buf.ObjectName, &NameBuf, sizeof(UNICODE_STRING)))
+        if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess((UINT64)Buf.ObjectName, &NameBuf, sizeof(UNICODE_STRING)))
         {
             LogInfo("BadRead");
             return NULL;
@@ -443,7 +443,7 @@ TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr)
         //
         // Read the PWCHAR string from a virtual address pointer, pointed to by OBJECT_ATTRIBUTES.ObjectName.Buffer struct entry
         //
-        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)NameBuf.Buffer, ObjectNameBuf, NameBuf.Length + sizeof(WCHAR)))
+        if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess((UINT64)NameBuf.Buffer, ObjectNameBuf, NameBuf.Length + sizeof(WCHAR)))
         {
             LogInfo("BadRead");
             PlatformMemFreePool(ObjectNameBuf);
@@ -475,7 +475,7 @@ TransparentHandleNtQueryAttributesFileSyscall(GUEST_REGS * Regs)
     //
     // Check if the pointer given as the 3rd argument to the system call with type POBJECT_ATTRIBUTES is valid
     //
-    if (CheckAccessValidityAndSafety(Regs->r10, sizeof(OBJECT_ATTRIBUTES)))
+    if (g_Callbacks.CheckAccessValidityAndSafety(Regs->r10, sizeof(OBJECT_ATTRIBUTES)))
     {
         //
         // From the POBJECT_ATTRIBUTES structure obtain the wide character string of the requested file path
@@ -526,7 +526,7 @@ TransparentHandleNtOpenDirectoryObjectSyscall(GUEST_REGS * Regs)
     //
     // Check if the pointer given as the 3rd argument to the system call with type POBJECT_ATTRIBUTES is valid
     //
-    if (CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
+    if (g_Callbacks.CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
     {
         //
         // From the POBJECT_ATTRIBUTES structure obtain the wide character string of the requested directory path
@@ -631,7 +631,7 @@ TransparentHandleNtOpenFileSyscall(GUEST_REGS * Regs)
     //
     // Check if the user-mode pointer in R8 to a OBJECT_ATTRIBUTES struct is valid
     //
-    if (CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
+    if (g_Callbacks.CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
     {
         //
         // From the OBJECT_ATTRIBUTES struct pointer extract the file path for which this syscall is called
@@ -692,7 +692,7 @@ TransparentHandleNtOpenKeySyscall(GUEST_REGS * Regs)
     //
     // Check if the user-mode pointer in R8 to a OBJECT_ATTRIBUTES struct is valid
     //
-    if (CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
+    if (g_Callbacks.CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
     {
         //
         // From the OBJECT_ATTRIBUTES struct pointer extract the registry key path for which this syscall is called
@@ -752,14 +752,14 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
     //
     // Check if the user-mode pointer in RDX to a UNICODE_STRING struct is valid
     //
-    if (CheckAccessValidityAndSafety(Regs->rdx, sizeof(UNICODE_STRING)))
+    if (g_Callbacks.CheckAccessValidityAndSafety(Regs->rdx, sizeof(UNICODE_STRING)))
     {
         UNICODE_STRING NameUString = {0};
 
         //
         // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by RDX struct entry
         //
-        if (!MemoryMapperReadMemorySafeOnTargetProcess(Regs->rdx, &NameUString, sizeof(UNICODE_STRING)))
+        if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Regs->rdx, &NameUString, sizeof(UNICODE_STRING)))
             return;
 
         //
@@ -771,7 +771,7 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
             return;
         }
 
-        if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)NameUString.Buffer, NameBuf, NameUString.Length + sizeof(WCHAR)))
+        if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess((UINT64)NameUString.Buffer, NameBuf, NameUString.Length + sizeof(WCHAR)))
         {
             PlatformMemFreePool(NameBuf);
             return;
@@ -799,9 +799,9 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 //
                 // Read the 5th argument of the system call from the stack at location %RSP + 0x28
                 //
-                if (CheckAccessValidityAndSafety(Regs->rsp + 0x28, sizeof(UINT64)))
+                if (g_Callbacks.CheckAccessValidityAndSafety(Regs->rsp + 0x28, sizeof(UINT64)))
                 {
-                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
+                    g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
                 }
                 else
                 {
@@ -814,9 +814,9 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 //
                 // Read the 6th argument of the system call from the stack at location %RSP + 0x30
                 //
-                if (CheckAccessValidityAndSafety(Regs->rsp + 0x30, sizeof(UINT64)))
+                if (g_Callbacks.CheckAccessValidityAndSafety(Regs->rsp + 0x30, sizeof(UINT64)))
                 {
-                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
+                    g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
                 }
                 else
                 {
@@ -900,9 +900,9 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
     //
     // Read the 5th argument of the system call from the stack at location %RSP + 0x28
     //
-    if (CheckAccessValidityAndSafety(Regs->rsp + 0x28, sizeof(UINT64)))
+    if (g_Callbacks.CheckAccessValidityAndSafety(Regs->rsp + 0x28, sizeof(UINT64)))
     {
-        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
+        g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
     }
     else
     {
@@ -913,9 +913,9 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
     //
     // Read the 6th argument of the system call from the stack at location %RSP + 0x30
     //
-    if (CheckAccessValidityAndSafety(Regs->rsp + 0x30, sizeof(UINT64)))
+    if (g_Callbacks.CheckAccessValidityAndSafety(Regs->rsp + 0x30, sizeof(UINT64)))
     {
-        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
+        g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
     }
     else
     {
@@ -1110,7 +1110,7 @@ TransparentCheckAndHandleAfterSyscallTrapFlags(GUEST_REGS * Regs,
     //
     // Read the trap flag
     //
-    Rflags.AsUInt = HvGetRflags();
+    Rflags.AsUInt = g_Callbacks.HvGetRflags();
 
     if (!Rflags.TrapFlag)
     {
@@ -1158,7 +1158,7 @@ TransparentCheckAndHandleAfterSyscallTrapFlags(GUEST_REGS * Regs,
         //
         // Clear the trap flag from the RFLAGS register
         //
-        HvSetRflagTrapFlag(FALSE);
+        g_Callbacks.HvSetRflagTrapFlag(FALSE);
 
         //
         // Remove the thread/process from the list of processes/threads
@@ -1254,7 +1254,7 @@ TransparentHandleModuleInformationQuery(PVOID Ptr, UINT64 VirtualAddress, UINT32
             }
         }
     }
-    if (!MemoryMapperWriteMemorySafeOnTargetProcess(VirtualAddress, Ptr, BufferSize))
+    if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(VirtualAddress, Ptr, BufferSize))
     {
         return FALSE;
     }
@@ -1282,7 +1282,7 @@ TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Param
     BOOLEAN MatchFound = FALSE;
     ULONG   PrevOffset = 0;
 
-    if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, &PrevStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+    if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, &PrevStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
     {
         return FALSE;
     }
@@ -1294,7 +1294,7 @@ TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Param
     // The first entry will always be System Idle Process, which can be skipped
     //
     if (PrevStructBuf.NextEntryOffset == 0 ||
-        !MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2 + ReadOffset, &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+        !g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2 + ReadOffset, &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
     {
         return FALSE;
     }
@@ -1323,7 +1323,7 @@ TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Param
             //
             // Read the WCHAR process image name from the user-mode pointer
             //
-            if (!MemoryMapperReadMemorySafeOnTargetProcess((UINT64)CurStructBuf.ImageName.Buffer, StringBuf, CurStructBuf.ImageName.Length + sizeof(WCHAR)))
+            if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess((UINT64)CurStructBuf.ImageName.Buffer, StringBuf, CurStructBuf.ImageName.Length + sizeof(WCHAR)))
             {
                 PlatformMemFreePool(StringBuf);
 
@@ -1362,7 +1362,7 @@ TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Param
                     //
                     // Write the modified offset back to the usermode buffer
                     //
-                    if (!MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset), &PrevStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+                    if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset), &PrevStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
                     {
                         LogError("Failed to modify memory buffer for the SystemProcessInformation query system call");
                     }
@@ -1374,7 +1374,7 @@ TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Param
                     memset(StringBuf, 0x0, CurStructBuf.ImageName.Length);
                     ULONG BufOffset = (ULONG)((PBYTE)&CurStructBuf.ImageName.Length - (PBYTE)&CurStructBuf) + sizeof(USHORT);
 
-                    if (!MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset + PrevOffset + BufOffset), StringBuf, CurStructBuf.ImageName.Length))
+                    if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset + PrevOffset + BufOffset), StringBuf, CurStructBuf.ImageName.Length))
                     {
                         LogError("Failed to modify memory buffer for the SystemProcessInformation query system call");
                     }
@@ -1412,7 +1412,7 @@ TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Param
         //
         // Some internal Windows calls to this system call use different offsetting/entry structure layout and causes errors
         //
-        if (!CheckAccessValidityAndSafety((UINT64)(Params->OptionalParam2 + ReadOffset), sizeof(SYSTEM_PROCESS_INFORMATION)))
+        if (!g_Callbacks.CheckAccessValidityAndSafety((UINT64)(Params->OptionalParam2 + ReadOffset), sizeof(SYSTEM_PROCESS_INFORMATION)))
         {
             return FALSE;
         }
@@ -1423,7 +1423,7 @@ TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Param
         if (MatchFound)
         {
             CurStructBuf = (SYSTEM_PROCESS_INFORMATION) {0};
-            if (!MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset + PrevOffset), &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+            if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess((UINT64)(Params->OptionalParam2 + WriteOffset + PrevOffset), &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
             {
                 return FALSE;
             }
@@ -1432,7 +1432,7 @@ TransparentHandleProcessInformationQuery(TRANSPARENT_MODE_CONTEXT_PARAMS * Param
         //
         // Read from the user buffer the next process entry
         //
-        if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2 + ReadOffset, &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
+        if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2 + ReadOffset, &CurStructBuf, sizeof(SYSTEM_PROCESS_INFORMATION)))
         {
             return FALSE;
         }
@@ -1459,8 +1459,8 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
     //
     // Read the size of the data the kernel wrote in the buffer
     //
-    if (!CheckAccessValidityAndSafety(BufSizePtr, sizeof(ULONG)) ||
-        !MemoryMapperReadMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG)))
+    if (!g_Callbacks.CheckAccessValidityAndSafety(BufSizePtr, sizeof(ULONG)) ||
+        !g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG)))
     {
         return 0;
     }
@@ -1501,7 +1501,7 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
         return 0;
     }
 
-    if (!MemoryMapperReadMemorySafeOnTargetProcess(Ptr, Buf, BufSize))
+    if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Ptr, Buf, BufSize))
     {
         PlatformMemFreePool(Buf);
         return 0;
@@ -1568,13 +1568,13 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
                         // zero out the buffer
                         //
                         memset(Buf, 0x0, BufMaxSize);
-                        MemoryMapperWriteMemorySafeOnTargetProcess(Ptr, Buf, BufMaxSize);
+                        g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Ptr, Buf, BufMaxSize);
 
                         //
                         // Update the required buffer size for the next call
                         //
                         BufSize = (BufSize - oldLength) + NewStringSize;
-                        MemoryMapperWriteMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG));
+                        g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG));
 
                         //
                         // And return STATUS_BUFFER_TOO_SMALL error
@@ -1603,12 +1603,12 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
                     //
                     // Write the changes back to the user buffers
                     //
-                    if (!MemoryMapperWriteMemorySafeOnTargetProcess(Ptr, Buf, BufSize))
+                    if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Ptr, Buf, BufSize))
                     {
                         LogInfo("Error writing to user-mode buffer: %llx", Ptr);
                     }
 
-                    if (!MemoryMapperWriteMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG)))
+                    if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG)))
                     {
                         LogInfo("Error writing to user-mode buffer: %llx", BufSizePtr);
                     }
@@ -1644,13 +1644,13 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS * 
     //
     // Check that the user provided pointers are safe to read from
     //
-    if (CheckAccessValidityAndSafety(Params->OptionalParam4, sizeof(ULONG)))
+    if (g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam4, sizeof(ULONG)))
     {
         //
         // Read the size of the data that the kernel wrote to the buffer
         //
         ULONG BufSize = 0;
-        if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG)))
+        if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG)))
         {
             goto ReturnWithError;
         }
@@ -1670,7 +1670,7 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS * 
         //
         // Check that the user provided pointers are safe to read from and the buffer is not too large
         //
-        if (Params->OptionalParam3 >= 0xC00 || !CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+        if (Params->OptionalParam3 >= 0xC00 || !g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
         {
             goto ReturnWithError;
         }
@@ -1691,7 +1691,7 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS * 
             Buf = &StackBuf;
         }
 
-        if (!Buf || !MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3))
+        if (!Buf || !g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3))
         {
             goto ReturnWithError;
         }
@@ -1760,13 +1760,13 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS * 
                     // zero out the buffer
                     //
                     memset(Buf, 0x0, Params->OptionalParam3);
-                    MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3);
+                    g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3);
 
                     //
                     // Update the required buffer size for the next call
                     //
                     BufSize = (tempSize - MatchedStringLen) + oldLength;
-                    MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG));
+                    g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG));
 
                     //
                     // And return STATUS_BUFFER_OVERFLOW error
@@ -1799,12 +1799,12 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS * 
                 //
                 // Write the changes back to the user buffers
                 //
-                if (!MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, BufSize))
+                if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, BufSize))
                 {
                     goto ReturnWithError;
                 }
 
-                if (!MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG)))
+                if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG)))
                 {
                     goto ReturnWithError;
                 }
@@ -2011,20 +2011,20 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(GUEST_REGS * Regs,
         //
         // Check if the obtained buffer pointer is valid
         //
-        if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+        if (g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
         {
             SYSTEM_CODEINTEGRITY_INFORMATION Temp = {0};
 
             //
             // Read data from the saved pointer of the now filled information buffer
             //
-            MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, Params->OptionalParam3);
+            g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, Params->OptionalParam3);
 
             //
             // Modify the data and write it back to the information buffer to be passed to user mode
             //
             Temp.CodeIntegrityOptions = 0x01;
-            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, Params->OptionalParam3);
+            g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, Params->OptionalParam3);
         }
         else
         {
@@ -2041,7 +2041,7 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(GUEST_REGS * Regs,
         //
         if (Params->OptionalParam2 != 0x0 &&
             Params->OptionalParam3 != 0x0 &&
-            CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+            g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
         {
             if (!TransparentHandleProcessInformationQuery(Params))
             {
@@ -2062,7 +2062,7 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(GUEST_REGS * Regs,
         //
         if (Params->OptionalParam2 != 0x0 &&
             Params->OptionalParam3 != 0x0 &&
-            CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+            g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
         {
             //
             // Allocate a buffer to copy user buffer data to for modification
@@ -2077,7 +2077,7 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(GUEST_REGS * Regs,
             //
             // Copy over the data and perform the modifications
             //
-            if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3))
+            if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam2, Buf, Params->OptionalParam3))
             {
                 LogInfo("Error reading memory buffer given by the usermode call");
             }
@@ -2102,18 +2102,18 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(GUEST_REGS * Regs,
         //
         // Check if the obtained buffer pointer is valid
         //
-        if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+        if (g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
         {
             //
             // Write to the output buffer 0x0001 for "Debugger not present"
             //
             WORD Temp = 0x0100;
-            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, 2);
+            g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &Temp, 2);
         }
     }
     case SystemFirmwareTableInformation:
     {
-        if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+        if (g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
         {
             UINT64 RetVal = TransparentHandleFirmwareInformationQuery(Params->OptionalParam2, (UINT32)Params->OptionalParam3, Params->OptionalParam4);
             if (RetVal == 0x0)
@@ -2177,13 +2177,13 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
         //
         // Check if the obtained buffer pointer is valid
         //
-        if (CheckAccessValidityAndSafety(Params->OptionalParam1, sizeof(FILE_BASIC_INFORMATION)))
+        if (g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam1, sizeof(FILE_BASIC_INFORMATION)))
         {
             FILE_BASIC_INFORMATION Buf = {0};
             //
             // Copy over the data from the output buffer pointer
             //
-            if (!MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam1, &Buf, sizeof(FILE_BASIC_INFORMATION)))
+            if (!g_Callbacks.MemoryMapperReadMemorySafeOnTargetProcess(Params->OptionalParam1, &Buf, sizeof(FILE_BASIC_INFORMATION)))
             {
                 LogError("Err, Virtual memory read failed");
             }
@@ -2194,7 +2194,7 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
                 //
                 Buf.FileAttributes = ((DWORD)-1);
 
-                if (!MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam1, &Buf, sizeof(FILE_BASIC_INFORMATION)))
+                if (!g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam1, &Buf, sizeof(FILE_BASIC_INFORMATION)))
                 {
                     LogError("Err, Virtual memory write failed");
                 }
@@ -2227,14 +2227,14 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
         {
         case 0x07:
         {
-            if (CheckAccessValidityAndSafety(Params->OptionalParam2, sizeof(DWORD_PTR)))
+            if (g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam2, sizeof(DWORD_PTR)))
             {
                 //
                 // Zero out the return buffer to user-mode
                 //
                 DWORD_PTR NoDebugPort = 0x0;
 
-                MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &NoDebugPort, sizeof(DWORD_PTR));
+                g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &NoDebugPort, sizeof(DWORD_PTR));
             }
             break;
         }
@@ -2244,12 +2244,12 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
             // Zero out the return buffer to user-mode
             //
             ULONG notDebugged = 0x0;
-            MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &notDebugged, sizeof(ULONG));
+            g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam2, &notDebugged, sizeof(ULONG));
             break;
         }
         case 0x1e:
         {
-            if (CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
+            if (g_Callbacks.CheckAccessValidityAndSafety(Params->OptionalParam2, (UINT32)Params->OptionalParam3))
             {
                 LogInfo("Process %llx called the NtQueryInformationProcess system call with the ProcessDebugObject class, no transparent mitigations were performed", ProcessId);
             }

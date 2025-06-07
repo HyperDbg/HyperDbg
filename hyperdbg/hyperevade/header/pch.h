@@ -54,6 +54,17 @@
 #include "SDK/HyperDbgSdk.h"
 
 //
+// Configuration
+//
+#include "config/Configuration.h"
+
+//
+// Hyperlog headers
+//
+#include "components/interface/HyperLogCallback.h"
+#include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
+
+//
 // Platform independent headers
 //
 #include "platform/kernel/header/Mem.h"

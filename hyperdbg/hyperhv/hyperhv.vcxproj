@@ -126,6 +126,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
     <ClCompile Include="..\include\components\optimizations\code\AvlTree.c" />
     <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c" />
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
@@ -227,6 +228,7 @@
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Status.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Utils.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Zydis.h" />
+    <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
     <ClInclude Include="..\include\components\optimizations\header\AvlTree.h" />
     <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h" />
     <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h" />
