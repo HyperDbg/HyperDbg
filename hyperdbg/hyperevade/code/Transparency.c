@@ -14,13 +14,35 @@
 /**
  * @brief Hide debugger on transparent-mode (activate transparent-mode)
  *
+ * @param HyperevadeCallbacks
  * @param TransparentModeRequest
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE TransparentModeRequest)
+TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        HyperevadeCallbacks,
+                        DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
     MSR Msr = {0};
+
+    //
+    // Check if any of the required callbacks are NULL
+    //
+    for (UINT32 i = 0; i < sizeof(HYPEREVADE_CALLBACKS) / sizeof(UINT64); i++)
+    {
+        if (((PVOID *)HyperevadeCallbacks)[i] == NULL)
+        {
+            //
+            // The callback has null entry, so we cannot proceed
+            //
+            return FALSE;
+        }
+    }
+
+    //
+    // Save the callbacks
+    //
+    RtlCopyMemory(&g_Callbacks, HyperevadeCallbacks, sizeof(HYPEREVADE_CALLBACKS));
 
     //
     // Check whether the transparent-mode was already initialized or not
@@ -141,7 +163,8 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
  * @brief Handle Cpuid Vmexits when the Transparent mode is enabled
  *
  * @param CpuInfo The temporary logical processor registers
- * @param Regs Vcpu's GP registers
+ * @param Regs The virtual processor's state of registers
+ *
  * @return VOID
  */
 VOID
@@ -168,14 +191,14 @@ TransparentCpuid(INT32 CpuInfo[], PGUEST_REGS Regs)
  * @brief Handle The triggered hook on KiSystemCall64 system call handler
  * when the Transparency mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleSystemCallHook(GUEST_REGS * Regs)
 {
     PCHAR  CallingProcess = CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
-    UINT64 Context        = VCpu->Regs->rax;
+    UINT64 Context        = Regs->rax;
 
     //
     // Skip the transparent mitigations of system calls when the caller process
@@ -196,77 +219,77 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE * VCpu)
         // Handle the NtQuerySystemInformation System call
         //
 
-        TransparentHandleNtQuerySystemInformationSyscall(VCpu);
+        TransparentHandleNtQuerySystemInformationSyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtSystemDebugControl)
     {
         //
         // Handle the NtSystemDebugControl System call
         //
-        TransparentHandleNtSystemDebugControlSyscall(VCpu);
+        TransparentHandleNtSystemDebugControlSyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtQueryAttributesFile)
     {
         //
         // Handle the NtQueryAttributesFile System call
         //
-        TransparentHandleNtQueryAttributesFileSyscall(VCpu);
+        TransparentHandleNtQueryAttributesFileSyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtOpenDirectoryObject)
     {
         //
         // Handle the NtOpenDirectoryObject System call
         //
-        TransparentHandleNtOpenDirectoryObjectSyscall(VCpu);
+        TransparentHandleNtOpenDirectoryObjectSyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtQueryDirectoryObject)
     {
         //
         // Handle the NtQueryDirectoryObject System call
         //
-        // TransparentHandleNtQueryDirectoryObjectSyscall(VCpu);
+        // TransparentHandleNtQueryDirectoryObjectSyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtQueryInformationProcess)
     {
         //
         // Handle the NtQueryInformationProcess System call
         //
-        TransparentHandleNtQueryInformationProcessSyscall(VCpu);
+        TransparentHandleNtQueryInformationProcessSyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtQueryInformationThread)
     {
         //
         // Handle the NtQueryInformationThread System call
         //
-        // TransparentHandleNtQueryInformationThreadSyscall(VCpu);
+        // TransparentHandleNtQueryInformationThreadSyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtOpenFile)
     {
         //
         // Handle the NtOpenFile System call
         //
-        TransparentHandleNtOpenFileSyscall(VCpu);
+        TransparentHandleNtOpenFileSyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtOpenKeyEx || Context == g_SystemCallNumbersInformation.SysNtOpenKey)
     {
         //
         // Handle the NtOpenKey System call
         //
-        TransparentHandleNtOpenKeySyscall(VCpu);
+        TransparentHandleNtOpenKeySyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtQueryValueKey)
     {
         //
         // Handle the NtQueryValueKey System call
         //
-        TransparentHandleNtQueryValueKeySyscall(VCpu);
+        TransparentHandleNtQueryValueKeySyscall(Regs);
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtEnumerateKey)
     {
         //
         // Handle the NtEnumerateKey System call
         //
-        TransparentHandleNtEnumerateKeySyscall(VCpu);
+        TransparentHandleNtEnumerateKeySyscall(Regs);
     }
     else
     {
@@ -280,27 +303,27 @@ TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle The NtQuerySystemInformation system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
 {
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
 
-    switch (VCpu->Regs->r10)
+    switch (Regs->r10)
     {
     case SystemProcessInformation:
     case SystemExtendedProcessInformation:
     {
         ContextParams.OptionalParam1 = SystemProcessInformation;
-        ContextParams.OptionalParam2 = VCpu->Regs->rdx;
-        ContextParams.OptionalParam3 = VCpu->Regs->r8 - 0x400;
+        ContextParams.OptionalParam2 = Regs->rdx;
+        ContextParams.OptionalParam3 = Regs->r8 - 0x400;
 
-        TransparentSetTrapFlagAfterSyscall(VCpu,
+        TransparentSetTrapFlagAfterSyscall(Regs,
                                            HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                            HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           VCpu->Regs->rax,
+                                           Regs->rax,
                                            &ContextParams);
 
         break;
@@ -308,13 +331,13 @@ TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
     case SystemModuleInformation:
     {
         ContextParams.OptionalParam1 = SystemModuleInformation;
-        ContextParams.OptionalParam2 = VCpu->Regs->rdx;
-        ContextParams.OptionalParam3 = VCpu->Regs->r8;
+        ContextParams.OptionalParam2 = Regs->rdx;
+        ContextParams.OptionalParam3 = Regs->r8;
 
-        TransparentSetTrapFlagAfterSyscall(VCpu,
+        TransparentSetTrapFlagAfterSyscall(Regs,
                                            HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                            HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           VCpu->Regs->rax,
+                                           Regs->rax,
                                            &ContextParams);
 
         break;
@@ -322,50 +345,50 @@ TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu)
     case SystemKernelDebuggerInformation:
     {
         ContextParams.OptionalParam1 = SystemKernelDebuggerInformation;
-        ContextParams.OptionalParam2 = VCpu->Regs->rdx;
-        ContextParams.OptionalParam3 = VCpu->Regs->r8;
+        ContextParams.OptionalParam2 = Regs->rdx;
+        ContextParams.OptionalParam3 = Regs->r8;
 
-        TransparentSetTrapFlagAfterSyscall(VCpu,
+        TransparentSetTrapFlagAfterSyscall(Regs,
                                            HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                            HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           VCpu->Regs->rax,
+                                           Regs->rax,
                                            &ContextParams);
         break;
     }
     case SystemCodeIntegrityInformation:
     {
         ContextParams.OptionalParam1 = SystemCodeIntegrityInformation;
-        ContextParams.OptionalParam2 = VCpu->Regs->rdx;
+        ContextParams.OptionalParam2 = Regs->rdx;
         ContextParams.OptionalParam3 = 0x8;
 
-        TransparentSetTrapFlagAfterSyscall(VCpu,
+        TransparentSetTrapFlagAfterSyscall(Regs,
                                            HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                            HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                           VCpu->Regs->rax,
+                                           Regs->rax,
                                            &ContextParams);
         break;
     }
 
-        //
-        // Currently SystemFirmwareTableInformation transparent handler is not implemented
-        // As the queries produce a data buffer too large to safely copy and modify in root-mode
-        //
+    //
+    // Currently SystemFirmwareTableInformation transparent handler is not implemented
+    // As the queries produce a data buffer too large to safely copy and modify in root-mode
+    //
 
-        //    case SystemFirmwareTableInformation:
-        //    {
-        //
-        //        ContextParams.OptionalParam1                  = SystemFirmwareTableInformation;
-        //        ContextParams.OptionalParam2                  = VCpu->Regs->rdx;
-        //        ContextParams.OptionalParam3                  = VCpu->Regs->r8;
-        //        ContextParams.OptionalParam4                  = VCpu->Regs->r9;
-        //
-        //        TransparentSetTrapFlagAfterSyscall(VCpu,
-        //                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-        //                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-        //                                           VCpu->Regs->rax,
-        //                                           &ContextParams);
-        //        break;
-        //    }
+    //    case SystemFirmwareTableInformation:
+    //    {
+    //
+    //        ContextParams.OptionalParam1                  = SystemFirmwareTableInformation;
+    //        ContextParams.OptionalParam2                  = Regs->rdx;
+    //        ContextParams.OptionalParam3                  = Regs->r8;
+    //        ContextParams.OptionalParam4                  = Regs->r9;
+    //
+    //        TransparentSetTrapFlagAfterSyscall(Regs,
+    //                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+    //                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+    //                                           Regs->rax,
+    //                                           &ContextParams);
+    //        break;
+    //    }
     default:
     {
         return;
@@ -440,24 +463,24 @@ TransparentGetObjectNameFromAttributesVirtualPointer(UINT64 virtPtr)
  * @brief Handle The NtQueryAttributesFile system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtQueryAttributesFileSyscall(GUEST_REGS * Regs)
 {
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-    ContextParams.OptionalParam1                  = VCpu->Regs->rdx;
+    ContextParams.OptionalParam1                  = Regs->rdx;
 
     //
     // Check if the pointer given as the 3rd argument to the system call with type POBJECT_ATTRIBUTES is valid
     //
-    if (CheckAccessValidityAndSafety(VCpu->Regs->r10, sizeof(OBJECT_ATTRIBUTES)))
+    if (CheckAccessValidityAndSafety(Regs->r10, sizeof(OBJECT_ATTRIBUTES)))
     {
         //
         // From the POBJECT_ATTRIBUTES structure obtain the wide character string of the requested file path
         //
-        PVOID PathBuf  = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r10);
+        PVOID PathBuf  = TransparentGetObjectNameFromAttributesVirtualPointer(Regs->r10);
         PWCH  FilePath = (PWCH)PathBuf;
 
         //
@@ -467,10 +490,10 @@ TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE * VCpu)
         {
             if (wcsstr(FilePath, HV_FILES[j]))
             {
-                TransparentSetTrapFlagAfterSyscall(VCpu,
+                TransparentSetTrapFlagAfterSyscall(Regs,
                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   VCpu->Regs->rax,
+                                                   Regs->rax,
                                                    &ContextParams);
 
                 break;
@@ -488,27 +511,27 @@ TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle The NtOpenDirectoryObject system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtOpenDirectoryObjectSyscall(GUEST_REGS * Regs)
 {
     //
     // Set up the context data for the callback after SYSRET
     //
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-    ContextParams.OptionalParam1                  = VCpu->Regs->r10;
+    ContextParams.OptionalParam1                  = Regs->r10;
 
     //
     // Check if the pointer given as the 3rd argument to the system call with type POBJECT_ATTRIBUTES is valid
     //
-    if (CheckAccessValidityAndSafety(VCpu->Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
+    if (CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
     {
         //
         // From the POBJECT_ATTRIBUTES structure obtain the wide character string of the requested directory path
         //
-        PVOID PathBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+        PVOID PathBuf = TransparentGetObjectNameFromAttributesVirtualPointer(Regs->r8);
         PWCH  DirPath = (PWCH)PathBuf;
 
         if (DirPath == NULL)
@@ -523,10 +546,10 @@ TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE * VCpu)
         {
             if (wcsstr(DirPath, HV_DIRS[j]))
             {
-                TransparentSetTrapFlagAfterSyscall(VCpu,
+                TransparentSetTrapFlagAfterSyscall(Regs,
                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   VCpu->Regs->rax,
+                                                   Regs->rax,
                                                    &ContextParams);
 
                 break;
@@ -544,26 +567,26 @@ TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle The NtSystemDebugControl system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtSystemDebugControlSyscall(GUEST_REGS * Regs)
 {
     //
     // Corrupt the system call arguments, to cause the kernel to return an error
     //
-    VCpu->Regs->r9 = 0x0;
+    Regs->r9 = 0x0;
 
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
 
     //
     // Set the trap flag to intercept the SYSRET instruction
     //
-    TransparentSetTrapFlagAfterSyscall(VCpu,
+    TransparentSetTrapFlagAfterSyscall(Regs,
                                        HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                       VCpu->Regs->rax,
+                                       Regs->rax,
                                        &ContextParams);
 }
 
@@ -571,27 +594,27 @@ TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle The NtQueryInformationProcess system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtQueryInformationProcessSyscall(GUEST_REGS * Regs)
 {
     //
     // Set up the context parameters for the interception callback
     //
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-    ContextParams.OptionalParam1                  = VCpu->Regs->rdx; // ProcessInformationClass
-    ContextParams.OptionalParam2                  = VCpu->Regs->r8;  // BufferPtr
-    ContextParams.OptionalParam3                  = VCpu->Regs->r9;  // BufferSize
+    ContextParams.OptionalParam1                  = Regs->rdx; // ProcessInformationClass
+    ContextParams.OptionalParam2                  = Regs->r8;  // BufferPtr
+    ContextParams.OptionalParam3                  = Regs->r9;  // BufferSize
 
     //
     // Set the trap flag to intercept the SYSRET instruction
     //
-    TransparentSetTrapFlagAfterSyscall(VCpu,
+    TransparentSetTrapFlagAfterSyscall(Regs,
                                        HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                       VCpu->Regs->rax,
+                                       Regs->rax,
                                        &ContextParams);
 }
 
@@ -599,21 +622,21 @@ TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle The NtOpenFile system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtOpenFileSyscall(GUEST_REGS * Regs)
 {
     //
     // Check if the user-mode pointer in R8 to a OBJECT_ATTRIBUTES struct is valid
     //
-    if (CheckAccessValidityAndSafety(VCpu->Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
+    if (CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
     {
         //
         // From the OBJECT_ATTRIBUTES struct pointer extract the file path for which this syscall is called
         //
-        PVOID NameBuf  = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+        PVOID NameBuf  = TransparentGetObjectNameFromAttributesVirtualPointer(Regs->r8);
         PWCH  FileName = (PWCH)NameBuf;
         if (FileName == NULL)
         {
@@ -633,17 +656,17 @@ TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE * VCpu)
                 //
                 // If a match was found, corrupt the user-mode pointers in CPU registers, so that, when the kernel-mode execution continues, it would fail.
                 //
-                VCpu->Regs->r8  = 0x0;
-                VCpu->Regs->r10 = 0x0;
+                Regs->r8  = 0x0;
+                Regs->r10 = 0x0;
 
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
                 TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-                TransparentSetTrapFlagAfterSyscall(VCpu,
+                TransparentSetTrapFlagAfterSyscall(Regs,
                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   VCpu->Regs->rax,
+                                                   Regs->rax,
                                                    &ContextParams);
 
                 break;
@@ -660,21 +683,21 @@ TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle The NtOpenKey system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtOpenKeySyscall(GUEST_REGS * Regs)
 {
     //
     // Check if the user-mode pointer in R8 to a OBJECT_ATTRIBUTES struct is valid
     //
-    if (CheckAccessValidityAndSafety(VCpu->Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
+    if (CheckAccessValidityAndSafety(Regs->r8, sizeof(OBJECT_ATTRIBUTES)))
     {
         //
         // From the OBJECT_ATTRIBUTES struct pointer extract the registry key path for which this syscall is called
         //
-        PVOID NameBuf = TransparentGetObjectNameFromAttributesVirtualPointer(VCpu->Regs->r8);
+        PVOID NameBuf = TransparentGetObjectNameFromAttributesVirtualPointer(Regs->r8);
         PWCH  KeyName = (PWCH)NameBuf;
 
         if (KeyName == NULL)
@@ -693,16 +716,16 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
                 //
                 // If a match was found, corrupt the user-mode pointer in CPU registers, so that, when the kernel-mode execution continues, it would fail.
                 //
-                VCpu->Regs->r8 = 0x0;
+                Regs->r8 = 0x0;
 
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
                 TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-                TransparentSetTrapFlagAfterSyscall(VCpu,
+                TransparentSetTrapFlagAfterSyscall(Regs,
                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   VCpu->Regs->rax,
+                                                   Regs->rax,
                                                    &ContextParams);
 
                 break;
@@ -720,23 +743,23 @@ TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle The NtQueryValueKey system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
 {
     //
     // Check if the user-mode pointer in RDX to a UNICODE_STRING struct is valid
     //
-    if (CheckAccessValidityAndSafety(VCpu->Regs->rdx, sizeof(UNICODE_STRING)))
+    if (CheckAccessValidityAndSafety(Regs->rdx, sizeof(UNICODE_STRING)))
     {
         UNICODE_STRING NameUString = {0};
 
         //
         // Read the UNICODE_STRING structure from a virtual address pointer, pointed to by RDX struct entry
         //
-        if (!MemoryMapperReadMemorySafeOnTargetProcess(VCpu->Regs->rdx, &NameUString, sizeof(UNICODE_STRING)))
+        if (!MemoryMapperReadMemorySafeOnTargetProcess(Regs->rdx, &NameUString, sizeof(UNICODE_STRING)))
             return;
 
         //
@@ -770,15 +793,15 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
 
                 TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
 
-                ContextParams.OptionalParam1 = VCpu->Regs->r8;
-                ContextParams.OptionalParam2 = VCpu->Regs->r9;
+                ContextParams.OptionalParam1 = Regs->r8;
+                ContextParams.OptionalParam2 = Regs->r9;
 
                 //
                 // Read the 5th argument of the system call from the stack at location %RSP + 0x28
                 //
-                if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x28, sizeof(UINT64)))
+                if (CheckAccessValidityAndSafety(Regs->rsp + 0x28, sizeof(UINT64)))
                 {
-                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
+                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
                 }
                 else
                 {
@@ -791,9 +814,9 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
                 //
                 // Read the 6th argument of the system call from the stack at location %RSP + 0x30
                 //
-                if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x30, sizeof(UINT64)))
+                if (CheckAccessValidityAndSafety(Regs->rsp + 0x30, sizeof(UINT64)))
                 {
-                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
+                    MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
                 }
                 else
                 {
@@ -806,10 +829,10 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
-                TransparentSetTrapFlagAfterSyscall(VCpu,
+                TransparentSetTrapFlagAfterSyscall(Regs,
                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   VCpu->Regs->rax,
+                                                   Regs->rax,
                                                    &ContextParams);
 
                 //
@@ -834,16 +857,16 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
                 //
                 TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
 
-                VCpu->Regs->rdx = 0x0;
-                VCpu->Regs->r9  = 0x0;
+                Regs->rdx = 0x0;
+                Regs->r9  = 0x0;
 
                 //
                 // Set the trap flag to intercept the SYSRET instruction
                 //
-                TransparentSetTrapFlagAfterSyscall(VCpu,
+                TransparentSetTrapFlagAfterSyscall(Regs,
                                                    HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                    HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                                   VCpu->Regs->rax,
+                                                   Regs->rax,
                                                    &ContextParams);
 
                 break;
@@ -861,25 +884,25 @@ TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
  * @brief Handle The NtEnumerateKey system call
  * when the Transparent mode is enabled
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @return VOID
  */
 VOID
-TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
+TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
 {
     //
     // Set up the context parameters for the interception callback
     //
     TRANSPARENT_MODE_CONTEXT_PARAMS ContextParams = {0};
-    ContextParams.OptionalParam1                  = VCpu->Regs->r8;
-    ContextParams.OptionalParam2                  = VCpu->Regs->r9;
+    ContextParams.OptionalParam1                  = Regs->r8;
+    ContextParams.OptionalParam2                  = Regs->r9;
 
     //
     // Read the 5th argument of the system call from the stack at location %RSP + 0x28
     //
-    if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x28, sizeof(UINT64)))
+    if (CheckAccessValidityAndSafety(Regs->rsp + 0x28, sizeof(UINT64)))
     {
-        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x28), &ContextParams.OptionalParam3, sizeof(ULONG));
     }
     else
     {
@@ -890,9 +913,9 @@ TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Read the 6th argument of the system call from the stack at location %RSP + 0x30
     //
-    if (CheckAccessValidityAndSafety(VCpu->Regs->rsp + 0x30, sizeof(UINT64)))
+    if (CheckAccessValidityAndSafety(Regs->rsp + 0x30, sizeof(UINT64)))
     {
-        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(VCpu->Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
+        MemoryMapperReadMemorySafeOnTargetProcess((UINT64)(Regs->rsp + 0x30), &ContextParams.OptionalParam4, sizeof(UINT64));
     }
     else
     {
@@ -912,10 +935,10 @@ TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Set the trap flag to intercept the SYSRET instruction
     //
-    TransparentSetTrapFlagAfterSyscall(VCpu,
+    TransparentSetTrapFlagAfterSyscall(Regs,
                                        HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()),
-                                       VCpu->Regs->rax,
+                                       Regs->rax,
                                        &ContextParams);
 }
 
@@ -1004,7 +1027,7 @@ Return:
 /**
  * @brief Set the trap flag in the guest after a syscall
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @param ProcessId The process id of the thread
  * @param ThreadId The thread id of the thread
  * @param Context The context of the caller
@@ -1013,7 +1036,7 @@ Return:
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
+TransparentSetTrapFlagAfterSyscall(GUEST_REGS *                      Regs,
                                    UINT32                            ProcessId,
                                    UINT32                            ThreadId,
                                    UINT64                            Context,
@@ -1051,7 +1074,7 @@ TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
     //
     // Here the RFLAGS is in the R11 register (See Intel manual about the SYSCALL register)
     //
-    VCpu->Regs->r11 |= X86_FLAGS_TF;
+    Regs->r11 |= X86_FLAGS_TF;
 
     //
     // Create log message for the syscall
@@ -1065,16 +1088,16 @@ TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
  * @brief Handle the trap flags as the result of interception of the return of the
  * system-call
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @param ProcessId The process id of the thread
  * @param ThreadId The thread id of the thread
  *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
-                                               UINT32                  ProcessId,
-                                               UINT32                  ThreadId)
+TransparentCheckAndHandleAfterSyscallTrapFlags(GUEST_REGS * Regs,
+                                               UINT32       ProcessId,
+                                               UINT32       ThreadId)
 {
     RFLAGS                                      Rflags = {0};
     UINT32                                      Index;
@@ -1175,7 +1198,7 @@ ReturnResult:
     //
     if (ResultToReturn)
     {
-        TransparentCallbackHandleAfterSyscall(VCpu, ProcessId, ThreadId, Context, &Params);
+        TransparentCallbackHandleAfterSyscall(Regs, ProcessId, ThreadId, Context, &Params);
     }
 
     return ResultToReturn;
@@ -1457,7 +1480,7 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
     // If the buffer size is too big, we cant do any mitigations with the current implementation an it exceeds
     // the size of an EPT page, risking curruption when allocating the copy buffer space in root-mode.
     //
-    if (BufMaxSize > ALIGNMENT_PAGE_SIZE / 2)
+    if (BufMaxSize > PAGE_SIZE / 2)
     {
         LogInfo("The intercepted data buffer was too large for modification, in total 0x%x bytes", BufMaxSize);
         LogInfo("The system call return value was set to STATUS_INVALID_INFO_CLASS, but this could be detected as hypervisor intervention");
@@ -1805,9 +1828,9 @@ TransparentReplaceVendorStringFromBufferWChar(TRANSPARENT_MODE_CONTEXT_PARAMS * 
         return 0;
     }
 
-//
-// An error occured while performing the mitigations, the user buffer might be left unmodified
-//
+    //
+    // An error occured while performing the mitigations, the user buffer might be left unmodified
+    //
 ReturnWithError:
     LogInfo("A call for to read a registry entry, which could contain hypervisor specific data, was intercepted but the mitigations failed");
     LogInfo("The caller process recieved the results in this virtual address: %llx", Params->OptionalParam2);
@@ -1843,9 +1866,9 @@ TransparentCallbackHandleAfterNtQueryValueKeySyscall(TRANSPARENT_MODE_CONTEXT_PA
     //
     switch (Params->OptionalParam1)
     {
-    //
-    // KeyValueBasicInformation and queries for a key that has a hypervisor specific name
-    //
+        //
+        // KeyValueBasicInformation and queries for a key that has a hypervisor specific name
+        //
     case 0x0:
     {
         if (Params->OptionalParam2 != 0)
@@ -1925,9 +1948,9 @@ TransparentCallbackHandleAfterNtEnumerateKeySyscall(TRANSPARENT_MODE_CONTEXT_PAR
     //
     switch (Params->OptionalParam1)
     {
-    //
-    // KeyBasicInformation
-    //
+        //
+        // KeyBasicInformation
+        //
     case 0x0:
     {
         LenOffset = sizeof(LARGE_INTEGER) + sizeof(ULONG);
@@ -1970,13 +1993,13 @@ TransparentCallbackHandleAfterNtEnumerateKeySyscall(TRANSPARENT_MODE_CONTEXT_PAR
 /**
  * @brief Callback function to handle the returns from the NtQuerySystemInformation syscall
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @param Params The (optional) parameters of the caller
  *
  * @return VOID
  */
 VOID
-TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu, TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
+TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(GUEST_REGS * Regs, TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
 {
     //
     // Handle each defined SYSTEM_INFORMATION_CLASS
@@ -2100,7 +2123,7 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_ST
             else if (RetVal != 0x1)
             {
                 LogInfo("Changing to %llx", RetVal);
-                VCpu->Regs->rax = RetVal;
+                Regs->rax = RetVal;
             }
         }
         else
@@ -2120,7 +2143,7 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_ST
 /**
  * @brief Callback function to handle returns from the syscall
  *
- * @param VCpu The virtual processor's state
+ * @param Regs The virtual processor's state of registers
  * @param ProcessId The process id of the thread
  * @param ThreadId The thread id of the thread
  * @param Context The context of the caller
@@ -2129,7 +2152,7 @@ TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_ST
  * @return VOID
  */
 VOID
-TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
+TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
                                       UINT32                            ProcessId,
                                       UINT32                            ThreadId,
                                       UINT64                            Context,
@@ -2144,7 +2167,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
     //
     if (Context == g_SystemCallNumbersInformation.SysNtQuerySystemInformation)
     {
-        TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(VCpu, Params);
+        TransparentCallbackHandleAfterNtQuerySystemInformationSyscall(Regs, Params);
     }
     //
     // Handle the memory buffer and return code modification after NtQueryAttributesFile system call
@@ -2190,10 +2213,9 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
     //
     else if (Context == g_SystemCallNumbersInformation.SysNtOpenDirectoryObject)
     {
-        LogInfo("A NtOpenDirectoryObject system call was made for a known directory that reveals hypervisor presence. process: %x, thread: %x, rip: %llx \n",
+        LogInfo("A NtOpenDirectoryObject system call was made for a known directory that reveals hypervisor presence. process: %x, thread: %x\n",
                 ProcessId,
-                ThreadId,
-                VCpu->LastVmexitRip);
+                ThreadId);
         LogInfo("No action to mitigate this was made as a handler for NtOpenDirectoryObject has not been implemented");
     }
     //
@@ -2247,7 +2269,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
         //
         // In the entry handler, the Syscall number was changed to corrupt this call, after the SYSRET, change the return code to STATUS_DEBUGGER_INACTIVE
         //
-        VCpu->Regs->rax = (UINT64)(UINT32)STATUS_DEBUGGER_INACTIVE;
+        Regs->rax = (UINT64)(UINT32)STATUS_DEBUGGER_INACTIVE;
     }
 
     //
@@ -2259,7 +2281,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
         // In the entry handler, the Syscall number was changed to corrupt this call if the request was for a known hypervisor file
         // after the SYSRET, change the return code to STATUS_OBJECT_NAME_NOT_FOUND
         //
-        VCpu->Regs->rax = (UINT64)(UINT32)STATUS_OBJECT_NAME_NOT_FOUND;
+        Regs->rax = (UINT64)(UINT32)STATUS_OBJECT_NAME_NOT_FOUND;
     }
 
     //
@@ -2286,7 +2308,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
         //
         if (RetVal != 0)
         {
-            VCpu->Regs->rax = RetVal;
+            Regs->rax = RetVal;
         }
     }
     //
@@ -2298,7 +2320,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
         // In the entry handler, the Syscall number was changed to corrupt this call if the request was for a known hypervisor registry key
         // after the SYSRET, change the return code to STATUS_OBJECT_NAME_NOT_FOUND
         //
-        VCpu->Regs->rax = (UINT64)(UINT32)STATUS_OBJECT_NAME_NOT_FOUND;
+        Regs->rax = (UINT64)(UINT32)STATUS_OBJECT_NAME_NOT_FOUND;
     }
     else if (Context == g_SystemCallNumbersInformation.SysNtEnumerateKey)
     {
@@ -2316,7 +2338,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
         //
         if (RetVal != 0)
         {
-            VCpu->Regs->rax = RetVal;
+            Regs->rax = RetVal;
         }
     }
     else
@@ -2324,12 +2346,11 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
         //
         // A SYSRET trap flag was inserted for a System call that does not have a transparency handler implemented
         //
-        LogInfo("Transparent callback  for an unimplemented system call handle with the trap flag for process: %x, thread: %x, rip: %llx, context: %llx RAX: %llx (p1: %llx, p2: %llx, p3: %llx, p4: %llx) \n",
+        LogInfo("Transparent callback  for an unimplemented system call handle with the trap flag for process: %x, thread: %x, context: %llx RAX: %llx (p1: %llx, p2: %llx, p3: %llx, p4: %llx) \n",
                 ProcessId,
                 ThreadId,
-                VCpu->LastVmexitRip,
                 Context,
-                VCpu->Regs->rax,
+                Regs->rax,
                 Params->OptionalParam1,
                 Params->OptionalParam2,
                 Params->OptionalParam3,
@@ -2811,13 +2832,13 @@ TransparentGetRand()
 //  * @brief VM-Exit handler for different exit reasons
 //  * @details Should be called from vmx-root
 //  *
-//  * @param VCpu The virtual processor's state
+//  * @param Regs The virtual processor's state of registers
 //  * @param ExitReason Exit Reason
 //  * @return BOOLEAN Return True we should emulate RDTSCP
 //  *  or return false if we should not emulate RDTSCP
 //  */
 // BOOLEAN
-// TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
+// TransparentModeStart(GUEST_REGS * Regs, UINT32 ExitReason)
 // {
 //     UINT32      Aux                = 0;
 //     PLIST_ENTRY TempList           = 0;
@@ -2948,10 +2969,10 @@ TransparentGetRand()
 //         //
 //         // Adjust the rdtsc based on RevealedTimeStampCounterByRdtsc
 //         //
-//         VCpu->Regs->rax = 0x00000000ffffffff &
+//         Regs->rax = 0x00000000ffffffff &
 //                           VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc;
 //
-//         VCpu->Regs->rdx = 0x00000000ffffffff &
+//         Regs->rdx = 0x00000000ffffffff &
 //                           (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc >> 32);
 //
 //         //
@@ -2959,7 +2980,7 @@ TransparentGetRand()
 //         //
 //         if (ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP)
 //         {
-//             VCpu->Regs->rcx = 0x00000000ffffffff & Aux;
+//             Regs->rcx = 0x00000000ffffffff & Aux;
 //         }
 //         //
 //         // Shows that vm-exit handler should not emulate the RDTSC/P

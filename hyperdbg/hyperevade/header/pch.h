@@ -38,14 +38,49 @@
 #define HYPERDBG_KERNEL_MODE
 #define HYPERDBG_HYPER_LOG
 
-#include "UnloadDll.h"
+//
+// Macros
+//
+#include "macros/MetaMacros.h"
+
+//
+// Definition of Intel primitives (External header)
+//
+#include "ia32-doc/out/ia32.h"
+
+//
+// HyperDbg SDK headers
+//
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/modules/HyperLog.h"
-#include "SDK/imports/kernel/HyperDbgHyperLogImports.h"
-#include "components/spinlock/header/Spinlock.h"
-#include "Logging.h"
 
 //
 // Platform independent headers
 //
 #include "platform/kernel/header/Mem.h"
+
+//
+// Hyperevade Callbacks
+//
+#include "SDK/modules/HyperEvade.h"
+
+//
+// Transparency headers
+//
+#include "Transparency.h"
+
+//
+// Optimization algorithms
+//
+#include "components/optimizations/header/AvlTree.h"
+#include "components/optimizations/header/BinarySearch.h"
+#include "components/optimizations/header/InsertionSort.h"
+
+//
+// Spinlocks
+//
+#include "components/spinlock/header/Spinlock.h"
+
+//
+// Hyper-V TLFS
+//
+#include "hyper-v/HypervTlfs.h"

@@ -12,21 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//				     Globals 	    			//
-//////////////////////////////////////////////////
-
-/**
- * @brief A variable holding the randomly chosen index for the genuine vendor list.
- *        This is used for transparent vendor spoofing
- */
-static WORD TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = 0;
-
-/**
- * @brief System call numbers information
- */
-SYSTEM_CALL_NUMBERS_INFORMATION g_SystemCallNumbersInformation;
-
-//////////////////////////////////////////////////
 //				      Locks 	    			//
 //////////////////////////////////////////////////
 
@@ -35,6 +20,12 @@ SYSTEM_CALL_NUMBERS_INFORMATION g_SystemCallNumbersInformation;
  *
  */
 volatile LONG TransparentModeTrapListLock;
+
+/**
+ * @brief List of callbacks
+ *
+ */
+HYPEREVADE_CALLBACKS g_Callbacks;
 
 //////////////////////////////////////////////////
 //				   Definitions					//
@@ -60,8 +51,44 @@ volatile LONG TransparentModeTrapListLock;
 #define MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS 500
 
 //////////////////////////////////////////////////
+//				      Enums		    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief System information class
+ *
+ */
+typedef enum _SYSTEM_INFORMATION_CLASS
+{
+    SystemProcessInformation         = 0x05,
+    SystemExtendedProcessInformation = 0x39,
+    SystemFullProcessInformation     = 0x94,
+    SystemModuleInformation          = 0x0B,
+    SystemKernelDebuggerInformation  = 0x23,
+    SystemCodeIntegrityInformation   = 0x67,
+    SystemFirmwareTableInformation   = 0x4C,
+} SYSTEM_INFORMATION_CLASS,
+    *PSYSTEM_INFORMATION_CLASS;
+
+//////////////////////////////////////////////////
 //				   Structures					//
 //////////////////////////////////////////////////
+
+/**
+ * @brief General MSR Structure
+ *
+ */
+typedef union _MSR
+{
+    struct
+    {
+        ULONG Low;
+        ULONG High;
+    } Fields;
+
+    UINT64 Flags;
+
+} MSR, *PMSR;
 
 /**
  * @brief The measurements from user-mode and kernel-mode
@@ -183,6 +210,121 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
     SIZE_T         PrivatePageCount;
     LARGE_INTEGER  Reserved7[6];
 } SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
+
+/**
+ * @brief SSDT structure
+ *
+ */
+typedef struct _SSDTStruct
+{
+    LONG * pServiceTable;
+    PVOID  pCounterTable;
+#ifdef _WIN64
+    UINT64 NumberOfServices;
+#else
+    ULONG NumberOfServices;
+#endif
+    PCHAR pArgumentTable;
+} SSDTStruct, *PSSDTStruct;
+
+/**
+ * @brief Details of detours style EPT hooks
+ *
+ */
+typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
+{
+    LIST_ENTRY OtherHooksList;
+    PVOID      HookedFunctionAddress;
+    PVOID      ReturnAddress;
+
+} HIDDEN_HOOKS_DETOUR_DETAILS, *PHIDDEN_HOOKS_DETOUR_DETAILS;
+
+/**
+ * @brief Module entry
+ *
+ */
+typedef struct _SYSTEM_MODULE_ENTRY
+{
+    HANDLE Section;
+    PVOID  MappedBase;
+    PVOID  ImageBase;
+    ULONG  ImageSize;
+    ULONG  Flags;
+    UINT16 LoadOrderIndex;
+    UINT16 InitOrderIndex;
+    UINT16 LoadCount;
+    UINT16 OffsetToFileName;
+    UCHAR  FullPathName[256];
+} SYSTEM_MODULE_ENTRY, *PSYSTEM_MODULE_ENTRY;
+
+/**
+ * @brief System Information for modules
+ *
+ */
+typedef struct _SYSTEM_MODULE_INFORMATION
+{
+    ULONG               Count;
+    SYSTEM_MODULE_ENTRY Module[1];
+
+} SYSTEM_MODULE_INFORMATION, *PSYSTEM_MODULE_INFORMATION;
+
+typedef NTSTATUS(NTAPI * ZWQUERYSYSTEMINFORMATION)(
+    IN SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    OUT PVOID                   SystemInformation,
+    IN ULONG                    SystemInformationLength,
+    OUT PULONG ReturnLength     OPTIONAL);
+
+NTSTATUS(*NtCreateFileOrig)
+(
+    PHANDLE            FileHandle,
+    ACCESS_MASK        DesiredAccess,
+    POBJECT_ATTRIBUTES ObjectAttributes,
+    PIO_STATUS_BLOCK   IoStatusBlock,
+    PLARGE_INTEGER     AllocationSize,
+    ULONG              FileAttributes,
+    ULONG              ShareAccess,
+    ULONG              CreateDisposition,
+    ULONG              CreateOptions,
+    PVOID              EaBuffer,
+    ULONG              EaLength);
+
+//////////////////////////////////////////////////
+//				     Globals 	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Shows whether the debugger transparent mode
+ * is enabled (true) or not (false)
+ *
+ */
+BOOLEAN g_TransparentMode;
+
+/**
+ * @brief A variable holding the randomly chosen index for the genuine vendor list.
+ *        This is used for transparent vendor spoofing
+ */
+static WORD TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = 0;
+
+/**
+ * @brief System call numbers information
+ */
+SYSTEM_CALL_NUMBERS_INFORMATION g_SystemCallNumbersInformation;
+
+/**
+ * @brief Target hook address for the system call handler
+ *
+ */
+PVOID g_SystemCallHookAddress;
+
+/**
+ * @brief State of transparent-mode trap-flags
+ *
+ */
+TRANSPARENT_MODE_TRAP_FLAG_STATE * g_TransparentModeTrapFlagState;
+
+//////////////////////////////////////////////////
+//				   Constants        			//
+//////////////////////////////////////////////////
 
 /**
  * @brief A list of windows processes, for which to ignore systemcall requests
@@ -640,53 +782,53 @@ VOID
 TransparentCpuid(INT32 CpuInfo[], PGUEST_REGS Regs);
 
 BOOLEAN
-TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
+TransparentSetTrapFlagAfterSyscall(GUEST_REGS *                      Regs,
                                    UINT32                            ProcessId,
                                    UINT32                            ThreadId,
                                    UINT64                            Context,
                                    TRANSPARENT_MODE_CONTEXT_PARAMS * Params);
 
 BOOLEAN
-TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
-                                               UINT32                  ProcessId,
-                                               UINT32                  ThreadId);
+TransparentCheckAndHandleAfterSyscallTrapFlags(GUEST_REGS * Regs,
+                                               UINT32       ProcessId,
+                                               UINT32       ThreadId);
 
 VOID
-TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
+TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
                                       UINT32                            ProcessId,
                                       UINT32                            ThreadId,
                                       UINT64                            Context,
                                       TRANSPARENT_MODE_CONTEXT_PARAMS * Params);
 
 VOID
-TransparentHandleSystemCallHook(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleSystemCallHook(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtQuerySystemInformationSyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtQueryAttributesFileSyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtQueryAttributesFileSyscall(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtSystemDebugControlSyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtSystemDebugControlSyscall(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtOpenDirectoryObjectSyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtOpenDirectoryObjectSyscall(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtQueryInformationProcessSyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtQueryInformationProcessSyscall(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtOpenFileSyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtOpenFileSyscall(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtOpenKeySyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtOpenKeySyscall(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtQueryValueKeySyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs);
 
 VOID
-TransparentHandleNtEnumerateKeySyscall(VIRTUAL_MACHINE_STATE * VCpu);
+TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs);
 
 UINT32
 TransparentGetRand();

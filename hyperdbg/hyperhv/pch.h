@@ -54,7 +54,7 @@
 //
 // HyperDbg Kernel-mode headers
 //
-#include "Configuration.h"
+#include "config/Configuration.h"
 #include "macros/MetaMacros.h"
 
 //
@@ -81,14 +81,17 @@
 #include "SDK/imports/kernel/HyperDbgVmmImports.h"
 
 //
+// Hyper-V TLFS
+//
+#include "hyper-v/HypervTlfs.h"
+
+//
 // VMX and Capabilities
 //
-#include "transparency/Transparency.h"
 #include "vmm/vmx/VmxBroadcast.h"
 #include "memory/MemoryMapper.h"
 #include "interface/Dispatch.h"
 #include "common/Dpc.h"
-#include "vmm/vmx/HypervTlfs.h"
 #include "common/Msr.h"
 #include "memory/PoolManager.h"
 #include "common/Trace.h"
@@ -101,7 +104,6 @@
 #include "memory/Segmentation.h"
 #include "common/Bitwise.h"
 #include "common/Common.h"
-#include "components/spinlock/header/Spinlock.h"
 #include "vmm/vmx/Events.h"
 #include "devices/Apic.h"
 #include "devices/Pci.h"
@@ -152,6 +154,11 @@
 #include "components/optimizations/header/AvlTree.h"
 #include "components/optimizations/header/BinarySearch.h"
 #include "components/optimizations/header/InsertionSort.h"
+
+//
+// Spinlocks
+//
+#include "components/spinlock/header/Spinlock.h"
 
 //
 // Global Variables should be the last header to include

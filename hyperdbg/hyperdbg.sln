@@ -17,10 +17,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperhv", "hyperhv\hyperhv.
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997E4B6-FE49-4358-ADF1-CDDB5739508E}"
-	ProjectSection(SolutionItems) = preProject
-		include\Configuration.h = include\Configuration.h
-		include\Definition.h = include\Definition.h
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libhyperdbg", "libhyperdbg\libhyperdbg.vcxproj", "{809C3AD5-3211-4992-A472-9D81D124C5FA}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -98,6 +94,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperlog", "hyperlog\hyperl
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{13E49D84-7EA0-43A2-9B60-4B408A4C7602}"
 	ProjectSection(SolutionItems) = preProject
+		include\SDK\modules\HyperEvade.h = include\SDK\modules\HyperEvade.h
 		include\SDK\Modules\HyperLog.h = include\SDK\Modules\HyperLog.h
 		include\SDK\Modules\VMM.h = include\SDK\Modules\VMM.h
 	EndProjectSection
@@ -216,6 +213,17 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_app", "..\examples
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperevade", "hyperevade\hyperevade.vcxproj", "{B226530A-14B1-40AC-B82E-D9057400E7EE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hyper-v", "hyper-v", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		include\hyper-v\HypervTlfs.h = include\hyper-v\HypervTlfs.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{03550856-D63F-4069-87E1-8BF2F129DBE3}"
+	ProjectSection(SolutionItems) = preProject
+		include\config\Configuration.h = include\config\Configuration.h
+		include\config\Definition.h = include\config\Definition.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|x64 = debug|x64
@@ -305,6 +313,8 @@ Global
 		{2104BCF9-035E-45AA-B744-68A5B8FEFF13} = {C5BCEFF7-8097-4331-A96E-4F4857774AD8}
 		{79AB8BD3-03A4-4B65-ABF6-313C10A00CC5} = {5D395DF2-B247-48CC-924B-7F5D196C247A}
 		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4} = {2104BCF9-035E-45AA-B744-68A5B8FEFF13}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{03550856-D63F-4069-87E1-8BF2F129DBE3} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

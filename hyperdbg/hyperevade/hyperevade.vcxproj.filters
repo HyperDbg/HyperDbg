@@ -19,12 +19,30 @@
     <Filter Include="code\platform">
       <UniqueIdentifier>{21f0281e-fc2a-4e13-97ac-e4b35a05a31e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\components">
+      <UniqueIdentifier>{2b724a5d-3764-4d38-8eaa-e2bd63347dba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\spinlock">
+      <UniqueIdentifier>{53987f38-4829-4f43-b9d9-2da7f1322173}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\optimizations">
+      <UniqueIdentifier>{59dad3aa-35fc-463e-b9f8-6ab05b0a6343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components">
+      <UniqueIdentifier>{890885f8-de8f-41df-9202-3ec320d7d816}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\registers">
+      <UniqueIdentifier>{228a6a7a-4085-4871-a29b-15ca5576623d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\spinlock">
+      <UniqueIdentifier>{a66d71db-112c-4826-8181-ba265d339149}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\optimizations">
+      <UniqueIdentifier>{da60b9fe-3816-4f3c-a6a9-21accd463156}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\Logging.c">
-      <Filter>code</Filter>
-    </ClCompile>
-    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
+    <ClCompile Include="code\Transparency.c">
       <Filter>code</Filter>
     </ClCompile>
     <ClCompile Include="code\UnloadDll.c">
@@ -33,18 +51,30 @@
     <ClCompile Include="..\include\platform\kernel\code\Mem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\hyperhv\code\components\registers\DebugRegisters.c">
+      <Filter>code\components\registers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
+      <Filter>code\components\spinlock</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\AvlTree.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c">
+      <Filter>code\components\optimizations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="header\Logging.h">
-      <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
+    <ClInclude Include="header\Transparency.h">
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="header\pch.h">
-      <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="header\UnloadDll.h">
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\Environment.h">
@@ -52,6 +82,21 @@
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\Mem.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
+      <Filter>header\components\spinlock</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\AvlTree.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h">
+      <Filter>header\components\optimizations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h">
+      <Filter>header\components\optimizations</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

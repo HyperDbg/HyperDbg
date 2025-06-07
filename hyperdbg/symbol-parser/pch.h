@@ -47,7 +47,7 @@ typedef RFLAGS * PRFLAGS;
 #endif // USE_LIB_IA32
 
 #include "SDK/HyperDbgSdk.h"
-#include "Definition.h"
+#include "config/Definition.h"
 #include "SDK/imports/user/HyperDbgLibImports.h"
 #include "../symbol-parser/header/common-utils.h"
 #include "../symbol-parser/header/symbol-parser.h"
