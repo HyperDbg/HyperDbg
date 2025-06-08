@@ -80,7 +80,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     // if we are in transparent mode then ignore the
     // cpuid modifications e.g. hyperviosr name or bit
     //
-    if (!g_TransparentMode)
+    if (!g_CheckForFootprints)
     {
         //
         // Check if this was CPUID 1h, which is the features request
@@ -1389,7 +1389,10 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     // Make sure that transparent-mode is disabled
     //
-    g_TransparentMode = FALSE;
+    if (g_CheckForFootprints)
+    {
+        TransparentUnhideDebuggerWrapper(NULL);
+    }
 
     //
     // Not waiting for the interrupt-window to inject page-faults

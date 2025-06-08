@@ -416,7 +416,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         // check whether the this trap flag is set because of intercepting
         // the result of a system-call or not
         //
-        if (g_TransparentMode &&
+        if (g_SyscallCallbackStatus &&
             SyscallCallbackCheckAndHandleAfterSyscallTrapFlags(VCpu,
                                                                HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                                HANDLE_TO_UINT32(PsGetCurrentThreadId())))

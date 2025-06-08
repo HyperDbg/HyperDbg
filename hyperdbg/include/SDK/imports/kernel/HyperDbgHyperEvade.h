@@ -25,7 +25,7 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
                         DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest);
 
 IMPORT_EXPORT_HYPEREVADE BOOLEAN
-TransparentUnhideDebugger(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest);
+TransparentUnhideDebugger();
 
 IMPORT_EXPORT_HYPEREVADE VOID
 TransparentCheckAndModifyCpuid(INT32 CpuInfo[], PGUEST_REGS Regs);

@@ -80,12 +80,11 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
 
 /**
  * @brief Deactivate transparent-mode
- * @param TransparentModeRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentUnhideDebugger(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
+TransparentUnhideDebugger()
 {
     if (g_TransparentMode)
     {
@@ -94,12 +93,10 @@ TransparentUnhideDebugger(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Transpar
         //
         g_TransparentMode = FALSE;
 
-        TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
     }
     else
     {
-        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE;
         return FALSE;
     }
 }

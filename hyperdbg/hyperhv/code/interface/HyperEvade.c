@@ -67,7 +67,22 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     //
     // Call the hyperevade hide debugger function
     //
-    return TransparentHideDebugger(&HyperevadeCallbacks, TransparentModeRequest);
+    if (TransparentHideDebugger(&HyperevadeCallbacks, TransparentModeRequest))
+    {
+        //
+        // Status is set within the transparent mode (hyperevade) module
+        //
+        g_CheckForFootprints = TRUE;
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Status is set within the transparent mode (hyperevade) module
+        //
+        g_CheckForFootprints = FALSE;
+        return FALSE;
+    }
 }
 
 /**
@@ -80,9 +95,30 @@ BOOLEAN
 TransparentUnhideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
     //
+    // Unset transparent mode for the VMM module
+    //
+    g_CheckForFootprints = FALSE;
+
+    //
     // Unitialize the syscall callback mechanism from hypervisor
     //
     SyscallCallbackUninitialize();
 
-    return TransparentUnhideDebugger(TransparentModeRequest);
+    if (TransparentUnhideDebugger())
+    {
+        if (TransparentModeRequest != NULL)
+        {
+            TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        }
+
+        return TRUE;
+    }
+    else
+    {
+        if (TransparentModeRequest != NULL)
+        {
+            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE;
+        }
+        return FALSE;
+    }
 }

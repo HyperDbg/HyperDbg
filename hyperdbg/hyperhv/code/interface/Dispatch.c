@@ -961,9 +961,9 @@ DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     BOOLEAN PostEventTriggerReq = FALSE;
 
     //
-    // In Transparency mode a hidden hook for the system call handler gets inserted
+    // In syscall back, a hidden hook for the system call handler gets inserted
     //
-    if (g_TransparentMode && Context == g_SystemCallHookAddress)
+    if (g_SyscallCallbackStatus && Context == g_SystemCallHookAddress)
     {
         SyscallCallbackHandleSystemCallHook(VCpu);
     }

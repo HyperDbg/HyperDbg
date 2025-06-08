@@ -130,6 +130,13 @@ BOOLEAN g_SyscallCallbackStatus;
  */
 PVOID g_SystemCallHookAddress;
 
+/**
+ * @brief Shows whether the footprints (anti-debugging and
+ * anti-hypervisor) should be checked or not
+ *
+ */
+BOOLEAN g_CheckForFootprints;
+
 //////////////////////////////////////////////////
 //  	Global Variable (debugger-related)	    //
 //////////////////////////////////////////////////
@@ -206,14 +213,3 @@ UINT64 g_PageFaultInjectionAddressTo;
  *
  */
 UINT32 g_PageFaultInjectionErrorCode;
-
-// ------------------------------------------------------------- SHOULD BE REPLACED WITH HYPEREVADE ROUTINES
-
-/**
- * @brief Shows whether the debugger transparent mode
- * is enabled (true) or not (false)
- *
- */
-BOOLEAN g_TransparentMode;
-
-// -------------------------------------------------------------
