@@ -20,6 +20,9 @@
 //            hyperevade functions 	    		//
 //////////////////////////////////////////////////
 
+//
+// Initializing and uninitializing routines
+//
 IMPORT_EXPORT_HYPEREVADE BOOLEAN
 TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        HyperevadeCallbacks,
                         DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest);
@@ -27,9 +30,24 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
 IMPORT_EXPORT_HYPEREVADE BOOLEAN
 TransparentUnhideDebugger();
 
+//
+// VMX footprint routines
+//
 IMPORT_EXPORT_HYPEREVADE VOID
-TransparentCheckAndModifyCpuid(INT32 CpuInfo[], PGUEST_REGS Regs);
+TransparentCheckAndModifyCpuid(PGUEST_REGS Regs, INT32 CpuInfo[]);
 
+IMPORT_EXPORT_HYPEREVADE VOID
+TransparentCheckAndTrapFlagAfterVmexit();
+
+IMPORT_EXPORT_HYPEREVADE BOOLEAN
+TransparentCheckAndModifyMsrRead(PGUEST_REGS Regs, UINT32 TargetMsr);
+
+IMPORT_EXPORT_HYPEREVADE BOOLEAN
+TransparentCheckAndModifyMsrWrite(PGUEST_REGS Regs, UINT32 TargetMsr);
+
+//
+// Syscall footprint routines
+//
 IMPORT_EXPORT_HYPEREVADE VOID
 TransparentHandleSystemCallHook(GUEST_REGS * Regs);
 

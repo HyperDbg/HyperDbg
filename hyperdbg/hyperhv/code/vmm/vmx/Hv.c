@@ -118,7 +118,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     }
     else
     {
-        TransparentCheckAndModifyCpuid(CpuInfo, Regs);
+        TransparentCheckAndModifyCpuid(Regs, CpuInfo);
     }
 
     //

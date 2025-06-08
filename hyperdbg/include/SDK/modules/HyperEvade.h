@@ -82,6 +82,18 @@ typedef BOOLEAN (*SYSCALL_CALLBACK_SET_TRAP_FLAG_AFTER_SYSCALL)(GUEST_REGS *    
                                                                 UINT64                            Context,
                                                                 SYSCALL_CALLBACK_CONTEXT_PARAMS * Params);
 
+/**
+ * @brief A function that handles the trap flag
+ *
+ */
+typedef VOID (*HV_HANDLE_TRAPFLAG)();
+
+/**
+ * @brief A function that injects a general protection (#GP)
+ *
+ */
+typedef VOID (*EVENT_INJECT_GENERAL_PROTECTION)();
+
 //////////////////////////////////////////////////
 //			   Callback Structure               //
 //////////////////////////////////////////////////
@@ -120,5 +132,11 @@ typedef struct _HYPEREVADE_CALLBACKS
     // System call callbacks
     //
     SYSCALL_CALLBACK_SET_TRAP_FLAG_AFTER_SYSCALL SyscallCallbackSetTrapFlagAfterSyscall;
+
+    //
+    // VMX callbacks
+    //
+    HV_HANDLE_TRAPFLAG              HvHandleTrapFlag;
+    EVENT_INJECT_GENERAL_PROTECTION EventInjectGeneralProtection;
 
 } HYPEREVADE_CALLBACKS, *PHYPEREVADE_CALLBACKS;
