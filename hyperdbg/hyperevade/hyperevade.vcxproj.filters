@@ -69,6 +69,12 @@
     <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
       <Filter>code\interface</Filter>
     </ClCompile>
+    <ClCompile Include="code\SyscallFootprints.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\VmxFootprints.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Transparency.h">
@@ -85,6 +91,12 @@
     </ClInclude>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
       <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\SyscallFootprints.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\VmxFootprints.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -107,15 +107,19 @@
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="..\include\platform\kernel\code\Mem.c" />
+    <ClCompile Include="code\SyscallFootprints.c" />
     <ClCompile Include="code\Transparency.c" />
     <ClCompile Include="code\UnloadDll.c" />
+    <ClCompile Include="code\VmxFootprints.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
     <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\Mem.h" />
+    <ClInclude Include="header\SyscallFootprints.h" />
     <ClInclude Include="header\Transparency.h" />
     <ClInclude Include="header\pch.h" />
+    <ClInclude Include="header\VmxFootprints.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

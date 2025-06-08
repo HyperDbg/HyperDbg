@@ -75,9 +75,11 @@
 #include "SDK/modules/HyperEvade.h"
 
 //
-// Transparency headers
+// Transparency and footprints headers
 //
 #include "Transparency.h"
+#include "VmxFootprints.h"
+#include "SyscallFootprints.h"
 
 //
 // Optimization algorithms
