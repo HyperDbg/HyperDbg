@@ -764,13 +764,16 @@ hwdbg_script_engine_wrapper_test_parser(const char * Expr)
 
 /**
  * @brief Enable transparent mode
+ * @param ProcessId The process ID to enable transparent mode for
+ * @param ProcessName The process name to enable transparent mode for
+ * @param IsProcessId If true, ProcessId is used, otherwise ProcessName is used
  *
  * @return BOOLEAN
  */
 BOOLEAN
-hyperdbg_u_enable_transparent_mode()
+hyperdbg_u_enable_transparent_mode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId)
 {
-    return HyperDbgEnableTransparentMode();
+    return HyperDbgEnableTransparentMode(ProcessId, ProcessName, IsProcessId);
 }
 
 /**

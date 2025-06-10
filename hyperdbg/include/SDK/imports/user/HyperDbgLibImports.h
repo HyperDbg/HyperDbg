@@ -254,7 +254,7 @@ hyperdbg_u_get_idt_entry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * idt_packet
 // Exported functionality of the '!hide', and '!unhide' commands
 //
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
-hyperdbg_u_enable_transparent_mode();
+hyperdbg_u_enable_transparent_mode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_disable_transparent_mode();

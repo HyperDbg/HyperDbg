@@ -587,9 +587,9 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
     // UINT64 RdtscStandardDeviation;
     // UINT64 RdtscMedian;
 
-    // BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
-    // UINT32  ProcId;
-    // UINT32  LengthOfProcessName;
+    BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
+    UINT32  ProcId;
+    UINT32  LengthOfProcessName;
 
     SYSTEM_CALL_NUMBERS_INFORMATION SystemCallNumbersInformation; // System call numbers information
 

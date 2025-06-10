@@ -101,17 +101,17 @@ BOOLEAN
 TransparentUnhideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
     //
-    // Unset transparent mode for the VMM module
-    //
-    g_CheckForFootprints = FALSE;
-
-    //
     // Unitialize the syscall callback mechanism from hypervisor
     //
     SyscallCallbackUninitialize();
 
     if (TransparentUnhideDebugger())
     {
+        //
+        // Unset transparent mode for the VMM module
+        //
+        g_CheckForFootprints = FALSE;
+
         if (TransparentModeRequest != NULL)
         {
             TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;

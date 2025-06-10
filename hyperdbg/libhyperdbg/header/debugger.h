@@ -302,7 +302,7 @@ BOOLEAN
 HyperDbgGetIdtEntry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * IdtPacket);
 
 BOOLEAN
-HyperDbgEnableTransparentMode();
+HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
 
 BOOLEAN
 HyperDbgDisableTransparentMode();
