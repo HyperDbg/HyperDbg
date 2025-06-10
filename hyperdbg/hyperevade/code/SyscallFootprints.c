@@ -21,6 +21,14 @@
 VOID
 TransparentHandleSystemCallHook(GUEST_REGS * Regs)
 {
+    //
+    // If the transparent mode is not enabled, do nothing
+    //
+    if (!g_TransparentMode)
+    {
+        return;
+    }
+
     PCHAR  CallingProcess = g_Callbacks.CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
     UINT64 Context        = Regs->rax;
 

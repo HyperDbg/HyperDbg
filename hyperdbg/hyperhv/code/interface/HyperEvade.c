@@ -56,6 +56,12 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     HyperevadeCallbacks.SyscallCallbackSetTrapFlagAfterSyscall = SyscallCallbackSetTrapFlagAfterSyscall;
 
     //
+    // VMX callbacks
+    //
+    HyperevadeCallbacks.HvHandleTrapFlag             = HvHandleTrapFlag;
+    HyperevadeCallbacks.EventInjectGeneralProtection = EventInjectGeneralProtection;
+
+    //
     // Initialize the syscall callback mechanism from hypervisor
     //
     if (!SyscallCallbackInitialize())

@@ -33,6 +33,7 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
             //
             // The callback has null entry, so we cannot proceed
             //
+            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
             return FALSE;
         }
     }
