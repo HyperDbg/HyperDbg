@@ -413,14 +413,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 // It's a hide request
                 //
-                TransparentHideDebugger(DebuggerHideAndUnhideRequest);
+                TransparentHideDebuggerWrapper(DebuggerHideAndUnhideRequest);
             }
             else
             {
                 //
                 // It's a unhide request
                 //
-                TransparentUnhideDebugger(DebuggerHideAndUnhideRequest);
+                TransparentUnhideDebuggerWrapper(DebuggerHideAndUnhideRequest);
             }
 
             //

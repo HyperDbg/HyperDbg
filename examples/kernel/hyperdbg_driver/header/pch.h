@@ -25,7 +25,7 @@
 //
 // Import Configuration and Definitions
 //
-#include "Configuration.h"
+#include "config/Configuration.h"
 
 //
 // Macros

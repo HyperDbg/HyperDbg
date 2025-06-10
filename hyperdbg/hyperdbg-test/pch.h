@@ -39,7 +39,7 @@ using namespace std;
 // Program Defined Headers
 //
 #include "SDK/HyperDbgSdk.h"
-#include "Definition.h"
+#include "config/Definition.h"
 #include "../hyperdbg-test/header/namedpipe.h"
 #include "../hyperdbg-test/header/routines.h"
 #include "../hyperdbg-test/header/testcases.h"

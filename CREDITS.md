@@ -24,3 +24,4 @@ The attributions listed on this credits page are acknowledged without any partic
 - xmaple555 ([@xmaple555](https://github.com/xmaple555)) for contributions in HyperDbg core and the script engine
 - Abbas Masoumi Gorji ([@AbbasMasoumiG](https://twitter.com/AbbasMasoumiG))
 - Björn Ruytenberg ([@0Xiphorus](https://twitter.com/0Xiphorus))
+- Marcis Zarins ([@CokeTree3](https://github.com/CokeTree3))

@@ -50,19 +50,19 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
     }
 
     //
-    // Check for possible EPT Hooks (Hidden Breakpoints)
+    // Check for syscall callback (masking #DBs and #BPs)
     //
-    if (EptHookGetCountOfEpthooks(FALSE) != 0)
+    if (g_SyscallCallbackStatus)
     {
+        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
         CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
     }
 
     //
-    // Check for transparent-mode (masking #DBs and #BPs)
+    // Check for possible EPT Hooks (Hidden Breakpoints)
     //
-    if (g_TransparentMode)
+    if (EptHookGetCountOfEpthooks(FALSE) != 0)
     {
-        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
         CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
     }
 

@@ -80,7 +80,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     // if we are in transparent mode then ignore the
     // cpuid modifications e.g. hyperviosr name or bit
     //
-    if (!g_TransparentMode)
+    if (!g_CheckForFootprints)
     {
         //
         // Check if this was CPUID 1h, which is the features request
@@ -115,10 +115,10 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
             CpuInfo[0] = '0#vH'; // Hv#0
             CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
         }
-        else 
-        {
-            TransparentCPUID(CpuInfo, Regs);
-        }
+    }
+    else
+    {
+        TransparentCheckAndModifyCpuid(Regs, CpuInfo);
     }
 
     //
@@ -894,7 +894,10 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     // 32 bits results in a #GP(0) exception.
     // (ref: Vol3B[17.2.6(Debug Registers and Intel 64 Processors)])
     //
-    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR && (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 || ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) && (GpRegister >> 32) != 0)
+    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR &&
+        (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 ||
+         ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) &&
+        (GpRegister >> 32) != 0)
     {
         EventInjectGeneralProtection();
 
@@ -1386,7 +1389,10 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     // Make sure that transparent-mode is disabled
     //
-    g_TransparentMode = FALSE;
+    if (g_CheckForFootprints)
+    {
+        TransparentUnhideDebuggerWrapper(NULL);
+    }
 
     //
     // Not waiting for the interrupt-window to inject page-faults

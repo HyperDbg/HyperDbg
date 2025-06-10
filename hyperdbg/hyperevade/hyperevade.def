@@ -1,0 +1,6 @@
+LIBRARY hyperevade
+
+EXPORTS
+
+    DllInitialize PRIVATE
+    DllUnload PRIVATE

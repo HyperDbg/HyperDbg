@@ -63,12 +63,6 @@
     <Filter Include="code\interface">
       <UniqueIdentifier>{20741da2-52c0-4c6c-ab4f-d8a29bae81e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\transparency">
-      <UniqueIdentifier>{33ddc8db-b65a-4ebd-a214-1b8060bf6ab0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="header\transparency">
-      <UniqueIdentifier>{3646ca74-c21f-4d7d-8e93-51ec5fae9d0f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\interface">
       <UniqueIdentifier>{bd4cf053-c1f6-40df-984d-37f9f50b85ac}</UniqueIdentifier>
     </Filter>
@@ -233,16 +227,10 @@
     <ClCompile Include="code\interface\Export.c">
       <Filter>code\interface</Filter>
     </ClCompile>
-    <ClCompile Include="code\transparency\Transparency.c">
-      <Filter>code\transparency</Filter>
-    </ClCompile>
     <ClCompile Include="code\hooks\ept-hook\EptHook.c">
       <Filter>code\hooks\ept-hook</Filter>
     </ClCompile>
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c">
-      <Filter>code\hooks\syscall-hook</Filter>
-    </ClCompile>
-    <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c">
       <Filter>code\hooks\syscall-hook</Filter>
     </ClCompile>
     <ClCompile Include="code\broadcast\Broadcast.c">
@@ -326,6 +314,15 @@
     <ClCompile Include="code\mmio\MmioShadowing.c">
       <Filter>code\mmio</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hooks\syscall-hook\SyscallCallback.c">
+      <Filter>code\hooks\syscall-hook</Filter>
+    </ClCompile>
+    <ClCompile Include="code\interface\HyperEvade.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -408,9 +405,6 @@
     </ClInclude>
     <ClInclude Include="header\common\State.h">
       <Filter>header\common</Filter>
-    </ClInclude>
-    <ClInclude Include="header\transparency\Transparency.h">
-      <Filter>header\transparency</Filter>
     </ClInclude>
     <ClInclude Include="header\interface\Dispatch.h">
       <Filter>header\interface</Filter>
@@ -597,6 +591,12 @@
     </ClInclude>
     <ClInclude Include="header\mmio\MmioShadowing.h">
       <Filter>header\mmio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\hooks\SyscallCallback.h">
+      <Filter>header\hooks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

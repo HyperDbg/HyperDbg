@@ -1218,7 +1218,10 @@ VmxPerformTermination()
     //
     // Unhide (disable and de-allocate) transparent-mode
     //
-    g_TransparentMode = FALSE;
+    if (g_CheckForFootprints)
+    {
+        TransparentUnhideDebuggerWrapper(NULL);
+    }
 
     //
     // Remove All the hooks if any

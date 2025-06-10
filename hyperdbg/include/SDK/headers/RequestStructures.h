@@ -539,6 +539,35 @@ typedef struct _DEBUGGER_SEARCH_MEMORY
 /* ==============================================================================================
  */
 
+/**
+ * @brief Windows System call values that are intercepted by transparency mode
+ *
+ * NOTE: Windows system calls can change values on each version
+ * This structure is used to keep track of the system call numbers
+ * based on the current running Windows version
+ *
+ */
+typedef struct _SYSTEM_CALL_NUMBERS_INFORMATION
+{
+    UINT32 SysNtQuerySystemInformation;
+    UINT32 SysNtQuerySystemInformationEx; // On 24H2, changes on each windows version
+
+    UINT32 SysNtSystemDebugControl; // On 24H2, changes on each windows version
+    UINT32 SysNtQueryAttributesFile;
+    UINT32 SysNtOpenDirectoryObject;
+    UINT32 SysNtQueryDirectoryObject; // On 24H2, changes on each windows version
+    UINT32 SysNtQueryInformationProcess;
+    UINT32 SysNtSetInformationProcess;
+    UINT32 SysNtQueryInformationThread;
+    UINT32 SysNtSetInformationThread;
+    UINT32 SysNtOpenFile;
+    UINT32 SysNtOpenKey;
+    UINT32 SysNtOpenKeyEx; // On 24H2, changes on each windows version
+    UINT32 SysNtQueryValueKey;
+    UINT32 SysNtEnumerateKey;
+
+} SYSTEM_CALL_NUMBERS_INFORMATION, *PSYSTEM_CALL_NUMBERS_INFORMATION;
+
 #define SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE \
     sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)
 
@@ -561,6 +590,8 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
     // BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
     // UINT32  ProcId;
     // UINT32  LengthOfProcessName;
+
+    SYSTEM_CALL_NUMBERS_INFORMATION SystemCallNumbersInformation; // System call numbers information
 
     UINT32 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
                           DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER

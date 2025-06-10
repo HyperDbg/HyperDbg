@@ -961,6 +961,14 @@ DispatchEventHiddenHookExecCc(VIRTUAL_MACHINE_STATE * VCpu, PVOID Context)
     BOOLEAN PostEventTriggerReq = FALSE;
 
     //
+    // In syscall back, a hidden hook for the system call handler gets inserted
+    //
+    if (g_SyscallCallbackStatus && Context == g_SystemCallHookAddress)
+    {
+        SyscallCallbackHandleSystemCallHook(VCpu);
+    }
+
+    //
     // Triggering the pre-event (This command only support the
     // pre-event, the post-event doesn't make sense in this command)
     //

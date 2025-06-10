@@ -62,19 +62,6 @@ LIST_ENTRY g_EptHook2sDetourListHead;
 BOOLEAN g_IsEptHook2sDetourListInitialized;
 
 /**
- * @brief Shows whether the debugger transparent mode
- * is enabled (true) or not (false)
- *
- */
-BOOLEAN g_TransparentMode;
-
-/**
- * @brief State of transparent-mode trap-flags
- *
- */
-TRANSPARENT_MODE_TRAP_FLAG_STATE * g_TransparentModeTrapFlagState;
-
-/**
  * @brief Local APIC Base
  *
  */
@@ -124,6 +111,31 @@ BOOLEAN g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger;
  *
  */
 BOOLEAN g_ModeBasedExecutionControlState;
+
+/**
+ * @brief State of syscall callback trap flags
+ *
+ */
+SYSCALL_CALLBACK_TRAP_FLAG_STATE * g_SyscallCallbackTrapFlagState;
+
+/**
+ * @brief Shows whether the syscall callback is enabled or not
+ *
+ */
+BOOLEAN g_SyscallCallbackStatus;
+
+/**
+ * @brief Target hook address for the system call handler
+ *
+ */
+PVOID g_SystemCallHookAddress;
+
+/**
+ * @brief Shows whether the footprints (anti-debugging and
+ * anti-hypervisor) should be checked or not
+ *
+ */
+BOOLEAN g_CheckForFootprints;
 
 //////////////////////////////////////////////////
 //  	Global Variable (debugger-related)	    //

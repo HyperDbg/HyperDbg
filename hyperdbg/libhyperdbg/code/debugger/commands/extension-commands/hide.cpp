@@ -43,6 +43,186 @@ CommandHideHelp()
 }
 
 /**
+ * @brief This function is called when the user wants to hide the fill system calls
+ * in the transparent mode based on current system call numbers
+ *
+ * @param SyscallNumberDetails
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandHideFillSystemCalls(SYSTEM_CALL_NUMBERS_INFORMATION * SyscallNumberDetails)
+{
+    BOOLEAN Result = TRUE;
+
+    //
+    // Get the syscall number of NtQuerySystemInformation
+    //
+    SyscallNumberDetails->SysNtQuerySystemInformation = PeGetSyscallNumber("NtQuerySystemInformation");
+
+    if (SyscallNumberDetails->SysNtQuerySystemInformation == 0)
+    {
+        ShowMessages("warning, failed to get NtQuerySystemInformation syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtQuerySystemInformationEx
+    //
+    SyscallNumberDetails->SysNtQuerySystemInformationEx = PeGetSyscallNumber("NtQuerySystemInformationEx");
+
+    if (SyscallNumberDetails->SysNtQuerySystemInformationEx == 0)
+    {
+        ShowMessages("warning, failed to get NtQuerySystemInformationEx syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtSystemDebugControl
+    //
+    SyscallNumberDetails->SysNtSystemDebugControl = PeGetSyscallNumber("NtSystemDebugControl");
+
+    if (SyscallNumberDetails->SysNtSystemDebugControl == 0)
+    {
+        ShowMessages("warning, failed to get NtSystemDebugControl syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtQueryAttributesFile
+    //
+    SyscallNumberDetails->SysNtQueryAttributesFile = PeGetSyscallNumber("NtQueryAttributesFile");
+
+    if (SyscallNumberDetails->SysNtQueryAttributesFile == 0)
+    {
+        ShowMessages("warning, failed to get NtQueryAttributesFile syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtOpenDirectoryObject
+    //
+    SyscallNumberDetails->SysNtOpenDirectoryObject = PeGetSyscallNumber("NtOpenDirectoryObject");
+
+    if (SyscallNumberDetails->SysNtOpenDirectoryObject == 0)
+    {
+        ShowMessages("warning, failed to get NtOpenDirectoryObject syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtQueryDirectoryObject
+    //
+    SyscallNumberDetails->SysNtQueryDirectoryObject = PeGetSyscallNumber("NtQueryDirectoryObject");
+
+    if (SyscallNumberDetails->SysNtQueryDirectoryObject == 0)
+    {
+        ShowMessages("warning, failed to get NtQueryDirectoryObject syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtQueryInformationProcess
+    //
+    SyscallNumberDetails->SysNtQueryInformationProcess = PeGetSyscallNumber("NtQueryInformationProcess");
+
+    if (SyscallNumberDetails->SysNtQueryInformationProcess == 0)
+    {
+        ShowMessages("warning, failed to get NtQueryInformationProcess syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtSetInformationProcess
+    //
+    SyscallNumberDetails->SysNtSetInformationProcess = PeGetSyscallNumber("NtSetInformationProcess");
+
+    if (SyscallNumberDetails->SysNtSetInformationProcess == 0)
+    {
+        ShowMessages("warning, failed to get NtSetInformationProcess syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtQueryInformationThread
+    //
+    SyscallNumberDetails->SysNtQueryInformationThread = PeGetSyscallNumber("NtQueryInformationThread");
+
+    if (SyscallNumberDetails->SysNtQueryInformationThread == 0)
+    {
+        ShowMessages("warning, failed to get NtQueryInformationThread syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtSetInformationThread
+    //
+    SyscallNumberDetails->SysNtSetInformationThread = PeGetSyscallNumber("NtSetInformationThread");
+
+    if (SyscallNumberDetails->SysNtSetInformationThread == 0)
+    {
+        ShowMessages("warning, failed to get NtSetInformationThread syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtOpenFile
+    //
+    SyscallNumberDetails->SysNtOpenFile = PeGetSyscallNumber("NtOpenFile");
+
+    if (SyscallNumberDetails->SysNtOpenFile == 0)
+    {
+        ShowMessages("warning, failed to get NtOpenFile syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtOpenKey
+    //
+    SyscallNumberDetails->SysNtOpenKey = PeGetSyscallNumber("NtOpenKey");
+
+    if (SyscallNumberDetails->SysNtOpenKey == 0)
+    {
+        ShowMessages("warning, failed to get NtOpenKey syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtOpenKeyEx
+    //
+    SyscallNumberDetails->SysNtOpenKeyEx = PeGetSyscallNumber("NtOpenKeyEx");
+
+    if (SyscallNumberDetails->SysNtOpenKeyEx == 0)
+    {
+        ShowMessages("warning, failed to get NtOpenKeyEx syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtQueryValueKey
+    //
+    SyscallNumberDetails->SysNtQueryValueKey = PeGetSyscallNumber("NtQueryValueKey");
+
+    if (SyscallNumberDetails->SysNtQueryValueKey == 0)
+    {
+        ShowMessages("warning, failed to get NtQueryValueKey syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    //
+    // Get the syscall number of NtEnumerateKey
+    //
+    SyscallNumberDetails->SysNtEnumerateKey = PeGetSyscallNumber("NtEnumerateKey");
+
+    if (SyscallNumberDetails->SysNtEnumerateKey == 0)
+    {
+        ShowMessages("warning, failed to get NtEnumerateKey syscall number for transparent-mode\n");
+        Result = FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Enable transparent mode
  *
  * @return BOOLEAN
@@ -63,6 +243,21 @@ HyperDbgEnableTransparentMode()
     // We wanna hide the debugger and make transparent vm-exits
     //
     HideRequest.IsHide = TRUE;
+
+    //
+    // Fill the system call numbers based on current system call numbers
+    //
+    if (!CommandHideFillSystemCalls(&HideRequest.SystemCallNumbersInformation))
+    {
+        ShowMessages("warning, failed to fill all of the system call numbers for transparent mode, some system-calls are skipped (not protected)\n");
+
+        //
+        // If we could not fill the system call numbers, still we continue
+        // to enable the transparent mode, but some system calls are not protected
+        //
+
+        // return FALSE;
+    }
 
     //
     // Send the request to the kernel
