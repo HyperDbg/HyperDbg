@@ -66,7 +66,7 @@
 /**
  * @brief Activates the user-mode debugger
  */
-#define ActivateUserModeDebugger FALSE
+#define ActivateUserModeDebugger TRUE
 
 /**
  * @brief Enable or disable the instant event mechanism

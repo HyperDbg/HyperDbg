@@ -89,7 +89,6 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
 
     for (auto Section = CommandTokens.begin() + 1; Section != CommandTokens.end(); Section++)
     {
-        
         //
         // Find out whether the user enters pid or not
         //
@@ -133,6 +132,6 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
     //
     // Perform attach to target process
     //
-    ShowMessages("Attaching to process %lld\n\n", TargetPid);
+    ShowMessages("Attaching to process 0x%llx (%lld)...\n\n", TargetPid, TargetPid);
     UdAttachToProcess(TargetPid, NULL, NULL, FALSE);
 }

@@ -60,6 +60,11 @@ UdInitializeUserDebugger()
     ThreadHolderAllocateThreadHoldingBuffers();
 
     //
+    // Configure the exec-trap on all processors
+    //
+    ConfigureInitializeExecTrapOnAllProcessors();
+
+    //
     // Indicate that the user debugger is active
     //
     g_UserDebuggerState = TRUE;
@@ -82,6 +87,11 @@ UdUninitializeUserDebugger()
         // Indicate that the user debugger is not active
         //
         g_UserDebuggerState = FALSE;
+
+        //
+        // Uninitialize the exec-trap on all processors
+        //
+        ConfigureUninitializeExecTrapOnAllProcessors();
 
         //
         // Free and deallocate all the buffers (pools) relating to

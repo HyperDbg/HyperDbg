@@ -319,13 +319,32 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
     if (g_ExecTrapInitialized)
     {
         //
-        // Triggering the pre-event
+        // check for user-mode thread interception
         //
-        EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
-                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
-                                                      (PVOID)TargetMode,
-                                                      &PostEventTriggerReq,
-                                                      VCpu->Regs);
+        if (DebuggingCallbackCheckThreadInterception(VCpu->CoreId))
+        {
+            //
+            // If the thread is intercepted, we should not trigger the event
+            // Being here means that the thread should be handled by the user-mode debugger
+            //
+
+            //
+            // In this case, we need to short circuit the event, in user-mode debugger we
+            // prevent the execution by short-circuiting the event
+            //
+            EventTriggerResult = VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT;
+        }
+        else
+        {
+            //
+            // Triggering the pre-event
+            //
+            EventTriggerResult = VmmCallbackTriggerEvents(TRAP_EXECUTION_MODE_CHANGED,
+                                                          VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                          (PVOID)TargetMode,
+                                                          &PostEventTriggerReq,
+                                                          VCpu->Regs);
+        }
 
         //
         // Check whether we need to short-circuiting event emulation or not

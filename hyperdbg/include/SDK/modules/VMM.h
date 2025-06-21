@@ -71,12 +71,10 @@ typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION)(UINT32 CoreId)
 typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION)(UINT32 CoreId);
 
 /**
- * @brief Check for page-faults in user-debugger
+ * @brief Check for thread interception in user-debugger
  *
  */
-typedef BOOLEAN (*DEBUGGING_CALLBACK_CONDITIONAL_PAGE_FAULT_EXCEPTION)(UINT32 CoreId,
-                                                                       UINT64 Address,
-                                                                       UINT32 PageFaultErrorCode);
+typedef BOOLEAN (*DEBUGGING_CALLBACK_CHECK_THREAD_INTERCEPTION)(UINT32 CoreId);
 
 /**
  * @brief Check for commands in user-debugger
@@ -113,12 +111,6 @@ typedef VOID (*INTERCEPTION_CALLBACK_TRIGGER_CR3_CHANGE)(UINT32 CoreId);
  *
  */
 typedef BOOLEAN (*INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI)(_In_ UINT32 CoreId);
-
-/**
- * @brief Check to handle cr3 events for thread interception
- *
- */
-typedef BOOLEAN (*ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION)(UINT32 CoreId, CR3_TYPE NewCr3);
 
 /**
  * @brief Check and handle reapplying breakpoint
@@ -203,7 +195,7 @@ typedef struct _VMM_CALLBACKS
     //
     DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION       DebuggingCallbackHandleBreakpointException;      // Fixed
     DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION DebuggingCallbackHandleDebugBreakpointException; // Fixed
-    DEBUGGING_CALLBACK_CONDITIONAL_PAGE_FAULT_EXCEPTION  DebuggingCallbackConditionalPageFaultException;  // Fixed
+    DEBUGGING_CALLBACK_CHECK_THREAD_INTERCEPTION         DebuggingCallbackCheckThreadInterception;        // Fixed
 
     //
     // Interception callbacks
@@ -218,7 +210,6 @@ typedef struct _VMM_CALLBACKS
     KD_CHECK_AND_HANDLE_NMI_CALLBACK                               KdCheckAndHandleNmiCallback;
     VMM_CALLBACK_REGISTERED_MTF_HANDLER                            VmmCallbackRegisteredMtfHandler; // Fixed but not good
     INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI                    DebuggerCheckProcessOrThreadChange;
-    ATTACHING_HANDLE_CR3_EVENTS_FOR_THREAD_INTERCEPTION            AttachingHandleCr3VmexitsForThreadInterception;
     KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
 
 } VMM_CALLBACKS, *PVMM_CALLBACKS;

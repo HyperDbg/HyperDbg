@@ -243,28 +243,24 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId)
 }
 
 /**
- * @brief routine callback to handle conditional page-fault exception
+ * @brief routine callback to handle thread interception
  *
  * @param CoreId
- * @param Address
- * @param PageFaultErrorCode
  *
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
-                                               UINT64 Address,
-                                               UINT32 PageFaultErrorCode)
+DebuggingCallbackCheckThreadInterception(UINT32 CoreId)
 {
-    if (g_Callbacks.DebuggingCallbackConditionalPageFaultException == NULL)
+    if (g_Callbacks.DebuggingCallbackCheckThreadInterception == NULL)
     {
         //
-        // re-inject it to not disrupt system normal execution
+        // not handled by user debugger
         //
         return FALSE;
     }
 
-    return g_Callbacks.DebuggingCallbackConditionalPageFaultException(CoreId, Address, PageFaultErrorCode);
+    return g_Callbacks.DebuggingCallbackCheckThreadInterception(CoreId);
 }
 
 /**
@@ -286,26 +282,4 @@ InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId)
     }
 
     g_Callbacks.InterceptionCallbackTriggerCr3ProcessChange(CoreId);
-}
-
-/**
- * @brief routine callback to handle cr3 process change
- *
- * @param CoreId
- * @param NewCr3
- *
- * @return VOID
- */
-VOID
-InterceptionCallbackCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
-{
-    if (g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception == NULL)
-    {
-        //
-        // ignore it
-        //
-        return;
-    }
-
-    g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception(CoreId, NewCr3);
 }

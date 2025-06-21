@@ -610,23 +610,17 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
 }
 
 /**
- * @brief Check page-faults with user-debugger
- * @param CoreId
- * @param Address
- * @param PageFaultErrorCode
+ * @brief Check thread interceptions with user-mode debugger
  *
- * @return BOOLEAN if TRUE show that the page-fault injection should be ignored
+ * @param CoreId
+ *
+ * @return BOOLEAN if TRUE show that the thread interceptin is handled otherwise FALSE
  */
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
-                                         UINT64 Address,
-                                         UINT32 PageFaultErrorCode)
+AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
 {
-    UNREFERENCED_PARAMETER(Address);
-    UNREFERENCED_PARAMETER(PageFaultErrorCode);
-
-    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 
     //
     // Check whether user-debugger is initialized or not
@@ -639,7 +633,7 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
     //
     // Check if thread is in user-mode
     //
-    if (VmFuncGetLastVmexitRip(CoreId) & 0xf000000000000000)
+    if (VmFuncGetLastVmexitRip(DbgState->CoreId) & 0xf000000000000000)
     {
         //
         // We won't intercept threads in kernel-mode
@@ -649,6 +643,9 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
 
     ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
 
+    //
+    // Check if the process debugging detail is found
+    //
     if (!ProcessDebuggingDetail)
     {
         //
@@ -672,7 +669,7 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
         //
         // related to user debugger
         //
-        VmFuncSuppressRipIncrement(CoreId);
+        VmFuncSuppressRipIncrement(DbgState->CoreId);
 
         return TRUE;
     }
@@ -729,42 +726,15 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     //
     ProcessDebuggingDetail->IsOnThreadInterceptingPhase = Enable;
 
+    //
+    // Intercepting threads is enabled
+    //
     if (Enable)
     {
         //
-        // Intercept all mov 2 cr3s
+        // Add the process to the watching list to be able to intercept the threads
         //
-        DebuggerEventEnableMovToCr3ExitingOnAllProcessors();
-    }
-    else
-    {
-        //
-        // Removing the mov to cr3 vm-exits
-        //
-        DebuggerEventDisableMovToCr3ExitingOnAllProcessors();
-    }
-
-    //
-    // Set the supervisor bit to 1 when we want to continue all the threads
-    //
-    if (!Enable)
-    {
-        for (size_t i = 0; i < MAX_CR3_IN_A_PROCESS; i++)
-        {
-            if (ProcessDebuggingDetail->InterceptedCr3[i].Flags != (UINT64)NULL)
-            {
-                //
-                // This cr3 should not be intercepted on threads' user mode execution
-                //
-                if (!MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(NULL,
-                                                                       TRUE,
-                                                                       PagingLevelPageMapLevel4,
-                                                                       ProcessDebuggingDetail->InterceptedCr3[i]))
-                {
-                    return FALSE;
-                }
-            }
-        }
+        ConfigureExecTrapAddProcessToWatchingList(ProcessDebuggingDetail->ProcessId);
     }
 
     return TRUE;
@@ -1021,72 +991,6 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     AttachRequest->Token  = ProcessDebuggingToken;
     AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    return TRUE;
-}
-
-/**
- * @brief Handle the cr3 vm-exits for thread interception
- * @details this function should be called in vmx-root
- *
- * @param CoreId
- * @param NewCr3
- * @return BOOLEAN
- */
-BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
-{
-    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
-
-    //
-    // Check if process is valid or if thread is in intercepting phase
-    //
-    if (!ProcessDebuggingDetail || !ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
-    {
-        //
-        // not related to user debugger
-        //
-        VmFuncUnsetExceptionBitmap(CoreId, EXCEPTION_VECTOR_PAGE_FAULT);
-        return FALSE;
-    }
-
-    //
-    // Save the cr3 for future continuing the thread
-    //
-    for (size_t i = 0; i < MAX_CR3_IN_A_PROCESS; i++)
-    {
-        if (ProcessDebuggingDetail->InterceptedCr3[i].Flags == NewCr3.Flags)
-        {
-            //
-            // We found it saved previously, no need any further action
-            //
-            break;
-        }
-
-        if (ProcessDebuggingDetail->InterceptedCr3[i].Flags == (UINT64)NULL)
-        {
-            //
-            // Save the cr3
-            //
-            ProcessDebuggingDetail->InterceptedCr3[i].Flags = NewCr3.Flags;
-            break;
-        }
-    }
-
-    //
-    // This thread should be intercepted
-    //
-    if (!MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(NULL, FALSE, PagingLevelPageMapLevel4, NewCr3))
-    {
-        return FALSE;
-    }
-
-    //
-    // Intercept #PFs
-    //
-    VmFuncSetExceptionBitmap(CoreId, EXCEPTION_VECTOR_PAGE_FAULT);
-
     return TRUE;
 }
 
