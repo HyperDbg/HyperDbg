@@ -379,25 +379,22 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
 }
 
 /**
- * @brief Spin on nop sled in user-mode to halt the debuggee
+ * @brief Set the thread pausing state
  *
  * @param ThreadDebuggingDetails
  * @param ProcessDebuggingDetails
  * @return VOID
  */
 VOID
-UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
-                  PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
+UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
+                        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
 {
+    UNREFERENCED_PARAMETER(ProcessDebuggingDetails);
+
     //
     // Save the RIP for future return
     //
     ThreadDebuggingDetails->ThreadRip = VmFuncGetRip();
-
-    //
-    // Set the rip to new spinning address
-    //
-    VmFuncSetRip(ProcessDebuggingDetails->UsermodeReservedBuffer);
 
     //
     // Indicate that it's spinning
@@ -495,6 +492,17 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
         // Sth went wrong!
         //
         return FALSE;
+    }
+
+    //
+    // Check if the thread is already paused or not
+    //
+    if (ThreadDebuggingDetails->IsPaused)
+    {
+        //
+        // The thread is already paused, so we don't need to pause it again
+        //
+        return TRUE;
     }
 
     //
@@ -609,9 +617,9 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
                           TRUE);
 
     //
-    // Halt the thread on nop sleds
+    // Set the thread debugging details
     //
-    UdSpinThreadOnNop(ThreadDebuggingDetails, ProcessDebuggingDetails);
+    UdSetThreadPausingState(ThreadDebuggingDetails, ProcessDebuggingDetails);
 
     //
     // Everything was okay

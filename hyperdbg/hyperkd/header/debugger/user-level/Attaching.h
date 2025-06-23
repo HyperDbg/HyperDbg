@@ -45,7 +45,6 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
     GUEST_REGS Registers;      // active thread
     UINT64     Context;        // $context
     LIST_ENTRY AttachedProcessList;
-    UINT64     UsermodeReservedBuffer;
     UINT64     EntrypointOfMainModule;
     UINT64     BaseAddressOfMainModule;
     PEPROCESS  Eprocess;

@@ -93,7 +93,6 @@ AttachingInitialize()
  * @param Is32Bit
  * @param Eprocess
  * @param PebAddressToMonitor
- * @param UsermodeReservedBuffer
  * @return UINT64 returns the unique token
  */
 UINT64
@@ -102,8 +101,7 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
                                        BOOLEAN   Is32Bit,
                                        BOOLEAN   CheckCallbackAtFirstInstruction,
                                        PEPROCESS Eprocess,
-                                       UINT64    PebAddressToMonitor,
-                                       UINT64    UsermodeReservedBuffer)
+                                       UINT64    PebAddressToMonitor)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 
@@ -132,7 +130,6 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     ProcessDebuggingDetail->CheckCallBackForInterceptingFirstInstruction = CheckCallbackAtFirstInstruction;
     ProcessDebuggingDetail->Eprocess                                     = Eprocess;
     ProcessDebuggingDetail->PebAddressToMonitor                          = (PVOID)PebAddressToMonitor;
-    ProcessDebuggingDetail->UsermodeReservedBuffer                       = UsermodeReservedBuffer;
 
     //
     // Allocate a thread holder buffer for this process
@@ -780,7 +777,6 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     PEPROCESS                                    SourceProcess;
     UINT64                                       ProcessDebuggingToken;
     UINT64                                       PebAddressToMonitor;
-    UINT64                                       UsermodeReservedBuffer;
     BOOLEAN                                      ResultOfApplyingEvent;
     BOOLEAN                                      Is32Bit;
     PUSERMODE_DEBUGGING_PROCESS_DETAILS          TempProcessDebuggingDetail;
@@ -853,32 +849,6 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     }
 
     //
-    // allocate memory in the target user-mode process
-    //
-    UsermodeReservedBuffer = MemoryMapperReserveUsermodeAddressOnTargetProcess(AttachRequest->ProcessId, TRUE);
-
-    if (UsermodeReservedBuffer == (UINT64)NULL)
-    {
-        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        return FALSE;
-    }
-
-    //
-    // Adjust the nop sled buffer
-    //
-    if (!AttachingAdjustNopSledBuffer(UsermodeReservedBuffer,
-                                      AttachRequest->ProcessId))
-    {
-        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        return FALSE;
-    }
-
-    //
-    // Log for test
-    //
-    // LogInfo("Reserved address on the target process: %llx\n", UsermodeReservedBuffer);
-
-    //
     // Create the debugging detail for process
     //
     ProcessDebuggingToken = AttachingCreateProcessDebuggingDetails(AttachRequest->ProcessId,
@@ -886,8 +856,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
                                                                    Is32Bit,
                                                                    AttachRequest->CheckCallbackAtFirstInstruction,
                                                                    SourceProcess,
-                                                                   PebAddressToMonitor,
-                                                                   UsermodeReservedBuffer);
+                                                                   PebAddressToMonitor);
 
     //
     // Check if we successfully get the token
@@ -1233,18 +1202,6 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
         //
         DetachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS;
         return FALSE;
-    }
-
-    //
-    // Free the reserved memory in the target process
-    //
-    if (!MemoryMapperFreeMemoryOnTargetProcess(DetachRequest->ProcessId,
-                                               (PVOID)ProcessDebuggingDetail->UsermodeReservedBuffer))
-    {
-        //
-        // Still, we continue, no need to abort the operation
-        //
-        LogError("Err, cannot deallocate reserved buffer in the detached process");
     }
 
     //
