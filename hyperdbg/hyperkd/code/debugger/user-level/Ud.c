@@ -118,32 +118,6 @@ UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingD
 }
 
 /**
- * @brief Continue the thread
- *
- * @param ThreadDebuggingDetails
- *
- * @return VOID
- */
-VOID
-UdContinueThread(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
-{
-    //
-    // Configure the RIP and RSP again
-    //
-    UdRestoreToOriginalDirection(ThreadDebuggingDetails);
-
-    //
-    // Continue the current instruction won't pass it
-    //
-    VmFuncSuppressRipIncrement(KeGetCurrentProcessorNumberEx(NULL));
-
-    //
-    // It's not paused anymore!
-    //
-    ThreadDebuggingDetails->IsPaused = FALSE;
-}
-
-/**
  * @brief Perform stepping though the instructions in target thread
  *
  * @param ThreadDebuggingDetails
@@ -228,15 +202,6 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
     //
     switch (UserAction)
     {
-    case DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE:
-
-        //
-        // Continue the thread normally
-        //
-        UdContinueThread(ThreadDebuggingDetails);
-
-        break;
-
     case DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP:
 
         //

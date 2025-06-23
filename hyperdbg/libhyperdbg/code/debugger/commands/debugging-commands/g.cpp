@@ -67,7 +67,7 @@ CommandGRequest()
         {
             if (g_ActiveProcessDebuggingState.IsPaused)
             {
-                UdContinueDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
+                UdContinueProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
 
                 //
                 // Target process is running

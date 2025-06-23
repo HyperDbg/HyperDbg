@@ -733,6 +733,10 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
         //
         ConfigureExecTrapAddProcessToWatchingList(ProcessDebuggingDetail->ProcessId);
     }
+    else
+    {
+        ConfigureExecTrapRemoveProcessFromWatchingList(ProcessDebuggingDetail->ProcessId);
+    }
 
     return TRUE;
 }
@@ -1073,6 +1077,52 @@ AttachingPauseProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest)
 }
 
 /**
+ * @brief Continues the target process
+ * @details this function should not be called in vmx-root
+ *
+ * @param ContinueRequest
+ * @return BOOLEAN
+ */
+BOOLEAN
+AttachingContinueProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ContinueRequest)
+{
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
+
+    //
+    // Get the thread debugging detail
+    //
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByToken(ContinueRequest->Token);
+
+    //
+    // Check if token is valid or not
+    //
+    if (!ProcessDebuggingDetails)
+    {
+        ContinueRequest->Result = DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN;
+        return FALSE;
+    }
+
+    if (AttachingConfigureInterceptingThreads(ContinueRequest->Token, FALSE))
+    {
+        //
+        // Unpause the threads of the target process
+        //
+        ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetails);
+
+        //
+        // The continuing operation was successful
+        //
+        ContinueRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        return TRUE;
+    }
+    else
+    {
+        ContinueRequest->Result = DEBUGGER_ERROR_UNABLE_TO_PAUSE_THE_PROCESS_THREADS;
+        return FALSE;
+    }
+}
+
+/**
  * @brief Kill the target process from kernel-mode
  * @details this function should not be called in vmx-root
  *
@@ -1396,6 +1446,12 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS:
 
         AttachingKillProcess(Request);
+
+        break;
+
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_CONTINUE_PROCESS:
+
+        AttachingContinueProcess(Request);
 
         break;
 

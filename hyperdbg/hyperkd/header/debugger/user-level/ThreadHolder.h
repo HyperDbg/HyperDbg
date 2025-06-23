@@ -62,6 +62,9 @@ ThreadHolderAssignThreadHolderToProcessDebuggingDetails(PUSERMODE_DEBUGGING_PROC
 BOOLEAN
 ThreadHolderIsAnyPausedThreadInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
 
+BOOLEAN
+ThreadHolderUnpauseAllThreadsInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
+
 PUSERMODE_DEBUGGING_THREAD_DETAILS
 ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId);
 
