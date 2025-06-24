@@ -802,7 +802,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE, TRUE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE);
 
         return TRUE;
     }
@@ -821,7 +821,7 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE);
     }
     else
     {
@@ -872,7 +872,7 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Trigger the event
         //
-        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE, TRUE);
+        DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_KERNEL_MODE);
     }
     else if (VCpu->MbecEnabled)
     {

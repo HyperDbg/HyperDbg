@@ -627,17 +627,6 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
         return FALSE;
     }
 
-    //
-    // Check if thread is in user-mode
-    //
-    if (VmFuncGetLastVmexitRip(DbgState->CoreId) & 0xf000000000000000)
-    {
-        //
-        // We won't intercept threads in kernel-mode
-        //
-        return FALSE;
-    }
-
     ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
 
     //
@@ -735,6 +724,9 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     }
     else
     {
+        //
+        // Remove the process from the watching list
+        //
         ConfigureExecTrapRemoveProcessFromWatchingList(ProcessDebuggingDetail->ProcessId);
     }
 
@@ -1102,13 +1094,16 @@ AttachingContinueProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ContinueReque
         return FALSE;
     }
 
+    //
+    // Unpause the threads of the target process
+    //
+    ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetails);
+
+    //
+    // Configure the intercepting threads to be disabled
+    //
     if (AttachingConfigureInterceptingThreads(ContinueRequest->Token, FALSE))
     {
-        //
-        // Unpause the threads of the target process
-        //
-        ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetails);
-
         //
         // The continuing operation was successful
         //

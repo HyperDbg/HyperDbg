@@ -76,7 +76,7 @@ CommandGRequest()
             }
             else
             {
-                ShowMessages("err, target process is already running\n");
+                ShowMessages("the target process is already running\n");
             }
         }
     }

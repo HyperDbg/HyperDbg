@@ -776,7 +776,7 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
     // Send the continue command to the target process as we
     // want to continue the debuggee process before detaching
     //
-    UdPauseProcess(ProcessDetailToken);
+    UdContinueProcess(ProcessDetailToken);
 
     //
     // We wanna detach a process

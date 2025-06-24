@@ -303,12 +303,11 @@ DispatchEventVmcall(VIRTUAL_MACHINE_STATE * VCpu)
  * @param VCpu The virtual processor's state
  * @param IsUserMode Whether the execution event caused by a switch from kernel-to-user
  * or otherwise user-to-kernel
- * @param HandleState whether the state should be handled by dispatcher or not
  *
  * @return VOID
  */
 VOID
-DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode, BOOLEAN HandleState)
+DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetMode)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
@@ -321,7 +320,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         //
         // check for user-mode thread interception
         //
-        if (DebuggingCallbackCheckThreadInterception(VCpu->CoreId))
+        if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_USER_MODE && DebuggingCallbackCheckThreadInterception(VCpu->CoreId))
         {
             //
             // If the thread is intercepted, we should not trigger the event
@@ -349,7 +348,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         //
         // Check whether we need to short-circuiting event emulation or not
         //
-        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT && HandleState)
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
         {
             //
             // Handle the user-mode/kernel-mode execution trap event in the case of triggering event
@@ -367,10 +366,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         // Otherwise and if there is no event, we should handle the
         // user-mode/kernel-mode execution trap normally
         //
-        if (HandleState)
-        {
-            ExecTrapHandleMoveToAdjustedTrapState(VCpu, (UINT64)TargetMode);
-        }
+        ExecTrapHandleMoveToAdjustedTrapState(VCpu, (UINT64)TargetMode);
     }
 }
 
