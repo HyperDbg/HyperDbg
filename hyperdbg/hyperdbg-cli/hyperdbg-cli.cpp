@@ -21,6 +21,7 @@
 #include <iostream>
 #include <vector>
 
+#include "config/Configuration.h"
 #include "SDK/HyperDbgSdk.h"
 #include "SDK/imports/user/HyperDbgLibImports.h"
 
@@ -39,6 +40,17 @@ main(int argc, char * argv[])
     BOOLEAN exit_from_debugger = FALSE;
     string  previous_command;
     BOOLEAN reset = FALSE;
+
+    //
+    // Check if HyperDbgTestMode is defined in the DEBUG build
+    // the HyperDbgTestMode should not be defined in RELEASE builds
+    //
+#if defined(HyperDbgTestMode) && HyperDbgTestMode
+#    ifndef HYPERDBG_DEBUG
+#        error "HyperDbgTestMode should not be defined in RELEASE builds!"
+
+#    endif // !HYPERDBG_DEBUG
+#endif
 
     //
     // Set console output code page to UTF-8

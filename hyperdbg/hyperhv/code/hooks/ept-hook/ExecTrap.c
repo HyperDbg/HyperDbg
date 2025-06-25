@@ -850,6 +850,11 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
     UINT32  Index;
 
     //
+    // Acquire the lock for the exec trap process list
+    //
+    SpinlockLock(&ExecTrapProcessListLock);
+
+    //
     // Search the list of processes for the current process's user-execution
     //  trap state
     //
@@ -857,6 +862,11 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
                                            g_ExecTrapState.NumberOfItems,
                                            &Index,
                                            (UINT64)PsGetCurrentProcessId());
+
+    //
+    // Release the lock for the exec trap process list
+    //
+    SpinlockUnlock(&ExecTrapProcessListLock);
 
     //
     // Check whether the procerss is in the list of interceptions or not
@@ -893,13 +903,20 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
 BOOLEAN
 ExecTrapAddProcessToWatchingList(UINT32 ProcessId)
 {
-    UINT32 Index; // not used
+    UINT32  Index; // not used
+    BOOLEAN Result;
 
-    return InsertionSortInsertItem(&g_ExecTrapState.InterceptionProcessIds[0],
-                                   &g_ExecTrapState.NumberOfItems,
-                                   MAXIMUM_NUMBER_OF_PROCESSES_FOR_USER_KERNEL_EXEC_THREAD,
-                                   &Index,
-                                   (UINT64)ProcessId);
+    SpinlockLock(&ExecTrapProcessListLock);
+
+    Result = InsertionSortInsertItem(&g_ExecTrapState.InterceptionProcessIds[0],
+                                     &g_ExecTrapState.NumberOfItems,
+                                     MAXIMUM_NUMBER_OF_PROCESSES_FOR_USER_KERNEL_EXEC_THREAD,
+                                     &Index,
+                                     (UINT64)ProcessId);
+
+    SpinlockUnlock(&ExecTrapProcessListLock);
+
+    return Result;
 }
 
 /**
@@ -911,7 +928,15 @@ ExecTrapAddProcessToWatchingList(UINT32 ProcessId)
 BOOLEAN
 ExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId)
 {
-    return InsertionSortDeleteItem(&g_ExecTrapState.InterceptionProcessIds[0],
-                                   &g_ExecTrapState.NumberOfItems,
-                                   (UINT64)ProcessId);
+    BOOLEAN Result;
+
+    SpinlockLock(&ExecTrapProcessListLock);
+
+    Result = InsertionSortDeleteItem(&g_ExecTrapState.InterceptionProcessIds[0],
+                                     &g_ExecTrapState.NumberOfItems,
+                                     (UINT64)ProcessId);
+
+    SpinlockUnlock(&ExecTrapProcessListLock);
+
+    return Result;
 }

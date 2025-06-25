@@ -79,6 +79,7 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
     //
     // .attach and .detach commands are only supported in VMI Mode
     //
+#if HyperDbgTestMode == FALSE
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         ShowMessages("err, '.attach', and '.detach' commands are only usable "
@@ -86,6 +87,7 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
                      "in Debugger Mode\n");
         return;
     }
+#endif // !HyperDbgTestMode
 
     for (auto Section = CommandTokens.begin() + 1; Section != CommandTokens.end(); Section++)
     {

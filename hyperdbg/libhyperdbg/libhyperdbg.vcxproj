@@ -165,6 +165,7 @@
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
     <ClCompile Include="code\common\spinlock.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\a.cpp" />
+    <ClCompile Include="code\debugger\commands\debugging-commands\continue.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\core.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\dt-struct.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\gg.cpp" />

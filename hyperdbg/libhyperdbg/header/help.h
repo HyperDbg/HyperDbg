@@ -142,6 +142,9 @@ VOID
 CommandGHelp();
 
 VOID
+CommandContinueHelp();
+
+VOID
 CommandGgHelp();
 
 VOID

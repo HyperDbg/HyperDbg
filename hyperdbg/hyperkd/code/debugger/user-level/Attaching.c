@@ -641,7 +641,7 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
     }
 
     //
-    // Check if thread is in intercepting phase
+    // Check if thread is in the intercepting phase
     //
     if (ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
     {
@@ -651,11 +651,6 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
         UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
                                                   NULL);
-
-        //
-        // related to user debugger
-        //
-        VmFuncSuppressRipIncrement(DbgState->CoreId);
 
         return TRUE;
     }
