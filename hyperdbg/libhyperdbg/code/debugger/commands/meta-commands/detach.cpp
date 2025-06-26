@@ -80,19 +80,6 @@ CommandDetach(vector<CommandToken> CommandTokens, string Command)
     }
 
     //
-    // .attach and .detach commands are only supported in VMI Mode
-    //
-#if HyperDbgTestMode == FALSE
-    if (g_IsSerialConnectedToRemoteDebuggee)
-    {
-        ShowMessages("err, '.attach', and '.detach' commands are only usable "
-                     "in VMI Mode, you can use the '.process', or the '.thread' "
-                     "in Debugger Mode\n");
-        return;
-    }
-#endif // !HyperDbgTestMode
-
-    //
     // Perform detach from the process
     //
     DetachFromProcess();

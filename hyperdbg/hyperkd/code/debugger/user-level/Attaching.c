@@ -1090,15 +1090,15 @@ AttachingContinueProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ContinueReque
     }
 
     //
-    // Unpause the threads of the target process
-    //
-    ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetails);
-
-    //
     // Configure the intercepting threads to be disabled
     //
     if (AttachingConfigureInterceptingThreads(ContinueRequest->Token, FALSE))
     {
+        //
+        // Unpause the threads of the target process
+        //
+        ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetails);
+
         //
         // The continuing operation was successful
         //

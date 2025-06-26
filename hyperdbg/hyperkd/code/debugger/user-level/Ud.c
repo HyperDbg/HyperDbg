@@ -425,10 +425,9 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     UINT64                              LastVmexitRip           = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
     //
-    // Breaking only supported in vmx-root mode, and if user-debugger is
-    // loaded
+    // Breaking only supported  if user-debugger is loaded
     //
-    if (!g_UserDebuggerState && VmFuncVmxGetCurrentExecutionMode() == FALSE)
+    if (!g_UserDebuggerState)
     {
         return FALSE;
     }

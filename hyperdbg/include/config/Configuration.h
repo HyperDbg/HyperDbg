@@ -64,20 +64,7 @@
 #define DebugMode FALSE
 
 /**
- * @brief Activates the user-mode debugger
- */
-#define ActivateUserModeDebugger TRUE
-
-/**
  * @brief Enable or disable the instant event mechanism
  * @details for more information: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events
  */
 #define EnableInstantEventMechanism TRUE
-
-/**
- * @brief Enable or disable the HyperDbg test mode
- * @details If you want to test the HyperDbg features, you can set this to TRUE
- * and it will enable the test mode. It should be set to FALSE in production
- * releases.
- */
-#define HyperDbgTestMode TRUE

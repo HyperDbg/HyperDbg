@@ -320,7 +320,8 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         //
         // check for user-mode thread interception
         //
-        if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_USER_MODE && DebuggingCallbackCheckThreadInterception(VCpu->CoreId))
+        if (TargetMode == DEBUGGER_EVENT_MODE_TYPE_USER_MODE &&
+            DebuggingCallbackCheckThreadInterception(VCpu->CoreId))
         {
             //
             // If the thread is intercepted, we should not trigger the event
@@ -353,7 +354,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
             //
             // Handle the user-mode/kernel-mode execution trap event in the case of triggering event
             //
-            ExecTrapHandleMoveToAdjustedTrapState(VCpu, (UINT64)TargetMode);
+            ExecTrapHandleMoveToAdjustedTrapState(VCpu, TargetMode);
         }
 
         //
@@ -366,7 +367,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
         // Otherwise and if there is no event, we should handle the
         // user-mode/kernel-mode execution trap normally
         //
-        ExecTrapHandleMoveToAdjustedTrapState(VCpu, (UINT64)TargetMode);
+        ExecTrapHandleMoveToAdjustedTrapState(VCpu, TargetMode);
     }
 }
 

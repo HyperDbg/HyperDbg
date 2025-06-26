@@ -691,7 +691,6 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
     //
     // re-inject #BP back to the guest if not handled by the hidden breakpoint
     //
-
     if (g_KernelDebuggerState)
     {
         //

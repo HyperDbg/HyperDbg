@@ -60,19 +60,6 @@ CommandSwitch(vector<CommandToken> CommandTokens, string Command)
     }
 
     //
-    // .attach and .detach commands are only supported in VMI Mode
-    //
-#if HyperDbgTestMode == FALSE
-    if (g_IsSerialConnectedToRemoteDebuggee)
-    {
-        ShowMessages("err, the '.switch' command is only usable in VMI Mode, "
-                     "you can use the '.process', or the '.thread' "
-                     "in Debugger Mode\n");
-        return;
-    }
-#endif // HyperDbgTestMode == FALSE
-
-    //
     // Perform switching or listing the threads
     //
     if (CommandTokens.size() == 1)

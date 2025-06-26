@@ -766,6 +766,10 @@ ExecTrapHandleMoveToAdjustedTrapState(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVE
         //
         ExecTrapChangeToUserDisabledMbecEptp(VCpu);
     }
+    else
+    {
+        LogError("Err, Invalid target mode for execution trap: %x", TargetMode);
+    }
 }
 
 /**
