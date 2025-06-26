@@ -318,18 +318,10 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     //         PageFaultErrorCode.UserModeAccess ? "u" : "",
     //         PageFaultErrorCode.Execute ? "f" : "");
 
-    // Handle page-faults
-    // Check page-fault with user-debugger
-    // The page-fault is handled through the user debugger, no need further action
-    // NOTE: THE ADDRESS SHOULD BE NULL HERE
     //
-    if (!DebuggingCallbackConditionalPageFaultException(VCpu->CoreId, PageFaultAddress, PageFaultErrorCode.AsUInt))
-    {
-        //
-        // The #pf is not related to the debugger, re-inject it
-        //
-        EventInjectPageFaults(VCpu, InterruptExit, PageFaultAddress, PageFaultErrorCode);
-    }
+    // Handle page-faults
+    //
+    EventInjectPageFaults(VCpu, InterruptExit, PageFaultAddress, PageFaultErrorCode);
 }
 
 /**

@@ -64,9 +64,7 @@ BOOLEAN
 DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId);
 
 BOOLEAN
-DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
-                                               UINT64 Address,
-                                               UINT32 PageFaultErrorCode);
+DebuggingCallbackCheckThreadInterception(UINT32 CoreId);
 
 //
 // Interception Callbacks
@@ -74,6 +72,3 @@ DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
 
 VOID
 InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId);
-
-VOID
-InterceptionCallbackCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3);

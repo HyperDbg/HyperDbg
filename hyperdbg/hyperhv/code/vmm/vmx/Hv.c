@@ -199,14 +199,6 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
             InterceptionCallbackTriggerCr3ProcessChange(VCpu->CoreId);
 
             //
-            // Call user debugger handler of thread intercepting mechanism
-            //
-            if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
-            {
-                InterceptionCallbackCr3VmexitsForThreadInterception(VCpu->CoreId, NewCr3Reg);
-            }
-
-            //
             // Call handler of the reversing machine
             //
             if (g_ExecTrapInitialized)

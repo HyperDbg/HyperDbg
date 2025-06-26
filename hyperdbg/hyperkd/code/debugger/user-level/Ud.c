@@ -60,6 +60,11 @@ UdInitializeUserDebugger()
     ThreadHolderAllocateThreadHoldingBuffers();
 
     //
+    // Configure the exec-trap on all processors
+    //
+    ConfigureInitializeExecTrapOnAllProcessors();
+
+    //
     // Indicate that the user debugger is active
     //
     g_UserDebuggerState = TRUE;
@@ -84,6 +89,11 @@ UdUninitializeUserDebugger()
         g_UserDebuggerState = FALSE;
 
         //
+        // Uninitialize the exec-trap on all processors
+        //
+        ConfigureUninitializeExecTrapOnAllProcessors();
+
+        //
         // Free and deallocate all the buffers (pools) relating to
         // thread debugging details
         //
@@ -105,32 +115,6 @@ UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingD
     // Configure the RIP again
     //
     VmFuncSetRip(ThreadDebuggingDetails->ThreadRip);
-}
-
-/**
- * @brief Continue the thread
- *
- * @param ThreadDebuggingDetails
- *
- * @return VOID
- */
-VOID
-UdContinueThread(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
-{
-    //
-    // Configure the RIP and RSP again
-    //
-    UdRestoreToOriginalDirection(ThreadDebuggingDetails);
-
-    //
-    // Continue the current instruction won't pass it
-    //
-    VmFuncSuppressRipIncrement(KeGetCurrentProcessorNumberEx(NULL));
-
-    //
-    // It's not paused anymore!
-    //
-    ThreadDebuggingDetails->IsPaused = FALSE;
 }
 
 /**
@@ -218,15 +202,6 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
     //
     switch (UserAction)
     {
-    case DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE:
-
-        //
-        // Continue the thread normally
-        //
-        UdContinueThread(ThreadDebuggingDetails);
-
-        break;
-
     case DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP:
 
         //
@@ -369,25 +344,22 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
 }
 
 /**
- * @brief Spin on nop sled in user-mode to halt the debuggee
+ * @brief Set the thread pausing state
  *
  * @param ThreadDebuggingDetails
  * @param ProcessDebuggingDetails
  * @return VOID
  */
 VOID
-UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
-                  PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
+UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
+                        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
 {
+    UNREFERENCED_PARAMETER(ProcessDebuggingDetails);
+
     //
     // Save the RIP for future return
     //
     ThreadDebuggingDetails->ThreadRip = VmFuncGetRip();
-
-    //
-    // Set the rip to new spinning address
-    //
-    VmFuncSetRip(ProcessDebuggingDetails->UsermodeReservedBuffer);
 
     //
     // Indicate that it's spinning
@@ -453,10 +425,9 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     UINT64                              LastVmexitRip           = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
     //
-    // Breaking only supported in vmx-root mode, and if user-debugger is
-    // loaded
+    // Breaking only supported  if user-debugger is loaded
     //
-    if (!g_UserDebuggerState && VmFuncVmxGetCurrentExecutionMode() == FALSE)
+    if (!g_UserDebuggerState)
     {
         return FALSE;
     }
@@ -485,6 +456,17 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
         // Sth went wrong!
         //
         return FALSE;
+    }
+
+    //
+    // Check if the thread is already paused or not
+    //
+    if (ThreadDebuggingDetails->IsPaused)
+    {
+        //
+        // The thread is already paused, so we don't need to pause it again
+        //
+        return TRUE;
     }
 
     //
@@ -599,9 +581,9 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
                           TRUE);
 
     //
-    // Halt the thread on nop sleds
+    // Set the thread debugging details
     //
-    UdSpinThreadOnNop(ThreadDebuggingDetails, ProcessDebuggingDetails);
+    UdSetThreadPausingState(ThreadDebuggingDetails, ProcessDebuggingDetails);
 
     //
     // Everything was okay

@@ -48,24 +48,6 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
     BOOLEAN NextIsPid = FALSE;
 
     //
-    // Disable user-mode debugger in this version
-    //
-#if ActivateUserModeDebugger == FALSE
-
-    if (!g_IsSerialConnectedToRemoteDebugger)
-    {
-        ShowMessages("the user-mode debugger in VMI Mode is still in the beta version and not stable. "
-                     "we decided to exclude it from this release and release it in future versions. "
-                     "if you want to test the user-mode debugger in VMI Mode, you should build "
-                     "HyperDbg with special instructions. But attaching/switching to other processes\n"
-                     "are fully supported in the Debugger Mode.\n"
-                     "(it's not recommended to use it in VMI Mode yet!)\n");
-        return;
-    }
-
-#endif // !ActivateUserModeDebugger
-
-    //
     // It's a attach to a target PID
     //
     if (CommandTokens.size() >= 4)
@@ -76,20 +58,8 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    //
-    // .attach and .detach commands are only supported in VMI Mode
-    //
-    if (g_IsSerialConnectedToRemoteDebuggee)
-    {
-        ShowMessages("err, '.attach', and '.detach' commands are only usable "
-                     "in VMI Mode, you can use the '.process', or the '.thread' "
-                     "in Debugger Mode\n");
-        return;
-    }
-
     for (auto Section = CommandTokens.begin() + 1; Section != CommandTokens.end(); Section++)
     {
-        
         //
         // Find out whether the user enters pid or not
         //
@@ -133,6 +103,6 @@ CommandAttach(vector<CommandToken> CommandTokens, string Command)
     //
     // Perform attach to target process
     //
-    ShowMessages("Attaching to process %lld\n\n", TargetPid);
+    ShowMessages("Attaching to process 0x%llx (%lld)...\n\n", TargetPid, TargetPid);
     UdAttachToProcess(TargetPid, NULL, NULL, FALSE);
 }
