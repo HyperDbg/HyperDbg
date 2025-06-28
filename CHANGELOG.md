@@ -12,7 +12,7 @@ New release of the HyperDbg Debugger.
 - **rdtsc()** and **rdtscp()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/rdtsc))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/rdtscp))
 - Added functions to get system-call number from the running system ([link](https://github.com/HyperDbg/HyperDbg/commit/5d33cb7395c57fd6af170bfed90376598347679c))
 - Added the support for the '.start' command in the VMI mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
-- Added a new mechanism for finding system-call number based on the running system ([link](https://github.com/HyperDbg/HyperDbg/commit/5d33cb7395c57fd6af170bfed90376598347679c))
+- Added a new mechanism for finding the system-call number based on the running system ([link](https://github.com/HyperDbg/HyperDbg/commit/5d33cb7395c57fd6af170bfed90376598347679c))
 - Added hyperevade transparency project ([link](https://url.hyperdbg.org/hyperevade))
 - Added support to the '.attach' and '.detach' in the debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.attach))([link](https://docs.hyperdbg.org/commands/meta-commands/.detach))
 

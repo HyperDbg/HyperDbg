@@ -290,9 +290,9 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             //
             KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
         }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                                           NULL))
+        else if (UdHandleInstantBreak(DbgState,
+                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                      NULL))
         {
             //
             // if the above function returns true, no need for further action
@@ -338,9 +338,9 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             //
             KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
         }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                                           NULL))
+        else if (UdHandleInstantBreak(DbgState,
+                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                      NULL))
         {
             //
             // if the above function returns true, no need for further action
@@ -602,9 +602,20 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                     // *** It's not safe to access CurrentBreakpointDesc anymore as the
                     // breakpoint might be removed ***
                     //
-                    KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                                          Reason,
-                                                          &TargetContext);
+                    if (g_KernelDebuggerState)
+                    {
+                        KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                                              Reason,
+                                                              &TargetContext);
+                    }
+                    else if (g_UserDebuggerState)
+                    {
+                        UdHandleInstantBreak(DbgState, Reason, NULL);
+                    }
+                    else
+                    {
+                        LogInfo("Err, no debugger is attached to handle the breakpoint");
+                    }
                 }
             }
 
@@ -688,65 +699,106 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
     UINT64                           GuestRip      = 0;
     PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
 
+    GuestRip = VmFuncGetRip();
+
+    //
+    // A breakpoint triggered and two things might be happened,
+    // first, a breakpoint is triggered randomly in the computer and
+    // we shouldn't do anything on it (won't change the instruction)
+    // second, the breakpoint is because of the 'bp' command, we should
+    // replace it with exact byte
+    //
+
+    //
+    // Check if the breakpoint is handled by the debugger routines
+    //
+    if (BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
+                                                           GuestRip,
+                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                                           FALSE))
+    {
+        //
+        // The breakpoint is handled by the debugger routines
+        // so, we don't need to do anything else
+        //
+        return TRUE;
+    }
+
     //
     // re-inject #BP back to the guest if not handled by the hidden breakpoint
     //
     if (g_KernelDebuggerState)
     {
         //
-        // Kernel debugger is attached, let's halt everything
-        //
-        GuestRip = VmFuncGetRip();
-
-        //
-        // A breakpoint triggered and two things might be happened,
-        // first, a breakpoint is triggered randomly in the computer and
-        // we shouldn't do anything on it (won't change the instruction)
-        // second, the breakpoint is because of the 'bp' command, we should
-        // replace it with exact byte
+        // *** Kernel debugger is attached, let's halt everything ***
         //
 
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
-                                                                GuestRip,
-                                                                DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
-                                                                FALSE))
+        //
+        // To avoid the computer crash situation from the HyperDbg's breakpoint hitting while the interception is on
+        // we should always call BreakpointCheckAndHandleDebuggerDefinedBreakpoints first to handle the breakpoint
+        //
+
+        if (g_InterceptBreakpoints || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
         {
             //
-            // To avoid the computer crash situation from the HyperDbg's breakpoint hitting while the interception is on
-            // we should always call BreakpointCheckAndHandleDebuggerDefinedBreakpoints first to handle the breakpoint
+            // re-inject back to the guest as not handled if the interception is on and the breakpoint is not from the Hyperdbg's breakpoints
             //
+            return FALSE;
+        }
 
-            if (g_InterceptBreakpoints || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
-            {
-                //
-                // re-inject back to the guest as not handled if the interception is on and the breakpoint is not from the Hyperdbg's breakpoints
-                //
-                return FALSE;
-            }
+        //
+        // It's a random breakpoint byte
+        //
+        TargetContext.Context = (PVOID)GuestRip;
+        KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                              &TargetContext);
 
+        //
+        // Increment rip
+        //
+        VmFuncPerformRipIncrement(DbgState->CoreId);
+
+        //
+        // By default, we handle the random breakpoints if the kernel debugger is attached
+        //
+        return TRUE;
+    }
+    else if (g_UserDebuggerState)
+    {
+        //
+        // *** User debugger is attached, let's halt the process ***
+        //
+
+        //
+        // Check if it's a random breakpoint byte
+        //
+        if (UdHandleInstantBreak(DbgState,
+                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                 NULL))
+        {
             //
-            // It's a random breakpoint byte
+            // if the above function returns true, it's handled in the user debugger
             //
-            TargetContext.Context = (PVOID)GuestRip;
-            KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
-                                                  &TargetContext);
 
             //
             // Increment rip
             //
             VmFuncPerformRipIncrement(DbgState->CoreId);
+
+            return TRUE;
         }
-    }
-    else
-    {
+
         //
-        // re-inject back to the guest as not handled here
+        // By default, we won't handle the random (unrelated) breakpoints in the user debugger
         //
         return FALSE;
     }
 
-    return TRUE;
+    //
+    // *** re-inject back to the guest as not handled here ***
+    //
+    return FALSE;
 }
 
 /**

@@ -334,39 +334,6 @@ AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(BOOLEAN Set, UINT64 To
 }
 
 /**
- * @brief Handle cases where we reached to the module loaded on the user debugger
- *
- * @param DbgState The state of the debugger on the current core
- * @param ProcessDebuggingDetail
- * @return BOOLEAN
- */
-BOOLEAN
-AttachingHandleModuleLoadedUserDebuggerBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
-                                             PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
-{
-    //
-    // Add the process to the watching list to be able to intercept the threads
-    //
-    if (ConfigureExecTrapAddProcessToWatchingList(ProcessDebuggingDetail->ProcessId))
-    {
-        //
-        // Since the adding it to the watching list will take effect from the next
-        // CR3 vm-exit, we should change the state of the core to prevent further execution
-        //
-        ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(DbgState->CoreId);
-
-        //
-        // Handling state through the user-mode debugger
-        //
-        return UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                         DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
-                                                         NULL);
-    }
-
-    return FALSE;
-}
-
-/**
  * @brief Handle cases where we reached to the valid loaded module
  * The main module should be loaded once we reach to this function
  *
@@ -439,12 +406,19 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
                                               NULL);
     }
-    else
+    else if (g_UserDebuggerState)
     {
         //
         // Handling state through the user-mode debugger
         //
-        AttachingHandleModuleLoadedUserDebuggerBreak(DbgState, ProcessDebuggingDetail);
+        UdHandleInstantBreak(DbgState,
+                             DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
+                             ProcessDebuggingDetail);
+    }
+    else
+    {
+        LogError("Err, no debugger is attached to handle the entrypoint interception");
+        return FALSE;
     }
 
     //

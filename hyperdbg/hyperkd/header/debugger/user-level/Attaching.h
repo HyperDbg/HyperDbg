@@ -28,36 +28,6 @@
 #define MAX_THREADS_IN_A_PROCESS_HOLDER 100
 
 //////////////////////////////////////////////////
-//				   Structures					//
-//////////////////////////////////////////////////
-
-/**
- * @brief Description of each active thread in user-mode attaching
- * mechanism
- *
- */
-typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
-{
-    UINT64     Token;
-    BOOLEAN    Enabled;
-    PVOID      PebAddressToMonitor;
-    UINT32     ActiveThreadId; // active thread
-    GUEST_REGS Registers;      // active thread
-    UINT64     Context;        // $context
-    LIST_ENTRY AttachedProcessList;
-    UINT64     EntrypointOfMainModule;
-    UINT64     BaseAddressOfMainModule;
-    PEPROCESS  Eprocess;
-    UINT32     ProcessId;
-    BOOLEAN    Is32Bit;
-    BOOLEAN    IsOnTheStartingPhase;
-    BOOLEAN    IsOnThreadInterceptingPhase;
-    BOOLEAN    CheckCallBackForInterceptingFirstInstruction; // checks for the callbacks for interceptions of the very first instruction (used by RE Machine)
-    LIST_ENTRY ThreadsListHead;
-
-} USERMODE_DEBUGGING_PROCESS_DETAILS, *PUSERMODE_DEBUGGING_PROCESS_DETAILS;
-
-//////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
 

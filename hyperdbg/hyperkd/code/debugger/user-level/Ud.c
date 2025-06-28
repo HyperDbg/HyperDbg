@@ -105,18 +105,63 @@ UdUninitializeUserDebugger()
 }
 
 /**
- * @brief Pause the user debugger in case of breaks
+ * @brief Handle cases where we instant break is needed on the user debugger
  *
  * @param DbgState The state of the debugger on the current core
+ * @param Reason The reason of the pausing
+ * @param ProcessDebuggingDetail
  *
  * @return BOOLEAN
  */
 BOOLEAN
-UdPauseUserDebuggerInCaseOfBreaks(PROCESSOR_DEBUGGING_STATE * DbgState)
+UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                     DEBUGGEE_PAUSING_REASON             Reason,
+                     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
-    return UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                     DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                                     NULL);
+    //
+    // Check if the process debugging details is available or not
+    //
+    if (ProcessDebuggingDetail == NULL)
+    {
+        //
+        // If the process debugging detail is not available, we should
+        // find it by the current process id
+        //
+        ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+
+        if (ProcessDebuggingDetail == NULL)
+        {
+            //
+            // If we reached here, it means that the process debugging detail is not found
+            // so, we should return FALSE to indicate that we couldn't handle the instant break
+            //
+            return FALSE;
+        }
+    }
+
+    //
+    // Add the process to the watching list to be able to intercept the threads
+    //
+    if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, TRUE))
+    {
+        //
+        // Since the adding it to the watching list will take effect from the next
+        // CR3 vm-exit, we should change the state of the core to prevent further execution
+        //
+        ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(DbgState->CoreId);
+
+        //
+        // Handling state through the user-mode debugger
+        //
+        return UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                         Reason,
+                                                         NULL);
+    }
+
+    //
+    // If we reached here, it means that we couldn't add the process to the
+    //
+    return FALSE;
 }
 
 /**
