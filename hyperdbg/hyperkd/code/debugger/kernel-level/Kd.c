@@ -36,13 +36,6 @@ KdInitializeKernelDebugger()
     // }
 
     //
-    // Request pages for breakpoint detail
-    //
-    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
-                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
-                                 BREAKPOINT_DEFINITION_STRUCTURE);
-
-    //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //
@@ -52,12 +45,6 @@ KdInitializeKernelDebugger()
     // Reset pause break requests
     //
     RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
-
-    //
-    // Initialize list of breakpoints and breakpoint id
-    //
-    g_MaximumBreakpointId = 0;
-    InitializeListHead(&g_BreakpointsListHead);
 
     //
     // Initial the needed pools for instant events
