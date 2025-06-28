@@ -1411,7 +1411,11 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     //
     // As we're here, we need to initialize the user-mode debugger
     //
-    UdInitializeUserDebugger();
+    if (UdInitializeUserDebugger())
+    {
+        Request->Result = DEBUGGER_ERROR_DEBUGGER_NOT_INITIALIZED;
+        return;
+    }
 
     switch (Request->Action)
     {

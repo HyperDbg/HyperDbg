@@ -361,7 +361,7 @@ ExecTrapReadRamPhysicalRegions()
 }
 
 /**
- * @brief Initialize the reversing machine based on service request
+ * @brief Initialize the exec trap based on service request
  *
  * @return BOOLEAN
  */
@@ -369,14 +369,14 @@ BOOLEAN
 ExecTrapInitialize()
 {
     //
-    // Check if the reversing machine is already initialized
+    // Check if the exec trap is already initialized
     //
     if (g_ExecTrapInitialized)
     {
         //
         // Already initialized
         //
-        return FALSE;
+        return TRUE;
     }
 
     //
@@ -388,11 +388,6 @@ ExecTrapInitialize()
                 "MBEC is available on processors starting from the 7th generation (Kaby Lake) and onwards");
         return FALSE;
     }
-
-    //
-    // Read the RAM regions
-    //
-    ExecTrapReadRamPhysicalRegions();
 
     //
     // Call the function responsible for initializing Mode-based hooks

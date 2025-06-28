@@ -30,6 +30,14 @@ UdInitializeUserDebugger()
     }
 
     //
+    // Configure the exec-trap on all processors
+    //
+    if (ConfigureInitializeExecTrapOnAllProcessors())
+    {
+        return FALSE;
+    }
+
+    //
     // Check if we have functions we need for attaching mechanism
     //
     if (g_PsGetProcessPeb == NULL || g_PsGetProcessWow64Process == NULL || g_ZwQueryInformationProcess == NULL)
@@ -58,11 +66,6 @@ UdInitializeUserDebugger()
     // Request to allocate buffers for thread holder of threads
     //
     ThreadHolderAllocateThreadHoldingBuffers();
-
-    //
-    // Configure the exec-trap on all processors
-    //
-    ConfigureInitializeExecTrapOnAllProcessors();
 
     //
     // Indicate that the user debugger is active

@@ -496,9 +496,8 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED:
         ShowMessages("err, the '!mode' event command cannot be directly initialized in the Debugger Mode. "
-                     "To avoid wasting system resources and performance issues we decided to use another "
-                     "command to initialize it first then use it. You can use the 'preactivate mode' command "
-                     "to preactivate this mechanism after that, you can use the '!mode' event (%x)\n",
+                     "You can use the 'preactivate mode' command to preactivate this mechanism after that, "
+                     "you can use the '!mode' event (%x)\n",
                      Error);
         break;
 
@@ -541,6 +540,11 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE:
         ShowMessages("err, debugger was not in the hidden transparent-mode (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_DEBUGGER_NOT_INITIALIZED:
+        ShowMessages("err, the user debugger cannot be initialized (%x)\n",
                      Error);
         break;
 
