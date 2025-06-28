@@ -105,6 +105,21 @@ UdUninitializeUserDebugger()
 }
 
 /**
+ * @brief Pause the user debugger in case of breaks
+ *
+ * @param DbgState The state of the debugger on the current core
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdPauseUserDebuggerInCaseOfBreaks(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    return UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                     DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                                     NULL);
+}
+
+/**
  * @brief Restore the thread to the original direction
  *
  * @param ThreadDebuggingDetails

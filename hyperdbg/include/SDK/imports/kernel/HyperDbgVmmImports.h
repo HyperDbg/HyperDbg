@@ -289,6 +289,9 @@ ConfigureModeBasedExecHookUninitializeOnAllProcessors();
 IMPORT_EXPORT_VMM VOID
 ConfigureUninitializeExecTrapOnAllProcessors();
 
+IMPORT_EXPORT_VMM VOID
+ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(UINT32 CoreId);
+
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureInitializeExecTrapOnAllProcessors();
 

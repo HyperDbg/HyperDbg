@@ -350,6 +350,12 @@ AttachingHandleModuleLoadedUserDebuggerBreak(PROCESSOR_DEBUGGING_STATE *        
     if (ConfigureExecTrapAddProcessToWatchingList(ProcessDebuggingDetail->ProcessId))
     {
         //
+        // Since the adding it to the watching list will take effect from the next
+        // CR3 vm-exit, we should change the state of the core to prevent further execution
+        //
+        ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(DbgState->CoreId);
+
+        //
         // Handling state through the user-mode debugger
         //
         return UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,

@@ -673,13 +673,13 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
 }
 
 /**
- * @brief Handle MOV to CR3 vm-exits for hooking mode execution
+ * @brief Apply the MBEC configuration from the kernel side
  * @param VCpu The virtual processor's state
  *
  * @return VOID
  */
 VOID
-ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
+ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu)
 {
     BOOLEAN Result;
     UINT32  Index;
@@ -727,6 +727,18 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
         HvSetModeBasedExecutionEnableFlag(FALSE);
         VCpu->MbecEnabled = FALSE;
     }
+}
+
+/**
+ * @brief Handle MOV to CR3 vm-exits for hooking mode execution
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    ExecTrapApplyMbecConfiguratinFromKernelSide(VCpu);
 }
 
 /**

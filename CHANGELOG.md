@@ -10,10 +10,18 @@ New release of the HyperDbg Debugger.
 ### Added
 - **microsleep(microseconds)** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/microsleep))
 - **rdtsc()** and **rdtscp()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/rdtsc))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/timings/rdtscp))
-- Added functions to get system-call number from the running system
+- Added functions to get system-call number from the running system ([link](https://github.com/HyperDbg/HyperDbg/commit/5d33cb7395c57fd6af170bfed90376598347679c))
+- Added the support for the '.start' command in the VMI mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
+- Added a new mechanism for finding system-call number based on the running system ([link](https://github.com/HyperDbg/HyperDbg/commit/5d33cb7395c57fd6af170bfed90376598347679c))
+- Added hyperevade transparency project ([link](https://url.hyperdbg.org/hyperevade))
+- Added support to the '.attach' and '.detach' in the debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.attach))([link](https://docs.hyperdbg.org/commands/meta-commands/.detach))
 
 ### Changed
 - The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022
+- Redesigned the '!mode' extension command without extra EPTP ([link](https://github.com/HyperDbg/HyperDbg/commit/a93b78dfadbf94d2d69f24413170c983ec379f48))
+- The user mode debugger now uses MBEC for preventing user-mode code execution ([link](https://github.com/HyperDbg/HyperDbg/commit/6893c1b19f1edaf57d0074bd60abcd518bf77338))
+- Apply transparent-mode based on dynamic system-calls ([link](https://github.com/HyperDbg/HyperDbg/commit/1eb960607331fc0c2622804d7aff65702c155649))
+- Breakpoint initialization is changed from kernel debugger to regular debugger ([link](https://github.com/HyperDbg/HyperDbg/commit/e5326f895dcddb1adbc873a9fecede7af7eb7651))
 
 ## [0.13.2.0] - 2025-05-26
 New release of the HyperDbg Debugger.
