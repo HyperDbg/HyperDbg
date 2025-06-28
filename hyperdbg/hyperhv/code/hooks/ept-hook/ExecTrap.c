@@ -246,134 +246,6 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
 }
 
 /**
- * @brief Initialize the needed structure for hooking user-mode execution
- * @details should be called from vmx non-root mode
- *
- * @return BOOLEAN
- */
-BOOLEAN
-ExecTrapAllocateUserDisabledMbecEptPageTable()
-{
-    PVMM_EPT_PAGE_TABLE ModeBasedEptTable;
-    EPT_POINTER         EPTP = {0};
-
-    //
-    // Allocate another EPT page table
-    //
-    ModeBasedEptTable = EptAllocateAndCreateIdentityPageTable();
-
-    if (ModeBasedEptTable == NULL)
-    {
-        //
-        // There was an error allocating MBEC page tables
-        //
-        return FALSE;
-    }
-
-    //
-    // Disable EPT user-mode execution bit for the target EPTP
-    //
-    ModeBasedExecHookDisableUserModeExecution(ModeBasedEptTable);
-
-    //
-    // Set the global address for MBEC EPT page table
-    //
-    g_EptState->ModeBasedUserDisabledEptPageTable = ModeBasedEptTable;
-
-    //
-    // For performance, we let the processor know it can cache the EPT
-    //
-    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
-
-    //
-    // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
-    //
-    EPTP.EnableAccessAndDirtyFlags = TRUE;
-
-    //
-    // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
-    // see Section 28.2.2
-    //
-    EPTP.PageWalkLength = 3;
-
-    //
-    // The physical page number of the page table we will be using
-    //
-    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&ModeBasedEptTable->PML4) / PAGE_SIZE;
-
-    //
-    // We will write the EPTP to the VMCS later
-    //
-    g_EptState->ModeBasedUserDisabledEptPointer.AsUInt = EPTP.AsUInt;
-
-    return TRUE;
-}
-
-/**
- * @brief Initialize the needed structure for hooking kernel-mode execution
- * @details should be called from vmx non-root mode
- *
- * @return BOOLEAN
- */
-BOOLEAN
-ExecTrapAllocateKernelDisabledMbecEptPageTable()
-{
-    PVMM_EPT_PAGE_TABLE ModeBasedEptTable;
-    EPT_POINTER         EPTP = {0};
-
-    //
-    // Allocate another EPT page table
-    //
-    ModeBasedEptTable = EptAllocateAndCreateIdentityPageTable();
-
-    if (ModeBasedEptTable == NULL)
-    {
-        //
-        // There was an error allocating MBEC page tables
-        //
-        return FALSE;
-    }
-
-    //
-    // Disable EPT user-mode execution bit for the target EPTP
-    //
-    ModeBasedExecHookDisableKernelModeExecution(ModeBasedEptTable);
-
-    //
-    // Set the global address for MBEC EPT page table
-    //
-    g_EptState->ModeBasedKernelDisabledEptPageTable = ModeBasedEptTable;
-
-    //
-    // For performance, we let the processor know it can cache the EPT
-    //
-    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
-
-    //
-    // We might utilize the 'access' and 'dirty' flag features in the dirty logging mechanism
-    //
-    EPTP.EnableAccessAndDirtyFlags = TRUE;
-
-    //
-    // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
-    // see Section 28.2.2
-    //
-    EPTP.PageWalkLength = 3;
-
-    //
-    // The physical page number of the page table we will be using
-    //
-    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&ModeBasedEptTable->PML4) / PAGE_SIZE;
-
-    //
-    // We will write the EPTP to the VMCS later
-    //
-    g_EptState->ModeBasedKernelDisabledEptPointer.AsUInt = EPTP.AsUInt;
-
-    return TRUE;
-}
-
-/**
  * @brief Adjust execute-only bits bit of target page-table
  * @details should be called from vmx non-root mode
  * @param EptTable
@@ -523,50 +395,10 @@ ExecTrapInitialize()
     ExecTrapReadRamPhysicalRegions();
 
     //
-    // Allocate MBEC EPT page-table (user-disabled)
-    //
-    if (!ExecTrapAllocateUserDisabledMbecEptPageTable())
-    {
-        //
-        // There was an error allocating MBEC page table for EPT tables
-        //
-        return FALSE;
-    }
-
-    //
-    // Allocate MBEC EPT page-table (kernel-disabled)
-    //
-    if (!ExecTrapAllocateKernelDisabledMbecEptPageTable())
-    {
-        //
-        // Free the user-disabled page-table buffer
-        //
-        MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
-        g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
-
-        //
-        // There was an error allocating MBEC page table for EPT tables
-        //
-        return FALSE;
-    }
-
-    //
     // Call the function responsible for initializing Mode-based hooks
     //
     if (ModeBasedExecHookInitialize() == FALSE)
     {
-        //
-        // Free the user-disabled page-table buffer
-        //
-        MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
-        g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
-
-        //
-        // Free the kernel-disabled page-table buffer
-        //
-        MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
-        g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
-
         //
         // The initialization was not successful
         //
@@ -641,24 +473,6 @@ ExecTrapUninitialize()
     // Indicate that the uninitialization phase finished
     //
     g_ExecTrapUnInitializationStarted = FALSE;
-
-    //
-    // Free Identity Page Table for MBEC hooks (user-disabled)
-    //
-    if (g_EptState->ModeBasedUserDisabledEptPageTable != NULL)
-    {
-        MmFreeContiguousMemory(g_EptState->ModeBasedUserDisabledEptPageTable);
-        g_EptState->ModeBasedUserDisabledEptPageTable = NULL;
-    }
-
-    //
-    // Free Identity Page Table for MBEC hooks (kernel-disabled)
-    //
-    if (g_EptState->ModeBasedKernelDisabledEptPageTable != NULL)
-    {
-        MmFreeContiguousMemory(g_EptState->ModeBasedKernelDisabledEptPageTable);
-        g_EptState->ModeBasedKernelDisabledEptPageTable = NULL;
-    }
 }
 
 /**
@@ -682,26 +496,6 @@ ExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
- * @brief change to execute-only EPTP
- * @param VCpu The virtual processor's state
- *
- * @return VOID
- */
-VOID
-ExecTrapChangeToExecuteOnlyEptp(VIRTUAL_MACHINE_STATE * VCpu)
-{
-    //
-    // Change EPTP
-    //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ExecuteOnlyEptPointer.AsUInt);
-
-    //
-    // It's not on normal EPTP
-    //
-    VCpu->NotNormalEptp = TRUE;
-}
-
-/**
  * @brief change to user-disabled MBEC EPTP
  * @param VCpu The virtual processor's state
  *
@@ -711,9 +505,30 @@ VOID
 ExecTrapChangeToUserDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
-    // Change EPTP
+    // From Intel Manual:
+    // [Bit 2] If the "mode-based execute control for EPT" VM - execution control is 0, execute access;
+    // indicates whether instruction fetches are allowed from the 2-MByte page controlled by this entry.
+    // If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction
+    // fetches are allowed from supervisor - mode linear addresses in the 2 - MByte page controlled by this entry
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ModeBasedUserDisabledEptPointer.AsUInt);
+
+    //
+    // Set execute access for PML4s
+    //
+    // for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    // {
+    VCpu->EptPageTable->PML4[0].UserModeExecute = FALSE;
+
+    //
+    // We only set the top-level PML4 for intercepting kernel-mode execution
+    //
+    VCpu->EptPageTable->PML4[0].ExecuteAccess = TRUE;
+    // }
+
+    //
+    // Invalidate the EPT cache
+    //
+    EptInveptSingleContext(VCpu->EptPointer.AsUInt);
 
     //
     // It's not on normal EPTP
@@ -731,9 +546,30 @@ VOID
 ExecTrapChangeToKernelDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     //
-    // Change EPTP
+    // From Intel Manual:
+    // [Bit 2] If the "mode-based execute control for EPT" VM - execution control is 0, execute access;
+    // indicates whether instruction fetches are allowed from the 2-MByte page controlled by this entry.
+    // If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction
+    // fetches are allowed from supervisor - mode linear addresses in the 2 - MByte page controlled by this entry
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->ModeBasedKernelDisabledEptPointer.AsUInt);
+
+    //
+    // Set execute access for PML4s
+    //
+    // for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    // {
+    VCpu->EptPageTable->PML4[0].UserModeExecute = TRUE;
+
+    //
+    // We only set the top-level PML4 for intercepting kernel-mode execution
+    //
+    VCpu->EptPageTable->PML4[0].ExecuteAccess = FALSE;
+    // }
+
+    //
+    // Invalidate the EPT cache
+    //
+    EptInveptSingleContext(VCpu->EptPointer.AsUInt);
 
     //
     // It's not on normal EPTP
