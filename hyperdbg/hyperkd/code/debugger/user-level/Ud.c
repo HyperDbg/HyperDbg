@@ -32,7 +32,7 @@ UdInitializeUserDebugger()
     //
     // Configure the exec-trap on all processors
     //
-    if (ConfigureInitializeExecTrapOnAllProcessors())
+    if (!ConfigureInitializeExecTrapOnAllProcessors())
     {
         return FALSE;
     }
