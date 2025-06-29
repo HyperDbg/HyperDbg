@@ -191,7 +191,7 @@ hyperdbg_u_continue_debuggee();
 
 //
 // Pause debuggee
-// Exported functionality of the 'pause' command or CTRL+C
+// Exported functionality of the 'pause' command
 //
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_pause_debuggee();

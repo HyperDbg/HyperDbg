@@ -266,7 +266,7 @@ hyperdbg_u_continue_debuggee()
 }
 
 /**
- * @brief Pause the debuggee (equal to the 'pause' command or CTRL+C)
+ * @brief Pause the debuggee (equal to the 'pause' command)
  *
  * @return VOID
  */

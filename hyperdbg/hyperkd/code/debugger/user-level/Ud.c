@@ -148,7 +148,7 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
         // Since the adding it to the watching list will take effect from the next
         // CR3 vm-exit, we should change the state of the core to prevent further execution
         //
-        ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(DbgState->CoreId);
+        //  ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(DbgState->CoreId);
 
         //
         // Handling state through the user-mode debugger
@@ -392,7 +392,7 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     //
     // Based on the documentation, HyperDbg stops intercepting threads
     // when the debugger sent the first command, but if user presses
-    // CTRL+C again, all the threads (or new threads) that will enter
+    // run the 'pause' command, all the threads (or new threads) that will enter
     // the user-mode will be intercepted
     //
     if (ProcessDebuggingDetails->IsOnThreadInterceptingPhase)

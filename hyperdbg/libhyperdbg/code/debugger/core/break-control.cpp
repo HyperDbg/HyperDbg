@@ -135,10 +135,13 @@ BreakController(DWORD CtrlType)
                     //
                     HyperDbgShowSignature();
 
-                    if (g_ActiveProcessDebuggingState.IsActive)
-                    {
-                        UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
-                    }
+                    //
+                    // Not pause the process if CTRL+C is pressed (Commented)
+                    //
+                    // if (g_ActiveProcessDebuggingState.IsActive)
+                    // {
+                    //     UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
+                    // }
                 }
             }
         }

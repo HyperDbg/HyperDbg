@@ -750,7 +750,7 @@ ExecTrapHandleCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu)
 BOOLEAN
 ExecTrapAddProcessToWatchingList(UINT32 ProcessId)
 {
-    UINT32  Index; // not used
+    UINT32  Index;
     BOOLEAN Result;
 
     SpinlockLock(&ExecTrapProcessListLock);
@@ -775,13 +775,23 @@ ExecTrapAddProcessToWatchingList(UINT32 ProcessId)
 BOOLEAN
 ExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId)
 {
+    UINT32  Index;
     BOOLEAN Result;
 
     SpinlockLock(&ExecTrapProcessListLock);
 
-    Result = InsertionSortDeleteItem(&g_ExecTrapState.InterceptionProcessIds[0],
+    Result = InsertionSortInsertItem(&g_ExecTrapState.InterceptionProcessIds[0],
                                      &g_ExecTrapState.NumberOfItems,
+                                     MAXIMUM_NUMBER_OF_PROCESSES_FOR_USER_KERNEL_EXEC_THREAD,
+                                     &Index,
                                      (UINT64)ProcessId);
+
+    if (Result)
+    {
+        Result = InsertionSortDeleteItem(&g_ExecTrapState.InterceptionProcessIds[0],
+                                         &g_ExecTrapState.NumberOfItems,
+                                         Index);
+    }
 
     SpinlockUnlock(&ExecTrapProcessListLock);
 

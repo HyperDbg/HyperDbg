@@ -164,3 +164,9 @@ BOOLEAN g_IsWaitingForUserModeProcessEntryToBeCalled;
  *
  */
 BOOLEAN g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer;
+
+/**
+ * @brief Global test flag (for testing purposes)
+ *
+ */
+BOOLEAN g_TestFlag;
