@@ -46,6 +46,18 @@ ConfigureUninitializeExecTrapOnAllProcessors()
 }
 
 /**
+ * @brief Apply the MBEC configuration from the kernel side
+ * @param CoreId The core id
+ *
+ * @return VOID
+ */
+VOID
+ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(UINT32 CoreId)
+{
+    ExecTrapApplyMbecConfiguratinFromKernelSide(&g_GuestState[CoreId]);
+}
+
+/**
  * @brief Add the target process to the watching list
  * @param ProcessId
  *

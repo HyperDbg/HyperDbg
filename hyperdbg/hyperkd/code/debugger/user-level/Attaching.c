@@ -406,14 +406,19 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
                                               NULL);
     }
-    else
+    else if (g_UserDebuggerState)
     {
         //
         // Handling state through the user-mode debugger
         //
-        UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
-                                                  NULL);
+        UdHandleInstantBreak(DbgState,
+                             DEBUGGEE_PAUSING_REASON_DEBUGGEE_STARTING_MODULE_LOADED,
+                             ProcessDebuggingDetail);
+    }
+    else
+    {
+        LogError("Err, no debugger is attached to handle the entrypoint interception");
+        return FALSE;
     }
 
     //
@@ -622,7 +627,7 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
     //
     // Check whether user-debugger is initialized or not
     //
-    if (g_UserDebuggerState == FALSE)
+    if (!g_UserDebuggerState)
     {
         return FALSE;
     }
@@ -1411,7 +1416,11 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     //
     // As we're here, we need to initialize the user-mode debugger
     //
-    UdInitializeUserDebugger();
+    if (!UdInitializeUserDebugger())
+    {
+        Request->Result = DEBUGGER_ERROR_DEBUGGER_NOT_INITIALIZED;
+        return;
+    }
 
     switch (Request->Action)
     {

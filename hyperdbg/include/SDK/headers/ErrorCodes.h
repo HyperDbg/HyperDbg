@@ -551,6 +551,12 @@
  */
 #define DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE 0xc0000054
 
+/**
+ * @brief error, the user debugger cannot be initalized
+ *
+ */
+#define DEBUGGER_ERROR_DEBUGGER_NOT_INITIALIZED 0xc0000055
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

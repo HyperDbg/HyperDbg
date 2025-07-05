@@ -1892,7 +1892,7 @@ KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag)
 {
     //
     // Check if debuggee is running, otherwise the user
-    // pressed ctrl+c multiple times
+    // pressed CTRL+C multiple times
     //
     if (g_IsDebuggeeRunning)
     {

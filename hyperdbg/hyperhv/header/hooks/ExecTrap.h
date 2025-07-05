@@ -72,6 +72,9 @@ ExecTrapUninitialize();
 BOOLEAN
 ExecTrapInitialize();
 
+VOID
+ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu);
+
 BOOLEAN
 ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
                                  VMX_EXIT_QUALIFICATION_EPT_VIOLATION * ViolationQualification);

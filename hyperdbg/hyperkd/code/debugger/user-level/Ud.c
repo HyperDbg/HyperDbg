@@ -30,6 +30,14 @@ UdInitializeUserDebugger()
     }
 
     //
+    // Configure the exec-trap on all processors
+    //
+    if (!ConfigureInitializeExecTrapOnAllProcessors())
+    {
+        return FALSE;
+    }
+
+    //
     // Check if we have functions we need for attaching mechanism
     //
     if (g_PsGetProcessPeb == NULL || g_PsGetProcessWow64Process == NULL || g_ZwQueryInformationProcess == NULL)
@@ -58,11 +66,6 @@ UdInitializeUserDebugger()
     // Request to allocate buffers for thread holder of threads
     //
     ThreadHolderAllocateThreadHoldingBuffers();
-
-    //
-    // Configure the exec-trap on all processors
-    //
-    ConfigureInitializeExecTrapOnAllProcessors();
 
     //
     // Indicate that the user debugger is active
@@ -99,6 +102,66 @@ UdUninitializeUserDebugger()
         //
         AttachingRemoveAndFreeAllProcessDebuggingDetails();
     }
+}
+
+/**
+ * @brief Handle cases where we instant break is needed on the user debugger
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param Reason The reason of the pausing
+ * @param ProcessDebuggingDetail
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                     DEBUGGEE_PAUSING_REASON             Reason,
+                     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+{
+    //
+    // Check if the process debugging details is available or not
+    //
+    if (ProcessDebuggingDetail == NULL)
+    {
+        //
+        // If the process debugging detail is not available, we should
+        // find it by the current process id
+        //
+        ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+
+        if (ProcessDebuggingDetail == NULL)
+        {
+            //
+            // If we reached here, it means that the process debugging detail is not found
+            // so, we should return FALSE to indicate that we couldn't handle the instant break
+            //
+            return FALSE;
+        }
+    }
+
+    //
+    // Add the process to the watching list to be able to intercept the threads
+    //
+    if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, TRUE))
+    {
+        //
+        // Since the adding it to the watching list will take effect from the next
+        // CR3 vm-exit, we should change the state of the core to prevent further execution
+        //
+        //  ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(DbgState->CoreId);
+
+        //
+        // Handling state through the user-mode debugger
+        //
+        return UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                         Reason,
+                                                         NULL);
+    }
+
+    //
+    // If we reached here, it means that we couldn't add the process to the
+    //
+    return FALSE;
 }
 
 /**
@@ -329,7 +392,7 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     //
     // Based on the documentation, HyperDbg stops intercepting threads
     // when the debugger sent the first command, but if user presses
-    // CTRL+C again, all the threads (or new threads) that will enter
+    // run the 'pause' command, all the threads (or new threads) that will enter
     // the user-mode will be intercepted
     //
     if (ProcessDebuggingDetails->IsOnThreadInterceptingPhase)
