@@ -383,11 +383,11 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
     //
     // Register the breakpoint
     //
-    //  if (!BreakpointAddNew(&BpRequest))
-    //  {
-    //      LogError("Err, unable to set breakpoint on the entrypoint module");
-    //      return FALSE;
-    //  }
+    if (!BreakpointAddNew(&BpRequest))
+    {
+        LogError("Err, unable to set breakpoint on the entrypoint module");
+        return FALSE;
+    }
 
     //
     // Finish the starting point of the thread
@@ -408,11 +408,6 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
     }
     else if (g_UserDebuggerState)
     {
-        //
-        // Supress the RIP increment as we don't want to increment
-        //
-        VmFuncSuppressRipIncrement(DbgState->CoreId);
-
         //
         // Handling state through the user-mode debugger
         //
@@ -1108,7 +1103,6 @@ AttachingContinueProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ContinueReque
         // Unpause the threads of the target process
         //
         ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetails);
-        ;
 
         //
         // The continuing operation was successful
