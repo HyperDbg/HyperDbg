@@ -94,8 +94,8 @@ class LALR1Parser:
 
     def WriteLhsList(self):
 
-        self.SourceFile.write("const struct _TOKEN LalrLhs[RULES_COUNT]= \n{\n")
-        self.HeaderFile.write("extern const struct _TOKEN LalrLhs[RULES_COUNT];\n")
+        self.SourceFile.write("const struct _SCRIPT_ENGINE_TOKEN LalrLhs[RULES_COUNT]= \n{\n")
+        self.HeaderFile.write("extern const struct _SCRIPT_ENGINE_TOKEN LalrLhs[RULES_COUNT];\n")
         Counter = 0
         for Lhs in self.LhsList:
             if Counter == len(self.LhsList)-1:
@@ -106,8 +106,8 @@ class LALR1Parser:
         self.SourceFile.write("};\n")
 
     def WriteRhsList(self):
-        self.SourceFile.write("const struct _TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN]= \n{\n")
-        self.HeaderFile.write("extern const struct _TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];\n")
+        self.SourceFile.write("const struct _SCRIPT_ENGINE_TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN]= \n{\n")
+        self.HeaderFile.write("extern const struct _SCRIPT_ENGINE_TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];\n")
         Counter =0
         for Rhs in self.RhsList:
             self.SourceFile.write("\t{")
@@ -168,8 +168,8 @@ class LALR1Parser:
  
     def WriteSemanticRules(self):
         
-        self.SourceFile.write("const struct _TOKEN LalrSemanticRules[RULES_COUNT]= \n{\n")
-        self.HeaderFile.write("extern const struct _TOKEN LalrSemanticRules[RULES_COUNT];\n") 
+        self.SourceFile.write("const struct _SCRIPT_ENGINE_TOKEN LalrSemanticRules[RULES_COUNT]= \n{\n")
+        self.HeaderFile.write("extern const struct _SCRIPT_ENGINE_TOKEN LalrSemanticRules[RULES_COUNT];\n") 
 
         Counter = 0 
         for SemanticRule in self.SemanticList:

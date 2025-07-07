@@ -679,8 +679,8 @@ class LL1Parser:
 
     def WriteLhsList(self):
 
-        self.SourceFile.write("const struct _TOKEN Lhs[RULES_COUNT]= \n{\n")
-        self.HeaderFile.write("extern const struct _TOKEN Lhs[RULES_COUNT];\n")
+        self.SourceFile.write("const struct _SCRIPT_ENGINE_TOKEN Lhs[RULES_COUNT]= \n{\n")
+        self.HeaderFile.write("extern const struct _SCRIPT_ENGINE_TOKEN Lhs[RULES_COUNT];\n")
         Counter = 0
         for Lhs in self.LhsList:
             if Counter == len(self.LhsList)-1:
@@ -708,8 +708,8 @@ class LL1Parser:
 
 
     def WriteRhsList(self):
-        self.SourceFile.write("const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN]= \n{\n")
-        self.HeaderFile.write("extern const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN];\n")
+        self.SourceFile.write("const struct _SCRIPT_ENGINE_TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN]= \n{\n")
+        self.HeaderFile.write("extern const struct _SCRIPT_ENGINE_TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN];\n")
         Counter =0
         for Rhs in self.RhsList:
             self.SourceFile.write("\t{")
