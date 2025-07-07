@@ -521,6 +521,18 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     EntryTemplate.ExecuteAccess = 1;
 
     //
+    // Set the UserModeExecute bit based on the global state of MBEC
+    //
+    if (g_ModeBasedExecutionControlState)
+    {
+        EntryTemplate.UserModeExecute = 1;
+    }
+    else
+    {
+        EntryTemplate.UserModeExecute = 0;
+    }
+
+    //
     // copy other bits from target entry
     //
     EntryTemplate.MemoryType = TargetEntry->MemoryType;
@@ -547,10 +559,23 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     // Allocate a new pointer which will replace the 2MB entry with a pointer to 512 4096 byte entries
     //
-    NewPointer.AsUInt          = 0;
-    NewPointer.WriteAccess     = 1;
-    NewPointer.ReadAccess      = 1;
-    NewPointer.ExecuteAccess   = 1;
+    NewPointer.AsUInt        = 0;
+    NewPointer.WriteAccess   = 1;
+    NewPointer.ReadAccess    = 1;
+    NewPointer.ExecuteAccess = 1;
+
+    //
+    // Set the UserModeExecute bit based on the global state of MBEC
+    //
+    if (g_ModeBasedExecutionControlState)
+    {
+        NewPointer.UserModeExecute = 1;
+    }
+    else
+    {
+        NewPointer.UserModeExecute = 0;
+    }
+
     NewPointer.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&NewSplit->PML1[0]) / PAGE_SIZE;
 
     //

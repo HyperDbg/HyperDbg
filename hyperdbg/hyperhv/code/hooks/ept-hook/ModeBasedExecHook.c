@@ -118,6 +118,8 @@ ModeBasedExecHookDisableKernelModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 BOOLEAN
 ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
 {
+    EPT_PML1_ENTRY Pml1Entries[VMM_EPT_PML1E_COUNT];
+
     //
     // Set execute access for PML4s
     //
@@ -145,6 +147,32 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
         for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
         {
             EptTable->PML2[i][j].UserModeExecute = TRUE;
+
+            //
+            // If the PML2 entry is not a large page, we should set execute access for PML1s
+            // It usually happens when the PML2 entry is not a large page and is previously
+            // used for an EPT hook, so, it has PML1 entries
+            //
+            if (!EptTable->PML2[i][j].LargePage)
+            {
+                //
+                // Shift to the left to get the PFN
+                //
+                MemoryMapperReadMemorySafeByPhysicalAddress(EptTable->PML2[i][j].PageFrameNumber << 12, (UINT64)Pml1Entries, PAGE_SIZE);
+
+                //
+                // Set execute access for PML1s
+                //
+                for (size_t k = 0; k < VMM_EPT_PML1E_COUNT; k++)
+                {
+                    Pml1Entries[k].UserModeExecute = TRUE;
+                }
+
+                //
+                // Write back the PML1 entries to the EPT page table
+                //
+                MemoryMapperWriteMemorySafeByPhysicalAddress(EptTable->PML2[i][j].PageFrameNumber << 12, (UINT64)Pml1Entries, PAGE_SIZE);
+            }
         }
     }
 

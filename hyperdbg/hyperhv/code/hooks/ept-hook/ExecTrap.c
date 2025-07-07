@@ -573,6 +573,47 @@ ExecTrapChangeToKernelDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu)
 }
 
 /**
+ * @brief change to normal MBEC EPTP
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+ExecTrapChangeToNormalMbecEptp(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    //
+    // From Intel Manual:
+    // [Bit 2] If the "mode-based execute control for EPT" VM - execution control is 0, execute access;
+    // indicates whether instruction fetches are allowed from the 2-MByte page controlled by this entry.
+    // If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction
+    // fetches are allowed from supervisor - mode linear addresses in the 2 - MByte page controlled by this entry
+    //
+
+    //
+    // Set execute access for PML4s
+    //
+    // for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    // {
+    VCpu->EptPageTable->PML4[0].UserModeExecute = TRUE;
+
+    //
+    // We only set the top-level PML4 for intercepting kernel-mode execution
+    //
+    VCpu->EptPageTable->PML4[0].ExecuteAccess = TRUE;
+    // }
+
+    //
+    // Invalidate the EPT cache
+    //
+    EptInveptSingleContext(VCpu->EptPointer.AsUInt);
+
+    //
+    // It's not on normal EPTP
+    //
+    VCpu->NotNormalEptp = FALSE;
+}
+
+/**
  * @brief Restore the execution of the trap to adjusted trap state
  * @param VCpu The virtual processor's state
  * @param IsUserMode Whether the execution event caused by a switch from kernel-to-user
@@ -711,6 +752,7 @@ ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Enable MBEC to detect execution in user-mode
         //
+        ExecTrapChangeToNormalMbecEptp(VCpu);
         HvSetModeBasedExecutionEnableFlag(TRUE);
         VCpu->MbecEnabled = TRUE;
 
@@ -724,6 +766,7 @@ ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // In case, the process is changed, we've disable the MBEC
         //
+        ExecTrapChangeToNormalMbecEptp(VCpu);
         HvSetModeBasedExecutionEnableFlag(FALSE);
         VCpu->MbecEnabled = FALSE;
     }

@@ -2570,7 +2570,7 @@ EptHookModifyInstructionFetchState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(VCpu->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {
@@ -2628,7 +2628,7 @@ EptHookModifyPageReadState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(VCpu->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {
@@ -2686,7 +2686,7 @@ EptHookModifyPageWriteState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(VCpu->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {
