@@ -29,8 +29,8 @@
 #define ZEROOPFUNC1_LENGTH 7
 #define ZEROOPFUNC2_LENGTH 2
 #define VARARGFUNC1_LENGTH 1
-extern const struct _TOKEN Lhs[RULES_COUNT];
-extern const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN];
+extern const struct _SCRIPT_ENGINE_TOKEN Lhs[RULES_COUNT];
+extern const struct _SCRIPT_ENGINE_TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int RhsSize[RULES_COUNT];
 extern const char* NoneTerminalMap[NONETERMINAL_COUNT];
 extern const char* TerminalMap[TERMINAL_COUNT];
@@ -65,12 +65,12 @@ extern const char* ScriptVariableTypeList[];
 #define LALR_NONTERMINAL_COUNT 22
 #define LALR_MAX_RHS_LEN 9
 #define LALR_STATE_COUNT 298
-extern const struct _TOKEN LalrLhs[RULES_COUNT];
-extern const struct _TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];
+extern const struct _SCRIPT_ENGINE_TOKEN LalrLhs[RULES_COUNT];
+extern const struct _SCRIPT_ENGINE_TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int LalrRhsSize[RULES_COUNT];
 extern const char* LalrNoneTerminalMap[NONETERMINAL_COUNT];
 extern const char* LalrTerminalMap[TERMINAL_COUNT];
 extern const int LalrGotoTable[LALR_STATE_COUNT][LALR_NONTERMINAL_COUNT];
 extern const int LalrActionTable[LALR_STATE_COUNT][LALR_TERMINAL_COUNT];
-extern const struct _TOKEN LalrSemanticRules[RULES_COUNT];
+extern const struct _SCRIPT_ENGINE_TOKEN LalrSemanticRules[RULES_COUNT];
 #endif
