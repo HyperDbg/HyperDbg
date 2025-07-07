@@ -38,10 +38,10 @@ PSYMBOL
 NewSymbol(void);
 
 PSYMBOL
-NewStringSymbol(PTOKEN Token);
+NewStringSymbol(PSCRIPT_ENGINE_TOKEN Token);
 
 PSYMBOL
-NewWstringSymbol(PTOKEN Token);
+NewWstringSymbol(PSCRIPT_ENGINE_TOKEN Token);
 
 unsigned int
 GetSymbolHeapSize(PSYMBOL Symbol);
@@ -56,26 +56,26 @@ PSYMBOL_BUFFER
 PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol);
 
 PSYMBOL
-ToSymbol(PTOKEN PTOKEN, PSCRIPT_ENGINE_ERROR_TYPE Error);
+ToSymbol(PSCRIPT_ENGINE_TOKEN PTOKEN, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
-    PTOKEN                    FirstToken,
-    PTOKEN_LIST               MatchedStack,
+    PSCRIPT_ENGINE_TOKEN      FirstToken,
+    PSCRIPT_ENGINE_TOKEN_LIST MatchedStack,
     PSYMBOL_BUFFER            CodeBuffer,
     char *                    str,
     char *                    c,
     PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 UINT64
-BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, PTOKEN CurrentIn);
+BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, PSCRIPT_ENGINE_TOKEN CurrentIn);
 
 void
 CodeGen(
-    PTOKEN_LIST               MatchedStack,
+    PSCRIPT_ENGINE_TOKEN_LIST MatchedStack,
     PSYMBOL_BUFFER            CodeBuffer,
-    PTOKEN                    Operator,
+    PSCRIPT_ENGINE_TOKEN      Operator,
     PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 unsigned long long int
@@ -91,31 +91,31 @@ char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str);
 
 int
-GetGlobalIdentifierVal(PTOKEN PTOKEN);
+GetGlobalIdentifierVal(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 int
-GetLocalIdentifierVal(PTOKEN PTOKEN);
+GetLocalIdentifierVal(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 int
-NewGlobalIdentifier(PTOKEN PTOKEN);
+NewGlobalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 int
-NewLocalIdentifier(PTOKEN PTOKEN);
+NewLocalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 int
 LalrGetRhsSize(int RuleId);
 
 BOOL
-LalrIsOperandType(PTOKEN PTOKEN);
+LalrIsOperandType(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 int
-NewFunctionParameterIdentifier(PTOKEN Token);
+NewFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token);
 
 int
-GetFunctionParameterIdentifier(PTOKEN Token);
+GetFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token);
 
 PUSER_DEFINED_FUNCTION_NODE
-GetUserDefinedFunctionNode(PTOKEN Token);
+GetUserDefinedFunctionNode(PSCRIPT_ENGINE_TOKEN Token);
 
 BOOLEAN
 FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands);

@@ -33,7 +33,7 @@ initial size of symbol buffer
 /**
  * @brief enumerates possible types for token
  */
-typedef enum TOKEN_TYPE
+typedef enum _SCRIPT_ENGINE_TOKEN_TYPE
 {
     LOCAL_ID,
     LOCAL_UNRESOLVED_ID,
@@ -61,102 +61,102 @@ typedef enum TOKEN_TYPE
     FUNCTION_PARAMETER_ID,
     SCRIPT_VARIABLE_TYPE,
     UNKNOWN
-} TOKEN_TYPE;
+} SCRIPT_ENGINE_TOKEN_TYPE;
 
 /**
  * @brief read tokens from input stored in this structure
  */
-typedef struct _TOKEN
+typedef struct _SCRIPT_ENGINE_TOKEN
 {
-    TOKEN_TYPE         Type;
-    char *             Value;
-    unsigned int       Len;
-    unsigned int       MaxLen;
-    unsigned long long VariableType;
-} TOKEN, *PTOKEN;
+    SCRIPT_ENGINE_TOKEN_TYPE Type;
+    char *                   Value;
+    unsigned int             Len;
+    unsigned int             MaxLen;
+    unsigned long long       VariableType;
+} SCRIPT_ENGINE_TOKEN, *PSCRIPT_ENGINE_TOKEN;
 
 /**
  * @brief this structure is a dynamic container of TOKENS
  */
-typedef struct _TOKEN_LIST
+typedef struct _SCRIPT_ENGINE_TOKEN_LIST
 {
-    PTOKEN *     Head;
-    unsigned int Pointer;
-    unsigned int Size;
-} TOKEN_LIST, *PTOKEN_LIST;
+    PSCRIPT_ENGINE_TOKEN * Head;
+    unsigned int           Pointer;
+    unsigned int           Size;
+} SCRIPT_ENGINE_TOKEN_LIST, *PSCRIPT_ENGINE_TOKEN_LIST;
 
 ////////////////////////////////////////////////////
 // PTOKEN related functions						  //
 ////////////////////////////////////////////////////
-PTOKEN
+PSCRIPT_ENGINE_TOKEN
 NewUnknownToken(void);
 
-PTOKEN
-NewToken(TOKEN_TYPE Type, char * Value);
+PSCRIPT_ENGINE_TOKEN
+NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value);
 
 void
-RemoveToken(PTOKEN * Token);
+RemoveToken(PSCRIPT_ENGINE_TOKEN * Token);
 
 void
-PrintToken(PTOKEN Token);
+PrintToken(PSCRIPT_ENGINE_TOKEN Token);
 
 void
-AppendByte(PTOKEN Token, char c);
+AppendByte(PSCRIPT_ENGINE_TOKEN Token, char c);
 
 void
-AppendWchar(PTOKEN Token, wchar_t c);
+AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c);
 
-PTOKEN
-CopyToken(PTOKEN Token);
+PSCRIPT_ENGINE_TOKEN
+CopyToken(PSCRIPT_ENGINE_TOKEN Token);
 
-PTOKEN
+PSCRIPT_ENGINE_TOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
     FreeTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 ////////////////////////////////////////////////////
-//			TOKEN_LIST related functions		  //
+//			SCRIPT_ENGINE_TOKEN_LIST related functions		  //
 ////////////////////////////////////////////////////
 
-PTOKEN_LIST
+PSCRIPT_ENGINE_TOKEN_LIST
 NewTokenList(void);
 
 void
-RemoveTokenList(PTOKEN_LIST TokenList);
+RemoveTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList);
 
 void
-PrintTokenList(PTOKEN_LIST TokenList);
+PrintTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList);
 
-PTOKEN_LIST
-Push(PTOKEN_LIST TokenList, PTOKEN Token);
+PSCRIPT_ENGINE_TOKEN_LIST
+Push(PSCRIPT_ENGINE_TOKEN_LIST TokenList, PSCRIPT_ENGINE_TOKEN Token);
 
-PTOKEN
-Pop(PTOKEN_LIST TokenList);
+PSCRIPT_ENGINE_TOKEN
+Pop(PSCRIPT_ENGINE_TOKEN_LIST TokenList);
 
-PTOKEN
-Top(PTOKEN_LIST TokenList);
-
-char
-IsNoneTerminal(PTOKEN Token);
+PSCRIPT_ENGINE_TOKEN
+Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList);
 
 char
-IsSemanticRule(PTOKEN Token);
+IsNoneTerminal(PSCRIPT_ENGINE_TOKEN Token);
 
 char
-IsEqual(const PTOKEN Token1, const PTOKEN Token2);
+IsSemanticRule(PSCRIPT_ENGINE_TOKEN Token);
+
+char
+IsEqual(const PSCRIPT_ENGINE_TOKEN Token1, const PSCRIPT_ENGINE_TOKEN Token2);
 
 int
-GetNonTerminalId(PTOKEN Token);
+GetNonTerminalId(PSCRIPT_ENGINE_TOKEN Token);
 
 int
-GetTerminalId(PTOKEN Token);
+GetTerminalId(PSCRIPT_ENGINE_TOKEN Token);
 
 int
-LalrGetNonTerminalId(PTOKEN Token);
+LalrGetNonTerminalId(PSCRIPT_ENGINE_TOKEN Token);
 
 int
-LalrGetTerminalId(PTOKEN Token);
+LalrGetTerminalId(PSCRIPT_ENGINE_TOKEN Token);
 
 ////////////////////////////////////////////////////
 //					Util Functions				  //
@@ -206,58 +206,58 @@ RotateLeftStringOnce(char * str);
 ////////////////////////////////////////////////////
 
 char
-IsType1Func(PTOKEN Operator);
+IsType1Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType2Func(PTOKEN Operator);
+IsType2Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType4Func(PTOKEN Operator);
+IsType4Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType5Func(PTOKEN Operator);
+IsType5Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType6Func(PTOKEN Operator);
+IsType6Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType7Func(PTOKEN Operator);
+IsType7Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType8Func(PTOKEN Operator);
+IsType8Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType9Func(PTOKEN Operator);
+IsType9Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType10Func(PTOKEN Operator);
+IsType10Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType11Func(PTOKEN Operator);
+IsType11Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType12Func(PTOKEN Operator);
+IsType12Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType13Func(PTOKEN Operator);
+IsType13Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType14Func(PTOKEN Operator);
+IsType14Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType15Func(PTOKEN Operator);
+IsType15Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsType16Func(PTOKEN Operator);
+IsType16Func(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsAssignmentOperator(PTOKEN Operator);
+IsAssignmentOperator(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsTwoOperandOperator(PTOKEN Operator);
+IsTwoOperandOperator(PSCRIPT_ENGINE_TOKEN Operator);
 
 char
-IsOneOperandOperator(PTOKEN Operator);
+IsOneOperandOperator(PSCRIPT_ENGINE_TOKEN Operator);
 
 /**
  *

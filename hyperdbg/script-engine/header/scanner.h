@@ -17,7 +17,7 @@
 /**
  * @brief lookup table for storing global Ids
  */
-PTOKEN_LIST GlobalIdTable;
+PSCRIPT_ENGINE_TOKEN_LIST GlobalIdTable;
 
 /**
  * @brief
@@ -50,10 +50,10 @@ unsigned int CurrentTokenIdx;
 //            Interfacing functions	         	  //
 ////////////////////////////////////////////////////
 
-PTOKEN
+PSCRIPT_ENGINE_TOKEN
 GetToken(char * c, char * str);
 
-PTOKEN
+PSCRIPT_ENGINE_TOKEN
 Scan(char * str, char * c);
 
 char
