@@ -17,6 +17,7 @@
 extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsUserDebuggerInitialized;
+extern CommandType              g_CommandsList;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
 
@@ -39,6 +40,12 @@ UdInitializeUserDebugger()
             g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
             g_UserSyncronizationObjectsHandleTable[i].EventHandle      = CreateEvent(NULL, FALSE, FALSE, NULL);
         }
+
+        //
+        // To make it more convenient, we set not to continue the previous command
+        // after pressing enter , so the user can enter the command for the 'g' command
+        //
+        g_CommandsList["g"].CommandAttrib &= ~DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER;
 
         //
         // Indicate that it's initialized

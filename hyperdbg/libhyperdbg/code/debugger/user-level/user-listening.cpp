@@ -82,6 +82,7 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
         //
         // Show diassembles
         //
+        ShowMessages("\n");
         HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
                                PausePacket->Rip,
                                MAXIMUM_INSTR_SIZE,
@@ -94,6 +95,7 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
         //
         // Show diassembles
         //
+        ShowMessages("\n");
         HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
                                PausePacket->Rip,
                                MAXIMUM_INSTR_SIZE,
