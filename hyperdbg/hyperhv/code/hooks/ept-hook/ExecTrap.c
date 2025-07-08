@@ -679,8 +679,6 @@ ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,
         // Trigger the event
         //
         DispatchEventMode(VCpu, DEBUGGER_EVENT_MODE_TYPE_USER_MODE);
-
-        return TRUE;
     }
     else if (!ViolationQualification->EptExecutable && ViolationQualification->ExecuteAccess)
     {
@@ -752,7 +750,6 @@ ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Enable MBEC to detect execution in user-mode
         //
-        ExecTrapChangeToNormalMbecEptp(VCpu);
         HvSetModeBasedExecutionEnableFlag(TRUE);
         VCpu->MbecEnabled = TRUE;
 
@@ -766,7 +763,6 @@ ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // In case, the process is changed, we've disable the MBEC
         //
-        ExecTrapChangeToNormalMbecEptp(VCpu);
         HvSetModeBasedExecutionEnableFlag(FALSE);
         VCpu->MbecEnabled = FALSE;
     }
@@ -823,11 +819,10 @@ ExecTrapRemoveProcessFromWatchingList(UINT32 ProcessId)
 
     SpinlockLock(&ExecTrapProcessListLock);
 
-    Result = InsertionSortInsertItem(&g_ExecTrapState.InterceptionProcessIds[0],
-                                     &g_ExecTrapState.NumberOfItems,
-                                     MAXIMUM_NUMBER_OF_PROCESSES_FOR_USER_KERNEL_EXEC_THREAD,
-                                     &Index,
-                                     (UINT64)ProcessId);
+    Result = BinarySearchPerformSearchItem(&g_ExecTrapState.InterceptionProcessIds[0],
+                                           g_ExecTrapState.NumberOfItems,
+                                           &Index,
+                                           (UINT64)ProcessId);
 
     if (Result)
     {

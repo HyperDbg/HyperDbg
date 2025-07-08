@@ -328,10 +328,10 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
             // Being here means that the thread should be handled by the user-mode debugger
             //
 
-            //  LogInfo("Thread Id: %x, process Id: %x is intercepted by user-mode debugger - RIP: %llx",
-            //          PsGetCurrentThreadId(),
-            //          PsGetCurrentProcessId(),
-            //          VCpu->LastVmexitRip);
+            // LogInfo("Thread Id: %x, process Id: %x is intercepted by user-mode debugger - RIP: %llx",
+            //         PsGetCurrentThreadId(),
+            //         PsGetCurrentProcessId(),
+            //         VCpu->LastVmexitRip);
 
             //
             // In this case, we need to short circuit the event, in user-mode debugger we

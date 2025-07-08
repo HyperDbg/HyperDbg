@@ -22,7 +22,8 @@ New release of the HyperDbg Debugger.
 - The user mode debugger now uses MBEC for preventing user-mode code execution ([link](https://github.com/HyperDbg/HyperDbg/commit/6893c1b19f1edaf57d0074bd60abcd518bf77338))
 - Apply transparent-mode based on dynamic system-calls ([link](https://github.com/HyperDbg/HyperDbg/commit/1eb960607331fc0c2622804d7aff65702c155649))
 - Breakpoint initialization is changed from kernel debugger to regular debugger ([link](https://github.com/HyperDbg/HyperDbg/commit/e5326f895dcddb1adbc873a9fecede7af7eb7651))
-- Fix the build issue on new Windows SDK for Token structures ([link](https://github.com/HyperDbg/HyperDbg/pull/530))
+- Fixed the build issue on new Windows SDK for Token structures ([link](https://github.com/HyperDbg/HyperDbg/pull/530))
+- Fixed retrieving valid watching process IDs for the execution trap and user-mode execution prevention
 
 ## [0.13.2.0] - 2025-05-26
 New release of the HyperDbg Debugger.

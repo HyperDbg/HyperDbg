@@ -699,15 +699,6 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     }
 
     //
-    // if the user want to disable the intercepting phase, we just ignore the
-    // request without a message
-    //
-    if (!Enable && !ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
-    {
-        return FALSE;
-    }
-
-    //
     // We're or we're not in thread intercepting phase now
     //
     ProcessDebuggingDetail->IsOnThreadInterceptingPhase = Enable;
@@ -1248,6 +1239,11 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
         DetachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS;
         return FALSE;
     }
+
+    //
+    // Remove the process from interception mechanisms
+    //
+    AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE);
 
     //
     // Remove the entry from the process debugging details list
