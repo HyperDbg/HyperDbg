@@ -72,14 +72,14 @@ CommandBpPerformApplyingBreakpointOnUserDebugger(DEBUGGEE_BP_PACKET * BpPacket)
         // Send IOCTL
         //
         Status = DeviceIoControl(
-            g_DeviceHandle,                        // Handle to device
-            IOCTL_SET_BREAKPOINT_IN_USER_DEBUGGER, // IO Control Code (IOCTL)
-            BpPacket,                              // Input Buffer to driver.
-            SIZEOF_DEBUGGEE_BP_PACKET,             // Input buffer length (not used in this case)
-            BpPacket,                              // Output Buffer from driver.
-            SIZEOF_DEBUGGEE_BP_PACKET,             // Length of output buffer in bytes.
-            &ReturnedLength,                       // Bytes placed in buffer.
-            NULL                                   // synchronous call
+            g_DeviceHandle,                     // Handle to device
+            IOCTL_SET_BREAKPOINT_USER_DEBUGGER, // IO Control Code (IOCTL)
+            BpPacket,                           // Input Buffer to driver.
+            SIZEOF_DEBUGGEE_BP_PACKET,          // Input buffer length (not used in this case)
+            BpPacket,                           // Output Buffer from driver.
+            SIZEOF_DEBUGGEE_BP_PACKET,          // Length of output buffer in bytes.
+            &ReturnedLength,                    // Bytes placed in buffer.
+            NULL                                // synchronous call
         );
 
         if (!Status)
@@ -136,9 +136,23 @@ CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
     BpPacket.Tid     = Tid;
 
     //
-    // Send the bp packet
+    // Send the bp packet either to the user debugger or the kernel debugger
     //
-    return KdSendBpPacketToDebuggee(&BpPacket);
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        return CommandBpPerformApplyingBreakpointOnUserDebugger(&BpPacket);
+    }
+    else if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        return KdSendBpPacketToDebuggee(&BpPacket);
+    }
+    else
+    {
+        //
+        // couldn't set breakpoint, no active process or remote debuggee
+        //
+        return FALSE;
+    }
 }
 
 /**

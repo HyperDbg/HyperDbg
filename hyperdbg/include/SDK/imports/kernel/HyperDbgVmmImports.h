@@ -537,6 +537,9 @@ IMPORT_EXPORT_VMM CR3_TYPE
 LayoutGetCurrentProcessCr3();
 
 IMPORT_EXPORT_VMM CR3_TYPE
+LayoutGetCr3ByProcessId(UINT32 ProcessId);
+
+IMPORT_EXPORT_VMM CR3_TYPE
 LayoutGetExactGuestProcessCr3();
 
 //////////////////////////////////////////////////
@@ -591,6 +594,17 @@ MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
                                           _Inout_ PVOID BufferToSaveMemory,
                                           _In_ SIZE_T   SizeToRead);
 
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperReadMemorySafeFromVmxNonRootByPhysicalAddress(_In_ UINT64   PaAddressToRead,
+                                                          _Inout_ PVOID BufferToSaveMemory,
+                                                          _In_ SIZE_T   SizeToRead);
+
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperReadMemoryUnsafe(_In_ UINT64   VaAddressToRead,
+                             _Inout_ PVOID BufferToSaveMemory,
+                             _In_ SIZE_T   SizeToRead,
+                             _In_ UINT32   TargetProcessId);
+
 // ----------------------------------------------------------------------------
 // Disassembler Functions
 //
@@ -599,6 +613,9 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit);
 
 IMPORT_EXPORT_VMM UINT32
 DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
+DisassemblerLengthDisassembleEngineByProcessId(PVOID Address, BOOLEAN Is32Bit, UINT32 ProcessId);
 
 // ----------------------------------------------------------------------------
 // Writing Memory Functions
@@ -624,6 +641,11 @@ MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
                               _In_ PVOID     Source,
                               _In_ SIZE_T    SizeToWrite,
                               _In_ UINT32    TargetProcessId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperWriteMemorySafeFromVmxNonRootyPhysicalAddress(_In_ UINT64 DestinationPa,
+                                                          _In_ PVOID  Source,
+                                                          _In_ SIZE_T SizeToWrite);
 
 // ----------------------------------------------------------------------------
 // Reserving Memory Functions

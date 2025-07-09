@@ -321,5 +321,5 @@
  * @brief ioctl, to set breakpoint for the user debugger
  *
  */
-#define IOCTL_SET_BREAKPOINT_IN_USER_DEBUGGER \
+#define IOCTL_SET_BREAKPOINT_USER_DEBUGGER \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x825, METHOD_BUFFERED, FILE_ANY_ACCESS)

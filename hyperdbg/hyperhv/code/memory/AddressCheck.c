@@ -297,7 +297,8 @@ Return:
 }
 
 /**
- * @brief This function returns the maximum instruction length that can be read from this address
+ * @brief This function returns the maximum instruction length that
+ * can be read from this address
  * @param Address
  *
  * @return UINT32

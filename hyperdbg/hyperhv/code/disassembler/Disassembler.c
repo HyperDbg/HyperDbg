@@ -316,6 +316,50 @@ DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLE
 }
 
 /**
+ * @brief Disassembler length disassembler engine
+ * @details Can be called from VMX non-root mode
+ *
+ * @param Address
+ * @param Is32Bit
+ * @param ProcessId
+ *
+ * @return UINT32
+ */
+UINT32
+DisassemblerLengthDisassembleEngineByProcessId(PVOID Address, BOOLEAN Is32Bit, UINT32 ProcessId)
+{
+    UINT64   SizeOfBufferToRead               = 0;
+    BYTE     MemoryToRead[MAXIMUM_INSTR_SIZE] = {0};
+    CR3_TYPE CurrentProcessCr3                = {0};
+
+    //
+    // Switch to the target process memory layout by using the process id
+    //
+    CurrentProcessCr3 = SwitchToProcessMemoryLayout(ProcessId);
+
+    //
+    // Read the maximum number of instruction that is valid to be read in the
+    // target address
+    //
+    SizeOfBufferToRead = CheckAddressMaximumInstructionLength(Address);
+
+    //
+    // Restore the original process
+    //
+    SwitchToPreviousProcess(CurrentProcessCr3);
+
+    //
+    // Find the current instruction
+    //
+    MemoryMapperReadMemoryUnsafe((UINT64)Address,
+                                 MemoryToRead,
+                                 SizeOfBufferToRead,
+                                 ProcessId);
+
+    return DisassemblerLengthDisassembleEngine(MemoryToRead, Is32Bit);
+}
+
+/**
  * @brief Shows the disassembly of only one instruction
  * @details Should be called in VMX-root mode
  *

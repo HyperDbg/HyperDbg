@@ -806,14 +806,33 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
  * @detail this function won't remove the descriptor from the list
  *
  * @param BreakpointDescriptor
+ * @param SwitchToTargetMemoryLayout If TRUE, it will switch to the target memory layout
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
+BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor, BOOLEAN SwitchToTargetMemoryLayout)
 {
-    BYTE PreviousByte   = NULL_ZERO;
-    BYTE BreakpointByte = 0xcc; // int 3
+    CR3_TYPE CurrentProcessCr3 = {0};
+    CR3_TYPE GuestCr3          = {0};
+    BYTE     PreviousByte      = NULL_ZERO;
+    BYTE     BreakpointByte    = 0xcc; // int 3
+
+    //
+    // Find the current process cr3
+    //
+    if (SwitchToTargetMemoryLayout)
+    {
+        GuestCr3.Flags = LayoutGetCr3ByProcessId(BreakpointDescriptor->Pid).Flags;
+    }
+
+    //
+    // Switch to the target process memory layout by using the process id if needed
+    //
+    if (SwitchToTargetMemoryLayout)
+    {
+        CurrentProcessCr3 = SwitchToProcessMemoryLayout(BreakpointDescriptor->Pid);
+    }
 
     //
     // Check if address is safe (only one byte for 0xcc)
@@ -824,9 +843,35 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     }
 
     //
+    // Restore the original process if we switched to the target process memory layout
+    //
+    if (SwitchToTargetMemoryLayout)
+    {
+        SwitchToPreviousProcess(CurrentProcessCr3);
+    }
+
+    //
     // Read and save previous byte and save it to the descriptor
     //
-    MemoryMapperReadMemorySafeOnTargetProcess(BreakpointDescriptor->Address, &PreviousByte, sizeof(BYTE));
+    if (SwitchToTargetMemoryLayout)
+    {
+        MemoryMapperReadMemoryUnsafe(
+            BreakpointDescriptor->Address,
+            &PreviousByte,
+            sizeof(BYTE),
+            BreakpointDescriptor->Pid);
+    }
+    else
+    {
+        MemoryMapperReadMemorySafeOnTargetProcess(
+            BreakpointDescriptor->Address,
+            &PreviousByte,
+            sizeof(BYTE));
+    }
+
+    //
+    // Store the previous byte
+    //
     BreakpointDescriptor->PreviousByte = PreviousByte;
 
     //
@@ -838,9 +883,18 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Apply the breakpoint
     //
-    MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
-                                                 (UINT64)&BreakpointByte,
-                                                 sizeof(BYTE));
+    if (SwitchToTargetMemoryLayout)
+    {
+        MemoryMapperWriteMemorySafeFromVmxNonRootyPhysicalAddress(BreakpointDescriptor->PhysAddress,
+                                                                  (PVOID)&BreakpointByte,
+                                                                  sizeof(BYTE));
+    }
+    else
+    {
+        MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
+                                                     (UINT64)&BreakpointByte,
+                                                     sizeof(BYTE));
+    }
 
     return TRUE;
 }
@@ -937,33 +991,46 @@ BreakpointGetEntryByAddress(UINT64 Address)
 /**
  * @brief Add new breakpoints
  * @param BpDescriptor
+ * @param SwitchToTargetMemoryLayout
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
+BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemoryLayout)
 {
-    PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
+    CR3_TYPE                CurrentProcessCr3    = {0};
     CR3_TYPE                GuestCr3             = {0};
+    PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
     BOOLEAN                 IsAddress32Bit       = FALSE;
 
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+    if (SwitchToTargetMemoryLayout)
+    {
+        //
+        // Check if the process id is valid or not
+        //
+        if (BpDescriptorArg->Pid != DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES &&
+            !CommonIsProcessExist(BpDescriptorArg->Pid))
+        {
+            //
+            // Process id is invalid (Set the error)
+            //
+            BpDescriptorArg->Result = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+            return FALSE;
+        }
+
+        GuestCr3.Flags = LayoutGetCr3ByProcessId(BpDescriptorArg->Pid).Flags;
+    }
+    else
+    {
+        GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+    }
 
     //
     // *** Validate arguments ***
     //
-
-    //
-    // Check if address is safe (only one byte for 0xcc)
-    //
-    if (!CheckAccessValidityAndSafety(BpDescriptorArg->Address, sizeof(BYTE)))
-    {
-        BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
-        return FALSE;
-    }
 
     //
     // Check if the core number is not invalid
@@ -991,7 +1058,32 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     }
 
     //
-    // We won't check for process id and thread id, if these arguments are invalid
+    // Switch to the target process memory layout by using the process id if needed
+    //
+    if (SwitchToTargetMemoryLayout)
+    {
+        CurrentProcessCr3 = SwitchToProcessMemoryLayout(BpDescriptorArg->Pid);
+    }
+
+    //
+    // Check if address is safe (only one byte for 0xcc)
+    //
+    if (!CheckAccessValidityAndSafety(BpDescriptorArg->Address, sizeof(BYTE)))
+    {
+        BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+        return FALSE;
+    }
+
+    //
+    // Restore the original process if we switched to the target process memory layout
+    //
+    if (SwitchToTargetMemoryLayout)
+    {
+        SwitchToPreviousProcess(CurrentProcessCr3);
+    }
+
+    //
+    // On the debugger mode, we won't check for process id and thread id, if these arguments are invalid
     // then the HyperDbg simply ignores the breakpoints but it makes the computer slow
     // it just won't be triggered
     //
@@ -1004,7 +1096,8 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Get the pre-allocated buffer
     //
-    BreakpointDescriptor = (DEBUGGEE_BP_DESCRIPTOR *)PoolManagerRequestPool(BREAKPOINT_DEFINITION_STRUCTURE, TRUE, sizeof(DEBUGGEE_BP_DESCRIPTOR));
+    BreakpointDescriptor = (DEBUGGEE_BP_DESCRIPTOR *)
+        PoolManagerRequestPool(BREAKPOINT_DEFINITION_STRUCTURE, TRUE, sizeof(DEBUGGEE_BP_DESCRIPTOR));
 
     if (BreakpointDescriptor == NULL)
     {
@@ -1046,15 +1139,32 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
         // The address is not a kernel address, thus, we check whether the debuggee is running on user-mode
         // or not
         //
-        IsAddress32Bit = KdIsGuestOnUsermode32Bit();
+        if (SwitchToTargetMemoryLayout)
+        {
+            UserAccessIsWow64Process((HANDLE)BpDescriptorArg->Pid, &IsAddress32Bit);
+        }
+        else
+        {
+            IsAddress32Bit = KdIsGuestOnUsermode32Bit();
+        }
     }
 
     //
     // Use length disassembler engine to get the instruction length
     //
-    BreakpointDescriptor->InstructionLength = (UINT16)DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
-        (PVOID)BpDescriptorArg->Address,
-        IsAddress32Bit);
+    if (SwitchToTargetMemoryLayout)
+    {
+        BreakpointDescriptor->InstructionLength = (UINT16)DisassemblerLengthDisassembleEngineByProcessId(
+            (PVOID)BpDescriptorArg->Address,
+            IsAddress32Bit,
+            BpDescriptorArg->Pid);
+    }
+    else
+    {
+        BreakpointDescriptor->InstructionLength = (UINT16)DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
+            (PVOID)BpDescriptorArg->Address,
+            IsAddress32Bit);
+    }
 
     //
     // Breakpoints are enabled by default
@@ -1069,7 +1179,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Apply the breakpoint
     //
-    BreakpointWrite(BreakpointDescriptor);
+    BreakpointWrite(BreakpointDescriptor, SwitchToTargetMemoryLayout);
 
     //
     // Show that operation was successful
@@ -1133,11 +1243,12 @@ BreakpointListAllBreakpoint()
 /**
  * @brief List of modify breakpoints
  * @param ListOrModifyBreakpoints
+ * @param SwitchToTargetMemoryLayout
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints)
+BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints, BOOLEAN SwitchToTargetMemoryLayout)
 {
     PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
 
@@ -1170,7 +1281,7 @@ BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoint
         //
         // Set the breakpoint (without removing from list)
         //
-        BreakpointWrite(BreakpointDescriptor);
+        BreakpointWrite(BreakpointDescriptor, SwitchToTargetMemoryLayout);
     }
     else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_DISABLE)
     {
