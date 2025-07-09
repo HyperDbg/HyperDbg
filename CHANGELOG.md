@@ -15,6 +15,8 @@ New release of the HyperDbg Debugger.
 - Added a new mechanism for finding the system-call number based on the running system ([link](https://github.com/HyperDbg/HyperDbg/commit/5d33cb7395c57fd6af170bfed90376598347679c))
 - Added hyperevade transparency project ([link](https://url.hyperdbg.org/hyperevade))
 - Added support to the '.attach' and '.detach' in the debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.attach))([link](https://docs.hyperdbg.org/commands/meta-commands/.detach))
+- Added support to the '.start' command in the VMI mode for the user debugger ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
+- Added support to setting the breakpoint using the 'bp' command in the VMI mode ([link](https://docs.hyperdbg.org/commands/debugging-commands/bp))
 
 ### Changed
 - The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022

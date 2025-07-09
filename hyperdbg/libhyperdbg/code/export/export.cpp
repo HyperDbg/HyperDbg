@@ -283,12 +283,12 @@ hyperdbg_u_pause_debuggee()
  * @param tid The thread ID of the breakpoint
  * @param core_numer The core number of the breakpoint
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_numer)
 {
-    CommandBpRequest(address, pid, tid, core_numer);
+    return CommandBpRequest(address, pid, tid, core_numer);
 }
 
 /**

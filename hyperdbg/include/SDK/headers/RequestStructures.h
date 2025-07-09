@@ -1302,6 +1302,13 @@ typedef struct _DEBUGGEE_BP_PACKET
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;
 
 /**
+ * @brief Debugger size of DEBUGGEE_BP_PACKET
+ *
+ */
+#define SIZEOF_DEBUGGEE_BP_PACKET \
+    sizeof(DEBUGGEE_BP_PACKET)
+
+/**
  * @brief breakpoint modification types
  *
  */

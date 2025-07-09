@@ -200,7 +200,7 @@ hyperdbg_u_pause_debuggee();
 // Set breakpoint
 // Exported functionality of the 'bp' command
 //
-IMPORT_EXPORT_LIBHYPERDBG VOID
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_numer);
 
 //

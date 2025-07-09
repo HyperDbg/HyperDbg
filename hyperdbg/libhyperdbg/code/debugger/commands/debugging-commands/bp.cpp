@@ -14,7 +14,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of the bp command
@@ -44,6 +45,66 @@ CommandBpHelp()
 }
 
 /**
+ * @brief Apply breakpoint on the user debugger
+ * @param BpPacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandBpPerformApplyingBreakpointOnUserDebugger(DEBUGGEE_BP_PACKET * BpPacket)
+{
+    BOOL  Status;
+    ULONG ReturnedLength;
+
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // Check if the debugger is connected to a remote debuggee, this request
+        // is not for the kernel debugger
+        //
+        return FALSE;
+    }
+    else
+    {
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+
+        //
+        // Send IOCTL
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                        // Handle to device
+            IOCTL_SET_BREAKPOINT_IN_USER_DEBUGGER, // IO Control Code (IOCTL)
+            BpPacket,                              // Input Buffer to driver.
+            SIZEOF_DEBUGGEE_BP_PACKET,             // Input buffer length (not used in this case)
+            BpPacket,                              // Output Buffer from driver.
+            SIZEOF_DEBUGGEE_BP_PACKET,             // Length of output buffer in bytes.
+            &ReturnedLength,                       // Bytes placed in buffer.
+            NULL                                   // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+
+            return FALSE;
+        }
+
+        if (BpPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            return TRUE;
+        }
+        else
+        {
+            //
+            // An err occurred, no results
+            //
+            ShowErrorMessage(BpPacket->Result);
+            return FALSE;
+        }
+    }
+}
+
+/**
  * @brief request breakpoint
  *
  * @param Address Address
@@ -51,12 +112,20 @@ CommandBpHelp()
  * @param Tid Thread Id
  * @param CoreNumer Core Number
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
 {
     DEBUGGEE_BP_PACKET BpPacket = {0};
+
+    //
+    // Check if the debugger is connected to a remote debuggee or a user-debugger is active
+    //
+    if (!g_IsSerialConnectedToRemoteDebuggee && !g_ActiveProcessDebuggingState.IsActive)
+    {
+        return FALSE;
+    }
 
     //
     // Set the details for the remote packet
@@ -69,7 +138,7 @@ CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
     //
     // Send the bp packet
     //
-    KdSendBpPacketToDebuggee(&BpPacket);
+    return KdSendBpPacketToDebuggee(&BpPacket);
 }
 
 /**
@@ -104,6 +173,14 @@ CommandBp(vector<CommandToken> CommandTokens, string Command)
                      GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
         CommandBpHelp();
         return;
+    }
+
+    //
+    // If the user is debugging a process, use its pid
+    //
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
     for (auto Section : CommandTokens)
@@ -196,8 +273,7 @@ CommandBp(vector<CommandToken> CommandTokens, string Command)
     //
     if (!SetAddress)
     {
-        ShowMessages(
-            "please specify a correct hex value as the breakpoint address\n\n");
+        ShowMessages("please specify a correct hex value as the breakpoint address\n\n");
         CommandBpHelp();
         return;
     }
@@ -220,15 +296,18 @@ CommandBp(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    if (!g_IsSerialConnectedToRemoteDebuggee)
+    if (!g_IsSerialConnectedToRemoteDebuggee && !g_ActiveProcessDebuggingState.IsActive)
     {
-        ShowMessages("err, setting breakpoints is not possible when you're not "
-                     "connected to a debuggee\n");
+        ShowMessages("setting breakpoints is not possible when you're not connected "
+                     "to a target debuggee (kernel debugger or user debugger)\n");
         return;
     }
 
     //
     // Request breakpoint the bp packet
     //
-    CommandBpRequest(Address, Pid, Tid, CoreNumer);
+    if (!CommandBpRequest(Address, Pid, Tid, CoreNumer))
+    {
+        ShowMessages("err, couldn't set breakpoint\n");
+    }
 }

@@ -228,7 +228,7 @@ CommandPauseRequest();
 VOID
 CommandGRequest();
 
-VOID
+BOOLEAN
 CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer);
 
 VOID
