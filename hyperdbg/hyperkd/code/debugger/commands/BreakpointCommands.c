@@ -813,41 +813,26 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
 BOOLEAN
 BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor, BOOLEAN SwitchToTargetMemoryLayout)
 {
-    CR3_TYPE CurrentProcessCr3 = {0};
-    CR3_TYPE GuestCr3          = {0};
-    BYTE     PreviousByte      = NULL_ZERO;
-    BYTE     BreakpointByte    = 0xcc; // int 3
-
-    //
-    // Find the current process cr3
-    //
-    if (SwitchToTargetMemoryLayout)
-    {
-        GuestCr3.Flags = LayoutGetCr3ByProcessId(BreakpointDescriptor->Pid).Flags;
-    }
-
-    //
-    // Switch to the target process memory layout by using the process id if needed
-    //
-    if (SwitchToTargetMemoryLayout)
-    {
-        CurrentProcessCr3 = SwitchToProcessMemoryLayout(BreakpointDescriptor->Pid);
-    }
+    BYTE PreviousByte   = NULL_ZERO;
+    BYTE BreakpointByte = 0xcc; // int 3
 
     //
     // Check if address is safe (only one byte for 0xcc)
     //
-    if (!CheckAccessValidityAndSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
-    {
-        return FALSE;
-    }
 
-    //
-    // Restore the original process if we switched to the target process memory layout
-    //
     if (SwitchToTargetMemoryLayout)
     {
-        SwitchToPreviousProcess(CurrentProcessCr3);
+        if (!CheckAccessValidityAndSafetyByProcessId(BreakpointDescriptor->Address, sizeof(BYTE), BreakpointDescriptor->Pid))
+        {
+            return FALSE;
+        }
+    }
+    else
+    {
+        if (!CheckAccessValidityAndSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
+        {
+            return FALSE;
+        }
     }
 
     //
@@ -998,7 +983,6 @@ BreakpointGetEntryByAddress(UINT64 Address)
 BOOLEAN
 BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemoryLayout)
 {
-    CR3_TYPE                CurrentProcessCr3    = {0};
     CR3_TYPE                GuestCr3             = {0};
     PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
     BOOLEAN                 IsAddress32Bit       = FALSE;
@@ -1058,28 +1042,23 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemo
     }
 
     //
-    // Switch to the target process memory layout by using the process id if needed
-    //
-    if (SwitchToTargetMemoryLayout)
-    {
-        CurrentProcessCr3 = SwitchToProcessMemoryLayout(BpDescriptorArg->Pid);
-    }
-
-    //
     // Check if address is safe (only one byte for 0xcc)
     //
-    if (!CheckAccessValidityAndSafety(BpDescriptorArg->Address, sizeof(BYTE)))
-    {
-        BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
-        return FALSE;
-    }
-
-    //
-    // Restore the original process if we switched to the target process memory layout
-    //
     if (SwitchToTargetMemoryLayout)
     {
-        SwitchToPreviousProcess(CurrentProcessCr3);
+        if (!CheckAccessValidityAndSafetyByProcessId(BpDescriptorArg->Address, sizeof(BYTE), BpDescriptorArg->Pid))
+        {
+            BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+            return FALSE;
+        }
+    }
+    else
+    {
+        if (!CheckAccessValidityAndSafety(BpDescriptorArg->Address, sizeof(BYTE)))
+        {
+            BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+            return FALSE;
+        }
     }
 
     //

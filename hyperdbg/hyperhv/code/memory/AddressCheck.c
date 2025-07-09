@@ -146,14 +146,15 @@ CheckAddressPhysical(UINT64 PAddr)
 }
 
 /**
- * @brief Check the safety to access the memory
+ * @brief Check the safety to access the memory wrapper
  * @param TargetAddress
  * @param Size
+ * @param ProcessId NULL if the current process is used
  *
  * @return BOOLEAN
  */
 BOOLEAN
-CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
+CheckAccessValidityAndSafetyWrapper(UINT64 TargetAddress, UINT32 Size, UINT32 ProcessId)
 {
     CR3_TYPE GuestCr3;
     UINT64   OriginalCr3;
@@ -173,10 +174,20 @@ CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
         goto Return;
     }
 
-    //
-    // Find the current process cr3
-    //
-    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+    if (ProcessId == NULL_ZERO)
+    {
+        //
+        // Find the current process cr3
+        //
+        GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+    }
+    else
+    {
+        //
+        // Find the target process cr3
+        //
+        GuestCr3.Flags = LayoutGetCr3ByProcessId(ProcessId).Flags;
+    }
 
     //
     // Move to new cr3
@@ -294,6 +305,33 @@ RestoreCr3:
 
 Return:
     return Result;
+}
+
+/**
+ * @brief Check the safety to access the memory
+ * @param TargetAddress
+ * @param Size
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size)
+{
+    return CheckAccessValidityAndSafetyWrapper(TargetAddress, Size, NULL_ZERO);
+}
+
+/**
+ * @brief Check the safety to access the memory by process ID
+ * @param TargetAddress
+ * @param Size
+ * @param ProcessId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CheckAccessValidityAndSafetyByProcessId(UINT64 TargetAddress, UINT32 Size, UINT32 ProcessId)
+{
+    return CheckAccessValidityAndSafetyWrapper(TargetAddress, Size, ProcessId);
 }
 
 /**
