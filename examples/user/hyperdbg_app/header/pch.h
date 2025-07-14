@@ -12,6 +12,11 @@
  */
 #pragma once
 
+ //
+ // Environment headers
+ //
+#include "platform/user/header/Environment.h"
+
 //
 // Windows SDK headers
 //

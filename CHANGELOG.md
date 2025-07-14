@@ -26,6 +26,7 @@ New release of the HyperDbg Debugger.
 - Breakpoint initialization is changed from kernel debugger to regular debugger ([link](https://github.com/HyperDbg/HyperDbg/commit/e5326f895dcddb1adbc873a9fecede7af7eb7651))
 - Fixed the build issue on new Windows SDK for Token structures ([link](https://github.com/HyperDbg/HyperDbg/pull/530))
 - Fixed retrieving valid watching process IDs for the execution trap and user-mode execution prevention
+- Fixed crashing the driver if the hyperlog memory was not properly allocated
 
 ## [0.13.2.0] - 2025-05-26
 New release of the HyperDbg Debugger.

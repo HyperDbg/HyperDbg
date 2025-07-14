@@ -461,22 +461,6 @@ BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId)
             (UINT64)&BreakpointByte,
             sizeof(BYTE));
 
-        //
-        // Check if we should re-enabled IF bit of RFLAGS or not
-        //
-        if (DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf)
-        {
-            RFLAGS Rflags = {0};
-
-            Rflags.AsUInt = VmFuncGetRflags();
-
-            Rflags.InterruptEnableFlag = TRUE;
-
-            VmFuncSetRflags(Rflags.AsUInt);
-
-            DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
-        }
-
         DbgState->SoftwareBreakpointState = NULL;
     }
 
@@ -504,7 +488,6 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     PLIST_ENTRY                      TempList              = 0;
     UINT64                           GuestRipPhysical      = (UINT64)NULL;
     DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext         = {0};
-    RFLAGS                           Rflags                = {0};
     BOOLEAN                          AvoidUnsetMtf         = FALSE;
     BOOLEAN                          IgnoreUserHandling    = FALSE;
 
@@ -636,33 +619,19 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 DbgState->SoftwareBreakpointState = CurrentBreakpointDesc;
 
                 //
-                // Fire and MTF
-                //
-                VmFuncSetMonitorTrapFlag(TRUE);
-                AvoidUnsetMtf = TRUE;
-
-                //
                 // As we want to continue debuggee, the MTF might arrive when the
                 // host finish executing it's time slice; thus, a clock interrupt
                 // or an IPI might be arrived and the next instruction is not what
-                // we expect, because of that we check if the IF (Interrupt enable)
-                // flag of RFLAGS is enabled or not, if enabled then we remove it
-                // to avoid any clock-interrupt or IPI to arrive and the next
-                // instruction is our next instruction in the current execution
-                // context
+                // we expect. The following codes are added because we realized if the execution takes long then
+                // the execution might be switched to another routines, thus, MTF might conclude on
+                // another routine and we might (and will) trigger the same instruction soon
                 //
-                Rflags.AsUInt = VmFuncGetRflags();
+                VmFuncEnableMtfAndChangeExternalInterruptState(DbgState->CoreId);
 
-                if (Rflags.InterruptEnableFlag)
-                {
-                    Rflags.InterruptEnableFlag = FALSE;
-                    VmFuncSetRflags(Rflags.AsUInt);
-
-                    //
-                    // An indicator to restore RFLAGS if to enabled state
-                    //
-                    DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf = TRUE;
-                }
+                //
+                // Avoid unsetting MTF
+                //
+                AvoidUnsetMtf = TRUE;
             }
 
             //

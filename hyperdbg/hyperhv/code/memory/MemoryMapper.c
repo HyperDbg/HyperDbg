@@ -960,6 +960,8 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
             PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessId((PVOID)AddressToRead, TargetProcessId);
         }
 
+        break;
+
     default:
 
         return NULL64_ZERO;
