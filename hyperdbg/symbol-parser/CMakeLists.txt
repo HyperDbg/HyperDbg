@@ -14,4 +14,4 @@ include_directories(
     "../dependencies"
     "."
 )
-add_library(symbol-parser SHARED ${SourceFiles})
+add_library(symbol_parser SHARED ${SourceFiles})

@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+bool startHttpServer();
+
 //
 // Support Detection
 //

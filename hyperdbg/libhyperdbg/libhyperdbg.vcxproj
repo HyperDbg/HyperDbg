@@ -209,6 +209,7 @@
     <ClCompile Include="code\debugger\user-level\ud.cpp" />
     <ClCompile Include="code\debugger\user-level\user-listening.cpp" />
     <ClCompile Include="code\export\export.cpp" />
+    <ClCompile Include="code\export\mcp.cpp" />
     <ClCompile Include="code\hwdbg\hwdbg-interpreter.cpp" />
     <ClCompile Include="code\hwdbg\hwdbg-scripts.cpp" />
     <ClCompile Include="code\objects\objects.cpp" />

@@ -12,6 +12,7 @@ set(SourceFiles
     "header/globals.h"
     "header/help.h"
     "header/hwdbg-interpreter.h"
+    "header/hwdbg-scripts.h"
     "header/inipp.h"
     "header/install.h"
     "header/kd.h"
@@ -22,11 +23,13 @@ set(SourceFiles
     "header/pe-parser.h"
     "header/rev-ctrl.h"
     "header/script-engine.h"
+    "header/steppings.h"
     "header/symbol.h"
     "header/tests.h"
     "header/transparency.h"
     "header/ud.h"
     "pch.h"
+    "pci-id.h"
     "../script-eval/code/Functions.c"
     "../script-eval/code/Keywords.c"
     "../script-eval/code/PseudoRegisters.c"
@@ -34,17 +37,24 @@ set(SourceFiles
     "../script-eval/code/ScriptEngineEval.c"
     "code/common/spinlock.cpp"
     "code/debugger/commands/debugging-commands/a.cpp"
+    "code/debugger/commands/debugging-commands/continue.cpp"
     "code/debugger/commands/debugging-commands/core.cpp"
     "code/debugger/commands/debugging-commands/dt-struct.cpp"
+    "code/debugger/commands/debugging-commands/gg.cpp"
     "code/debugger/commands/debugging-commands/gu.cpp"
     "code/debugger/commands/debugging-commands/k.cpp"
     "code/debugger/commands/debugging-commands/preactivate.cpp"
     "code/debugger/commands/debugging-commands/prealloc.cpp"
+    "code/debugger/commands/extension-commands/apic.cpp"
     "code/debugger/commands/extension-commands/crwrite.cpp"
+    "code/debugger/commands/extension-commands/idt.cpp"
+    "code/debugger/commands/extension-commands/ioapic.cpp"
+    "code/debugger/commands/extension-commands/pcitree.cpp"
     "code/debugger/commands/extension-commands/rev.cpp"
     "code/debugger/commands/extension-commands/trace.cpp"
     "code/debugger/commands/extension-commands/track.cpp"
     "code/debugger/commands/extension-commands/mode.cpp"
+    "code/debugger/commands/hwdbg-commands/hw.cpp"
     "code/debugger/commands/hwdbg-commands/hw_clk.cpp"
     "code/debugger/commands/meta-commands/dump.cpp"
     "code/debugger/commands/meta-commands/kill.cpp"
@@ -57,6 +67,7 @@ set(SourceFiles
     "code/debugger/core/break-control.cpp"
     "code/debugger/core/debugger.cpp"
     "code/debugger/core/interpreter.cpp"
+    "code/debugger/core/steppings.cpp"
     "code/debugger/kernel-level/kd.cpp"
     "code/debugger/kernel-level/kernel-listening.cpp"
     "code/debugger/misc/assembler.cpp"
@@ -70,7 +81,9 @@ set(SourceFiles
     "code/debugger/user-level/ud.cpp"
     "code/debugger/user-level/user-listening.cpp"
     "code/export/export.cpp"
+    "code/export/mcp.cpp"
     "code/hwdbg/hwdbg-interpreter.cpp"
+    "code/hwdbg/hwdbg-scripts.cpp"
     "code/objects/objects.cpp"
     "code/rev/rev-ctrl.cpp"
     "pch.cpp"
@@ -154,10 +167,23 @@ set(SourceFiles
     "code/debugger/tests/tests.cpp"
     "code/debugger/transparency/gaussian-rng.cpp"
     "code/debugger/transparency/transparency.cpp"
+    "pci-id.cpp"
+    "pcicam.cpp"
     "code/assembly/asm-vmx-checks.asm"
 )
+
+set_source_files_properties(../script-eval/code/Functions.c PROPERTIES LANGUAGE CXX)
+set_source_files_properties(../script-eval/code/Keywords.c PROPERTIES LANGUAGE CXX)
+set_source_files_properties(../script-eval/code/PseudoRegisters.c PROPERTIES LANGUAGE CXX)
+set_source_files_properties(../script-eval/code/Regs.c PROPERTIES LANGUAGE CXX)
+set_source_files_properties(../script-eval/code/ScriptEngineEval.c PROPERTIES LANGUAGE CXX)
+
+add_definitions(
+        -DZYAN_NO_LIBC
+)
+
+
 include_directories(
-    "../dependencies/phnt"
     "../dependencies"
     "../dependencies/zydis/dependencies/zycore/include"
     "../include"

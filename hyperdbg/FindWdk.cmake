@@ -13,7 +13,7 @@
 # - `WDK_ROOT` -- where WDK is installed
 # - `WDK_VERSION` -- the version of the selected WDK
 # - `WDK_WINVER` -- the WINVER used for kernel drivers and libraries
-#        (default value is `0x0601` and can be changed per target or globally)
+#        (default value is `0x0602` and can be changed per target or globally)
 # - `WDK_NTDDI_VERSION` -- the NTDDI_VERSION used for kernel drivers and libraries,
 #                          if not set, the value will be automatically calculated by WINVER
 #        (default value is left blank and can be changed per target or globally)
@@ -56,7 +56,7 @@ endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(WDK REQUIRED_VARS WDK_LATEST_NTDDK_FILE)
 
-if (NOT WDK_LATEST_NTDDK_FILE)
+if(NOT WDK_LATEST_NTDDK_FILE)
     return()
 endif()
 
@@ -82,8 +82,35 @@ endif()
 message(STATUS "WDK_ROOT: " ${WDK_ROOT})
 message(STATUS "WDK_VERSION: " ${WDK_VERSION})
 
-set(WDK_WINVER "0x0a01" CACHE STRING "Default WINVER for WDK targets")
+#C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\sdkddkver.h
+#define NTDDI_WIN7                          0x06010000
+#define NTDDI_WIN8                          0x06020000
+#define NTDDI_WINBLUE                       0x06030000
+#define NTDDI_WINTHRESHOLD                  0x0A000000
+#define NTDDI_WIN10                         0x0A000000
+#define NTDDI_WIN10_TH2                     0x0A000001
+#define NTDDI_WIN10_RS1                     0x0A000002
+#define NTDDI_WIN10_RS2                     0x0A000003
+#define NTDDI_WIN10_RS3                     0x0A000004
+#define NTDDI_WIN10_RS4                     0x0A000005
+#define NTDDI_WIN10_RS5                     0x0A000006
+#define NTDDI_WIN10_19H1                    0x0A000007
+#define NTDDI_WIN10_VB                      0x0A000008
+#define NTDDI_WIN10_MN                      0x0A000009
+#define NTDDI_WIN10_FE                      0x0A00000A
+#define NTDDI_WIN10_CO                      0x0A00000B
+#define NTDDI_WIN10_NI                      0x0A00000C
+#define NTDDI_WIN10_CU                      0x0A00000D
+#define NTDDI_WIN11_ZN                      0x0A00000E
+#define NTDDI_WIN11_GA                      0x0A00000F
+#define NTDDI_WIN11_GE                      0x0A000010
+
+#define WDK_NTDDI_VERSION                   NTDDI_WIN11_GE
+
+set(WDK_WINVER "0x0A000010" CACHE STRING "Default WINVER for WDK targets")
 set(WDK_NTDDI_VERSION "" CACHE STRING "Specified NTDDI_VERSION for WDK targets if needed")
+#define NTDDI_WIN8                          0x06020000
+add_definitions(-DNTDDI_VERSION=NTDDI_WIN11_GE)
 
 set(WDK_ADDITIONAL_FLAGS_FILE "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/wdkflags.h")
 file(WRITE ${WDK_ADDITIONAL_FLAGS_FILE} "#pragma runtime_checks(\"suc\", off)")
@@ -96,6 +123,7 @@ set(WDK_COMPILE_FLAGS
     "/kernel"  # create kernel mode binary
     "/FIwarning.h" # disable warnings in WDK headers
     "/FI${WDK_ADDITIONAL_FLAGS_FILE}" # include file to disable RTC
+	"/Oi" # enable intrinsic functions so that you can use functions like _disable or _enable
     )
 
 set(WDK_COMPILE_DEFINITIONS "WINNT=1")
@@ -104,8 +132,11 @@ set(WDK_COMPILE_DEFINITIONS_DEBUG "MSC_NOOPT;DEPRECATE_DDK_FUNCTIONS=1;DBG=1")
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
     list(APPEND WDK_COMPILE_DEFINITIONS "_X86_=1;i386=1;STD_CALL")
     set(WDK_PLATFORM "x86")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 8 AND CMAKE_CXX_COMPILER_ARCHITECTURE_ID STREQUAL "ARM64")
+    list(APPEND WDK_COMPILE_DEFINITIONS "_ARM64_;ARM64;_USE_DECLSPECS_FOR_SAL=1;STD_CALL")
+    set(WDK_PLATFORM "arm64")
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    list(APPEND WDK_COMPILE_DEFINITIONS "_WIN64;_AMD64_;AMD64")
+    list(APPEND WDK_COMPILE_DEFINITIONS "_AMD64_;AMD64")
     set(WDK_PLATFORM "x64")
 else()
     message(FATAL_ERROR "Unsupported architecture")
@@ -130,7 +161,7 @@ foreach(LIBRARY IN LISTS WDK_LIBRARIES)
     get_filename_component(LIBRARY_NAME ${LIBRARY} NAME_WE)
     string(TOUPPER ${LIBRARY_NAME} LIBRARY_NAME)
     add_library(WDK::${LIBRARY_NAME} INTERFACE IMPORTED)
-    set_property(TARGET WDK::${LIBRARY_NAME} PROPERTY INTERFACE_LINK_LIBRARIES  ${LIBRARY})
+    set_property(TARGET WDK::${LIBRARY_NAME} PROPERTY INTERFACE_LINK_LIBRARIES ${LIBRARY})
 endforeach(LIBRARY)
 unset(WDK_LIBRARIES)
 
@@ -155,7 +186,35 @@ function(wdk_add_driver _target)
         "${WDK_ROOT}/Include/${WDK_INC_VERSION}/km/crt"
         )
 
-    target_link_libraries(${_target} WDK::NTOSKRNL WDK::HAL WDK::BUFFEROVERFLOWK WDK::WMILIB)
+    #target_link_libraries(${_target} WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
+    #$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;
+    #$(DDK_LIB_PATH)hal.lib;
+    #$(DDK_LIB_PATH)wmilib.lib;
+    #$(KMDF_VER_PATH)\WdfLdr.lib;
+    #$(KMDF_VER_PATH)\WdfDriverEntry.lib;
+    #$(DDK_LIB_PATH)\wdmsec.lib;
+    #$(DDK_LIB_PATH)\ndis.lib;
+    #$(DDK_LIB_PATH)\fwpkclnt.lib;
+    #$(SDK_LIB_PATH)\uuid.lib
+    target_link_libraries(${_target}
+            WDK::NTOSKRNL
+            WDK::HAL
+            WDK::BUFFEROVERFLOWK
+            WDK::WMILIB
+            WDK::NDIS
+            WDK::FWPKCLNT
+            WDK::WDMSEC
+    )
+
+    if(WDK::BUFFEROVERFLOWK)
+        target_link_libraries(${_target} WDK::BUFFEROVERFLOWK) # to support Windows 7 and Vista
+    else()
+        target_link_libraries(${_target} WDK::BUFFEROVERFLOWFASTFAILK)
+    endif()
+
+    if(CMAKE_CXX_COMPILER_ARCHITECTURE_ID STREQUAL "ARM64")
+        target_link_libraries(${_target} "arm64rt.lib")
+    endif()
 
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_link_libraries(${_target} WDK::MEMCMP)
@@ -170,13 +229,13 @@ function(wdk_add_driver _target)
 
         if(CMAKE_SIZEOF_VOID_P EQUAL 4)
             set_property(TARGET ${_target} APPEND_STRING PROPERTY LINK_FLAGS "/ENTRY:FxDriverEntry@8")
-        elseif(CMAKE_SIZEOF_VOID_P  EQUAL 8)
+        elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
             set_property(TARGET ${_target} APPEND_STRING PROPERTY LINK_FLAGS "/ENTRY:FxDriverEntry")
         endif()
     else()
         if(CMAKE_SIZEOF_VOID_P EQUAL 4)
             set_property(TARGET ${_target} APPEND_STRING PROPERTY LINK_FLAGS "/ENTRY:GsDriverEntry@8")
-        elseif(CMAKE_SIZEOF_VOID_P  EQUAL 8)
+        elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
             set_property(TARGET ${_target} APPEND_STRING PROPERTY LINK_FLAGS "/ENTRY:GsDriverEntry")
         endif()
     endif()
@@ -200,8 +259,6 @@ function(wdk_add_library _target)
         "${WDK_ROOT}/Include/${WDK_INC_VERSION}/km"
         "${WDK_ROOT}/Include/${WDK_INC_VERSION}/km/crt"
         )
-
-    target_link_libraries(${_target} WDK::NTOSKRNL WDK::HAL WDK::WMILIB)
 
     if(DEFINED WDK_KMDF)
         target_include_directories(${_target} SYSTEM PRIVATE "${WDK_ROOT}/Include/wdf/kmdf/${WDK_KMDF}")

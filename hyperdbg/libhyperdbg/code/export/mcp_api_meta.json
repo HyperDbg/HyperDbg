@@ -1,0 +1,631 @@
+[
+ {
+  "Name": "VmxSupportDetection",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "CpuReadVendorString",
+  "Params": [
+   {
+    "Name": "vendor_string",
+    "Type": "CHAR *"
+   }
+  ],
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "HyperDbgLoadVmmModule",
+  "Params": null,
+  "ReturnType": "INT"
+ },
+ {
+  "Name": "HyperDbgUnloadVmm",
+  "Params": null,
+  "ReturnType": "INT"
+ },
+ {
+  "Name": "HyperDbgInstallVmmDriver",
+  "Params": null,
+  "ReturnType": "INT"
+ },
+ {
+  "Name": "HyperDbgUninstallVmmDriver",
+  "Params": null,
+  "ReturnType": "INT"
+ },
+ {
+  "Name": "HyperDbgStopVmmDriver",
+  "Params": null,
+  "ReturnType": "INT"
+ },
+ {
+  "Name": "HyperDbgInterpreter",
+  "Params": [
+   {
+    "Name": "command",
+    "Type": "CHAR *"
+   }
+  ],
+  "ReturnType": "INT"
+ },
+ {
+  "Name": "HyperDbgTestCommandParser",
+  "Params": [
+   {
+    "Name": "command",
+    "Type": "CHAR *"
+   },
+   {
+    "Name": "number_of_tokens",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "tokens_list",
+    "Type": "CHAR **"
+   },
+   {
+    "Name": "failed_token_num",
+    "Type": "UINT32 *"
+   },
+   {
+    "Name": "failed_token_position",
+    "Type": "UINT32 *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgTestCommandParserShowTokens",
+  "Params": [
+   {
+    "Name": "command",
+    "Type": "CHAR *"
+   }
+  ],
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "HyperDbgShowSignature",
+  "Params": null,
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "SetTextMessageCallback",
+  "Params": null,
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "SetTextMessageCallbackUsingSharedBuffer",
+  "Params": null,
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "UnsetTextMessageCallback",
+  "Params": null,
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "ScriptReadFileAndExecuteCommandline",
+  "Params": [
+   {
+    "Name": "argc",
+    "Type": "INT"
+   },
+   {
+    "Name": "argv",
+    "Type": "CHAR *"
+   }
+  ],
+  "ReturnType": "INT"
+ },
+ {
+  "Name": "ContinuePreviousCommand",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "CheckMultilineCommand",
+  "Params": [
+   {
+    "Name": "current_command",
+    "Type": "CHAR *"
+   },
+   {
+    "Name": "reset",
+    "Type": "BOOLEAN"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "ConnectLocalDebugger",
+  "Params": null,
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "ConnectRemoteDebugger",
+  "Params": [
+   {
+    "Name": "ip",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "port",
+    "Type": "const CHAR *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "Continue",
+  "Params": null,
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "Pause",
+  "Params": null,
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "SetBreakPoint",
+  "Params": [
+   {
+    "Name": "address",
+    "Type": "UINT64"
+   },
+   {
+    "Name": "pid",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "tid",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "core_numer",
+    "Type": "UINT32"
+   }
+  ],
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "SetCustomDriverPath",
+  "Params": [
+   {
+    "Name": "driver_file_path",
+    "Type": "CHAR *"
+   },
+   {
+    "Name": "driver_name",
+    "Type": "CHAR *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "UseDefaultDriverPath",
+  "Params": null,
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "HyperDbgReadMemory",
+  "Params": [
+   {
+    "Name": "target_address",
+    "Type": "UINT64"
+   },
+   {
+    "Name": "memory_type",
+    "Type": "DEBUGGER_READ_MEMORY_TYPE"
+   },
+   {
+    "Name": "reading_Type",
+    "Type": "DEBUGGER_READ_READING_TYPE"
+   },
+   {
+    "Name": "pid",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "size",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "get_address_mode",
+    "Type": "BOOLEAN"
+   },
+   {
+    "Name": "address_mode",
+    "Type": "DEBUGGER_READ_MEMORY_ADDRESS_MODE *"
+   },
+   {
+    "Name": "target_buffer_to_store",
+    "Type": "BYTE *"
+   },
+   {
+    "Name": "return_length",
+    "Type": "UINT32 *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgShowMemoryOrDisassemble",
+  "Params": [
+   {
+    "Name": "style",
+    "Type": "DEBUGGER_SHOW_MEMORY_STYLE"
+   },
+   {
+    "Name": "address",
+    "Type": "UINT64"
+   },
+   {
+    "Name": "memory_type",
+    "Type": "DEBUGGER_READ_MEMORY_TYPE"
+   },
+   {
+    "Name": "reading_type",
+    "Type": "DEBUGGER_READ_READING_TYPE"
+   },
+   {
+    "Name": "pid",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "size",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "dt_details",
+    "Type": "PDEBUGGER_DT_COMMAND_OPTIONS"
+   }
+  ],
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "HyperDbgReadAllRegisters",
+  "Params": [
+   {
+    "Name": "guest_registers",
+    "Type": "GUEST_REGS *"
+   },
+   {
+    "Name": "extra_registers",
+    "Type": "GUEST_EXTRA_REGISTERS *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgReadTargetRegister",
+  "Params": [
+   {
+    "Name": "register_id",
+    "Type": "REGS_ENUM"
+   },
+   {
+    "Name": "target_register",
+    "Type": "UINT64 *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgWriteTargetRegister",
+  "Params": [
+   {
+    "Name": "register_id",
+    "Type": "REGS_ENUM"
+   },
+   {
+    "Name": "value",
+    "Type": "UINT64"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgRegisterShowAll",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgRegisterShowTargetRegister",
+  "Params": [
+   {
+    "Name": "register_id",
+    "Type": "REGS_ENUM"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgWriteMemory",
+  "Params": [
+   {
+    "Name": "destination_address",
+    "Type": "PVOID"
+   },
+   {
+    "Name": "memory_type",
+    "Type": "DEBUGGER_EDIT_MEMORY_TYPE"
+   },
+   {
+    "Name": "process_id",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "source_address",
+    "Type": "PVOID"
+   },
+   {
+    "Name": "number_of_bytes",
+    "Type": "UINT32"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "DebuggerGetKernelBase",
+  "Params": null,
+  "ReturnType": "UINT64"
+ },
+ {
+  "Name": "HyperDbgDebugRemoteDeviceUsingComPort",
+  "Params": [
+   {
+    "Name": "port_name",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "baudrate",
+    "Type": "DWORD"
+   },
+   {
+    "Name": "pause_after_connection",
+    "Type": "BOOLEAN"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgDebugRemoteDeviceUsingNamedPipe",
+  "Params": [
+   {
+    "Name": "named_pipe",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "pause_after_connection",
+    "Type": "BOOLEAN"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgDebugCloseRemoteDebugger",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgDebugCurrentDeviceUsingComPort",
+  "Params": [
+   {
+    "Name": "port_name",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "baudrate",
+    "Type": "DWORD"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "StartProcess",
+  "Params": [
+   {
+    "Name": "path",
+    "Type": "const WCHAR *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "StartProcessWithArgs",
+  "Params": [
+   {
+    "Name": "path",
+    "Type": "const WCHAR *"
+   },
+   {
+    "Name": "arguments",
+    "Type": "const WCHAR *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgAssembleGetLength",
+  "Params": [
+   {
+    "Name": "assembly_code",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "start_address",
+    "Type": "UINT64"
+   },
+   {
+    "Name": "length",
+    "Type": "UINT32 *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgAssemble",
+  "Params": [
+   {
+    "Name": "assembly_code",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "start_address",
+    "Type": "UINT64"
+   },
+   {
+    "Name": "buffer_to_store_assembled_data",
+    "Type": "PVOID"
+   },
+   {
+    "Name": "buffer_size",
+    "Type": "UINT32"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "SetupPathForFileName",
+  "Params": [
+   {
+    "Name": "filename",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "file_location",
+    "Type": "CHAR *"
+   },
+   {
+    "Name": "buffer_len",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "check_file_existence",
+    "Type": "BOOLEAN"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "SteppingInstrumentationStepIn",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "SteppingRegularStepIn",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "SteppingStepOver",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "SteppingInstrumentationStepInForTracking",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "SteppingStepOverForGu",
+  "Params": [
+   {
+    "Name": "last_instruction",
+    "Type": "BOOLEAN"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgGetLocalApic",
+  "Params": [
+   {
+    "Name": "local_apic",
+    "Type": "PLAPIC_PAGE"
+   },
+   {
+    "Name": "is_using_x2apic",
+    "Type": "BOOLEAN *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgGetIoApic",
+  "Params": [
+   {
+    "Name": "io_apic",
+    "Type": "IO_APIC_ENTRY_PACKETS *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgGetIdtEntry",
+  "Params": [
+   {
+    "Name": "idt_packet",
+    "Type": "INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS *"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HwdbgScriptRunScript",
+  "Params": [
+   {
+    "Name": "script",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "instance_filepath_to_read",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "hardware_script_file_path_to_save",
+    "Type": "const CHAR *"
+   },
+   {
+    "Name": "initial_bram_buffer_size",
+    "Type": "UINT32"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "ScriptEngineWrapperTestParserForHwdbg",
+  "Params": [
+   {
+    "Name": "Expr",
+    "Type": "const char *"
+   }
+  ],
+  "ReturnType": "VOID"
+ },
+ {
+  "Name": "HyperDbgEnableTransparentMode",
+  "Params": [
+   {
+    "Name": "ProcessId",
+    "Type": "UINT32"
+   },
+   {
+    "Name": "ProcessName",
+    "Type": "CHAR *"
+   },
+   {
+    "Name": "IsProcessId",
+    "Type": "BOOLEAN"
+   }
+  ],
+  "ReturnType": "BOOLEAN"
+ },
+ {
+  "Name": "HyperDbgDisableTransparentMode",
+  "Params": null,
+  "ReturnType": "BOOLEAN"
+ }
+]
