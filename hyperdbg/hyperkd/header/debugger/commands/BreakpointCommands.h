@@ -29,10 +29,11 @@ VOID
 BreakpointRemoveAllBreakpoints();
 
 BOOLEAN
-BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg);
+BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemoryLayout);
 
 BOOLEAN
-BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints);
+BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints,
+                       BOOLEAN                            SwitchToTargetMemoryLayout);
 
 BOOLEAN
 BreakpointHandleBreakpoints(UINT32 CoreId);

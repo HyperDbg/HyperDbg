@@ -15,6 +15,8 @@ New release of the HyperDbg Debugger.
 - Added a new mechanism for finding the system-call number based on the running system ([link](https://github.com/HyperDbg/HyperDbg/commit/5d33cb7395c57fd6af170bfed90376598347679c))
 - Added hyperevade transparency project ([link](https://url.hyperdbg.org/hyperevade))
 - Added support to the '.attach' and '.detach' in the debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.attach))([link](https://docs.hyperdbg.org/commands/meta-commands/.detach))
+- Added support to the '.start' command in the VMI mode for the user debugger ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
+- Added support to setting the breakpoint using the 'bp' command in the VMI mode ([link](https://docs.hyperdbg.org/commands/debugging-commands/bp))
 
 ### Changed
 - The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022
@@ -24,6 +26,7 @@ New release of the HyperDbg Debugger.
 - Breakpoint initialization is changed from kernel debugger to regular debugger ([link](https://github.com/HyperDbg/HyperDbg/commit/e5326f895dcddb1adbc873a9fecede7af7eb7651))
 - Fixed the build issue on new Windows SDK for Token structures ([link](https://github.com/HyperDbg/HyperDbg/pull/530))
 - Fixed retrieving valid watching process IDs for the execution trap and user-mode execution prevention
+- Fixed crashing the driver if the hyperlog memory was not properly allocated
 
 ## [0.13.2.0] - 2025-05-26
 New release of the HyperDbg Debugger.

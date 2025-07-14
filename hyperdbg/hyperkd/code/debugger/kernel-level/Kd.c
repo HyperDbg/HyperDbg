@@ -2954,8 +2954,10 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 //
                 // Perform the action
+                // This is on the vmx-root mode for the kernel debugger, thus, no need to switch
+                // to the target process memory layout as we are already in it
                 //
-                BreakpointAddNew(BpPacket);
+                BreakpointAddNew(BpPacket, FALSE);
 
                 //
                 // Send the result of the 'bp' back to the debuggee
@@ -3069,8 +3071,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 //
                 // Perform the action
+                // No need to switch to the target process memory layout as we are already in it
                 //
-                BreakpointListOrModify(BpListOrModifyPacket);
+                BreakpointListOrModify(BpListOrModifyPacket, FALSE);
 
                 //
                 // Send the result of modify or list breakpoints to the debuggee

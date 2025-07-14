@@ -382,8 +382,11 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
 
     //
     // Register the breakpoint
+    // Note that, even though it's a user-mode breakpoint, we are currently
+    // in the memory layout of the target process, thus, no switching memory
+    // layout is needed
     //
-    if (!BreakpointAddNew(&BpRequest))
+    if (!BreakpointAddNew(&BpRequest, FALSE))
     {
         LogError("Err, unable to set breakpoint on the entrypoint module");
         return FALSE;

@@ -15,8 +15,9 @@
 //					Functions					//
 //////////////////////////////////////////////////
 
-CR3_TYPE
-LayoutGetCr3ByProcessId(_In_ UINT32 ProcessId);
+//
+// Some functions are exported on VMM exports
+//
 
 UINT64
 LayoutGetSystemDirectoryTableBase();
