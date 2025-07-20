@@ -739,6 +739,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     PML3TemplateLarge.ReadAccess    = 1;
     PML3TemplateLarge.WriteAccess   = 1;
     PML3TemplateLarge.ExecuteAccess = 1;
+    PML3TemplateLarge.MemoryType    = MEMORY_TYPE_UNCACHEABLE;
 
     //
     // Copy the template into each of the 512 PML3 entry slots for the original entries
@@ -777,9 +778,9 @@ EptAllocateAndCreateIdentityPageTable(VOID)
             // NOTE: We do *not* manage them since they are reserved for out of 512 GB MMIO ranges.
             // The first 512GB is used for the main system memory and the rest is reserved for MMIO.
             //
-            PageTable->PML3_RSVD[i][j].PageFrameNumber = ((SIZE_1_GB * 512) +                        // First 512GB is used for system memory
-                                                          (i * 512 * SIZE_1_GB) + (j * SIZE_1_GB)) / // MMIO ranges
-                                                         PAGE_SIZE;                                  // Convert to page frame number
+            PageTable->PML3_RSVD[i][j].PageFrameNumber = (SIZE_512_GB +                          // First 512GB is used for system memory
+                                                          (i * SIZE_512_GB) + (j * SIZE_1_GB)) / // MMIO ranges
+                                                         PAGE_SIZE;                              // Convert to page frame number
         }
     }
 
