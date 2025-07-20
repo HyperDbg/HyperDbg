@@ -667,7 +667,8 @@ PVMM_EPT_PAGE_TABLE
 EptAllocateAndCreateIdentityPageTable(VOID)
 {
     PVMM_EPT_PAGE_TABLE PageTable;
-    EPT_PML3_POINTER    RWXTemplate;
+    EPT_PML3_POINTER    PML3Template;
+    EPT_PML3_ENTRY      PML3TemplateLarge;
     EPT_PML2_ENTRY      PML2EntryTemplate;
     SIZE_T              EntryGroupIndex;
     SIZE_T              EntryIndex;
@@ -689,13 +690,32 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     }
 
     //
-    // Mark the first 512GB PML4 entry as present, which allows us to manage up
-    // to 512GB of discrete paging structures.
+    // Create the template for the first entry in the PML4
     //
-    PageTable->PML4[0].PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML3[0]) / PAGE_SIZE;
-    PageTable->PML4[0].ReadAccess      = 1;
-    PageTable->PML4[0].WriteAccess     = 1;
-    PageTable->PML4[0].ExecuteAccess   = 1;
+    PageTable->PML4[0].ReadAccess    = 1;
+    PageTable->PML4[0].WriteAccess   = 1;
+    PageTable->PML4[0].ExecuteAccess = 1;
+
+    //
+    // Copy the template into each of the 512 PML4 entry slots
+    //
+    __stosq((SIZE_T *)&PageTable->PML4[1], PageTable->PML4[0].AsUInt, VMM_EPT_PML4E_COUNT - 1);
+
+    for (int i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    {
+        if (i == 0)
+        {
+            //
+            // Mark the first 512GB PML4 entry as present, which allows us to manage up
+            // to 512GB of discrete paging structures and also set other reserved bits
+            //
+            PageTable->PML4[0].PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML3[0]) / PAGE_SIZE;
+        }
+        else
+        {
+            PageTable->PML4[i].PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML3_RSVD[i - 1][0]) / PAGE_SIZE;
+        }
+    }
 
     //
     // Now mark each 1GB PML3 entry as RWX and map each to their PML2 entry
@@ -704,20 +724,34 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     //
     // Ensure stack memory is cleared
     //
-    RWXTemplate.AsUInt = 0;
+    PML3Template.AsUInt      = 0;
+    PML3TemplateLarge.AsUInt = 0;
 
     //
     // Set up one 'template' RWX PML3 entry and copy it into each of the 512 PML3 entries
     // Using the same method as SimpleVisor for copying each entry using intrinsics.
     //
-    RWXTemplate.ReadAccess    = 1;
-    RWXTemplate.WriteAccess   = 1;
-    RWXTemplate.ExecuteAccess = 1;
+    PML3Template.ReadAccess    = 1;
+    PML3Template.WriteAccess   = 1;
+    PML3Template.ExecuteAccess = 1;
+
+    PML3TemplateLarge.LargePage     = 1;
+    PML3TemplateLarge.ReadAccess    = 1;
+    PML3TemplateLarge.WriteAccess   = 1;
+    PML3TemplateLarge.ExecuteAccess = 1;
 
     //
-    // Copy the template into each of the 512 PML3 entry slots
+    // Copy the template into each of the 512 PML3 entry slots for the original entries
     //
-    __stosq((SIZE_T *)&PageTable->PML3[0], RWXTemplate.AsUInt, VMM_EPT_PML3E_COUNT);
+    __stosq((SIZE_T *)&PageTable->PML3[0], PML3Template.AsUInt, VMM_EPT_PML3E_COUNT);
+
+    //
+    // Copt the template into each of the 512 PML3 entry slots for the reserved entries
+    //
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
+    {
+        __stosq((SIZE_T *)&PageTable->PML3_RSVD[i][0], PML3TemplateLarge.AsUInt, VMM_EPT_PML3E_COUNT);
+    }
 
     //
     // For each of the 512 PML3 entries
@@ -729,6 +763,24 @@ EptAllocateAndCreateIdentityPageTable(VOID)
         // NOTE: We do *not* manage any PML1 (4096 byte) entries and do not allocate them.
         //
         PageTable->PML3[EntryIndex].PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML2[EntryIndex][0]) / PAGE_SIZE;
+    }
+
+    //
+    // For each of the 512 PML3 reserved entries for reserved PML3 entries
+    //
+    for (int i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
+    {
+        for (size_t j = 0; j < VMM_EPT_PML3E_COUNT; j++)
+        {
+            //
+            // Map the 1GB PML3 reserved entry to 512 PML3 (1GB) entries to describe each large page.
+            // NOTE: We do *not* manage them since they are reserved for out of 512 GB MMIO ranges.
+            // The first 512GB is used for the main system memory and the rest is reserved for MMIO.
+            //
+            PageTable->PML3_RSVD[i][j].PageFrameNumber = ((SIZE_1_GB * 512) +                        // First 512GB is used for system memory
+                                                          (i * 512 * SIZE_1_GB) + (j * SIZE_1_GB)) / // MMIO ranges
+                                                         PAGE_SIZE;                                  // Convert to page frame number
+        }
     }
 
     PML2EntryTemplate.AsUInt = 0;

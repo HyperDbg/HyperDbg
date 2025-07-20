@@ -31,6 +31,12 @@
 #define SIZE_2_MB ((SIZE_T)(512 * PAGE_SIZE))
 
 /**
+ * @brief Integer 1GB
+ *
+ */
+#define SIZE_1_GB ((SIZE_T)(512 * SIZE_2_MB))
+
+/**
  * @brief Offset into the 1st paging structure (4096 byte)
  *
  */
