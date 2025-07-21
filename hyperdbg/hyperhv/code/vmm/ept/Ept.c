@@ -729,7 +729,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
 
     //
     // Set up one 'template' RWX PML3 entry and copy it into each of the 512 PML3 entries
-    // Using the same method as SimpleVisor for copying each entry using intrinsics.
+    // Using the same method as SimpleVisor for copying each entry using intrinsics
     //
     PML3Template.ReadAccess    = 1;
     PML3Template.WriteAccess   = 1;
@@ -760,8 +760,8 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     for (EntryIndex = 0; EntryIndex < VMM_EPT_PML3E_COUNT; EntryIndex++)
     {
         //
-        // Map the 1GB PML3 entry to 512 PML2 (2MB) entries to describe each large page.
-        // NOTE: We do *not* manage any PML1 (4096 byte) entries and do not allocate them.
+        // Map the 1GB PML3 entry to 512 PML2 (2MB) entries to describe each large page
+        // NOTE: We do *not* manage any PML1 (4096 byte) entries and do not allocate them
         //
         PageTable->PML3[EntryIndex].PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML2[EntryIndex][0]) / PAGE_SIZE;
     }
@@ -769,21 +769,24 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     //
     // For each of the 512 PML3 reserved entries for reserved PML3 entries
     //
-    for (int i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
+    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
     {
         for (size_t j = 0; j < VMM_EPT_PML3E_COUNT; j++)
         {
             //
-            // Map the 1GB PML3 reserved entry to 512 PML3 (1GB) entries to describe each large page.
-            // NOTE: We do *not* manage them since they are reserved for out of 512 GB MMIO ranges.
-            // The first 512GB is used for the main system memory and the rest is reserved for MMIO.
+            // Map the 1GB PML3 reserved entry to 512 PML3 (1GB) entries to describe each large page
+            // NOTE: We do *not* manage them since they are reserved for out of 512 GB MMIO ranges
+            // The first 512GB is used for the main system memory and the rest is reserved for MMIO
             //
-            PageTable->PML3_RSVD[i][j].PageFrameNumber = (SIZE_512_GB +                          // First 512GB is used for system memory
-                                                          (i * SIZE_512_GB) + (j * SIZE_1_GB)) / // MMIO ranges
-                                                         PAGE_SIZE;                              // Convert to page frame number
+            PageTable->PML3_RSVD[i][j].PageFrameNumber = (SIZE_512_GB +                           // First 512GB is used for system memory
+                                                          (i * SIZE_512_GB) + (j * SIZE_1_GB)) >> // MMIO ranges
+                                                         30;                                      // Convert to page frame number
         }
     }
 
+    //
+    // Now we will set up the PML2 entries, which are 2MB large pages
+    //
     PML2EntryTemplate.AsUInt = 0;
 
     //
@@ -803,7 +806,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     // mark it RWX using the same template above.
     // This marks the entries as "Present" regardless of if the actual system has memory at
     // this region or not. We will cause a fault in our EPT handler if the guest access a page
-    // outside a usable range, despite the EPT frame being present here.
+    // outside a usable range, despite the EPT frame being present here
     //
     __stosq((SIZE_T *)&PageTable->PML2[0], PML2EntryTemplate.AsUInt, VMM_EPT_PML3E_COUNT * VMM_EPT_PML2E_COUNT);
 
