@@ -17,6 +17,7 @@ New release of the HyperDbg Debugger.
 - Added support to the '.attach' and '.detach' in the debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.attach))([link](https://docs.hyperdbg.org/commands/meta-commands/.detach))
 - Added support to the '.start' command in the VMI mode for the user debugger ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
 - Added support to setting the breakpoint using the 'bp' command in the VMI mode ([link](https://docs.hyperdbg.org/commands/debugging-commands/bp))
+- Added EPT page table support for MMIO addresses above 512 GB
 
 ### Changed
 - The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022
@@ -27,7 +28,8 @@ New release of the HyperDbg Debugger.
 - Fixed the build issue on new Windows SDK for Token structures ([link](https://github.com/HyperDbg/HyperDbg/pull/530))
 - Fixed retrieving valid watching process IDs for the execution trap and user-mode execution prevention
 - Fixed crashing the driver if the hyperlog memory was not properly allocated
-- Fixed crashing Windows on using TPAUSE instruction on Windows 11 24h2
+- Fixed crashing Windows when using 'TPAUSE' instruction on bare metal Windows 11 24h2
+- Check to avoid putting EPT hooks on physical addresses greater than 512 GB
 
 ## [0.13.2.0] - 2025-05-26
 New release of the HyperDbg Debugger.
