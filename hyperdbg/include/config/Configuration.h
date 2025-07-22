@@ -68,3 +68,8 @@
  * @details for more information: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events
  */
 #define EnableInstantEventMechanism TRUE
+
+/**
+ * @brief Activates the user-mode debugger
+ */
+#define ActivateUserModeDebugger FALSE

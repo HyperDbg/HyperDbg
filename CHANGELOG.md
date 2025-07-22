@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.14.0.0] - 2025-XX-XX
+## [0.14.0.0] - 2025-07-22
 New release of the HyperDbg Debugger.
 
 ### Added
@@ -20,14 +20,14 @@ New release of the HyperDbg Debugger.
 - Added EPT page table support for MMIO addresses above 512 GB
 
 ### Changed
-- The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022
 - Redesigned the '!mode' extension command without extra EPTP ([link](https://github.com/HyperDbg/HyperDbg/commit/a93b78dfadbf94d2d69f24413170c983ec379f48))
 - The user mode debugger now uses MBEC for preventing user-mode code execution ([link](https://github.com/HyperDbg/HyperDbg/commit/6893c1b19f1edaf57d0074bd60abcd518bf77338))
 - Apply transparent-mode based on dynamic system-calls ([link](https://github.com/HyperDbg/HyperDbg/commit/1eb960607331fc0c2622804d7aff65702c155649))
-- Breakpoint initialization is changed from kernel debugger to regular debugger ([link](https://github.com/HyperDbg/HyperDbg/commit/e5326f895dcddb1adbc873a9fecede7af7eb7651))
+- Breakpoint initialization is changed from kernel debugger to the regular debugger ([link](https://github.com/HyperDbg/HyperDbg/commit/e5326f895dcddb1adbc873a9fecede7af7eb7651))
 - Fixed the build issue on new Windows SDK for Token structures ([link](https://github.com/HyperDbg/HyperDbg/pull/530))
 - Fixed retrieving valid watching process IDs for the execution trap and user-mode execution prevention
 - Fixed crashing the driver if the hyperlog memory was not properly allocated
+- The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022
 - Fixed crashing Windows when using 'TPAUSE' instruction on bare metal Windows 11 24h2
 - Check to avoid putting EPT hooks on physical addresses greater than 512 GB
 

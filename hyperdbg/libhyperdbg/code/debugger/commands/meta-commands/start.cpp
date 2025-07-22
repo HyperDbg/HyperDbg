@@ -61,6 +61,24 @@ CommandStart(vector<CommandToken> CommandTokens, string Command)
     }
 
     //
+// Disable user-mode debugger in this version
+//
+#if ActivateUserModeDebugger == FALSE
+
+    if (!g_IsSerialConnectedToRemoteDebugger)
+    {
+        ShowMessages("the user-mode debugger in VMI Mode is still in the beta version and not stable. "
+                     "we decided to exclude it from this release and release it in future versions. "
+                     "if you want to test the user-mode debugger in VMI Mode, you should build "
+                     "HyperDbg with special instructions. But starting processes is fully supported "
+                     "in the Debugger Mode.\n"
+                     "(it's not recommended to use it in VMI Mode yet!)\n");
+        return;
+    }
+
+#endif // !ActivateUserModeDebugger
+
+    //
     // Check if the first token is 'path'
     //
     if (!CompareLowerCaseStrings(CommandTokens.at(1), "path"))
