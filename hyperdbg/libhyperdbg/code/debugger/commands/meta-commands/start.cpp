@@ -52,9 +52,17 @@ CommandStart(vector<CommandToken> CommandTokens, string Command)
     BOOLEAN        PathIgnored    = FALSE;
     BOOLEAN        IsNextPath     = FALSE;
 
+    if (CommandTokens.size() <= 2)
+    {
+        ShowMessages("incorrect use of the '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+        CommandStartHelp();
+        return;
+    }
+
     //
-    // Disable user-mode debugger in this version
-    //
+// Disable user-mode debugger in this version
+//
 #if ActivateUserModeDebugger == FALSE
 
     if (!g_IsSerialConnectedToRemoteDebugger)
@@ -69,14 +77,6 @@ CommandStart(vector<CommandToken> CommandTokens, string Command)
     }
 
 #endif // !ActivateUserModeDebugger
-
-    if (CommandTokens.size() <= 2)
-    {
-        ShowMessages("incorrect use of the '%s'\n\n",
-                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
-        CommandStartHelp();
-        return;
-    }
 
     //
     // Check if the first token is 'path'

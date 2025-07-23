@@ -602,3 +602,61 @@ Finished:
 
     return Result;
 }
+
+/**
+ * @brief Get the syscall number of a given Nt function
+ * @param NtFunctionName
+ *
+ * @return UINT32
+ */
+UINT32
+PeGetSyscallNumber(LPCSTR NtFunctionName)
+{
+    HMODULE DllHandle = NULL;
+
+    //
+    // Load ntdll.dll to get the address of the Nt function
+    //
+    DllHandle = LoadLibraryA("ntdll.dll");
+
+    if (!DllHandle)
+    {
+        ShowMessages("err, failed to load ntdll.dll\n");
+        return NULL;
+    }
+
+    //
+    // Choose any Nt function
+    //
+    VOID * TargetFunc = GetProcAddress(DllHandle, NtFunctionName);
+
+    if (!TargetFunc)
+    {
+        //
+        // If we failed to get the address of the Nt function,
+        // maybe it's from win32u.dll
+        //
+        DllHandle = LoadLibraryA("win32u.dll");
+
+        if (!DllHandle)
+        {
+            ShowMessages("err, failed to load win32u.dll\n");
+            return NULL;
+        }
+
+        TargetFunc = GetProcAddress(DllHandle, NtFunctionName);
+
+        if (!TargetFunc)
+        {
+            ShowMessages("err, failed to get address of %s\n", NtFunctionName);
+            return NULL;
+        }
+    }
+
+    //
+    // By default, we send 30 bytes to the disassembler,
+    // since usually the syscall handler is less than 30 bytes,
+    // and we want to avoid disassembling another function
+    //
+    return HyperDbgGetImmediateValueOnEaxForSyscallNumber((unsigned char *)TargetFunc, 30, TRUE);
+}

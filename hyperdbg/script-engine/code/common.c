@@ -16,15 +16,15 @@
  *
  * @return Token
  */
-PTOKEN
+PSCRIPT_ENGINE_TOKEN
 NewUnknownToken()
 {
-    PTOKEN Token;
+    PSCRIPT_ENGINE_TOKEN Token;
 
     //
     // Allocate memory for token and its value
     //
-    Token = (PTOKEN)malloc(sizeof(TOKEN));
+    Token = (PSCRIPT_ENGINE_TOKEN)malloc(sizeof(SCRIPT_ENGINE_TOKEN));
 
     if (Token == NULL)
     {
@@ -57,13 +57,13 @@ NewUnknownToken()
     return Token;
 }
 
-PTOKEN
-NewToken(TOKEN_TYPE Type, char * Value)
+PSCRIPT_ENGINE_TOKEN
+NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
 {
     //
     // Allocate memory for token]
     //
-    PTOKEN Token = (PTOKEN)malloc(sizeof(TOKEN));
+    PSCRIPT_ENGINE_TOKEN Token = (PSCRIPT_ENGINE_TOKEN)malloc(sizeof(SCRIPT_ENGINE_TOKEN));
 
     if (Token == NULL)
     {
@@ -103,7 +103,7 @@ NewToken(TOKEN_TYPE Type, char * Value)
  * @param Token
  */
 void
-RemoveToken(PTOKEN * Token)
+RemoveToken(PSCRIPT_ENGINE_TOKEN * Token)
 {
     free((*Token)->Value);
     free(*Token);
@@ -118,7 +118,7 @@ RemoveToken(PTOKEN * Token)
  * @param Token
  */
 void
-PrintToken(PTOKEN Token)
+PrintToken(PSCRIPT_ENGINE_TOKEN Token)
 {
     //
     // Prints value of the Token
@@ -225,7 +225,7 @@ PrintToken(PTOKEN Token)
  * @param char
  */
 void
-AppendByte(PTOKEN Token, char c)
+AppendByte(PSCRIPT_ENGINE_TOKEN Token, char c)
 {
     //
     // Check overflow of the string
@@ -266,7 +266,7 @@ AppendByte(PTOKEN Token, char c)
  * @param char
  */
 void
-AppendWchar(PTOKEN Token, wchar_t c)
+AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c)
 {
     //
     // Check overflow of the string
@@ -305,10 +305,10 @@ AppendWchar(PTOKEN Token, wchar_t c)
  *
  * @return PTOKEN
  */
-PTOKEN
-CopyToken(PTOKEN Token)
+PSCRIPT_ENGINE_TOKEN
+CopyToken(PSCRIPT_ENGINE_TOKEN Token)
 {
-    PTOKEN TokenCopy = (PTOKEN)malloc(sizeof(TOKEN));
+    PSCRIPT_ENGINE_TOKEN TokenCopy = (PSCRIPT_ENGINE_TOKEN)malloc(sizeof(SCRIPT_ENGINE_TOKEN));
 
     if (TokenCopy == NULL)
     {
@@ -339,19 +339,19 @@ CopyToken(PTOKEN Token)
 }
 
 /**
- * allocates a new TOKEN_LIST
+ * allocates a new SCRIPT_ENGINE_TOKEN_LIST
  *
- * @return TOKEN_LIST
+ * @return SCRIPT_ENGINE_TOKEN_LIST
  */
-PTOKEN_LIST
+PSCRIPT_ENGINE_TOKEN_LIST
 NewTokenList(void)
 {
-    PTOKEN_LIST TokenList = NULL;
+    PSCRIPT_ENGINE_TOKEN_LIST TokenList = NULL;
 
     //
-    // Allocation of memory for TOKEN_LIST structure
+    // Allocation of memory for SCRIPT_ENGINE_TOKEN_LIST structure
     //
-    TokenList = (PTOKEN_LIST)malloc(sizeof(*TokenList));
+    TokenList = (PSCRIPT_ENGINE_TOKEN_LIST)malloc(sizeof(*TokenList));
 
     if (TokenList == NULL)
     {
@@ -362,28 +362,28 @@ NewTokenList(void)
     }
 
     //
-    // Initialize fields of TOKEN_LIST
+    // Initialize fields of SCRIPT_ENGINE_TOKEN_LIST
     //
     TokenList->Pointer = 0;
     TokenList->Size    = TOKEN_LIST_INIT_SIZE;
 
     //
-    // Allocation of memory for TOKEN_LIST buffer
+    // Allocation of memory for SCRIPT_ENGINE_TOKEN_LIST buffer
     //
-    TokenList->Head = (PTOKEN *)malloc(TokenList->Size * sizeof(PTOKEN));
+    TokenList->Head = (PSCRIPT_ENGINE_TOKEN *)malloc(TokenList->Size * sizeof(PSCRIPT_ENGINE_TOKEN));
 
     return TokenList;
 }
 
 /**
- * @brief Removes allocated memory of a TOKEN_LIST
+ * @brief Removes allocated memory of a SCRIPT_ENGINE_TOKEN_LIST
  *
  * @param TokenList
  */
 void
-RemoveTokenList(PTOKEN_LIST TokenList)
+RemoveTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 {
-    PTOKEN Token;
+    PSCRIPT_ENGINE_TOKEN Token;
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
@@ -401,9 +401,9 @@ RemoveTokenList(PTOKEN_LIST TokenList)
  * @param TokenList
  */
 void
-PrintTokenList(PTOKEN_LIST TokenList)
+PrintTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 {
-    PTOKEN Token;
+    PSCRIPT_ENGINE_TOKEN Token;
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
@@ -418,15 +418,15 @@ PrintTokenList(PTOKEN_LIST TokenList)
  * @param TokenList
  * @return TokenList
  */
-PTOKEN_LIST
-Push(PTOKEN_LIST TokenList, PTOKEN Token)
+PSCRIPT_ENGINE_TOKEN_LIST
+Push(PSCRIPT_ENGINE_TOKEN_LIST TokenList, PSCRIPT_ENGINE_TOKEN Token)
 {
     //
     // Calculate address to write new token
     //
-    uintptr_t Head      = (uintptr_t)TokenList->Head;
-    uintptr_t Pointer   = (uintptr_t)TokenList->Pointer;
-    PTOKEN *  WriteAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    uintptr_t              Head      = (uintptr_t)TokenList->Head;
+    uintptr_t              Pointer   = (uintptr_t)TokenList->Pointer;
+    PSCRIPT_ENGINE_TOKEN * WriteAddr = (PSCRIPT_ENGINE_TOKEN *)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));
 
     //
     // Write Token to appropriate address in TokenList
@@ -446,7 +446,7 @@ Push(PTOKEN_LIST TokenList, PTOKEN Token)
         //
         // Allocate a new buffer for string list with doubled length
         //
-        PTOKEN * NewHead = (PTOKEN *)malloc(2 * TokenList->Size * sizeof(PTOKEN));
+        PSCRIPT_ENGINE_TOKEN * NewHead = (PSCRIPT_ENGINE_TOKEN *)malloc(2 * TokenList->Size * sizeof(PSCRIPT_ENGINE_TOKEN));
 
         if (NewHead == NULL)
         {
@@ -457,7 +457,7 @@ Push(PTOKEN_LIST TokenList, PTOKEN Token)
         //
         // Copy old buffer to new buffer
         //
-        memcpy(NewHead, TokenList->Head, TokenList->Size * sizeof(PTOKEN));
+        memcpy(NewHead, TokenList->Head, TokenList->Size * sizeof(PSCRIPT_ENGINE_TOKEN));
 
         //
         // Free old buffer
@@ -479,17 +479,17 @@ Push(PTOKEN_LIST TokenList, PTOKEN Token)
  * @param TokenList
  @ @return Token
  */
-PTOKEN
-Pop(PTOKEN_LIST TokenList)
+PSCRIPT_ENGINE_TOKEN
+Pop(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 {
     //
     // Calculate address to read most recent token
     //
     if (TokenList->Pointer > 0)
         TokenList->Pointer--; // not consider what if the token's type is string or wstring
-    uintptr_t Head     = (uintptr_t)TokenList->Head;
-    uintptr_t Pointer  = (uintptr_t)TokenList->Pointer;
-    PTOKEN *  ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    uintptr_t              Head     = (uintptr_t)TokenList->Head;
+    uintptr_t              Pointer  = (uintptr_t)TokenList->Pointer;
+    PSCRIPT_ENGINE_TOKEN * ReadAddr = (PSCRIPT_ENGINE_TOKEN *)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));
 
     return *ReadAddr;
 }
@@ -500,15 +500,15 @@ Pop(PTOKEN_LIST TokenList)
  * @param TokenList
  * @return Token
  */
-PTOKEN
-Top(PTOKEN_LIST TokenList)
+PSCRIPT_ENGINE_TOKEN
+Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 {
     //
     // Calculate address to read most recent pushed token
     //
-    uintptr_t Head     = (uintptr_t)TokenList->Head;
-    uintptr_t Pointer  = (uintptr_t)TokenList->Pointer - 1;
-    PTOKEN *  ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    uintptr_t              Head     = (uintptr_t)TokenList->Head;
+    uintptr_t              Pointer  = (uintptr_t)TokenList->Pointer - 1;
+    PSCRIPT_ENGINE_TOKEN * ReadAddr = (PSCRIPT_ENGINE_TOKEN *)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));
 
     return *ReadAddr;
 }
@@ -615,7 +615,7 @@ IsOctal(char c)
  * @param Error
  * @return PTOKEN
  */
-PTOKEN
+PSCRIPT_ENGINE_TOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static unsigned int TempID = 0;
@@ -633,8 +633,8 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
     {
         *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
     }
-    PTOKEN Temp = NewUnknownToken();
-    char   TempValue[8];
+    PSCRIPT_ENGINE_TOKEN Temp = NewUnknownToken();
+    char                 TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
     Temp->Type = TEMP;
@@ -653,7 +653,7 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
  * @param Temp
  */
 void
-FreeTemp(PTOKEN Temp)
+FreeTemp(PSCRIPT_ENGINE_TOKEN Temp)
 {
     int id = (int)DecimalToInt(Temp->Value);
     if (Temp->Type == TEMP)
@@ -669,7 +669,7 @@ FreeTemp(PTOKEN Temp)
  * @return char
  */
 char
-IsType1Func(PTOKEN Operator)
+IsType1Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = ONEOPFUNC1_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -689,7 +689,7 @@ IsType1Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType2Func(PTOKEN Operator)
+IsType2Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = ONEOPFUNC2_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -709,7 +709,7 @@ IsType2Func(PTOKEN Operator)
  * @return char
  */
 char
-IsTwoOperandOperator(PTOKEN Operator)
+IsTwoOperandOperator(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = OPERATORS_TWO_OPERAND_LIST_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -729,7 +729,7 @@ IsTwoOperandOperator(PTOKEN Operator)
  * @return char
  */
 char
-IsOneOperandOperator(PTOKEN Operator)
+IsOneOperandOperator(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = OPERATORS_ONE_OPERAND_LIST_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -749,7 +749,7 @@ IsOneOperandOperator(PTOKEN Operator)
  * @return char
  */
 char
-IsType4Func(PTOKEN Operator)
+IsType4Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = VARARGFUNC1_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -769,7 +769,7 @@ IsType4Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType5Func(PTOKEN Operator)
+IsType5Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = ZEROOPFUNC1_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -789,7 +789,7 @@ IsType5Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType6Func(PTOKEN Operator)
+IsType6Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = TWOOPFUNC1_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -809,7 +809,7 @@ IsType6Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType7Func(PTOKEN Operator)
+IsType7Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = TWOOPFUNC2_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -829,7 +829,7 @@ IsType7Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType8Func(PTOKEN Operator)
+IsType8Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = THREEOPFUNC1_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -849,7 +849,7 @@ IsType8Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType9Func(PTOKEN Operator)
+IsType9Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = ONEOPFUNC3_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -869,7 +869,7 @@ IsType9Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType10Func(PTOKEN Operator)
+IsType10Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = TWOOPFUNC3_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -889,7 +889,7 @@ IsType10Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType11Func(PTOKEN Operator)
+IsType11Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = THREEOPFUNC3_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -909,7 +909,7 @@ IsType11Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType12Func(PTOKEN Operator)
+IsType12Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = ONEOPFUNC4_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -929,7 +929,7 @@ IsType12Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType13Func(PTOKEN Operator)
+IsType13Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = TWOOPFUNC4_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -949,7 +949,7 @@ IsType13Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType14Func(PTOKEN Operator)
+IsType14Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = THREEOPFUNC2_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -969,12 +969,32 @@ IsType14Func(PTOKEN Operator)
  * @return char
  */
 char
-IsType15Func(PTOKEN Operator)
+IsType15Func(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = THREEOPFUNC4_LENGTH;
     for (unsigned int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, ThreeOpFunc4[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Checks whether this Token type is ZeroOpFunc2
+ *
+ * @param Operator
+ * @return char
+ */
+char
+IsType16Func(PSCRIPT_ENGINE_TOKEN Operator)
+{
+    unsigned int n = ZEROOPFUNC2_LENGTH;
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, ZeroOpFunc2[i]))
         {
             return 1;
         }
@@ -989,7 +1009,7 @@ IsType15Func(PTOKEN Operator)
  * @return char
  */
 char
-IsAssignmentOperator(PTOKEN Operator)
+IsAssignmentOperator(PSCRIPT_ENGINE_TOKEN Operator)
 {
     unsigned int n = ASSIGNMENT_OPERATOR_LIST_LENGTH;
     for (unsigned int i = 0; i < n; i++)
@@ -1010,7 +1030,7 @@ IsAssignmentOperator(PTOKEN Operator)
  * @return char
  */
 char
-IsNoneTerminal(PTOKEN Token)
+IsNoneTerminal(PSCRIPT_ENGINE_TOKEN Token)
 {
     if (Token->Value[0] >= 'A' && Token->Value[0] <= 'Z')
         return 1;
@@ -1026,7 +1046,7 @@ IsNoneTerminal(PTOKEN Token)
  * @return char
  */
 char
-IsSemanticRule(PTOKEN Token)
+IsSemanticRule(PSCRIPT_ENGINE_TOKEN Token)
 {
     if (Token->Value[0] == '@')
         return 1;
@@ -1041,7 +1061,7 @@ IsSemanticRule(PTOKEN Token)
  * @return int
  */
 int
-GetNonTerminalId(PTOKEN Token)
+GetNonTerminalId(PSCRIPT_ENGINE_TOKEN Token)
 {
     for (int i = 0; i < NONETERMINAL_COUNT; i++)
     {
@@ -1058,7 +1078,7 @@ GetNonTerminalId(PTOKEN Token)
  * @return int
  */
 int
-GetTerminalId(PTOKEN Token)
+GetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
 {
     for (int i = 0; i < TERMINAL_COUNT; i++)
     {
@@ -1167,7 +1187,7 @@ GetTerminalId(PTOKEN Token)
  * @return int
  */
 int
-LalrGetNonTerminalId(PTOKEN Token)
+LalrGetNonTerminalId(PSCRIPT_ENGINE_TOKEN Token)
 {
     for (int i = 0; i < LALR_NONTERMINAL_COUNT; i++)
     {
@@ -1184,7 +1204,7 @@ LalrGetNonTerminalId(PTOKEN Token)
  * @return int
  */
 int
-LalrGetTerminalId(PTOKEN Token)
+LalrGetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
 {
     for (int i = 0; i < LALR_TERMINAL_COUNT; i++)
     {
@@ -1287,7 +1307,7 @@ LalrGetTerminalId(PTOKEN Token)
  * @return char
  */
 char
-IsEqual(const PTOKEN Token1, const PTOKEN Token2)
+IsEqual(const PSCRIPT_ENGINE_TOKEN Token1, const PSCRIPT_ENGINE_TOKEN Token2)
 {
     if (Token1->Type == Token2->Type)
     {

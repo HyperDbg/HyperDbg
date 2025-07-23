@@ -614,6 +614,18 @@ VmFuncVmxCompatibleWcslen(const wchar_t * s)
 }
 
 /**
+ * @brief VMX-root compatible micro sleep
+ * @param Us Delay in micro seconds
+ *
+ * @return VOID
+ */
+VOID
+VmFuncVmxCompatibleMicroSleep(UINT64 Us)
+{
+    VmxCompatibleMicroSleep(Us);
+}
+
+/**
  * @brief Inject #PF and configure CR2 register
  *
  * @param CoreId Target core's ID

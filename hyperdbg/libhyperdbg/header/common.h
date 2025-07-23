@@ -22,6 +22,8 @@
 
 #define AssertReturnOne return 1;
 
+#define PAUSE_MESSAGE_IN_USER_DEBUGGER "\nTo pause the target process, run the 'pause' command"
+
 #define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded. Did you use 'load' command?\n"
 
 #define ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH "the handshaking process was successful; however, there is a mismatch between " \

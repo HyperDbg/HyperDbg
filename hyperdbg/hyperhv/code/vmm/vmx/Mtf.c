@@ -41,6 +41,11 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         g_Callbacks.BreakpointCheckAndHandleReApplyingBreakpoint(VCpu->CoreId))
     {
         //
+        // Check for re-enabling external interrupts
+        //
+        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
+
+        //
         // MTF is handled
         //
         IsMtfHandled = TRUE;
@@ -67,7 +72,7 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         VCpu->MtfEptHookRestorePoint = NULL;
 
         //
-        // Check for reenabling external interrupts
+        // Check for re-enabling external interrupts
         //
         HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
     }

@@ -180,6 +180,19 @@ DebuggerInitialize()
     }
 
     //
+    // Request pages for breakpoint detail
+    //
+    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
+                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
+                                 BREAKPOINT_DEFINITION_STRUCTURE);
+
+    //
+    // Initialize list of breakpoints and breakpoint id
+    //
+    g_MaximumBreakpointId = 0;
+    InitializeListHead(&g_BreakpointsListHead);
+
+    //
     // Initialize NMI broadcasting mechanism
     //
     VmFuncVmxBroadcastInitialize();

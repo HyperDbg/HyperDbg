@@ -29,7 +29,7 @@ LoaderInitVmmAndDebugger()
     //
     // Fill the callbacks for the message tracer
     //
-    MsgTracingCallbacks.VmxOperationCheck             = VmFuncVmxGetCurrentExecutionMode;
+    MsgTracingCallbacks.VmxOperationCheck            = VmFuncVmxGetCurrentExecutionMode;
     MsgTracingCallbacks.CheckImmediateMessageSending = KdCheckImmediateMessagingMechanism;
     MsgTracingCallbacks.SendImmediateMessage         = KdLoggingResponsePacketToDebugger;
 
@@ -61,8 +61,7 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.BreakpointCheckAndHandleReApplyingBreakpoint              = BreakpointCheckAndHandleReApplyingBreakpoint;
     VmmCallbacks.UdCheckForCommand                                         = UdCheckForCommand;
     VmmCallbacks.DebuggerCheckProcessOrThreadChange                        = DebuggerCheckProcessOrThreadChange;
-    VmmCallbacks.DebuggingCallbackConditionalPageFaultException            = AttachingCheckPageFaultsWithUserDebugger;
-    VmmCallbacks.AttachingHandleCr3VmexitsForThreadInterception            = AttachingHandleCr3VmexitsForThreadInterception;
+    VmmCallbacks.DebuggingCallbackCheckThreadInterception                  = AttachingCheckThreadInterceptionWithUserDebugger;
     VmmCallbacks.KdCheckAndHandleNmiCallback                               = KdCheckAndHandleNmiCallback;
     VmmCallbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId = KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
 

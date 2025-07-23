@@ -82,7 +82,7 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\hyperevade.lib</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
       <ModuleDefinitionFile>hyperhv.def</ModuleDefinitionFile>
     </Link>
@@ -98,7 +98,7 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib;$(SolutionDir)libraries\zydis\kernel\Zycore.lib;$(SolutionDir)libraries\zydis\kernel\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\hyperevade.lib</AdditionalDependencies>
       <NoEntryPoint>true</NoEntryPoint>
       <ModuleDefinitionFile>hyperhv.def</ModuleDefinitionFile>
     </Link>
@@ -126,6 +126,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
     <ClCompile Include="..\include\components\optimizations\code\AvlTree.c" />
     <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c" />
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
@@ -149,12 +150,13 @@
     <ClCompile Include="code\hooks\ept-hook\ModeBasedExecHook.c" />
     <ClCompile Include="code\hooks\ept-hook\ExecTrap.c" />
     <ClCompile Include="code\hooks\syscall-hook\EferHook.c" />
-    <ClCompile Include="code\hooks\syscall-hook\SsdtHook.c" />
+    <ClCompile Include="code\hooks\syscall-hook\SyscallCallback.c" />
     <ClCompile Include="code\interface\Callback.c" />
     <ClCompile Include="code\interface\Configuration.c" />
     <ClCompile Include="code\interface\DirectVmcall.c" />
     <ClCompile Include="code\interface\Dispatch.c" />
     <ClCompile Include="code\interface\Export.c" />
+    <ClCompile Include="code\interface\HyperEvade.c" />
     <ClCompile Include="code\memory\AddressCheck.c" />
     <ClCompile Include="code\memory\Conversion.c" />
     <ClCompile Include="code\memory\Layout.c" />
@@ -165,7 +167,6 @@
     <ClCompile Include="code\memory\SwitchLayout.c" />
     <ClCompile Include="code\mmio\MmioShadowing.c" />
     <ClCompile Include="code\processor\Idt.c" />
-    <ClCompile Include="code\transparency\Transparency.c" />
     <ClCompile Include="code\vmm\ept\Ept.c" />
     <ClCompile Include="code\vmm\ept\Invept.c" />
     <ClCompile Include="code\vmm\ept\Vpid.c" />
@@ -228,6 +229,7 @@
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Status.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Utils.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Zydis.h" />
+    <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
     <ClInclude Include="..\include\components\optimizations\header\AvlTree.h" />
     <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h" />
     <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h" />
@@ -256,6 +258,7 @@
     <ClInclude Include="header\hooks\Hooks.h" />
     <ClInclude Include="header\hooks\ModeBasedExecHook.h" />
     <ClInclude Include="header\hooks\ExecTrap.h" />
+    <ClInclude Include="header\hooks\SyscallCallback.h" />
     <ClInclude Include="header\interface\Callback.h" />
     <ClInclude Include="header\interface\DirectVmcall.h" />
     <ClInclude Include="header\interface\Dispatch.h" />
@@ -268,7 +271,6 @@
     <ClInclude Include="header\memory\SwitchLayout.h" />
     <ClInclude Include="header\mmio\MmioShadowing.h" />
     <ClInclude Include="header\processor\Idt.h" />
-    <ClInclude Include="header\transparency\Transparency.h" />
     <ClInclude Include="header\vmm\ept\Ept.h" />
     <ClInclude Include="header\vmm\ept\Invept.h" />
     <ClInclude Include="header\vmm\ept\Vpid.h" />

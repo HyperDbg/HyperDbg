@@ -228,7 +228,7 @@ CommandPauseRequest();
 VOID
 CommandGRequest();
 
-VOID
+BOOLEAN
 CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer);
 
 VOID
@@ -302,7 +302,7 @@ BOOLEAN
 HyperDbgGetIdtEntry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * IdtPacket);
 
 BOOLEAN
-HyperDbgEnableTransparentMode();
+HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
 
 BOOLEAN
 HyperDbgDisableTransparentMode();

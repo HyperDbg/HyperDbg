@@ -35,6 +35,8 @@ typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ
 {
     MEMORY_MAPPER_WRAPPER_READ_PHYSICAL_MEMORY,
     MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY,
+    MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY_UNSAFE
+
 } MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ;
 
 /**
@@ -45,7 +47,7 @@ typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE
 {
     MEMORY_MAPPER_WRAPPER_WRITE_PHYSICAL_MEMORY,
     MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_SAFE,
-    MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_UNSAFE,
+    MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_UNSAFE
 
 } MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE;
 
@@ -163,14 +165,16 @@ MemoryMapperWriteMemorySafeByPte(_In_ PVOID            SourceVA,
 static UINT64
 MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
     _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
-    _In_ UINT64                                AddressToRead);
+    _In_ UINT64                                AddressToRead,
+    _In_ UINT32                                TargetProcessId);
 
 static BOOLEAN
-MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
+MemoryMapperReadMemorySafeWrapper(
     _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
     _In_ UINT64                                AddressToRead,
     _Inout_ UINT64                             BufferToSaveMemory,
-    _In_ SIZE_T                                SizeToRead);
+    _In_ SIZE_T                                SizeToRead,
+    _In_ UINT32                                TargetProcessId);
 
 static UINT64
 MemoryMapperWriteMemorySafeWrapperAddressMaker(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,

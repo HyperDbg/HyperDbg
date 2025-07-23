@@ -25,7 +25,7 @@ VARIABLE_TYPE * VARIABLE_TYPE_LDOUBLE = &(VARIABLE_TYPE) {TY_LDOUBLE, 16, 16};
  * @param str
  */
 VARIABLE_TYPE *
-HandleType(PTOKEN_LIST PtokenStack)
+HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack)
 {
     enum
     {
@@ -42,9 +42,9 @@ HandleType(PTOKEN_LIST PtokenStack)
         ENUM_UNSIGNED = 1 << 18,
     };
 
-    VARIABLE_TYPE * Result   = VARIABLE_TYPE_UNKNOWN;
-    int             Counter  = 0;
-    PTOKEN          TopToken = NULL;
+    VARIABLE_TYPE *      Result   = VARIABLE_TYPE_UNKNOWN;
+    int                  Counter  = 0;
+    PSCRIPT_ENGINE_TOKEN TopToken = NULL;
 
     while (PtokenStack->Pointer > 0)
     {

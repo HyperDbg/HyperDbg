@@ -216,6 +216,14 @@ LogUnInitialize()
     for (int i = 0; i < 2; i++)
     {
         //
+        // Check if the buffer is allocated or not
+        //
+        if (MessageBufferInformation == NULL64_ZERO)
+        {
+            continue; // No need to free the buffers
+        }
+
+        //
         // Free each buffers
         //
         if (MessageBufferInformation[i].BufferStartAddress != NULL64_ZERO)
@@ -235,10 +243,13 @@ LogUnInitialize()
     }
 
     //
-    // de-allocate buffers for trace message and data messages
+    // de-allocate buffers for trace message and data messages if they are allocated
     //
-    PlatformMemFreePool((PVOID)MessageBufferInformation);
-    MessageBufferInformation = NULL;
+    if (MessageBufferInformation != NULL64_ZERO)
+    {
+        PlatformMemFreePool((PVOID)MessageBufferInformation);
+        MessageBufferInformation = NULL;
+    }
 }
 
 /**

@@ -266,7 +266,7 @@ hyperdbg_u_continue_debuggee()
 }
 
 /**
- * @brief Pause the debuggee (equal to the 'pause' command or CTRL+C)
+ * @brief Pause the debuggee (equal to the 'pause' command)
  *
  * @return VOID
  */
@@ -283,12 +283,12 @@ hyperdbg_u_pause_debuggee()
  * @param tid The thread ID of the breakpoint
  * @param core_numer The core number of the breakpoint
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_numer)
 {
-    CommandBpRequest(address, pid, tid, core_numer);
+    return CommandBpRequest(address, pid, tid, core_numer);
 }
 
 /**
@@ -764,13 +764,16 @@ hwdbg_script_engine_wrapper_test_parser(const char * Expr)
 
 /**
  * @brief Enable transparent mode
+ * @param ProcessId The process ID to enable transparent mode for
+ * @param ProcessName The process name to enable transparent mode for
+ * @param IsProcessId If true, ProcessId is used, otherwise ProcessName is used
  *
  * @return BOOLEAN
  */
 BOOLEAN
-hyperdbg_u_enable_transparent_mode()
+hyperdbg_u_enable_transparent_mode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId)
 {
-    return HyperDbgEnableTransparentMode();
+    return HyperDbgEnableTransparentMode(ProcessId, ProcessName, IsProcessId);
 }
 
 /**

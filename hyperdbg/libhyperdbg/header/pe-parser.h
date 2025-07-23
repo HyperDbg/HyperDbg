@@ -20,3 +20,6 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
 
 BOOLEAN
 PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit);
+
+UINT32
+PeGetSyscallNumber(LPCSTR NtFunctionName);

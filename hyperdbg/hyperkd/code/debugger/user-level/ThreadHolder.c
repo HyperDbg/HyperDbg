@@ -99,6 +99,42 @@ ThreadHolderIsAnyPausedThreadInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
 }
 
 /**
+ * @brief Unpause all threads in the process debugging details
+ *
+ * @param ProcessDebuggingDetail
+ * @return BOOLEAN
+ */
+BOOLEAN
+ThreadHolderUnpauseAllThreadsInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+{
+    PLIST_ENTRY TempList                 = 0;
+    BOOLEAN     AtLeastOneThreadUnpaused = FALSE;
+
+    TempList = &ProcessDebuggingDetail->ThreadsListHead;
+
+    while (&ProcessDebuggingDetail->ThreadsListHead != TempList->Flink)
+    {
+        TempList = TempList->Flink;
+        PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
+
+        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        {
+            if (ThreadHolder->Threads[i].ThreadId != NULL_ZERO && ThreadHolder->Threads[i].IsPaused)
+            {
+                //
+                // At least one thread is paused, let's unpause it
+                //
+                ThreadHolder->Threads[i].IsPaused = FALSE;
+                AtLeastOneThreadUnpaused          = TRUE;
+            }
+        }
+    }
+
+    return AtLeastOneThreadUnpaused;
+}
+
+/**
  * @brief Find the active threads of the process from process id
  *
  * @param ProcessId

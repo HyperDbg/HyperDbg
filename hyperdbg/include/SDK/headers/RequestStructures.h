@@ -539,6 +539,35 @@ typedef struct _DEBUGGER_SEARCH_MEMORY
 /* ==============================================================================================
  */
 
+/**
+ * @brief Windows System call values that are intercepted by transparency mode
+ *
+ * NOTE: Windows system calls can change values on each version
+ * This structure is used to keep track of the system call numbers
+ * based on the current running Windows version
+ *
+ */
+typedef struct _SYSTEM_CALL_NUMBERS_INFORMATION
+{
+    UINT32 SysNtQuerySystemInformation;
+    UINT32 SysNtQuerySystemInformationEx; // On 24H2, changes on each windows version
+
+    UINT32 SysNtSystemDebugControl; // On 24H2, changes on each windows version
+    UINT32 SysNtQueryAttributesFile;
+    UINT32 SysNtOpenDirectoryObject;
+    UINT32 SysNtQueryDirectoryObject; // On 24H2, changes on each windows version
+    UINT32 SysNtQueryInformationProcess;
+    UINT32 SysNtSetInformationProcess;
+    UINT32 SysNtQueryInformationThread;
+    UINT32 SysNtSetInformationThread;
+    UINT32 SysNtOpenFile;
+    UINT32 SysNtOpenKey;
+    UINT32 SysNtOpenKeyEx; // On 24H2, changes on each windows version
+    UINT32 SysNtQueryValueKey;
+    UINT32 SysNtEnumerateKey;
+
+} SYSTEM_CALL_NUMBERS_INFORMATION, *PSYSTEM_CALL_NUMBERS_INFORMATION;
+
 #define SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE \
     sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)
 
@@ -558,9 +587,11 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
     // UINT64 RdtscStandardDeviation;
     // UINT64 RdtscMedian;
 
-    // BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
-    // UINT32  ProcId;
-    // UINT32  LengthOfProcessName;
+    BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
+    UINT32  ProcId;
+    UINT32  LengthOfProcessName;
+
+    SYSTEM_CALL_NUMBERS_INFORMATION SystemCallNumbersInformation; // System call numbers information
 
     UINT32 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
                           DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
@@ -617,6 +648,7 @@ typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_CONTINUE_PROCESS,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_PAUSE_PROCESS,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_SWITCH_BY_PROCESS_OR_THREAD,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_QUERY_COUNT_OF_ACTIVE_DEBUGGING_THREADS,
@@ -866,7 +898,6 @@ typedef enum _DEBUGGER_UD_COMMAND_ACTION_TYPE
 {
     DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE = 0,
     DEBUGGER_UD_COMMAND_ACTION_TYPE_PAUSE,
-    DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE,
     DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
 
 } DEBUGGER_UD_COMMAND_ACTION_TYPE;
@@ -1269,6 +1300,13 @@ typedef struct _DEBUGGEE_BP_PACKET
     UINT32  Result;
 
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;
+
+/**
+ * @brief Debugger size of DEBUGGEE_BP_PACKET
+ *
+ */
+#define SIZEOF_DEBUGGEE_BP_PACKET \
+    sizeof(DEBUGGEE_BP_PACKET)
 
 /**
  * @brief breakpoint modification types

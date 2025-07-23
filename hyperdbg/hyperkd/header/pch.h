@@ -43,8 +43,8 @@
 //
 // Import Configuration and Definitions
 //
-#include "Configuration.h"
-#include "Definition.h"
+#include "config/Configuration.h"
+#include "config/Definition.h"
 
 //
 // Macros

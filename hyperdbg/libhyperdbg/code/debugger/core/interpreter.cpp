@@ -1358,6 +1358,9 @@ InitializeCommandsDictionary()
     g_CommandsList["g"]  = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
     g_CommandsList["go"] = {&CommandG, &CommandGHelp, DEBUGGER_COMMAND_G_ATTRIBUTES};
 
+    g_CommandsList["cont"]     = {&CommandContinue, &CommandContinueHelp, DEBUGGER_COMMAND_CONTINUE_ATTRIBUTES};
+    g_CommandsList["continue"] = {&CommandContinue, &CommandContinueHelp, DEBUGGER_COMMAND_CONTINUE_ATTRIBUTES};
+
     g_CommandsList["gg"] = {&CommandGg, &CommandGgHelp, DEBUGGER_COMMAND_GG_ATTRIBUTES};
 
     g_CommandsList[".attach"] = {&CommandAttach, &CommandAttachHelp, DEBUGGER_COMMAND_ATTACH_ATTRIBUTES};

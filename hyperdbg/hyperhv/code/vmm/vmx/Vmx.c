@@ -884,8 +884,14 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
                  VmxBasicMsr.VmxControls ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
                  CpuBasedVmExecControls);
 
-    SecondaryProcBasedVmExecControls = HvAdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_EPT | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS | CPU_BASED_CTL2_ENABLE_VPID,
-                                                        IA32_VMX_PROCBASED_CTLS2);
+    SecondaryProcBasedVmExecControls = HvAdjustControls(
+        IA32_VMX_PROCBASED_CTLS2_ENABLE_RDTSCP_FLAG |
+            IA32_VMX_PROCBASED_CTLS2_ENABLE_EPT_FLAG |
+            IA32_VMX_PROCBASED_CTLS2_ENABLE_INVPCID_FLAG |
+            IA32_VMX_PROCBASED_CTLS2_ENABLE_XSAVES_FLAG |
+            IA32_VMX_PROCBASED_CTLS2_ENABLE_VPID_FLAG |
+            IA32_VMX_PROCBASED_CTLS2_ENABLE_USER_WAIT_PAUSE_FLAG,
+        IA32_VMX_PROCBASED_CTLS2);
 
     VmxVmwrite64(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
 
@@ -1218,7 +1224,10 @@ VmxPerformTermination()
     //
     // Unhide (disable and de-allocate) transparent-mode
     //
-    g_TransparentMode = FALSE;
+    if (g_CheckForFootprints)
+    {
+        TransparentUnhideDebuggerWrapper(NULL);
+    }
 
     //
     // Remove All the hooks if any
@@ -1460,6 +1469,30 @@ VmxCompatibleWcslen(const wchar_t * S)
     // Move back to original cr3
     //
     __writecr3(OriginalCr3.Flags);
+}
+
+/**
+ * @brief VMX-root compatible micro sleep
+ * @param Us Delay in micro seconds
+ *
+ * @return VOID
+ */
+VOID
+VmxCompatibleMicroSleep(UINT64 Us)
+{
+    LARGE_INTEGER Start, End, Frequency;
+    KeQueryPerformanceCounter(&Frequency);
+
+    LONGLONG Ticks = (Frequency.QuadPart / 1000000) * Us;
+
+    Start = KeQueryPerformanceCounter(NULL);
+
+    while (TRUE)
+    {
+        End = KeQueryPerformanceCounter(NULL);
+        if (End.QuadPart - Start.QuadPart > Ticks)
+            break;
+    }
 }
 
 /**

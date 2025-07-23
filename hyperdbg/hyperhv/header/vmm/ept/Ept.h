@@ -31,6 +31,18 @@
 #define SIZE_2_MB ((SIZE_T)(512 * PAGE_SIZE))
 
 /**
+ * @brief Integer 1GB
+ *
+ */
+#define SIZE_1_GB ((SIZE_T)(512 * SIZE_2_MB))
+
+/**
+ * @brief Integer 512GB
+ *
+ */
+#define SIZE_512_GB ((SIZE_T)(512 * SIZE_1_GB))
+
+/**
  * @brief Offset into the 1st paging structure (4096 byte)
  *
  */
@@ -115,15 +127,9 @@ typedef union _IA32_MTRR_FIXED_RANGE_TYPE
  */
 typedef struct _EPT_STATE
 {
-    LIST_ENTRY            HookedPagesList;                     // A list of the details about hooked pages
-    MTRR_RANGE_DESCRIPTOR MemoryRanges[NUM_MTRR_ENTRIES];      // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
-    UINT32                 NumberOfEnabledMemoryRanges;         // Number of memory ranges specified in MemoryRanges
-    PVMM_EPT_PAGE_TABLE   EptPageTable;                        // Page table entries for EPT operation
-    PVMM_EPT_PAGE_TABLE   ModeBasedUserDisabledEptPageTable;   // Page table entries for hooks based on user-mode disabled mode-based execution control bits
-    PVMM_EPT_PAGE_TABLE   ModeBasedKernelDisabledEptPageTable; // Page table entries for hooks based on kernel-mode disabled mode-based execution control bits
-    EPT_POINTER           ModeBasedUserDisabledEptPointer;     // Extended-Page-Table Pointer for user-disabled mode-based execution
-    EPT_POINTER           ModeBasedKernelDisabledEptPointer;   // Extended-Page-Table Pointer for kernel-disabled mode-based execution
-    EPT_POINTER           ExecuteOnlyEptPointer;               // Extended-Page-Table Pointer for execute-only execution
+    LIST_ENTRY            HookedPagesList;                // A list of the details about hooked pages
+    MTRR_RANGE_DESCRIPTOR MemoryRanges[NUM_MTRR_ENTRIES]; // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
+    UINT32                NumberOfEnabledMemoryRanges;    // Number of memory ranges specified in MemoryRanges
     UINT8                 DefaultMemoryType;
 } EPT_STATE, *PEPT_STATE;
 
@@ -274,7 +280,7 @@ EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, 
  * @return VOID
  */
 VOID
-EptHandleMisconfiguration(VOID);
+    EptHandleMisconfiguration(VOID);
 
 /**
  * @brief This function set the specific PML1 entry in a spinlock protected area then

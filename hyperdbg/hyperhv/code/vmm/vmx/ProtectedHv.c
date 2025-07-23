@@ -42,11 +42,12 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
     }
 
     //
-    // Check for #PF by thread interception mechanism in user debugger
+    // Check for syscall callback (masking #DBs and #BPs)
     //
-    if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
+    if (g_SyscallCallbackStatus)
     {
-        CurrentMask |= 1 << EXCEPTION_VECTOR_PAGE_FAULT;
+        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
+        CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
     }
 
     //
@@ -54,15 +55,6 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu,
     //
     if (EptHookGetCountOfEpthooks(FALSE) != 0)
     {
-        CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
-    }
-
-    //
-    // Check for transparent-mode (masking #DBs and #BPs)
-    //
-    if (g_TransparentMode)
-    {
-        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
         CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
     }
 
@@ -498,17 +490,6 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
                                                        NULL,
                                                        PassOver))
         {
-            return;
-        }
-
-        //
-        // Check if use debugger is in intercepting phase for threads or not
-        //
-        if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
-        {
-            //
-            // The user debugger needs mov2cr3s
-            //
             return;
         }
 

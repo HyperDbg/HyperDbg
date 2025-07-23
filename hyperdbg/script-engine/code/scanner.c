@@ -18,10 +18,10 @@
  * @param str
  * @return PTOKEN
  */
-PTOKEN
+PSCRIPT_ENGINE_TOKEN
 GetToken(char * c, char * str)
 {
-    PTOKEN Token = NewUnknownToken();
+    PSCRIPT_ENGINE_TOKEN Token = NewUnknownToken();
 
     switch (*c)
     {
@@ -940,11 +940,11 @@ GetToken(char * c, char * str)
  * @param c
  * @return PTOKEN
  */
-PTOKEN
+PSCRIPT_ENGINE_TOKEN
 Scan(char * str, char * c)
 {
-    static BOOLEAN ReturnEndOfString;
-    PTOKEN         Token;
+    static BOOLEAN       ReturnEndOfString;
+    PSCRIPT_ENGINE_TOKEN Token;
 
     if (InputIdx <= 1)
     {

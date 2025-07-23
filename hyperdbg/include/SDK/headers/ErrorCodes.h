@@ -551,6 +551,18 @@
  */
 #define DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE 0xc0000054
 
+/**
+ * @brief error, the user debugger cannot be initalized
+ *
+ */
+#define DEBUGGER_ERROR_DEBUGGER_NOT_INITIALIZED 0xc0000055
+
+/**
+ * @brief error, cannot put EPT hooks on addresses above 512 GB
+ *
+ */
+#define DEBUGGER_ERROR_CANNOT_PUT_EPT_HOOKS_ON_PHYSICAL_ADDRESS_ABOVE_512_GB 0xc0000056
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

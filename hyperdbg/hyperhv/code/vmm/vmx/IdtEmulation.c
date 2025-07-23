@@ -318,18 +318,10 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     //         PageFaultErrorCode.UserModeAccess ? "u" : "",
     //         PageFaultErrorCode.Execute ? "f" : "");
 
-    // Handle page-faults
-    // Check page-fault with user-debugger
-    // The page-fault is handled through the user debugger, no need further action
-    // NOTE: THE ADDRESS SHOULD BE NULL HERE
     //
-    if (!DebuggingCallbackConditionalPageFaultException(VCpu->CoreId, PageFaultAddress, PageFaultErrorCode.AsUInt))
-    {
-        //
-        // The #pf is not related to the debugger, re-inject it
-        //
-        EventInjectPageFaults(VCpu, InterruptExit, PageFaultAddress, PageFaultErrorCode);
-    }
+    // Handle page-faults
+    //
+    EventInjectPageFaults(VCpu, InterruptExit, PageFaultAddress, PageFaultErrorCode);
 }
 
 /**
@@ -412,18 +404,18 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     case EXCEPTION_VECTOR_DEBUG_BREAKPOINT:
 
         //
-        // Check if transparent mode is enabled and if so, then we need to
+        // Check if syscall callback is enabled and if so, then we need to
         // check whether the this trap flag is set because of intercepting
         // the result of a system-call or not
         //
-        if (g_TransparentMode &&
-            TransparentCheckAndHandleAfterSyscallTrapFlags(VCpu,
-                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId())))
+        if (g_SyscallCallbackStatus &&
+            SyscallCallbackCheckAndHandleAfterSyscallTrapFlags(VCpu,
+                                                               HANDLE_TO_UINT32(PsGetCurrentProcessId()),
+                                                               HANDLE_TO_UINT32(PsGetCurrentThreadId())))
         {
             //
             // Being here means that this #DB was caused by a trap flag of
-            // the system-call in the transparent-mode, so no need to further handle
+            // the system-call in the syscall callback, so no need to further handle
             // it (nothing to do)
             //
         }

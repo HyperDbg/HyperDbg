@@ -179,9 +179,21 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     //
     PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(VirtualTarget, ProcessCr3);
 
+    //
+    // If the physical address is NULL, it means that the address is not valid
+    //
     if (!PhysicalBaseAddress)
     {
         VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
+        return FALSE;
+    }
+
+    //
+    // Check if the physical address is bigger than 512 GB
+    //
+    if (PhysicalBaseAddress >= SIZE_512_GB)
+    {
+        VmmCallbackSetLastError(DEBUGGER_ERROR_CANNOT_PUT_EPT_HOOKS_ON_PHYSICAL_ADDRESS_ABOVE_512_GB);
         return FALSE;
     }
 
@@ -500,6 +512,15 @@ EptHookPerformPageHook(VIRTUAL_MACHINE_STATE * VCpu,
     if (!PhysicalBaseAddress)
     {
         VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
+        return FALSE;
+    }
+
+    //
+    // Check if the physical address is bigger than 512 GB
+    //
+    if (PhysicalBaseAddress >= SIZE_512_GB)
+    {
+        VmmCallbackSetLastError(DEBUGGER_ERROR_CANNOT_PUT_EPT_HOOKS_ON_PHYSICAL_ADDRESS_ABOVE_512_GB);
         return FALSE;
     }
 
@@ -1048,9 +1069,21 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(AlignedTargetVaOrPa, ProcessCr3);
     }
 
+    //
+    // Check if the physical address is valid
+    //
     if (!PhysicalBaseAddress)
     {
         VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
+        return FALSE;
+    }
+
+    //
+    // Check if the physical address is bigger than 512 GB
+    //
+    if (PhysicalBaseAddress >= SIZE_512_GB)
+    {
+        VmmCallbackSetLastError(DEBUGGER_ERROR_CANNOT_PUT_EPT_HOOKS_ON_PHYSICAL_ADDRESS_ABOVE_512_GB);
         return FALSE;
     }
 
@@ -2570,7 +2603,7 @@ EptHookModifyInstructionFetchState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(VCpu->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {
@@ -2628,7 +2661,7 @@ EptHookModifyPageReadState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(VCpu->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {
@@ -2686,7 +2719,7 @@ EptHookModifyPageWriteState(VIRTUAL_MACHINE_STATE * VCpu,
     PVOID   PmlEntry    = NULL;
     BOOLEAN IsLargePage = FALSE;
 
-    PmlEntry = EptGetPml1OrPml2Entry(g_EptState->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
+    PmlEntry = EptGetPml1OrPml2Entry(VCpu->EptPageTable, (SIZE_T)PhysicalAddress, &IsLargePage);
 
     if (PmlEntry)
     {

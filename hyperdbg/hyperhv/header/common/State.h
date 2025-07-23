@@ -15,11 +15,12 @@
 //				      typedefs         			 //
 //////////////////////////////////////////////////
 
-typedef EPT_PML4E   EPT_PML4_POINTER, *PEPT_PML4_POINTER;
-typedef EPT_PDPTE   EPT_PML3_POINTER, *PEPT_PML3_POINTER;
-typedef EPT_PDE_2MB EPT_PML2_ENTRY, *PEPT_PML2_ENTRY;
-typedef EPT_PDE     EPT_PML2_POINTER, *PEPT_PML2_POINTER;
-typedef EPT_PTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
+typedef EPT_PML4E     EPT_PML4_POINTER, *PEPT_PML4_POINTER;
+typedef EPT_PDPTE     EPT_PML3_POINTER, *PEPT_PML3_POINTER;
+typedef EPT_PDPTE_1GB EPT_PML3_ENTRY, *PEPT_PML3_ENTRY;
+typedef EPT_PDE_2MB   EPT_PML2_ENTRY, *PEPT_PML2_ENTRY;
+typedef EPT_PDE       EPT_PML2_POINTER, *PEPT_PML2_POINTER;
+typedef EPT_PTE       EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
 
 //////////////////////////////////////////////////
 //				    Constants					//
@@ -108,6 +109,14 @@ typedef struct _VMM_EPT_PAGE_TABLE
      */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML4_POINTER PML4[VMM_EPT_PML4E_COUNT];
+
+    /**
+     * @brief Describes exactly 512 contiguous 1GB memory regions within a our singular 512GB PML4 region
+     * (This entry is used to support the entire address space).
+     * @details The reason why there is a minus one here is that the original PML3 is described in the next field.
+     */
+    DECLSPEC_ALIGN(PAGE_SIZE)
+    EPT_PML3_ENTRY PML3_RSVD[VMM_EPT_PML4E_COUNT - 1][VMM_EPT_PML3E_COUNT];
 
     /**
      * @brief Describes exactly 512 contiguous 1GB memory regions within a our singular 512GB PML4 region.

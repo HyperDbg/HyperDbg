@@ -23,6 +23,16 @@
 #define MAXIMUM_NUMBER_OF_PROCESSES_FOR_USER_KERNEL_EXEC_THREAD 100
 
 //////////////////////////////////////////////////
+//				      Locks 	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief The lock for modifying the list of processes for user-mode, kernel-mode execution traps
+ *
+ */
+volatile LONG ExecTrapProcessListLock;
+
+//////////////////////////////////////////////////
 //				    Structures  				//
 //////////////////////////////////////////////////
 
@@ -61,6 +71,9 @@ ExecTrapUninitialize();
 
 BOOLEAN
 ExecTrapInitialize();
+
+VOID
+ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu);
 
 BOOLEAN
 ExecTrapHandleEptViolationVmexit(VIRTUAL_MACHINE_STATE *                VCpu,

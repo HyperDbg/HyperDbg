@@ -290,9 +290,9 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             //
             KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
         }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                                           NULL))
+        else if (UdHandleInstantBreak(DbgState,
+                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                      NULL))
         {
             //
             // if the above function returns true, no need for further action
@@ -338,9 +338,9 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             //
             KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
         }
-        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                                           NULL))
+        else if (UdHandleInstantBreak(DbgState,
+                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                      NULL))
         {
             //
             // if the above function returns true, no need for further action
@@ -461,22 +461,6 @@ BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId)
             (UINT64)&BreakpointByte,
             sizeof(BYTE));
 
-        //
-        // Check if we should re-enabled IF bit of RFLAGS or not
-        //
-        if (DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf)
-        {
-            RFLAGS Rflags = {0};
-
-            Rflags.AsUInt = VmFuncGetRflags();
-
-            Rflags.InterruptEnableFlag = TRUE;
-
-            VmFuncSetRflags(Rflags.AsUInt);
-
-            DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
-        }
-
         DbgState->SoftwareBreakpointState = NULL;
     }
 
@@ -504,7 +488,6 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     PLIST_ENTRY                      TempList              = 0;
     UINT64                           GuestRipPhysical      = (UINT64)NULL;
     DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext         = {0};
-    RFLAGS                           Rflags                = {0};
     BOOLEAN                          AvoidUnsetMtf         = FALSE;
     BOOLEAN                          IgnoreUserHandling    = FALSE;
 
@@ -602,9 +585,20 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                     // *** It's not safe to access CurrentBreakpointDesc anymore as the
                     // breakpoint might be removed ***
                     //
-                    KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                                          Reason,
-                                                          &TargetContext);
+                    if (g_KernelDebuggerState)
+                    {
+                        KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                                              Reason,
+                                                              &TargetContext);
+                    }
+                    else if (g_UserDebuggerState)
+                    {
+                        UdHandleInstantBreak(DbgState, Reason, NULL);
+                    }
+                    else
+                    {
+                        LogInfo("Err, no debugger is attached to handle the breakpoint");
+                    }
                 }
             }
 
@@ -625,33 +619,19 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 DbgState->SoftwareBreakpointState = CurrentBreakpointDesc;
 
                 //
-                // Fire and MTF
-                //
-                VmFuncSetMonitorTrapFlag(TRUE);
-                AvoidUnsetMtf = TRUE;
-
-                //
                 // As we want to continue debuggee, the MTF might arrive when the
                 // host finish executing it's time slice; thus, a clock interrupt
                 // or an IPI might be arrived and the next instruction is not what
-                // we expect, because of that we check if the IF (Interrupt enable)
-                // flag of RFLAGS is enabled or not, if enabled then we remove it
-                // to avoid any clock-interrupt or IPI to arrive and the next
-                // instruction is our next instruction in the current execution
-                // context
+                // we expect. The following codes are added because we realized if the execution takes long then
+                // the execution might be switched to another routines, thus, MTF might conclude on
+                // another routine and we might (and will) trigger the same instruction soon
                 //
-                Rflags.AsUInt = VmFuncGetRflags();
+                VmFuncEnableMtfAndChangeExternalInterruptState(DbgState->CoreId);
 
-                if (Rflags.InterruptEnableFlag)
-                {
-                    Rflags.InterruptEnableFlag = FALSE;
-                    VmFuncSetRflags(Rflags.AsUInt);
-
-                    //
-                    // An indicator to restore RFLAGS if to enabled state
-                    //
-                    DbgState->SoftwareBreakpointState->SetRflagsIFBitOnMtf = TRUE;
-                }
+                //
+                // Avoid unsetting MTF
+                //
+                AvoidUnsetMtf = TRUE;
             }
 
             //
@@ -688,66 +668,106 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
     UINT64                           GuestRip      = 0;
     PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
 
+    GuestRip = VmFuncGetRip();
+
+    //
+    // A breakpoint triggered and two things might be happened,
+    // first, a breakpoint is triggered randomly in the computer and
+    // we shouldn't do anything on it (won't change the instruction)
+    // second, the breakpoint is because of the 'bp' command, we should
+    // replace it with exact byte
+    //
+
+    //
+    // Check if the breakpoint is handled by the debugger routines
+    //
+    if (BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
+                                                           GuestRip,
+                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                                           FALSE))
+    {
+        //
+        // The breakpoint is handled by the debugger routines
+        // so, we don't need to do anything else
+        //
+        return TRUE;
+    }
+
     //
     // re-inject #BP back to the guest if not handled by the hidden breakpoint
     //
-
     if (g_KernelDebuggerState)
     {
         //
-        // Kernel debugger is attached, let's halt everything
-        //
-        GuestRip = VmFuncGetRip();
-
-        //
-        // A breakpoint triggered and two things might be happened,
-        // first, a breakpoint is triggered randomly in the computer and
-        // we shouldn't do anything on it (won't change the instruction)
-        // second, the breakpoint is because of the 'bp' command, we should
-        // replace it with exact byte
+        // *** Kernel debugger is attached, let's halt everything ***
         //
 
-        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(DbgState,
-                                                                GuestRip,
-                                                                DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
-                                                                FALSE))
+        //
+        // To avoid the computer crash situation from the HyperDbg's breakpoint hitting while the interception is on
+        // we should always call BreakpointCheckAndHandleDebuggerDefinedBreakpoints first to handle the breakpoint
+        //
+
+        if (g_InterceptBreakpoints || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
         {
             //
-            // To avoid the computer crash situation from the HyperDbg's breakpoint hitting while the interception is on
-            // we should always call BreakpointCheckAndHandleDebuggerDefinedBreakpoints first to handle the breakpoint
+            // re-inject back to the guest as not handled if the interception is on and the breakpoint is not from the Hyperdbg's breakpoints
             //
+            return FALSE;
+        }
 
-            if (g_InterceptBreakpoints || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
-            {
-                //
-                // re-inject back to the guest as not handled if the interception is on and the breakpoint is not from the Hyperdbg's breakpoints
-                //
-                return FALSE;
-            }
+        //
+        // It's a random breakpoint byte
+        //
+        TargetContext.Context = (PVOID)GuestRip;
+        KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                              &TargetContext);
 
+        //
+        // Increment rip
+        //
+        VmFuncPerformRipIncrement(DbgState->CoreId);
+
+        //
+        // By default, we handle the random breakpoints if the kernel debugger is attached
+        //
+        return TRUE;
+    }
+    else if (g_UserDebuggerState)
+    {
+        //
+        // *** User debugger is attached, let's halt the process ***
+        //
+
+        //
+        // Check if it's a random breakpoint byte
+        //
+        if (UdHandleInstantBreak(DbgState,
+                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                 NULL))
+        {
             //
-            // It's a random breakpoint byte
+            // if the above function returns true, it's handled in the user debugger
             //
-            TargetContext.Context = (PVOID)GuestRip;
-            KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
-                                                  &TargetContext);
 
             //
             // Increment rip
             //
             VmFuncPerformRipIncrement(DbgState->CoreId);
+
+            return TRUE;
         }
-    }
-    else
-    {
+
         //
-        // re-inject back to the guest as not handled here
+        // By default, we won't handle the random (unrelated) breakpoints in the user debugger
         //
         return FALSE;
     }
 
-    return TRUE;
+    //
+    // *** re-inject back to the guest as not handled here ***
+    //
+    return FALSE;
 }
 
 /**
@@ -755,11 +775,12 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
  * @detail this function won't remove the descriptor from the list
  *
  * @param BreakpointDescriptor
+ * @param SwitchToTargetMemoryLayout If TRUE, it will switch to the target memory layout
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
+BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor, BOOLEAN SwitchToTargetMemoryLayout)
 {
     BYTE PreviousByte   = NULL_ZERO;
     BYTE BreakpointByte = 0xcc; // int 3
@@ -767,15 +788,44 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Check if address is safe (only one byte for 0xcc)
     //
-    if (!CheckAccessValidityAndSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
+
+    if (SwitchToTargetMemoryLayout)
     {
-        return FALSE;
+        if (!CheckAccessValidityAndSafetyByProcessId(BreakpointDescriptor->Address, sizeof(BYTE), BreakpointDescriptor->Pid))
+        {
+            return FALSE;
+        }
+    }
+    else
+    {
+        if (!CheckAccessValidityAndSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
+        {
+            return FALSE;
+        }
     }
 
     //
     // Read and save previous byte and save it to the descriptor
     //
-    MemoryMapperReadMemorySafeOnTargetProcess(BreakpointDescriptor->Address, &PreviousByte, sizeof(BYTE));
+    if (SwitchToTargetMemoryLayout)
+    {
+        MemoryMapperReadMemoryUnsafe(
+            BreakpointDescriptor->Address,
+            &PreviousByte,
+            sizeof(BYTE),
+            BreakpointDescriptor->Pid);
+    }
+    else
+    {
+        MemoryMapperReadMemorySafeOnTargetProcess(
+            BreakpointDescriptor->Address,
+            &PreviousByte,
+            sizeof(BYTE));
+    }
+
+    //
+    // Store the previous byte
+    //
     BreakpointDescriptor->PreviousByte = PreviousByte;
 
     //
@@ -787,9 +837,18 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Apply the breakpoint
     //
-    MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
-                                                 (UINT64)&BreakpointByte,
-                                                 sizeof(BYTE));
+    if (SwitchToTargetMemoryLayout)
+    {
+        MemoryMapperWriteMemorySafeFromVmxNonRootyPhysicalAddress(BreakpointDescriptor->PhysAddress,
+                                                                  (PVOID)&BreakpointByte,
+                                                                  sizeof(BYTE));
+    }
+    else
+    {
+        MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
+                                                     (UINT64)&BreakpointByte,
+                                                     sizeof(BYTE));
+    }
 
     return TRUE;
 }
@@ -886,33 +945,45 @@ BreakpointGetEntryByAddress(UINT64 Address)
 /**
  * @brief Add new breakpoints
  * @param BpDescriptor
+ * @param SwitchToTargetMemoryLayout
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
+BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemoryLayout)
 {
-    PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
     CR3_TYPE                GuestCr3             = {0};
+    PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
     BOOLEAN                 IsAddress32Bit       = FALSE;
 
     //
     // Find the current process cr3
     //
-    GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+    if (SwitchToTargetMemoryLayout)
+    {
+        //
+        // Check if the process id is valid or not
+        //
+        if (BpDescriptorArg->Pid != DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES &&
+            !CommonIsProcessExist(BpDescriptorArg->Pid))
+        {
+            //
+            // Process id is invalid (Set the error)
+            //
+            BpDescriptorArg->Result = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+            return FALSE;
+        }
+
+        GuestCr3.Flags = LayoutGetCr3ByProcessId(BpDescriptorArg->Pid).Flags;
+    }
+    else
+    {
+        GuestCr3.Flags = LayoutGetCurrentProcessCr3().Flags;
+    }
 
     //
     // *** Validate arguments ***
     //
-
-    //
-    // Check if address is safe (only one byte for 0xcc)
-    //
-    if (!CheckAccessValidityAndSafety(BpDescriptorArg->Address, sizeof(BYTE)))
-    {
-        BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
-        return FALSE;
-    }
 
     //
     // Check if the core number is not invalid
@@ -940,7 +1011,27 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     }
 
     //
-    // We won't check for process id and thread id, if these arguments are invalid
+    // Check if address is safe (only one byte for 0xcc)
+    //
+    if (SwitchToTargetMemoryLayout)
+    {
+        if (!CheckAccessValidityAndSafetyByProcessId(BpDescriptorArg->Address, sizeof(BYTE), BpDescriptorArg->Pid))
+        {
+            BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+            return FALSE;
+        }
+    }
+    else
+    {
+        if (!CheckAccessValidityAndSafety(BpDescriptorArg->Address, sizeof(BYTE)))
+        {
+            BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+            return FALSE;
+        }
+    }
+
+    //
+    // On the debugger mode, we won't check for process id and thread id, if these arguments are invalid
     // then the HyperDbg simply ignores the breakpoints but it makes the computer slow
     // it just won't be triggered
     //
@@ -953,7 +1044,8 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Get the pre-allocated buffer
     //
-    BreakpointDescriptor = (DEBUGGEE_BP_DESCRIPTOR *)PoolManagerRequestPool(BREAKPOINT_DEFINITION_STRUCTURE, TRUE, sizeof(DEBUGGEE_BP_DESCRIPTOR));
+    BreakpointDescriptor = (DEBUGGEE_BP_DESCRIPTOR *)
+        PoolManagerRequestPool(BREAKPOINT_DEFINITION_STRUCTURE, TRUE, sizeof(DEBUGGEE_BP_DESCRIPTOR));
 
     if (BreakpointDescriptor == NULL)
     {
@@ -995,15 +1087,32 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
         // The address is not a kernel address, thus, we check whether the debuggee is running on user-mode
         // or not
         //
-        IsAddress32Bit = KdIsGuestOnUsermode32Bit();
+        if (SwitchToTargetMemoryLayout)
+        {
+            UserAccessIsWow64Process((HANDLE)BpDescriptorArg->Pid, &IsAddress32Bit);
+        }
+        else
+        {
+            IsAddress32Bit = KdIsGuestOnUsermode32Bit();
+        }
     }
 
     //
     // Use length disassembler engine to get the instruction length
     //
-    BreakpointDescriptor->InstructionLength = (UINT16)DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
-        (PVOID)BpDescriptorArg->Address,
-        IsAddress32Bit);
+    if (SwitchToTargetMemoryLayout)
+    {
+        BreakpointDescriptor->InstructionLength = (UINT16)DisassemblerLengthDisassembleEngineByProcessId(
+            (PVOID)BpDescriptorArg->Address,
+            IsAddress32Bit,
+            BpDescriptorArg->Pid);
+    }
+    else
+    {
+        BreakpointDescriptor->InstructionLength = (UINT16)DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(
+            (PVOID)BpDescriptorArg->Address,
+            IsAddress32Bit);
+    }
 
     //
     // Breakpoints are enabled by default
@@ -1018,7 +1127,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Apply the breakpoint
     //
-    BreakpointWrite(BreakpointDescriptor);
+    BreakpointWrite(BreakpointDescriptor, SwitchToTargetMemoryLayout);
 
     //
     // Show that operation was successful
@@ -1082,11 +1191,12 @@ BreakpointListAllBreakpoint()
 /**
  * @brief List of modify breakpoints
  * @param ListOrModifyBreakpoints
+ * @param SwitchToTargetMemoryLayout
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints)
+BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints, BOOLEAN SwitchToTargetMemoryLayout)
 {
     PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
 
@@ -1119,7 +1229,7 @@ BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoint
         //
         // Set the breakpoint (without removing from list)
         //
-        BreakpointWrite(BreakpointDescriptor);
+        BreakpointWrite(BreakpointDescriptor, SwitchToTargetMemoryLayout);
     }
     else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_DISABLE)
     {

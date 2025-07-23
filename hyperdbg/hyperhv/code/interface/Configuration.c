@@ -20,11 +20,6 @@
 VOID
 ConfigureEnableMovToCr3ExitingOnAllProcessors()
 {
-    //
-    // Indicate that the future #PFs should or should not be checked with user debugger
-    //
-    g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger = TRUE;
-
     BroadcastEnableMovToCr3ExitingOnAllProcessors();
 }
 
@@ -48,6 +43,18 @@ VOID
 ConfigureUninitializeExecTrapOnAllProcessors()
 {
     ExecTrapUninitialize();
+}
+
+/**
+ * @brief Apply the MBEC configuration from the kernel side
+ * @param CoreId The core id
+ *
+ * @return VOID
+ */
+VOID
+ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(UINT32 CoreId)
+{
+    ExecTrapApplyMbecConfiguratinFromKernelSide(&g_GuestState[CoreId]);
 }
 
 /**
@@ -115,11 +122,6 @@ ConfigureDirtyLoggingUninitializeOnAllProcessors()
 VOID
 ConfigureDisableMovToCr3ExitingOnAllProcessors()
 {
-    //
-    // Indicate that the future #PFs should or should not be checked with user debugger
-    //
-    g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger = FALSE;
-
     BroadcastDisableMovToCr3ExitingOnAllProcessors();
 }
 

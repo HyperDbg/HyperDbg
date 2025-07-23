@@ -1,7 +1,7 @@
 /**
  * @file Transparency.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief try to hide the debugger from anti-debugging and anti-hypervisor methods
+ * @brief Try to hide the debugger from anti-debugging and anti-hypervisor methods
  * @details
  * @version 0.1
  * @date 2020-07-07
@@ -14,29 +14,55 @@
 /**
  * @brief Hide debugger on transparent-mode (activate transparent-mode)
  *
+ * @param HyperevadeCallbacks
  * @param TransparentModeRequest
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE TransparentModeRequest)
+TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        HyperevadeCallbacks,
+                        DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
+    //
+    // Check if any of the required callbacks are NULL
+    //
+    for (UINT32 i = 0; i < sizeof(HYPEREVADE_CALLBACKS) / sizeof(UINT64); i++)
+    {
+        if (((PVOID *)HyperevadeCallbacks)[i] == NULL)
+        {
+            //
+            // The callback has null entry, so we cannot proceed
+            //
+            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+            return FALSE;
+        }
+    }
+
+    //
+    // Save the callbacks
+    //
+    RtlCopyMemory(&g_Callbacks, HyperevadeCallbacks, sizeof(HYPEREVADE_CALLBACKS));
+
     //
     // Check whether the transparent-mode was already initialized or not
     //
     if (!g_TransparentMode)
     {
         //
-        // Allocate buffer for the transparent-mode trap flag state
+        // Store the system-call numbers information
         //
-        g_TransparentModeTrapFlagState = (TRANSPARENT_MODE_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(TRANSPARENT_MODE_TRAP_FLAG_STATE));
+        RtlCopyBytes(&g_SystemCallNumbersInformation,
+                     &TransparentModeRequest->SystemCallNumbersInformation,
+                     sizeof(SYSTEM_CALL_NUMBERS_INFORMATION));
 
         //
-        // Intercept trap flags #DBs and #BPs for the transparent-mode
+        // Choose a random genuine vendor string to replace hypervisor vendor data
         //
-        BroadcastEnableDbAndBpExitingAllCores();
+        TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = TransparentGetRand() %
+                                                  (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
 
         //
-        // Enable the transparent-mode
+        // Enable the transparent mode
         //
         g_TransparentMode                    = TRUE;
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
@@ -55,12 +81,11 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transparent
 
 /**
  * @brief Deactivate transparent-mode
- * @param TransparentModeRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE TransparentModeRequest)
+TransparentUnhideDebugger()
 {
     if (g_TransparentMode)
     {
@@ -69,342 +94,117 @@ TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Transpare
         //
         g_TransparentMode = FALSE;
 
-        //
-        // Unset the trap flags #DBs and #BPs for the transparent-mode
-        //
-        BroadcastDisableDbAndBpExitingAllCores();
-
-        //
-        // Free the buffer for the transparent-mode trap flag state
-        //
-        PlatformMemFreePool(g_TransparentModeTrapFlagState);
-
-        TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
     }
     else
     {
-        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE;
         return FALSE;
     }
 }
 
 /**
- * @brief Handle Cpuid Vmexits when the Transparent mode is enabled
+ * @brief Generate a random number by utilizing RDTSC instruction.
  *
- * @param CpuInfo The temporary logical processor registers
- * @param Regs Vcpu's GP registers
- * @return VOID
+ * Masking 16 LSB of the measured clock time.
+ * @return UINT32
  */
-VOID
-TransparentCPUID(INT32 CpuInfo[], PGUEST_REGS Regs)
+UINT32
+TransparentGetRand()
 {
-    if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
-    {
-        //
-        // Unset the Hypervisor Present-bit in RCX, which Intel and AMD have both
-        // reserved for this indication
-        //
-        CpuInfo[2] &= ~HYPERV_HYPERVISOR_PRESENT_BIT;
-    }
-    else if (Regs->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS || Regs->rax == HYPERV_CPUID_INTERFACE)
-    {
-        //
-        // When transparent, all CPUID leaves in the 0x40000000+ range should contain no usable data
-        //
-        CpuInfo[0] = CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
-    }
+    UINT64 Tsc;
+    UINT32 Rand;
+
+    Tsc  = __rdtsc();
+    Rand = Tsc & 0xffff;
+
+    return Rand;
 }
 
 /**
- * @brief This function makes sure to unset the RFLAGS.TF on next trigger of #DB
- * on the target process/thread
- * @param ProcessId
- * @param ThreadId
- * @param Context
- * @param Params
+ * @brief Add name or process id of the target process to the list
+ * of processes that HyperDbg should apply transparent-mode on them
  *
+ * @param Measurements
  * @return BOOLEAN
  */
 BOOLEAN
-TransparentStoreProcessInformation(UINT32                            ProcessId,
-                                   UINT32                            ThreadId,
-                                   UINT64                            Context,
-                                   TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
+TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements)
 {
-    UINT32                                      Index;
-    BOOLEAN                                     Result;
-    BOOLEAN                                     SuccessfullyStored;
-    TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
+    SIZE_T                SizeOfBuffer;
+    PTRANSPARENCY_PROCESS PidAndNameBuffer;
 
     //
-    // Form the process id and thread id into a 64-bit value
+    // Check whether it's a process id or it's a process name
     //
-    ProcThrdInfo.Fields.ProcessId = ProcessId;
-    ProcThrdInfo.Fields.ThreadId  = ThreadId;
-
-    //
-    // Make sure, nobody is in the middle of modifying the list
-    //
-    SpinlockLock(&TransparentModeTrapListLock);
-
-    //
-    // *** Search the list of processes/threads for the current process's trap flag state ***
-    //
-    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
-                                           g_TransparentModeTrapFlagState->NumberOfItems,
-                                           &Index,
-                                           ProcThrdInfo.asUInt);
-
-    if (Result)
+    if (Measurements->TrueIfProcessIdAndFalseIfProcessName)
     {
         //
-        // It means that we already find this entry in the stored list
-        // so, just imply that the addition was successful (no need for extra addition)
+        // It's a process Id
         //
-        SuccessfullyStored = TRUE;
-        goto Return;
+        SizeOfBuffer = sizeof(TRANSPARENCY_PROCESS);
     }
     else
     {
         //
-        // Insert the thread into the list as the item is not already present
+        // It's a process name
         //
-        SuccessfullyStored = InsertionSortInsertItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
-                                                     &g_TransparentModeTrapFlagState->NumberOfItems,
-                                                     MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRANSPARENT_MODE_TRAPS,
-                                                     &Index,
-                                                     ProcThrdInfo.asUInt);
-
-        if (SuccessfullyStored)
-        {
-            //
-            // Successfully inserted the thread/process into the list
-            // Now let's store the context of the caller along with parameters
-            //
-            g_TransparentModeTrapFlagState->Context[Index] = Context;
-            memcpy(&g_TransparentModeTrapFlagState->Params[Index], Params, sizeof(TRANSPARENT_MODE_CONTEXT_PARAMS));
-        }
-
-        goto Return;
+        SizeOfBuffer = sizeof(TRANSPARENCY_PROCESS) + Measurements->LengthOfProcessName;
     }
 
-Return:
     //
-    // Unlock the list modification lock
+    // Allocate the Buffer
     //
-    SpinlockUnlock(&TransparentModeTrapListLock);
+    PidAndNameBuffer = PlatformMemAllocateZeroedNonPagedPool(SizeOfBuffer);
 
-    return SuccessfullyStored;
-}
-
-/**
- * @brief Set the trap flag in the guest after a syscall
- *
- * @param VCpu The virtual processor's state
- * @param ProcessId The process id of the thread
- * @param ThreadId The thread id of the thread
- * @param Context The context of the caller
- * @param Params The (optional) parameters of the caller
- *
- * @return BOOLEAN
- */
-BOOLEAN
-TransparentSetTrapFlagAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
-                                   UINT32                            ProcessId,
-                                   UINT32                            ThreadId,
-                                   UINT64                            Context,
-                                   TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
-{
-    //
-    // Do not add anything to the list if the transparent-mode is not enabled (or disabled by the user)
-    //
-    if (!g_TransparentMode)
+    if (PidAndNameBuffer == NULL)
     {
-        //
-        // Transparent-mode is not enabled
-        //
         return FALSE;
     }
 
     //
-    // Insert the thread/process into the list of processes/threads
+    // Save the address of the buffer for future de-allocation
     //
-    if (!TransparentStoreProcessInformation(ProcessId, ThreadId, Context, Params))
+    PidAndNameBuffer->BufferAddress = PidAndNameBuffer;
+
+    //
+    // Check again whether it's a process id or it's a process name
+    // then fill the structure
+    //
+    if (Measurements->TrueIfProcessIdAndFalseIfProcessName)
     {
         //
-        // Failed to store the process/thread information
+        // It's a process Id
         //
-        return FALSE;
+        PidAndNameBuffer->ProcessId                            = Measurements->ProcId;
+        PidAndNameBuffer->TrueIfProcessIdAndFalseIfProcessName = TRUE;
+    }
+    else
+    {
+        //
+        // It's a process name
+        //
+        PidAndNameBuffer->TrueIfProcessIdAndFalseIfProcessName = FALSE;
+
+        //
+        // Move the process name string to the end of the buffer
+        //
+        RtlCopyBytes((void *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
+                     (const void *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
+                     Measurements->LengthOfProcessName);
+
+        //
+        // Set the process name location
+        //
+        PidAndNameBuffer->ProcessName = (PVOID)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS));
     }
 
     //
-    // *** Successfully stored the process/thread information ***
+    // Link it to the list of process that we need to transparent
+    // vm-exits for them
     //
-
-    //
-    // Set the trap flag to TRUE because we want to intercept the thread again
-    // once it returns to the user-mode (SYSRET) instruction
-    //
-    // Here the RFLAGS is in the R11 register (See Intel manual about the SYSCALL register)
-    //
-    VCpu->Regs->r11 |= X86_FLAGS_TF;
-
-    //
-    // Create log message for the syscall
-    //
-    // LogInfo("Transparent set trap flag for process: %x, thread: %x\n", ProcessId, ThreadId);
+    // InsertHeadList(&g_TransparentModeMeasurements->ProcessList, &(PidAndNameBuffer->OtherProcesses));
 
     return TRUE;
-}
-
-/**
- * @brief Handle the trap flags as the result of interception of the return of the
- * system-call
- *
- * @param VCpu The virtual processor's state
- * @param ProcessId The process id of the thread
- * @param ThreadId The thread id of the thread
- *
- * @return BOOLEAN
- */
-BOOLEAN
-TransparentCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
-                                               UINT32                  ProcessId,
-                                               UINT32                  ThreadId)
-{
-    RFLAGS                                      Rflags = {0};
-    UINT32                                      Index;
-    UINT64                                      Context = NULL64_ZERO;
-    TRANSPARENT_MODE_CONTEXT_PARAMS             Params;
-    TRANSPARENT_MODE_PROCESS_THREAD_INFORMATION ProcThrdInfo = {0};
-    BOOLEAN                                     Result;
-    BOOLEAN                                     ResultToReturn;
-
-    //
-    // Read the trap flag
-    //
-    Rflags.AsUInt = HvGetRflags();
-
-    if (!Rflags.TrapFlag)
-    {
-        //
-        // The trap flag is not set, so we don't need to do anything
-        //
-        return FALSE;
-    }
-
-    //
-    // Form the process id and thread id into a 64-bit value
-    //
-    ProcThrdInfo.Fields.ProcessId = ProcessId;
-    ProcThrdInfo.Fields.ThreadId  = ThreadId;
-
-    //
-    // Make sure, nobody is in the middle of modifying the list
-    //
-    SpinlockLock(&TransparentModeTrapListLock);
-
-    //
-    // *** Search the list of processes/threads for the current process's trap flag state ***
-    //
-    Result = BinarySearchPerformSearchItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
-                                           g_TransparentModeTrapFlagState->NumberOfItems,
-                                           &Index,
-                                           ProcThrdInfo.asUInt);
-
-    //
-    // Check whether this thread is expected to have trap flag
-    // by the transparent-mode or not
-    //
-    if (Result)
-    {
-        //
-        // Read the context of the caller
-        //
-        Context = g_TransparentModeTrapFlagState->Context[Index];
-
-        //
-        // Read the (optional) parameters of the caller
-        //
-        memcpy(&Params, &g_TransparentModeTrapFlagState->Params[Index], sizeof(TRANSPARENT_MODE_CONTEXT_PARAMS));
-
-        //
-        // Clear the trap flag from the RFLAGS register
-        //
-        HvSetRflagTrapFlag(FALSE);
-
-        //
-        // Remove the thread/process from the list of processes/threads
-        //
-        InsertionSortDeleteItem((UINT64 *)&g_TransparentModeTrapFlagState->ThreadInformation[0],
-                                &g_TransparentModeTrapFlagState->NumberOfItems,
-                                Index);
-
-        //
-        // Handled by the transparent-mode
-        //
-        ResultToReturn = TRUE;
-
-        goto ReturnResult;
-    }
-    else
-    {
-        //
-        // Not related to the transparent-mode
-        //
-        ResultToReturn = FALSE;
-
-        goto ReturnResult;
-    }
-
-ReturnResult:
-
-    //
-    // Unlock the list modification lock
-    //
-    SpinlockUnlock(&TransparentModeTrapListLock);
-
-    //
-    // Call the callback function to handle the trap flag if its needed
-    // Note that we call it here so we already unlocked the list lock
-    // to optimize the performance (avoid holding the lock for a long time)
-    //
-    if (ResultToReturn)
-    {
-        TransparentCallbackHandleAfterSyscall(VCpu, ProcessId, ThreadId, Context, &Params);
-    }
-
-    return ResultToReturn;
-}
-
-/**
- * @brief Callback function to handle returns from the syscall
- *
- * @param VCpu The virtual processor's state
- * @param ProcessId The process id of the thread
- * @param ThreadId The thread id of the thread
- * @param Context The context of the caller
- * @param Params The (optional) parameters of the caller
- *
- * @return VOID
- */
-VOID
-TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
-                                      UINT32                            ProcessId,
-                                      UINT32                            ThreadId,
-                                      UINT64                            Context,
-                                      TRANSPARENT_MODE_CONTEXT_PARAMS * Params)
-{
-    LogInfo("Transparent callback handle the trap flag for process: %x, thread: %x, rip: %llx, context: %llx (p1: %llx, p2: %llx, p3: %llx, p4: %llx)\n",
-            ProcessId,
-            ThreadId,
-            VCpu->LastVmexitRip,
-            Context,
-            Params->OptionalParam1,
-            Params->OptionalParam2,
-            Params->OptionalParam3,
-            Params->OptionalParam4);
 }
 
 //
@@ -521,23 +321,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
 //         460,
 //         461};
 //
-// /**
-//  * @brief Generate a random number by utilizing RDTSC instruction.
-//  *
-//  * Masking 16 LSB of the measured clock time.
-//  * @return UINT32
-//  */
-// UINT32
-// TransparentGetRand()
-// {
-//     UINT64 Tsc;
-//     UINT32 Rand;
-//
-//     Tsc  = __rdtsc();
-//     Rand = Tsc & 0xffff;
-//
-//     return Rand;
-// }
 //
 // /**
 //  * @brief Integer power function definition.
@@ -656,92 +439,6 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
 //     return (Average + (Sigma * XS1) / MY_RAND_MAX);
 // }
 //
-// /**
-//  * @brief Add name or process id of the target process to the list
-//  * of processes that HyperDbg should apply transparent-mode on them
-//  *
-//  * @param Measurements
-//  * @return BOOLEAN
-//  */
-// BOOLEAN
-// TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements)
-// {
-//     SIZE_T                SizeOfBuffer;
-//     PTRANSPARENCY_PROCESS PidAndNameBuffer;
-//
-//     //
-//     // Check whether it's a process id or it's a process name
-//     //
-//     if (Measurements->TrueIfProcessIdAndFalseIfProcessName)
-//     {
-//         //
-//         // It's a process Id
-//         //
-//         SizeOfBuffer = sizeof(TRANSPARENCY_PROCESS);
-//     }
-//     else
-//     {
-//         //
-//         // It's a process name
-//         //
-//         SizeOfBuffer = sizeof(TRANSPARENCY_PROCESS) + Measurements->LengthOfProcessName;
-//     }
-//
-//     //
-//     // Allocate the Buffer
-//     //
-//     PidAndNameBuffer = PlatformMemAllocateZeroedNonPagedPool(SizeOfBuffer);
-//
-//     if (PidAndNameBuffer == NULL)
-//     {
-//         return FALSE;
-//     }
-//
-//     //
-//     // Save the address of the buffer for future de-allocation
-//     //
-//     PidAndNameBuffer->BufferAddress = PidAndNameBuffer;
-//
-//     //
-//     // Check again whether it's a process id or it's a process name
-//     // then fill the structure
-//     //
-//     if (Measurements->TrueIfProcessIdAndFalseIfProcessName)
-//     {
-//         //
-//         // It's a process Id
-//         //
-//         PidAndNameBuffer->ProcessId                            = Measurements->ProcId;
-//         PidAndNameBuffer->TrueIfProcessIdAndFalseIfProcessName = TRUE;
-//     }
-//     else
-//     {
-//         //
-//         // It's a process name
-//         //
-//         PidAndNameBuffer->TrueIfProcessIdAndFalseIfProcessName = FALSE;
-//
-//         //
-//         // Move the process name string to the end of the buffer
-//         //
-//         RtlCopyBytes((void *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
-//                      (const void *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
-//                      Measurements->LengthOfProcessName);
-//
-//         //
-//         // Set the process name location
-//         //
-//         PidAndNameBuffer->ProcessName = (PVOID)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS));
-//     }
-//
-//     //
-//     // Link it to the list of process that we need to transparent
-//     // vm-exits for them
-//     //
-//     InsertHeadList(&g_TransparentModeMeasurements->ProcessList, &(PidAndNameBuffer->OtherProcesses));
-//
-//     return TRUE;
-// }
 //
 // /**
 //  * @brief Hide debugger on transparent-mode (activate transparent-mode)
@@ -881,13 +578,13 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
 //  * @brief VM-Exit handler for different exit reasons
 //  * @details Should be called from vmx-root
 //  *
-//  * @param VCpu The virtual processor's state
+//  * @param Regs The virtual processor's state of registers
 //  * @param ExitReason Exit Reason
 //  * @return BOOLEAN Return True we should emulate RDTSCP
 //  *  or return false if we should not emulate RDTSCP
 //  */
 // BOOLEAN
-// TransparentModeStart(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExitReason)
+// TransparentModeStart(GUEST_REGS * Regs, UINT32 ExitReason)
 // {
 //     UINT32      Aux                = 0;
 //     PLIST_ENTRY TempList           = 0;
@@ -1018,10 +715,10 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
 //         //
 //         // Adjust the rdtsc based on RevealedTimeStampCounterByRdtsc
 //         //
-//         VCpu->Regs->rax = 0x00000000ffffffff &
+//         Regs->rax = 0x00000000ffffffff &
 //                           VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc;
 //
-//         VCpu->Regs->rdx = 0x00000000ffffffff &
+//         Regs->rdx = 0x00000000ffffffff &
 //                           (VCpu->TransparencyState.RevealedTimeStampCounterByRdtsc >> 32);
 //
 //         //
@@ -1029,7 +726,7 @@ TransparentCallbackHandleAfterSyscall(VIRTUAL_MACHINE_STATE *           VCpu,
 //         //
 //         if (ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP)
 //         {
-//             VCpu->Regs->rcx = 0x00000000ffffffff & Aux;
+//             Regs->rcx = 0x00000000ffffffff & Aux;
 //         }
 //         //
 //         // Shows that vm-exit handler should not emulate the RDTSC/P

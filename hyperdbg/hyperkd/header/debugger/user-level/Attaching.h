@@ -26,47 +26,6 @@
  *
  */
 #define MAX_THREADS_IN_A_PROCESS_HOLDER 100
-/**
- * @brief Maximum number of CR3 registers that a process can have
- * @details Generally, a process has one cr3 but after meltdown KPTI
- * another Cr3 is added and separated the kernel and user CR3s, recently
- * I've noticed from a tweet from Petr Benes that there might be other cr3s
- * https://twitter.com/PetrBenes/status/1310642455352672257?s=20
- * So, I assume two extra cr3 for each process
- */
-#define MAX_CR3_IN_A_PROCESS 4
-
-//////////////////////////////////////////////////
-//				   Structures					//
-//////////////////////////////////////////////////
-
-/**
- * @brief Description of each active thread in user-mode attaching
- * mechanism
- *
- */
-typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
-{
-    UINT64     Token;
-    BOOLEAN    Enabled;
-    PVOID      PebAddressToMonitor;
-    UINT32     ActiveThreadId; // active thread
-    GUEST_REGS Registers;      // active thread
-    UINT64     Context;        // $context
-    LIST_ENTRY AttachedProcessList;
-    UINT64     UsermodeReservedBuffer;
-    UINT64     EntrypointOfMainModule;
-    UINT64     BaseAddressOfMainModule;
-    PEPROCESS  Eprocess;
-    UINT32     ProcessId;
-    BOOLEAN    Is32Bit;
-    BOOLEAN    IsOnTheStartingPhase;
-    BOOLEAN    IsOnThreadInterceptingPhase;
-    BOOLEAN    CheckCallBackForInterceptingFirstInstruction; // checks for the callbacks for interceptions of the very first instruction (used by RE Machine)
-    CR3_TYPE   InterceptedCr3[MAX_CR3_IN_A_PROCESS];
-    LIST_ENTRY ThreadsListHead;
-
-} USERMODE_DEBUGGING_PROCESS_DETAILS, *PUSERMODE_DEBUGGING_PROCESS_DETAILS;
 
 //////////////////////////////////////////////////
 //				   Functions					//
@@ -76,15 +35,10 @@ BOOLEAN
 AttachingInitialize();
 
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32 CoreId,
-                                         UINT64 Address,
-                                         UINT32 PageFaultErrorCode);
+AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId);
 
 BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
-
-BOOLEAN
-AttachingHandleCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3);
 
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);

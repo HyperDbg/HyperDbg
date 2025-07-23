@@ -189,6 +189,9 @@ VmFuncVmxCompatibleStrlen(const CHAR * s);
 IMPORT_EXPORT_VMM UINT32
 VmFuncVmxCompatibleWcslen(const wchar_t * s);
 
+IMPORT_EXPORT_VMM VOID
+VmFuncVmxCompatibleMicroSleep(UINT64 us);
+
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncNmiBroadcastRequest(UINT32 CoreId);
 
@@ -285,6 +288,9 @@ ConfigureModeBasedExecHookUninitializeOnAllProcessors();
 
 IMPORT_EXPORT_VMM VOID
 ConfigureUninitializeExecTrapOnAllProcessors();
+
+IMPORT_EXPORT_VMM VOID
+ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM BOOLEAN
 ConfigureInitializeExecTrapOnAllProcessors();
@@ -519,6 +525,9 @@ IMPORT_EXPORT_VMM BOOLEAN
 CheckAccessValidityAndSafety(UINT64 TargetAddress, UINT32 Size);
 
 IMPORT_EXPORT_VMM BOOLEAN
+CheckAccessValidityAndSafetyByProcessId(UINT64 TargetAddress, UINT32 Size, UINT32 ProcessId);
+
+IMPORT_EXPORT_VMM BOOLEAN
 CheckAddressPhysical(UINT64 PAddr);
 
 IMPORT_EXPORT_VMM UINT32
@@ -529,6 +538,9 @@ CheckAddressMaximumInstructionLength(PVOID Address);
 //
 IMPORT_EXPORT_VMM CR3_TYPE
 LayoutGetCurrentProcessCr3();
+
+IMPORT_EXPORT_VMM CR3_TYPE
+LayoutGetCr3ByProcessId(UINT32 ProcessId);
 
 IMPORT_EXPORT_VMM CR3_TYPE
 LayoutGetExactGuestProcessCr3();
@@ -585,6 +597,17 @@ MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
                                           _Inout_ PVOID BufferToSaveMemory,
                                           _In_ SIZE_T   SizeToRead);
 
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperReadMemorySafeFromVmxNonRootByPhysicalAddress(_In_ UINT64   PaAddressToRead,
+                                                          _Inout_ PVOID BufferToSaveMemory,
+                                                          _In_ SIZE_T   SizeToRead);
+
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperReadMemoryUnsafe(_In_ UINT64   VaAddressToRead,
+                             _Inout_ PVOID BufferToSaveMemory,
+                             _In_ SIZE_T   SizeToRead,
+                             _In_ UINT32   TargetProcessId);
+
 // ----------------------------------------------------------------------------
 // Disassembler Functions
 //
@@ -593,6 +616,9 @@ DisassemblerLengthDisassembleEngine(PVOID Address, BOOLEAN Is32Bit);
 
 IMPORT_EXPORT_VMM UINT32
 DisassemblerLengthDisassembleEngineInVmxRootOnTargetProcess(PVOID Address, BOOLEAN Is32Bit);
+
+IMPORT_EXPORT_VMM UINT32
+DisassemblerLengthDisassembleEngineByProcessId(PVOID Address, BOOLEAN Is32Bit, UINT32 ProcessId);
 
 // ----------------------------------------------------------------------------
 // Writing Memory Functions
@@ -618,6 +644,11 @@ MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
                               _In_ PVOID     Source,
                               _In_ SIZE_T    SizeToWrite,
                               _In_ UINT32    TargetProcessId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+MemoryMapperWriteMemorySafeFromVmxNonRootyPhysicalAddress(_In_ UINT64 DestinationPa,
+                                                          _In_ PVOID  Source,
+                                                          _In_ SIZE_T SizeToWrite);
 
 // ----------------------------------------------------------------------------
 // Reserving Memory Functions
@@ -851,10 +882,10 @@ SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_VMM BOOLEAN
-TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE TransparentModeRequest);
+TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest);
 
 IMPORT_EXPORT_VMM BOOLEAN
-TransparentUnhideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE TransparentModeRequest);
+TransparentUnhideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest);
 
 //////////////////////////////////////////////////
 //     Non-internal Broadcasting Functions    	//

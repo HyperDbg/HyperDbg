@@ -191,7 +191,7 @@ hyperdbg_u_continue_debuggee();
 
 //
 // Pause debuggee
-// Exported functionality of the 'pause' command or CTRL+C
+// Exported functionality of the 'pause' command
 //
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_pause_debuggee();
@@ -200,7 +200,7 @@ hyperdbg_u_pause_debuggee();
 // Set breakpoint
 // Exported functionality of the 'bp' command
 //
-IMPORT_EXPORT_LIBHYPERDBG VOID
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_numer);
 
 //
@@ -254,7 +254,7 @@ hyperdbg_u_get_idt_entry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * idt_packet
 // Exported functionality of the '!hide', and '!unhide' commands
 //
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
-hyperdbg_u_enable_transparent_mode();
+hyperdbg_u_enable_transparent_mode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_disable_transparent_mode();

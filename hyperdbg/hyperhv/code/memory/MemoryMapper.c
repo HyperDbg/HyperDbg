@@ -922,13 +922,16 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
  *
  * @param TypeOfRead Type of read
  * @param AddressToRead Physical Address to read
+ * @param TargetProcessId Target Process Id
+ *
  * @return UINT64 returns the target physical address and NULL if it fails
  */
 _Use_decl_annotations_
 UINT64
 MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
     MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
-    UINT64                                AddressToRead)
+    UINT64                                AddressToRead,
+    UINT32                                TargetProcessId)
 {
     PHYSICAL_ADDRESS PhysicalAddress = {0};
 
@@ -943,6 +946,19 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
     case MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY:
 
         PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress((PVOID)AddressToRead);
+
+        break;
+
+    case MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY_UNSAFE:
+
+        if (TargetProcessId == NULL_ZERO)
+        {
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress((PVOID)AddressToRead);
+        }
+        else
+        {
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessId((PVOID)AddressToRead, TargetProcessId);
+        }
 
         break;
 
@@ -963,16 +979,19 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
  * @param AddressToRead Address to read
  * @param BufferToSaveMemory Destination to save
  * @param SizeToRead Size
+ * @param TargetProcessId The process pid
+ *
  * @return BOOLEAN if it was successful the returns TRUE and if it was
  * unsuccessful then it returns FALSE
  */
 _Use_decl_annotations_
 BOOLEAN
-MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
+MemoryMapperReadMemorySafeWrapper(
     MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ TypeOfRead,
     UINT64                                AddressToRead,
     UINT64                                BufferToSaveMemory,
-    SIZE_T                                SizeToRead)
+    SIZE_T                                SizeToRead,
+    UINT32                                TargetProcessId)
 {
     ULONG            CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
     UINT64           AddressToCheck;
@@ -1022,7 +1041,8 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
             // One access is enough (page+size won't pass from the PAGE_ALIGN boundary)
             //
             PhysicalAddress.QuadPart = MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(TypeOfRead,
-                                                                                                      AddressToRead);
+                                                                                                      AddressToRead,
+                                                                                                      TargetProcessId);
 
             if (!MemoryMapperReadMemorySafeByPte(
                     PhysicalAddress,
@@ -1051,7 +1071,8 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
         // One access is enough (page+size won't pass from the PAGE_ALIGN boundary)
         //
         PhysicalAddress.QuadPart = MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(TypeOfRead,
-                                                                                                  AddressToRead);
+                                                                                                  AddressToRead,
+                                                                                                  TargetProcessId);
 
         return MemoryMapperReadMemorySafeByPte(
             PhysicalAddress,
@@ -1081,10 +1102,11 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead,
     //
     // Call the wrapper
     //
-    return MemoryMapperReadMemorySafeByPhysicalAddressWrapper(MEMORY_MAPPER_WRAPPER_READ_PHYSICAL_MEMORY,
-                                                              PaAddressToRead,
-                                                              BufferToSaveMemory,
-                                                              SizeToRead);
+    return MemoryMapperReadMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_READ_PHYSICAL_MEMORY,
+                                             PaAddressToRead,
+                                             BufferToSaveMemory,
+                                             SizeToRead,
+                                             NULL_ZERO);
 }
 
 /**
@@ -1100,10 +1122,33 @@ _Use_decl_annotations_
 BOOLEAN
 MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead)
 {
-    return MemoryMapperReadMemorySafeByPhysicalAddressWrapper(MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY,
-                                                              VaAddressToRead,
-                                                              (UINT64)BufferToSaveMemory,
-                                                              SizeToRead);
+    return MemoryMapperReadMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY,
+                                             VaAddressToRead,
+                                             (UINT64)BufferToSaveMemory,
+                                             SizeToRead,
+                                             NULL_ZERO);
+}
+
+/**
+ * @brief Read memory unsafely by mapping the buffer (It's a wrapper)
+ *
+ * @param VaAddressToRead Virtual Address to read
+ * @param BufferToSaveMemory Destination to save
+ * @param SizeToRead Size
+ * @param TargetProcessId The process pid
+ *
+ * @return BOOLEAN if it was successful the returns TRUE and if it was
+ * unsuccessful then it returns FALSE
+ */
+_Use_decl_annotations_
+BOOLEAN
+MemoryMapperReadMemoryUnsafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead, UINT32 TargetProcessId)
+{
+    return MemoryMapperReadMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY_UNSAFE,
+                                             VaAddressToRead,
+                                             (UINT64)BufferToSaveMemory,
+                                             SizeToRead,
+                                             TargetProcessId);
 }
 
 /**
@@ -1718,4 +1763,52 @@ MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PAGING_
     }
 
     return TRUE;
+}
+
+/**
+ * @brief Read physical memory safely from vmx non-root mode
+ *
+ * @param PaAddressToRead Physical Address to read
+ * @param BufferToSaveMemory Destination to save
+ * @param SizeToRead Size
+ *
+ * @return BOOLEAN whether was successful or not
+ */
+BOOLEAN
+MemoryMapperReadMemorySafeFromVmxNonRootByPhysicalAddress(UINT64 PaAddressToRead,
+                                                          PVOID  BufferToSaveMemory,
+                                                          SIZE_T SizeToRead)
+{
+    if (AsmVmxVmcall(VMCALL_READ_PHYSICAL_MEMORY, (UINT64)PaAddressToRead, (UINT64)BufferToSaveMemory, (UINT64)SizeToRead) == STATUS_SUCCESS)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Write physical memory safely from vmx non-root mode
+ *
+ * @param DestinationVa Destination Virtual Address
+ * @param Source Source Address
+ * @param SizeToWrite Size
+ *
+ * @return BOOLEAN whether was successful or not
+ */
+BOOLEAN
+MemoryMapperWriteMemorySafeFromVmxNonRootyPhysicalAddress(UINT64 DestinationPa,
+                                                          PVOID  Source,
+                                                          SIZE_T SizeToWrite)
+{
+    if (AsmVmxVmcall(VMCALL_WRITE_PHYSICAL_MEMORY, (UINT64)DestinationPa, (UINT64)Source, (UINT64)SizeToWrite) == STATUS_SUCCESS)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }

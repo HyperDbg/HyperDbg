@@ -13,134 +13,6 @@
 #include "pch.h"
 
 /**
- * @brief routines callback for preparing and sending message to queue
- *
- * @param OperationCode
- * @param IsImmediateMessage
- * @param ShowCurrentSystemTime
- * @param Priority
- * @param Fmt
- * @param ...
- *
- * @return BOOLEAN
- */
-BOOLEAN
-LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
-                                        BOOLEAN      IsImmediateMessage,
-                                        BOOLEAN      ShowCurrentSystemTime,
-                                        BOOLEAN      Priority,
-                                        const char * Fmt,
-                                        ...)
-{
-    BOOLEAN Result;
-    va_list ArgList;
-
-    if (g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper == NULL)
-    {
-        //
-        // Ignore sending message to queue
-        //
-        return FALSE;
-    }
-
-    va_start(ArgList, Fmt);
-
-    Result = g_Callbacks.LogCallbackPrepareAndSendMessageToQueueWrapper(OperationCode,
-                                                                        IsImmediateMessage,
-                                                                        ShowCurrentSystemTime,
-                                                                        Priority,
-                                                                        Fmt,
-                                                                        ArgList);
-    va_end(ArgList);
-
-    return Result;
-}
-
-/**
- * @brief routines callback for sending message to queue
- *
- * @param OperationCode
- * @param IsImmediateMessage
- * @param LogMessage
- * @param BufferLen
- * @param Priority
- *
- * @return BOOLEAN
- */
-BOOLEAN
-LogCallbackSendMessageToQueue(UINT32  OperationCode,
-                              BOOLEAN IsImmediateMessage,
-                              CHAR *  LogMessage,
-                              UINT32  BufferLen,
-                              BOOLEAN Priority)
-{
-    if (g_Callbacks.LogCallbackSendMessageToQueue == NULL)
-    {
-        //
-        // Ignore sending message to queue
-        //
-        return FALSE;
-    }
-
-    return g_Callbacks.LogCallbackSendMessageToQueue(OperationCode,
-                                                     IsImmediateMessage,
-                                                     LogMessage,
-                                                     BufferLen,
-                                                     Priority);
-}
-
-/**
- * @brief routines callback for checking if buffer is full
- *
- * @param Priority
- *
- * @return BOOLEAN
- */
-BOOLEAN
-LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
-{
-    if (g_Callbacks.LogCallbackCheckIfBufferIsFull == NULL)
-    {
-        //
-        // Ignore sending message to queue
-        //
-        return FALSE;
-    }
-
-    return g_Callbacks.LogCallbackCheckIfBufferIsFull(Priority);
-}
-
-/**
- * @brief routines callback for sending buffer
- * @param OperationCode
- * @param Buffer
- * @param BufferLength
- * @param Priority
- *
- * @return BOOLEAN
- */
-BOOLEAN
-LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
-                      _In_reads_bytes_(BufferLength) PVOID Buffer,
-                      _In_ UINT32                          BufferLength,
-                      _In_ BOOLEAN                         Priority)
-
-{
-    if (g_Callbacks.LogCallbackSendBuffer == NULL)
-    {
-        //
-        // Ignore sending buffer
-        //
-        return FALSE;
-    }
-
-    return g_Callbacks.LogCallbackSendBuffer(OperationCode,
-                                             Buffer,
-                                             BufferLength,
-                                             Priority);
-}
-
-/**
  * @brief routines callback to trigger events
  * @param EventType
  * @param CallingStage
@@ -371,28 +243,24 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId)
 }
 
 /**
- * @brief routine callback to handle conditional page-fault exception
+ * @brief routine callback to handle thread interception
  *
  * @param CoreId
- * @param Address
- * @param PageFaultErrorCode
  *
  * @return BOOLEAN
  */
 BOOLEAN
-DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
-                                               UINT64 Address,
-                                               UINT32 PageFaultErrorCode)
+DebuggingCallbackCheckThreadInterception(UINT32 CoreId)
 {
-    if (g_Callbacks.DebuggingCallbackConditionalPageFaultException == NULL)
+    if (g_Callbacks.DebuggingCallbackCheckThreadInterception == NULL)
     {
         //
-        // re-inject it to not disrupt system normal execution
+        // not handled by user debugger
         //
         return FALSE;
     }
 
-    return g_Callbacks.DebuggingCallbackConditionalPageFaultException(CoreId, Address, PageFaultErrorCode);
+    return g_Callbacks.DebuggingCallbackCheckThreadInterception(CoreId);
 }
 
 /**
@@ -414,26 +282,4 @@ InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId)
     }
 
     g_Callbacks.InterceptionCallbackTriggerCr3ProcessChange(CoreId);
-}
-
-/**
- * @brief routine callback to handle cr3 process change
- *
- * @param CoreId
- * @param NewCr3
- *
- * @return VOID
- */
-VOID
-InterceptionCallbackCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3)
-{
-    if (g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception == NULL)
-    {
-        //
-        // ignore it
-        //
-        return;
-    }
-
-    g_Callbacks.AttachingHandleCr3VmexitsForThreadInterception(CoreId, NewCr3);
 }

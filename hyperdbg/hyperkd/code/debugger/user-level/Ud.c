@@ -30,6 +30,14 @@ UdInitializeUserDebugger()
     }
 
     //
+    // Configure the exec-trap on all processors
+    //
+    if (!ConfigureInitializeExecTrapOnAllProcessors())
+    {
+        return FALSE;
+    }
+
+    //
     // Check if we have functions we need for attaching mechanism
     //
     if (g_PsGetProcessPeb == NULL || g_PsGetProcessWow64Process == NULL || g_ZwQueryInformationProcess == NULL)
@@ -84,11 +92,76 @@ UdUninitializeUserDebugger()
         g_UserDebuggerState = FALSE;
 
         //
+        // Uninitialize the exec-trap on all processors
+        //
+        ConfigureUninitializeExecTrapOnAllProcessors();
+
+        //
         // Free and deallocate all the buffers (pools) relating to
         // thread debugging details
         //
         AttachingRemoveAndFreeAllProcessDebuggingDetails();
     }
+}
+
+/**
+ * @brief Handle cases where we instant break is needed on the user debugger
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param Reason The reason of the pausing
+ * @param ProcessDebuggingDetail
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                     DEBUGGEE_PAUSING_REASON             Reason,
+                     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+{
+    //
+    // Check if the process debugging details is available or not
+    //
+    if (ProcessDebuggingDetail == NULL)
+    {
+        //
+        // If the process debugging detail is not available, we should
+        // find it by the current process id
+        //
+        ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+
+        if (ProcessDebuggingDetail == NULL)
+        {
+            //
+            // If we reached here, it means that the process debugging detail is not found
+            // so, we should return FALSE to indicate that we couldn't handle the instant break
+            //
+            return FALSE;
+        }
+    }
+
+    //
+    // Add the process to the watching list to be able to intercept the threads
+    //
+    if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, TRUE))
+    {
+        //
+        // Since the adding it to the watching list will take effect from the next
+        // CR3 vm-exit, we should change the state of the core to prevent further execution
+        //
+        ConfigureExecTrapApplyMbecConfiguratinFromKernelSide(DbgState->CoreId);
+
+        //
+        // Handling state through the user-mode debugger
+        //
+        return UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                         Reason,
+                                                         NULL);
+    }
+
+    //
+    // If we reached here, it means that we couldn't add the process to the
+    //
+    return FALSE;
 }
 
 /**
@@ -105,32 +178,6 @@ UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingD
     // Configure the RIP again
     //
     VmFuncSetRip(ThreadDebuggingDetails->ThreadRip);
-}
-
-/**
- * @brief Continue the thread
- *
- * @param ThreadDebuggingDetails
- *
- * @return VOID
- */
-VOID
-UdContinueThread(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
-{
-    //
-    // Configure the RIP and RSP again
-    //
-    UdRestoreToOriginalDirection(ThreadDebuggingDetails);
-
-    //
-    // Continue the current instruction won't pass it
-    //
-    VmFuncSuppressRipIncrement(KeGetCurrentProcessorNumberEx(NULL));
-
-    //
-    // It's not paused anymore!
-    //
-    ThreadDebuggingDetails->IsPaused = FALSE;
 }
 
 /**
@@ -218,15 +265,6 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
     //
     switch (UserAction)
     {
-    case DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE:
-
-        //
-        // Continue the thread normally
-        //
-        UdContinueThread(ThreadDebuggingDetails);
-
-        break;
-
     case DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP:
 
         //
@@ -354,7 +392,7 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     //
     // Based on the documentation, HyperDbg stops intercepting threads
     // when the debugger sent the first command, but if user presses
-    // CTRL+C again, all the threads (or new threads) that will enter
+    // run the 'pause' command, all the threads (or new threads) that will enter
     // the user-mode will be intercepted
     //
     if (ProcessDebuggingDetails->IsOnThreadInterceptingPhase)
@@ -369,25 +407,22 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
 }
 
 /**
- * @brief Spin on nop sled in user-mode to halt the debuggee
+ * @brief Set the thread pausing state
  *
  * @param ThreadDebuggingDetails
  * @param ProcessDebuggingDetails
  * @return VOID
  */
 VOID
-UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
-                  PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
+UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
+                        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
 {
+    UNREFERENCED_PARAMETER(ProcessDebuggingDetails);
+
     //
     // Save the RIP for future return
     //
     ThreadDebuggingDetails->ThreadRip = VmFuncGetRip();
-
-    //
-    // Set the rip to new spinning address
-    //
-    VmFuncSetRip(ProcessDebuggingDetails->UsermodeReservedBuffer);
 
     //
     // Indicate that it's spinning
@@ -453,10 +488,9 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     UINT64                              LastVmexitRip           = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
     //
-    // Breaking only supported in vmx-root mode, and if user-debugger is
-    // loaded
+    // Breaking only supported  if user-debugger is loaded
     //
-    if (!g_UserDebuggerState && VmFuncVmxGetCurrentExecutionMode() == FALSE)
+    if (!g_UserDebuggerState)
     {
         return FALSE;
     }
@@ -485,6 +519,17 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
         // Sth went wrong!
         //
         return FALSE;
+    }
+
+    //
+    // Check if the thread is already paused or not
+    //
+    if (ThreadDebuggingDetails->IsPaused)
+    {
+        //
+        // The thread is already paused, so we don't need to pause it again
+        //
+        return TRUE;
     }
 
     //
@@ -599,9 +644,9 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
                           TRUE);
 
     //
-    // Halt the thread on nop sleds
+    // Set the thread debugging details
     //
-    UdSpinThreadOnNop(ThreadDebuggingDetails, ProcessDebuggingDetails);
+    UdSetThreadPausingState(ThreadDebuggingDetails, ProcessDebuggingDetails);
 
     //
     // Everything was okay

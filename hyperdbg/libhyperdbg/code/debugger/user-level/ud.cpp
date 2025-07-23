@@ -17,6 +17,7 @@
 extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsUserDebuggerInitialized;
+extern CommandType              g_CommandsList;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
 
@@ -39,6 +40,12 @@ UdInitializeUserDebugger()
             g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
             g_UserSyncronizationObjectsHandleTable[i].EventHandle      = CreateEvent(NULL, FALSE, FALSE, NULL);
         }
+
+        //
+        // To make it more convenient, we set not to continue the previous command
+        // after pressing enter , so the user can enter the command for the 'g' command
+        //
+        g_CommandsList["g"].CommandAttrib &= ~DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER;
 
         //
         // Indicate that it's initialized
@@ -776,7 +783,7 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
     // Send the continue command to the target process as we
     // want to continue the debuggee process before detaching
     //
-    UdContinueDebuggee(ProcessDetailToken);
+    UdContinueProcess(ProcessDetailToken);
 
     //
     // We wanna detach a process
@@ -884,7 +891,75 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
     }
 
     //
-    // Check if killing was successful or not
+    // Check if pausing was successful or not
+    //
+    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        //
+        // The operation of attaching was successful
+        //
+        return TRUE;
+    }
+    else
+    {
+        ShowErrorMessage((UINT32)PauseRequest.Result);
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Continue the target process
+ *
+ * @param ProcessDebuggingToken
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdContinueProcess(UINT64 ProcessDebuggingToken)
+{
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest = {0};
+
+    //
+    // Check if debugger is loaded or not
+    //
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+
+    //
+    // We wanna continue a process
+    //
+    PauseRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_CONTINUE_PROCESS;
+
+    //
+    // Set the process debugging token
+    //
+    PauseRequest.Token = ProcessDebuggingToken;
+
+    //
+    // Send the request to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &PauseRequest,                                   // Input Buffer to driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+        &PauseRequest,                                   // Output Buffer from driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                         // buffer in bytes.
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Check if continuing was successful or not
     //
     if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
@@ -964,28 +1039,6 @@ UdSendCommand(UINT64                          ProcessDetailToken,
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return;
     }
-}
-
-/**
- * @brief Continue the target user debugger
- * @param ProcessDetailToken
- *
- * @return VOID
- */
-VOID
-UdContinueDebuggee(UINT64 ProcessDetailToken)
-{
-    //
-    // Send the 'continue' command
-    //
-    UdSendCommand(ProcessDetailToken,
-                  NULL,
-                  DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE,
-                  TRUE,
-                  NULL,
-                  NULL,
-                  NULL,
-                  NULL);
 }
 
 /**

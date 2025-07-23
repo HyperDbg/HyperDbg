@@ -781,6 +781,68 @@ ScriptEngineFunctionWcslen(const wchar_t * Address)
     return Result;
 }
 
+#ifdef SCRIPT_ENGINE_USER_MODE
+VOID
+UserModeMicroSleep(UINT64 Us)
+{
+    LARGE_INTEGER Start, End, Frequency;
+    QueryPerformanceFrequency(&Frequency);
+
+    LONGLONG TickPerUs = Frequency.QuadPart / 1000000;
+    LONGLONG Ticks     = TickPerUs * Us;
+
+    QueryPerformanceCounter(&Start);
+
+    while (TRUE)
+    {
+        QueryPerformanceCounter(&End);
+
+        if (End.QuadPart - Start.QuadPart > Ticks)
+        {
+            break;
+        }
+    }
+}
+#endif // SCRIPT_ENGINE_USER_MODE
+
+/**
+ * @brief Implementation of microsleep function
+ *
+ * @param Us delay in micro second
+ */
+VOID
+ScriptEngineFunctionMicroSleep(UINT64 Us)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    UserModeMicroSleep(Us);
+#endif
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    VmFuncVmxCompatibleMicroSleep(Us);
+#endif
+}
+
+/**
+ * @brief Implementation of rdtsc function
+ *
+ */
+UINT64
+ScriptEngineFunctionRdtsc()
+{
+    return __rdtsc();
+}
+
+/**
+ * @brief Implementation of rdtscp function
+ *
+ */
+UINT64
+ScriptEngineFunctionRdtscp()
+{
+    unsigned int Aux;
+    return __rdtscp(&Aux);
+}
+
 /**
  * @brief Implementation of interlocked_exchange function
  *

@@ -36,13 +36,6 @@ KdInitializeKernelDebugger()
     // }
 
     //
-    // Request pages for breakpoint detail
-    //
-    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
-                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
-                                 BREAKPOINT_DEFINITION_STRUCTURE);
-
-    //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //
@@ -52,12 +45,6 @@ KdInitializeKernelDebugger()
     // Reset pause break requests
     //
     RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
-
-    //
-    // Initialize list of breakpoints and breakpoint id
-    //
-    g_MaximumBreakpointId = 0;
-    InitializeListHead(&g_BreakpointsListHead);
 
     //
     // Initial the needed pools for instant events
@@ -2967,8 +2954,10 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 //
                 // Perform the action
+                // This is on the vmx-root mode for the kernel debugger, thus, no need to switch
+                // to the target process memory layout as we are already in it
                 //
-                BreakpointAddNew(BpPacket);
+                BreakpointAddNew(BpPacket, FALSE);
 
                 //
                 // Send the result of the 'bp' back to the debuggee
@@ -3082,8 +3071,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 //
                 // Perform the action
+                // No need to switch to the target process memory layout as we are already in it
                 //
-                BreakpointListOrModify(BpListOrModifyPacket);
+                BreakpointListOrModify(BpListOrModifyPacket, FALSE);
 
                 //
                 // Send the result of modify or list breakpoints to the debuggee

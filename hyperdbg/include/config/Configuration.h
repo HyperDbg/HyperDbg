@@ -64,12 +64,17 @@
 #define DebugMode FALSE
 
 /**
+ * @brief Enable or disable the instant event mechanism
+ * @details for more information: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events
+ */
+#define EnableInstantEventMechanism TRUE
+
+/**
  * @brief Activates the user-mode debugger
  */
 #define ActivateUserModeDebugger FALSE
 
 /**
- * @brief Enable or disable the instant event mechanism
- * @details for more information: https://docs.hyperdbg.org/tips-and-tricks/misc/instant-events
+ * @brief Activates the hyperevade project
  */
-#define EnableInstantEventMechanism TRUE
+#define ActivateHyperEvadeProject TRUE

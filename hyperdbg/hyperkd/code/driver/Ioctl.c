@@ -43,6 +43,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
     PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
     PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS             DebuggerQueryIdtRequest;
+    PDEBUGGEE_BP_PACKET                                     DebuggerBreakpointRequest;
     PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
     PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
     PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
@@ -413,14 +414,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 // It's a hide request
                 //
-                TransparentHideDebugger(DebuggerHideAndUnhideRequest);
+                TransparentHideDebuggerWrapper(DebuggerHideAndUnhideRequest);
             }
             else
             {
                 //
                 // It's a unhide request
                 //
-                TransparentUnhideDebugger(DebuggerHideAndUnhideRequest);
+                TransparentUnhideDebuggerWrapper(DebuggerHideAndUnhideRequest);
             }
 
             //
@@ -1154,6 +1155,52 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             ExtensionCommandPerformQueryIdtEntriesRequest(DebuggerQueryIdtRequest, FALSE);
 
             Irp->IoStatus.Information = SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_SET_BREAKPOINT_USER_DEBUGGER:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_BP_PACKET ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place
+            //
+            DebuggerBreakpointRequest = (PDEBUGGEE_BP_PACKET)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform setting the breakpoint (for the user mode debugger)
+            // Switching to the target process memory is needed as we are
+            // in HyperDbg's process memory layout and we need to switch to
+            // the target process memory layout to set the breakpoint
+            //
+            BreakpointAddNew(DebuggerBreakpointRequest, TRUE);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_BP_PACKET;
             Status                    = STATUS_SUCCESS;
 
             //

@@ -116,18 +116,19 @@ BreakController(DWORD CtrlType)
                     if (g_AutoUnpause)
                     {
                         ShowMessages(
-                            "\npausing...\nauto-unpause mode is enabled, "
+                            "\npausing...%s\nauto-unpause mode is enabled, "
                             "debugger will automatically continue when you run a new "
                             "event command, if you want to change this behaviour then "
-                            "run run 'settings autounpause off'\n\n");
+                            "run run 'settings autounpause off'\n\n",
+                            g_ActiveProcessDebuggingState.IsActive ? PAUSE_MESSAGE_IN_USER_DEBUGGER : "");
                     }
                     else
                     {
                         ShowMessages(
-                            "\npausing...\nauto-unpause mode is disabled, you "
+                            "\npausing...%s\nauto-unpause mode is disabled, you "
                             "should run 'g' when you want to continue, otherwise run "
-                            "'settings "
-                            "autounpause on'\n\n");
+                            "'settings autounpause on'\n\n",
+                            g_ActiveProcessDebuggingState.IsActive ? PAUSE_MESSAGE_IN_USER_DEBUGGER : "");
                     }
 
                     //
@@ -135,10 +136,13 @@ BreakController(DWORD CtrlType)
                     //
                     HyperDbgShowSignature();
 
-                    if (g_ActiveProcessDebuggingState.IsActive)
-                    {
-                        UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
-                    }
+                    //
+                    // Not pause the process if CTRL+C is pressed (Commented)
+                    //
+                    // if (g_ActiveProcessDebuggingState.IsActive)
+                    // {
+                    //     UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
+                    // }
                 }
             }
         }

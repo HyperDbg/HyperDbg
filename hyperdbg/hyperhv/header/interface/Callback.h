@@ -13,34 +13,6 @@
 #pragma once
 
 //
-// Log Callbacks
-//
-
-BOOLEAN
-LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
-                                        BOOLEAN      IsImmediateMessage,
-                                        BOOLEAN      ShowCurrentSystemTime,
-                                        BOOLEAN      Priority,
-                                        const char * Fmt,
-                                        ...);
-
-BOOLEAN
-LogCallbackSendMessageToQueue(UINT32  OperationCode,
-                              BOOLEAN IsImmediateMessage,
-                              CHAR *  LogMessage,
-                              UINT32  BufferLen,
-                              BOOLEAN Priority);
-
-BOOLEAN
-LogCallbackCheckIfBufferIsFull(BOOLEAN Priority);
-
-BOOLEAN
-LogCallbackSendBuffer(_In_ UINT32                          OperationCode,
-                      _In_reads_bytes_(BufferLength) PVOID Buffer,
-                      _In_ UINT32                          BufferLength,
-                      _In_ BOOLEAN                         Priority);
-
-//
 // VMM Callbacks
 //
 
@@ -92,9 +64,7 @@ BOOLEAN
 DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId);
 
 BOOLEAN
-DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
-                                               UINT64 Address,
-                                               UINT32 PageFaultErrorCode);
+DebuggingCallbackCheckThreadInterception(UINT32 CoreId);
 
 //
 // Interception Callbacks
@@ -102,6 +72,3 @@ DebuggingCallbackConditionalPageFaultException(UINT32 CoreId,
 
 VOID
 InterceptionCallbackTriggerCr3ProcessChange(UINT32 CoreId);
-
-VOID
-InterceptionCallbackCr3VmexitsForThreadInterception(UINT32 CoreId, CR3_TYPE NewCr3);
