@@ -93,6 +93,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\script-engine\header;$(SolutionDir)\include;$(SolutionDir)\script-engine;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
