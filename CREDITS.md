@@ -4,7 +4,7 @@ The list provided comprises individuals who have made significant contributions 
 
 ## Credits:
 
-The attributions listed on this credits page are acknowledged without any particular order.
+Just so you know – the attributions listed on this credits page are acknowledged without any particular order.
 
 - All of the [contributors](https://github.com/HyperDbg/HyperDbg/graphs/contributors)
 - Sina Karvandi ([@Intel80x86](https://twitter.com/Intel80x86))
@@ -24,4 +24,5 @@ The attributions listed on this credits page are acknowledged without any partic
 - xmaple555 ([@xmaple555](https://github.com/xmaple555)) for contributions in HyperDbg core and the script engine
 - Abbas Masoumi Gorji ([@AbbasMasoumiG](https://twitter.com/AbbasMasoumiG))
 - Björn Ruytenberg ([@0Xiphorus](https://twitter.com/0Xiphorus))
-- Marcis Zarins ([@CokeTree3](https://github.com/CokeTree3))
+- Marcis Zarins ([@CokeTree3](https://github.com/CokeTree3)) for his works on enhancing HyperEvade project
+- Artem Shishkin ([@honorary_bot](https://twitter.com/honorary_bot)) for always answering our hypervisor questions
