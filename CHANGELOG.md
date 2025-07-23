@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.14.0.0] - 2025-07-22
+## [0.14.0.0] - 2025-07-23
 New release of the HyperDbg Debugger.
 
 ### Added
@@ -28,6 +28,7 @@ New release of the HyperDbg Debugger.
 - Fixed retrieving valid watching process IDs for the execution trap and user-mode execution prevention
 - Fixed crashing the driver if the hyperlog memory was not properly allocated
 - The target runner image for deploying HyperDbg (CI/CD) changed from Windows Server 2019 to 2022
+- Restored the pid and the process name parameters of the '!hide' command ([link](https://docs.hyperdbg.org/commands/extension-commands/hide))
 - Fixed crashing Windows when using 'TPAUSE' instruction on bare metal Windows 11 24h2
 - Check to avoid putting EPT hooks on physical addresses greater than 512 GB
 

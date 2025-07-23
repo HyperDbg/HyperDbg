@@ -374,6 +374,15 @@ CommandHide(vector<CommandToken> CommandTokens, string Command)
     UINT32  TargetPid;
     BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
 
+#if ActivateHyperEvadeProject == TRUE
+
+    ShowMessages("warning, the !hide command (hyperevade project) is in the Beta phase and is not yet well-tested, "
+                 "so it is disabled in this version. If you want to test, you can enable it "
+                 "from the configuration file (set ActivateHyperEvadeProject to TRUE) and recompile HyperDbg\n\n");
+    return;
+
+#endif
+
     if (CommandTokens.size() <= 2 && CommandTokens.size() != 1)
     {
         ShowMessages("incorrect use of the '%s'\n\n",

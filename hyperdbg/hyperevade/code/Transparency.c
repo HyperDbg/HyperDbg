@@ -119,6 +119,94 @@ TransparentGetRand()
 
     return Rand;
 }
+
+/**
+ * @brief Add name or process id of the target process to the list
+ * of processes that HyperDbg should apply transparent-mode on them
+ *
+ * @param Measurements
+ * @return BOOLEAN
+ */
+BOOLEAN
+TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements)
+{
+    SIZE_T                SizeOfBuffer;
+    PTRANSPARENCY_PROCESS PidAndNameBuffer;
+
+    //
+    // Check whether it's a process id or it's a process name
+    //
+    if (Measurements->TrueIfProcessIdAndFalseIfProcessName)
+    {
+        //
+        // It's a process Id
+        //
+        SizeOfBuffer = sizeof(TRANSPARENCY_PROCESS);
+    }
+    else
+    {
+        //
+        // It's a process name
+        //
+        SizeOfBuffer = sizeof(TRANSPARENCY_PROCESS) + Measurements->LengthOfProcessName;
+    }
+
+    //
+    // Allocate the Buffer
+    //
+    PidAndNameBuffer = PlatformMemAllocateZeroedNonPagedPool(SizeOfBuffer);
+
+    if (PidAndNameBuffer == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Save the address of the buffer for future de-allocation
+    //
+    PidAndNameBuffer->BufferAddress = PidAndNameBuffer;
+
+    //
+    // Check again whether it's a process id or it's a process name
+    // then fill the structure
+    //
+    if (Measurements->TrueIfProcessIdAndFalseIfProcessName)
+    {
+        //
+        // It's a process Id
+        //
+        PidAndNameBuffer->ProcessId                            = Measurements->ProcId;
+        PidAndNameBuffer->TrueIfProcessIdAndFalseIfProcessName = TRUE;
+    }
+    else
+    {
+        //
+        // It's a process name
+        //
+        PidAndNameBuffer->TrueIfProcessIdAndFalseIfProcessName = FALSE;
+
+        //
+        // Move the process name string to the end of the buffer
+        //
+        RtlCopyBytes((void *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
+                     (const void *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
+                     Measurements->LengthOfProcessName);
+
+        //
+        // Set the process name location
+        //
+        PidAndNameBuffer->ProcessName = (PVOID)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS));
+    }
+
+    //
+    // Link it to the list of process that we need to transparent
+    // vm-exits for them
+    //
+    // InsertHeadList(&g_TransparentModeMeasurements->ProcessList, &(PidAndNameBuffer->OtherProcesses));
+
+    return TRUE;
+}
+
 //
 // /**
 //  * @brief maximum random value
@@ -351,92 +439,6 @@ TransparentGetRand()
 //     return (Average + (Sigma * XS1) / MY_RAND_MAX);
 // }
 //
-// /**
-//  * @brief Add name or process id of the target process to the list
-//  * of processes that HyperDbg should apply transparent-mode on them
-//  *
-//  * @param Measurements
-//  * @return BOOLEAN
-//  */
-// BOOLEAN
-// TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurements)
-// {
-//     SIZE_T                SizeOfBuffer;
-//     PTRANSPARENCY_PROCESS PidAndNameBuffer;
-//
-//     //
-//     // Check whether it's a process id or it's a process name
-//     //
-//     if (Measurements->TrueIfProcessIdAndFalseIfProcessName)
-//     {
-//         //
-//         // It's a process Id
-//         //
-//         SizeOfBuffer = sizeof(TRANSPARENCY_PROCESS);
-//     }
-//     else
-//     {
-//         //
-//         // It's a process name
-//         //
-//         SizeOfBuffer = sizeof(TRANSPARENCY_PROCESS) + Measurements->LengthOfProcessName;
-//     }
-//
-//     //
-//     // Allocate the Buffer
-//     //
-//     PidAndNameBuffer = PlatformMemAllocateZeroedNonPagedPool(SizeOfBuffer);
-//
-//     if (PidAndNameBuffer == NULL)
-//     {
-//         return FALSE;
-//     }
-//
-//     //
-//     // Save the address of the buffer for future de-allocation
-//     //
-//     PidAndNameBuffer->BufferAddress = PidAndNameBuffer;
-//
-//     //
-//     // Check again whether it's a process id or it's a process name
-//     // then fill the structure
-//     //
-//     if (Measurements->TrueIfProcessIdAndFalseIfProcessName)
-//     {
-//         //
-//         // It's a process Id
-//         //
-//         PidAndNameBuffer->ProcessId                            = Measurements->ProcId;
-//         PidAndNameBuffer->TrueIfProcessIdAndFalseIfProcessName = TRUE;
-//     }
-//     else
-//     {
-//         //
-//         // It's a process name
-//         //
-//         PidAndNameBuffer->TrueIfProcessIdAndFalseIfProcessName = FALSE;
-//
-//         //
-//         // Move the process name string to the end of the buffer
-//         //
-//         RtlCopyBytes((void *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
-//                      (const void *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
-//                      Measurements->LengthOfProcessName);
-//
-//         //
-//         // Set the process name location
-//         //
-//         PidAndNameBuffer->ProcessName = (PVOID)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS));
-//     }
-//
-//     //
-//     // Link it to the list of process that we need to transparent
-//     // vm-exits for them
-//     //
-//     InsertHeadList(&g_TransparentModeMeasurements->ProcessList, &(PidAndNameBuffer->OtherProcesses));
-//
-//     return TRUE;
-// }
 //
 // /**
 //  * @brief Hide debugger on transparent-mode (activate transparent-mode)
