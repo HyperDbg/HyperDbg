@@ -73,6 +73,19 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
   year={2024}
 }
 ```
+
+**3. [hwdbg: Debugging Hardware Like Software (EuroSec'25)](https://dl.acm.org/doi/abs/10.1145/3722041.3723101)** [[PDF](https://dl.acm.org/doi/pdf/10.1145/3722041.3723101)]
+
+```
+@inproceedings{karvandi2025hwdbg,
+  title={hwdbg: Debugging Hardware Like Software},
+  author={Karvandi, Mohammad Sina and Meghdadizanjani, Soroush and Monfared, Saleh Khalaj and van der Kouwe, Erik and Slowinska, Asia},
+  booktitle={Proceedings of the 18th European Workshop on Systems Security},
+  pages={56--62},
+  year={2025}
+}
+```
+
 </details>
 
 You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design/) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger, [this article](https://research.hyperdbg.org/vmm/transparency/) about our efforts on vm-exit transparency, [this article](https://research.hyperdbg.org/debugger/chasing-bugs/) about chasing bugs within hypervisors, and [this article](https://research.hyperdbg.org/debugger/gaining-insights/) about new reverse engineering techniques introduced in HyperDbg. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo, and in addition, the **[slides](https://github.com/HyperDbg/slides)** repo provides presentation slides for further reference.
