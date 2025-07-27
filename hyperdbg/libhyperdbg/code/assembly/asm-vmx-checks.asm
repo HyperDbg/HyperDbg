@@ -10,25 +10,32 @@ PUBLIC AsmVmxSupportDetection
 ;------------------------------------------------------------------------
 
 AsmVmxSupportDetection PROC
-
-    xor eax, eax
-    inc    eax
+    push    rbx
+    push    rcx
+    push    rdx
+    
+    xor     eax, eax
+    inc     eax
     cpuid
-    xor rax, rax
-    bt     ecx, 05h
-    jc     VMXSupport
+    xor     rax, rax
+    bt      ecx, 05h
+    jc      VMXSupport
     
 VMXNotSupport:
     jmp     RetInst
     
 VMXSupport:
-    mov    rax, 01h
+    mov     rax, 01h
     
 RetInst:
+    pop     rdx
+    pop     rcx
+    pop     rbx
+    
     ret
 
 AsmVmxSupportDetection ENDP
 
 ;------------------------------------------------------------------------
 
-END                     
+END

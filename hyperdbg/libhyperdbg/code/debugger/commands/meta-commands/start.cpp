@@ -17,6 +17,7 @@
 extern std::wstring g_StartCommandPath;
 extern std::wstring g_StartCommandPathAndArguments;
 extern BOOLEAN      g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN      g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of the .start command
@@ -65,7 +66,7 @@ CommandStart(vector<CommandToken> CommandTokens, string Command)
 //
 #if ActivateUserModeDebugger == FALSE
 
-    if (!g_IsSerialConnectedToRemoteDebugger)
+    if (!g_IsSerialConnectedToRemoteDebuggee)
     {
         ShowMessages("the user-mode debugger in VMI Mode is still in the beta version and not stable. "
                      "we decided to exclude it from this release and release it in future versions. "
