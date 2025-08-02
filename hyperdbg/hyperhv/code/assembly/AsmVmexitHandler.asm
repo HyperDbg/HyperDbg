@@ -114,7 +114,6 @@ RestoreState:
 
     popfq
 
-    sub rsp, 0100h      ; to avoid error in future functions
     jmp VmxVmresume
     
 AsmVmexitHandler ENDP
@@ -186,8 +185,6 @@ RestoreState:
     movaps xmm15, xmmword ptr [rsp+0f0h]
     
     ldmxcsr dword ptr [rsp+0100h]          
-    
-    add     rsp, 0110h
 
     ; ----------------------------------------------
 

@@ -31,9 +31,10 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     VCpu = &g_GuestState[KeGetCurrentProcessorNumberEx(NULL)];
 
     //
-    // Set the registers
+    // Set the registers (general-purpose and XMM)
     //
-    VCpu->Regs = GuestRegs;
+    VCpu->Regs    = GuestRegs;
+    VCpu->XmmRegs = (GUEST_XMM_REGS *)(((CHAR *)GuestRegs) + sizeof(GUEST_REGS));
 
     //
     // Indicates we are in Vmx root mode in this logical core

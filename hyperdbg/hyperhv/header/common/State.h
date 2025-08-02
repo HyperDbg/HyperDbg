@@ -302,52 +302,53 @@ typedef struct _NMI_BROADCASTING_STATE
  */
 typedef struct _VIRTUAL_MACHINE_STATE
 {
-    BOOLEAN      IsOnVmxRootMode;                                               // Detects whether the current logical core is on Executing on VMX Root Mode
-    BOOLEAN      IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
-    BOOLEAN      HasLaunched;                                                   // Indicate whether the core is virtualized or not
-    BOOLEAN      IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
-    BOOLEAN      WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
-    BOOLEAN      EnableExternalInterruptsOnContinue;                            // Whether to enable external interrupts on the continue  or not
-    BOOLEAN      EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
-    BOOLEAN      RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
-    BOOLEAN      IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF
-    BOOLEAN      NotNormalEptp;                                                 // Indicate that the target processor is on the normal EPTP or not
-    BOOLEAN      MbecEnabled;                                                   // Indicate that the target processor is on MBEC-enabled mode or not
-    PUINT64      PmlBufferAddress;                                              // Address of buffer used for dirty logging
-    BOOLEAN      Test;                                                          // Used for test purposes
-    UINT64       TestNumber;                                                    // Used for test purposes (Number)
-    GUEST_REGS * Regs;                                                          // The virtual processor's general-purpose registers
-    UINT32       CoreId;                                                        // The core's unique identifier
-    UINT32       ExitReason;                                                    // The core's exit reason
-    UINT32       ExitQualification;                                             // The core's exit qualification
-    UINT64       LastVmexitRip;                                                 // RIP in the current VM-exit
-    UINT64       VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
-    UINT64       VmxonRegionVirtualAddress;                                     // VMXON region virtual address
-    UINT64       VmcsRegionPhysicalAddress;                                     // VMCS region physical address
-    UINT64       VmcsRegionVirtualAddress;                                      // VMCS region virtual address
-    UINT64       VmmStack;                                                      // Stack for VMM in VM-Exit State
-    UINT64       MsrBitmapVirtualAddress;                                       // Msr Bitmap Virtual Address
-    UINT64       MsrBitmapPhysicalAddress;                                      // Msr Bitmap Physical Address
-    UINT64       IoBitmapVirtualAddressA;                                       // I/O Bitmap Virtual Address (A)
-    UINT64       IoBitmapPhysicalAddressA;                                      // I/O Bitmap Physical Address (A)
-    UINT64       IoBitmapVirtualAddressB;                                       // I/O Bitmap Virtual Address (B)
-    UINT64       IoBitmapPhysicalAddressB;                                      // I/O Bitmap Physical Address (B)
-    UINT32       QueuedNmi;                                                     // Queued NMIs
-    UINT32       PendingExternalInterrupts[PENDING_INTERRUPTS_BUFFER_CAPACITY]; // This list holds a buffer for external-interrupts that are in pending state due to the external-interrupt
-                                                                                // blocking and waits for interrupt-window exiting
-                                                                                // From hvpp :
-                                                                                // Pending interrupt queue (FIFO).
-                                                                                // Make storage for up-to 64 pending interrupts.
-                                                                                // In practice I haven't seen more than 2 pending interrupts.
-    VMX_VMXOFF_STATE        VmxoffState;                                        // Shows the vmxoff state of the guest
-    NMI_BROADCASTING_STATE  NmiBroadcastingState;                               // Shows the state of NMI broadcasting
-    VM_EXIT_TRANSPARENCY    TransparencyState;                                  // The state of the debugger in transparent-mode
-    PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                             // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    UINT8                   LastExceptionOccuredInHost;                         // The vector of last exception occured in host
-    UINT64                  HostIdt;                                            // host Interrupt Descriptor Table (actual type is SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64*)
-    UINT64                  HostGdt;                                            // host Global Descriptor Table (actual type is SEGMENT_DESCRIPTOR_32* or SEGMENT_DESCRIPTOR_64*)
-    UINT64                  HostTss;                                            // host Task State Segment (actual type is TASK_STATE_SEGMENT_64*)
-    UINT64                  HostInterruptStack;                                 // host interrupt RSP
+    BOOLEAN          IsOnVmxRootMode;                                               // Detects whether the current logical core is on Executing on VMX Root Mode
+    BOOLEAN          IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
+    BOOLEAN          HasLaunched;                                                   // Indicate whether the core is virtualized or not
+    BOOLEAN          IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
+    BOOLEAN          WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
+    BOOLEAN          EnableExternalInterruptsOnContinue;                            // Whether to enable external interrupts on the continue  or not
+    BOOLEAN          EnableExternalInterruptsOnContinueMtf;                         // Whether to enable external interrupts on the continue state of MTF or not
+    BOOLEAN          RegisterBreakOnMtf;                                            // Registered Break in the case of MTFs (used in instrumentation step-in)
+    BOOLEAN          IgnoreOneMtf;                                                  // Ignore (mark as handled) for one MTF
+    BOOLEAN          NotNormalEptp;                                                 // Indicate that the target processor is on the normal EPTP or not
+    BOOLEAN          MbecEnabled;                                                   // Indicate that the target processor is on MBEC-enabled mode or not
+    PUINT64          PmlBufferAddress;                                              // Address of buffer used for dirty logging
+    BOOLEAN          Test;                                                          // Used for test purposes
+    UINT64           TestNumber;                                                    // Used for test purposes (Number)
+    GUEST_REGS *     Regs;                                                          // The virtual processor's general-purpose registers
+    GUEST_XMM_REGS * XmmRegs;                                                       // The virtual processor's XMM registers
+    UINT32           CoreId;                                                        // The core's unique identifier
+    UINT32           ExitReason;                                                    // The core's exit reason
+    UINT32           ExitQualification;                                             // The core's exit qualification
+    UINT64           LastVmexitRip;                                                 // RIP in the current VM-exit
+    UINT64           VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
+    UINT64           VmxonRegionVirtualAddress;                                     // VMXON region virtual address
+    UINT64           VmcsRegionPhysicalAddress;                                     // VMCS region physical address
+    UINT64           VmcsRegionVirtualAddress;                                      // VMCS region virtual address
+    UINT64           VmmStack;                                                      // Stack for VMM in VM-Exit State
+    UINT64           MsrBitmapVirtualAddress;                                       // Msr Bitmap Virtual Address
+    UINT64           MsrBitmapPhysicalAddress;                                      // Msr Bitmap Physical Address
+    UINT64           IoBitmapVirtualAddressA;                                       // I/O Bitmap Virtual Address (A)
+    UINT64           IoBitmapPhysicalAddressA;                                      // I/O Bitmap Physical Address (A)
+    UINT64           IoBitmapVirtualAddressB;                                       // I/O Bitmap Virtual Address (B)
+    UINT64           IoBitmapPhysicalAddressB;                                      // I/O Bitmap Physical Address (B)
+    UINT32           QueuedNmi;                                                     // Queued NMIs
+    UINT32           PendingExternalInterrupts[PENDING_INTERRUPTS_BUFFER_CAPACITY]; // This list holds a buffer for external-interrupts that are in pending state due to the external-interrupt
+                                                                                    // blocking and waits for interrupt-window exiting
+                                                                                    // From hvpp :
+                                                                                    // Pending interrupt queue (FIFO).
+                                                                                    // Make storage for up-to 64 pending interrupts.
+                                                                                    // In practice I haven't seen more than 2 pending interrupts.
+    VMX_VMXOFF_STATE        VmxoffState;                                            // Shows the vmxoff state of the guest
+    NMI_BROADCASTING_STATE  NmiBroadcastingState;                                   // Shows the state of NMI broadcasting
+    VM_EXIT_TRANSPARENCY    TransparencyState;                                      // The state of the debugger in transparent-mode
+    PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                                 // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    UINT8                   LastExceptionOccuredInHost;                             // The vector of last exception occured in host
+    UINT64                  HostIdt;                                                // host Interrupt Descriptor Table (actual type is SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64*)
+    UINT64                  HostGdt;                                                // host Global Descriptor Table (actual type is SEGMENT_DESCRIPTOR_32* or SEGMENT_DESCRIPTOR_64*)
+    UINT64                  HostTss;                                                // host Task State Segment (actual type is TASK_STATE_SEGMENT_64*)
+    UINT64                  HostInterruptStack;                                     // host interrupt RSP
 
     //
     // EPT Descriptors
