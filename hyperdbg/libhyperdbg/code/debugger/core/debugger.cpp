@@ -553,6 +553,16 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_INVALID_SMI_OPERATION_PARAMETERS:
+        ShowMessages("err, invalid SMI operation parameter(s) are specified (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_TRIGGER_SMI:
+        ShowMessages("err, unable to trigger SMI, are you running on a nested-virtualization environment? (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

@@ -107,6 +107,7 @@
 #include "vmm/vmx/Events.h"
 #include "devices/Apic.h"
 #include "devices/Pci.h"
+#include "processor/Smm.h"
 #include "processor/Idt.h"
 #include "vmm/vmx/Mtf.h"
 #include "vmm/vmx/Counters.h"

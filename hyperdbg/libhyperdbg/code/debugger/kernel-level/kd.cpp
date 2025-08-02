@@ -1021,6 +1021,41 @@ KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 Exp
 }
 
 /**
+ * @brief Send requests for SMI operation packet to the debuggee
+ *
+ * @param SmiOperationRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendSmiPacketsToDebuggee(PSMI_OPERATION_PACKETS SmiOperationRequest, UINT32 ExpectedRequestSize)
+{
+    //
+    // Set the request data
+    //
+    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT, SmiOperationRequest, ExpectedRequestSize);
+
+    //
+    // Send the SMI request packets
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_SMI_OPERATION,
+            (CHAR *)SmiOperationRequest,
+            SIZEOF_SMI_OPERATION_PACKETS))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of actions to SMI is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT);
+
+    return TRUE;
+}
+
+/**
  * @brief Send requests for IDT packet to the debuggee
  * @param IdtRequest
  *

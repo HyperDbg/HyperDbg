@@ -167,6 +167,7 @@
     <ClCompile Include="code\memory\SwitchLayout.c" />
     <ClCompile Include="code\mmio\MmioShadowing.c" />
     <ClCompile Include="code\processor\Idt.c" />
+    <ClCompile Include="code\processor\Smm.c" />
     <ClCompile Include="code\vmm\ept\Ept.c" />
     <ClCompile Include="code\vmm\ept\Invept.c" />
     <ClCompile Include="code\vmm\ept\Vpid.c" />
@@ -271,6 +272,7 @@
     <ClInclude Include="header\memory\SwitchLayout.h" />
     <ClInclude Include="header\mmio\MmioShadowing.h" />
     <ClInclude Include="header\processor\Idt.h" />
+    <ClInclude Include="header\processor\Smm.h" />
     <ClInclude Include="header\vmm\ept\Ept.h" />
     <ClInclude Include="header\vmm\ept\Invept.h" />
     <ClInclude Include="header\vmm\ept\Vpid.h" />

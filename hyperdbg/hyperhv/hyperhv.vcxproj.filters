@@ -323,6 +323,9 @@
     <ClCompile Include="code\interface\HyperEvade.c">
       <Filter>code\interface</Filter>
     </ClCompile>
+    <ClCompile Include="code\processor\Smm.c">
+      <Filter>code\processor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -597,6 +600,9 @@
     </ClInclude>
     <ClInclude Include="header\hooks\SyscallCallback.h">
       <Filter>header\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="header\processor\Smm.h">
+      <Filter>header\processor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
