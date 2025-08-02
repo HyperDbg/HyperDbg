@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
--
+- Added the '!smi' command for performing operations related to System Management Interrupt (SMI) ([link](https://docs.hyperdbg.org/commands/extension-commands/smi))
+- Export the SDK functions for SMI operations
 
 ### Changed
 -

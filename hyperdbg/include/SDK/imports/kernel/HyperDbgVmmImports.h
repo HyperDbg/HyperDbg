@@ -159,6 +159,10 @@ IMPORT_EXPORT_VMM VOID
 VmFuncIdtQueryEntries(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryRequest,
                       BOOLEAN                                     ReadFromVmxRoot);
 
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncSmmPerformSmiOperation(SMI_OPERATION_PACKETS * SmiOperationRequest,
+                             BOOLEAN                 ApplyFromVmxRootMode);
+
 IMPORT_EXPORT_VMM UINT16
 VmFuncGetCsSelector();
 

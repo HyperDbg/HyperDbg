@@ -60,6 +60,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS                        0x1c
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT                   0x1d
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES                         0x1e
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT                0x1f
 
 //////////////////////////////////////////////////
 //               Event Details                  //
@@ -300,6 +301,9 @@ HyperDbgGetIoApic(IO_APIC_ENTRY_PACKETS * IoApic);
 
 BOOLEAN
 HyperDbgGetIdtEntry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * IdtPacket);
+
+BOOLEAN
+HyperDbgPerformSmiOperation(SMI_OPERATION_PACKETS * SmiOperation);
 
 BOOLEAN
 HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);

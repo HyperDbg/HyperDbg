@@ -306,6 +306,9 @@ CommandPcicamHelp();
 VOID
 CommandIdtHelp();
 
+VOID
+CommandSmiHelp();
+
 //
 // hwdbg commands
 //

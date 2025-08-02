@@ -250,6 +250,13 @@ IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_get_idt_entry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * idt_packet);
 
 //
+// SMM related command
+// Exported functionality of the '!smi' command
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_perform_smi_operation(SMI_OPERATION_PACKETS * SmiOperation);
+
+//
 // Transparent mode related command
 // Exported functionality of the '!hide', and '!unhide' commands
 //

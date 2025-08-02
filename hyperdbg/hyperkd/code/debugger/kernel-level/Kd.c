@@ -2295,6 +2295,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGER_SEARCH_MEMORY                             SearchQueryPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
+    PSMI_OPERATION_PACKETS                              SmiOperationPacket;
     PDEBUGGER_APIC_REQUEST                              ApicPacket;
     PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS         IdtEntryPacket;
     PDEBUGGER_PAGE_IN_REQUEST                           PageinPacket;
@@ -2985,6 +2986,25 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
                                            (CHAR *)PtePacket,
                                            sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_SMI_OPERATION:
+
+                SmiOperationPacket = (SMI_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the SMI operations (it's in vmx-root)
+                //
+                VmFuncSmmPerformSmiOperation(SmiOperationPacket, TRUE);
+
+                //
+                // Send the result of the '!smi' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_SMI_OPERATION_REQUESTS,
+                                           (CHAR *)SmiOperationPacket,
+                                           SIZEOF_SMI_OPERATION_PACKETS);
 
                 break;
 

@@ -563,6 +563,18 @@
  */
 #define DEBUGGER_ERROR_CANNOT_PUT_EPT_HOOKS_ON_PHYSICAL_ADDRESS_ABOVE_512_GB 0xc0000056
 
+/**
+ * @brief error, invalid parameters for SMI operation request
+ *
+ */
+#define DEBUGGER_ERROR_INVALID_SMI_OPERATION_PARAMETERS 0xc0000057
+
+/**
+ * @brief error, unable to trigger SMI
+ *
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_TRIGGER_SMI 0xc0000058
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

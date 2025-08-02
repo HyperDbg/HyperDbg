@@ -727,6 +727,19 @@ hyperdbg_u_get_idt_entry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * idt_packet
 }
 
 /**
+ * @brief Perform SMI operation
+ *
+ * @param SmiOperation The SMI operation packet
+ *
+ * @return
+ */
+BOOLEAN
+hyperdbg_u_perform_smi_operation(SMI_OPERATION_PACKETS * SmiOperation)
+{
+    return HyperDbgPerformSmiOperation(SmiOperation);
+}
+
+/**
  * @brief Run hwdbg script
  *
  * @param script

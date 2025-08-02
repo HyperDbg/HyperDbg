@@ -865,3 +865,18 @@ VmFuncIdtQueryEntries(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtQueryReques
 {
     IdtEmulationQueryIdtEntriesRequest(IdtQueryRequest, ReadFromVmxRoot);
 }
+
+/**
+ * @brief Perform actions related to System Management Interrupts (SMIs)
+ *
+ * @param SmiOperationRequest
+ * @param ApplyFromVmxRootMode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncSmmPerformSmiOperation(SMI_OPERATION_PACKETS * SmiOperationRequest,
+                             BOOLEAN                 ApplyFromVmxRootMode)
+{
+    return SmmPerformSmiOperation(SmiOperationRequest, ApplyFromVmxRootMode);
+}

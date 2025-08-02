@@ -58,6 +58,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_PREPARE_DEBUGGEE                              DebuggeeRequest;
     PDEBUGGER_PAUSE_PACKET_RECEIVED                         DebuggerPauseKernelRequest;
     PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
+    PSMI_OPERATION_PACKETS                                  SmiOperationRequest;
     PVOID                                                   BufferToStoreThreadsAndProcessesDetails;
     NTSTATUS                                                Status;
     ULONG                                                   InBuffLength;  // Input buffer length
@@ -1201,6 +1202,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             BreakpointAddNew(DebuggerBreakpointRequest, TRUE);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGEE_BP_PACKET;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_PERFORM_SMI_OPERATION:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_SMI_OPERATION_PACKETS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place
+            //
+            SmiOperationRequest = (PSMI_OPERATION_PACKETS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the SMI operation (it's not from vmx-root)
+            //
+            VmFuncSmmPerformSmiOperation(SmiOperationRequest, FALSE);
+
+            Irp->IoStatus.Information = SIZEOF_SMI_OPERATION_PACKETS;
             Status                    = STATUS_SUCCESS;
 
             //
