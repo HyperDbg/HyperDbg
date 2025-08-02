@@ -12,7 +12,7 @@ New release of the HyperDbg Debugger.
 - Export the SDK functions for SMI operations ([link](https://docs.hyperdbg.org/commands/extension-commands/smi#sdk))
 
 ### Changed
--
+- The 'hyperhv' project now has build optimizations enabled
 
 ## [0.14.1.0] - 2025-07-27
 New release of the HyperDbg Debugger.
