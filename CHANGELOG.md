@@ -9,7 +9,7 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - Added the '!smi' command for performing operations related to System Management Interrupt (SMI) ([link](https://docs.hyperdbg.org/commands/extension-commands/smi))
-- Export the SDK functions for SMI operations
+- Export the SDK functions for SMI operations ([link](https://docs.hyperdbg.org/commands/extension-commands/smi#sdk))
 
 ### Changed
 -

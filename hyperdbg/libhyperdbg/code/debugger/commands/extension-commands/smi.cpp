@@ -24,7 +24,8 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandSmiHelp()
 {
-    ShowMessages("!smi : shows details and triggers functionalities related to System Management Interrupt (SMI).\n\n");
+    ShowMessages("!smi : shows details and triggers functionalities related to System Management Interrupt (SMI).\n");
+    ShowMessages("Note : SMIs are triggered using APM I/O Decode Registers and SMI count are from MSR_SMI_COUNT MSR (0x34).\n\n");
 
     ShowMessages("syntax : \t!smi [Function (string)]\n");
 
