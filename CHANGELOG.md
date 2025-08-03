@@ -13,6 +13,9 @@ New release of the HyperDbg Debugger.
 
 ### Changed
 - The 'hyperhv' project now has build optimizations enabled
+- Reformat VMXOFF restoring routines to restore general-purpose and XMM registers correctly before moving to the previous stack
+- Fix unloading (VMXOFF) crash when restoring XMM registers
+- Fix the problem with restoring XMM registers (#468) ([link](https://github.com/HyperDbg/HyperDbg/issues/468))
 
 ## [0.14.1.0] - 2025-07-27
 New release of the HyperDbg Debugger.

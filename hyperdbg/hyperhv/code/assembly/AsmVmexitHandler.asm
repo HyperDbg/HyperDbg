@@ -15,11 +15,13 @@ AsmVmexitHandler PROC
             ; irql less or equal as it doesn't exist, so we just put some extra space avoid
             ; these kind of errors
 
-    pushfq
+    ; --------------- Save RFLAGS ----------------
+
+    pushfq  ; Save the flags register (RFLAGS)
 
     ; ------------ Save XMM Registers ------------
 
-    ;   ;;;;;;;;;;;; 16 Byte * 16 Byte = 256 + 4  = 260 (0x106 == 0x110 but let's align it to have better performance) ;;;;;;;;;;;;
+    ; 16 Byte * 16 Byte = 256 + 4  = 260 (0x104 == 0x110 but let's align it to have better performance)
     
     sub     rsp, 0110h
 
@@ -42,7 +44,7 @@ AsmVmexitHandler PROC
 
     stmxcsr dword ptr [rsp+0100h]           ; MxCsr is 4 Byte
 
-    ;---------------------------------------------
+    ; ------ Save General-purpose Registers ------
 
     push r15
     push r14
@@ -60,21 +62,28 @@ AsmVmexitHandler PROC
     push rdx
     push rcx
     push rax	
-    
+
+    ; ----------- Call VM-exit Handler -----------
+
     mov rcx, rsp		; Fast call argument to PGUEST_REGS
+
     sub	rsp, 020h		; Free some space for Shadow Section
     call	VmxVmexitHandler
     add	rsp, 020h		; Restore the state
     
-    cmp	al, 1	; Check whether we have to turn off VMX or Not (the result is in RAX)
+    cmp	al, 1	        ; Check whether we have to turn off VMX or Not (the result is in RAX)
+
     je		AsmVmxoffHandler
-    
+
+    ; ----------- Restore XMM Registers ----------
+
 RestoreState:
+
     pop rax
     pop rcx
     pop rdx
     pop rbx
-    pop rbp		; rsp
+    pop rbp		        ; rsp
     pop rbp
     pop rsi
     pop rdi 
@@ -110,9 +119,11 @@ RestoreState:
     
     add     rsp, 0110h
 
-    ; ----------------------------------------------
+    ; --------------- Restore RFLAGS ---------------
 
-    popfq
+    popfq               ; Restore the flags register (RFLAGS)
+
+    ; ----------------------------------------------
 
     jmp VmxVmresume
     
@@ -121,38 +132,16 @@ AsmVmexitHandler ENDP
 ;------------------------------------------------------------------------
 
 AsmVmxoffHandler PROC
-    
-    sub rsp, 020h ; shadow space
-    call VmxReturnStackPointerForVmxoff
-    add rsp, 020h ; remove for shadow space
-    
-    mov [rsp+88h], rax  ; now, rax contains rsp
-    
-    sub rsp, 020h      ; shadow space
-    call VmxReturnInstructionPointerForVmxoff
-    add rsp, 020h      ; remove for shadow space
-    
-    mov rdx, rsp       ; save current rsp
-    
-    mov rbx, [rsp+88h] ; read rsp again
-    
-    mov rsp, rbx
-    
-    push rax            ; push the return address as we changed the stack, we push
-                  		; it to the new stack
-    
-    mov rsp, rdx        ; restore previous rsp
-                    
-    sub rbx,08h         ; we push sth, so we have to add (sub) +8 from previous stack
-                   		; also rbx already contains the rsp
-    mov [rsp+88h], rbx  ; move the new pointer to the current stack
-    
+
+    ; ------ Restore General-purpose Registers ------
+
 RestoreState:
+
     pop rax
     pop rcx
     pop rdx
     pop rbx
-    pop rbp		         ; rsp
+    pop rbp		        ; rsp
     pop rbp
     pop rsi
     pop rdi 
@@ -184,14 +173,41 @@ RestoreState:
     movaps xmm14, xmmword ptr [rsp+0e0h]
     movaps xmm15, xmmword ptr [rsp+0f0h]
     
-    ldmxcsr dword ptr [rsp+0100h]          
+    ldmxcsr dword ptr [rsp+0100h]
+    
+    add     rsp, 0110h
+
+    ; --------------- Restore RFLAGS ---------------
+
+    popfq               ; Restore the flags register (RFLAGS)
+
+    ; ------------ Get Stack Pointer ---------------
+
+    sub rsp, 020h       ; shadow space
+    call VmxReturnStackPointerForVmxoff
+    add rsp, 020h       ; remove for shadow space
+
+    push rax            ; save the current rsp, we will restore it later
+
+
+    ; ------------ Get Instruction Pointer ---------
+
+    sub rsp, 020h       ; shadow space
+    call VmxReturnInstructionPointerForVmxoff
+    add rsp, 020h       ; remove for shadow space
+
+    pop		rsp         ; restore rsp
+    push rax            ; push the instruction pointer
 
     ; ----------------------------------------------
 
-    popfq
-    pop		rsp     ; restore rsp
+    ; There might be some registers that are modified by above CALLs, 
+    ; but here we do not care about them since we are also in a function, 
+    ; so the caller do not expect us to preserve these volatile registers
 
-    ret             ; jump back to where we called Vmcall
+    xor rax, rax        ; clear RAX to indicate VMXOFF was successful (VMCALL Status)
+
+    ret                 ; jump back to where we called Vmcall
 
 AsmVmxoffHandler ENDP
 
