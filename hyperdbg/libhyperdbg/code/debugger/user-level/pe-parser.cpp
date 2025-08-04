@@ -19,6 +19,86 @@
  *
  * @return VOID
  */
+int 
+FindRichHeader(PIMAGE_DOS_HEADER dosHeader, char key[]) {
+    char* baseAddr = (char*)dosHeader;
+    DWORD offset = dosHeader->e_lfanew;
+
+    for (DWORD i = 0; i < offset - 4; ++i) {
+        if (baseAddr[i] == 'R' &&
+            baseAddr[i + 1] == 'i' &&
+            baseAddr[i + 2] == 'c' &&
+            baseAddr[i + 3] == 'h') {
+            memcpy(key, baseAddr + i + 4, 4);
+            return i;
+        }
+    }
+
+    return 0;
+}
+void 
+FindRichEntries(char* richHeaderPtr, int richHeaderSize, char key[]) {
+    for (int i = 0; i < richHeaderSize; i += 4) {
+        for (int x = 0; x < 4; x++) {
+            richHeaderPtr[i + x] ^= key[x];
+        }
+    }
+
+    PEFILE_RICH_HEADER_INFO.size = richHeaderSize;
+    PEFILE_RICH_HEADER_INFO.ptrToBuffer = richHeaderPtr;
+    PEFILE_RICH_HEADER_INFO.entries = (richHeaderSize - 16) / 8;
+}
+
+void 
+SetRichEntries(int richHeaderSize, char* richHeaderPtr) {
+    for (int i = 16; i < richHeaderSize; i += 8) {
+        WORD prodID = ((unsigned char)richHeaderPtr[i + 3] << 8) | (unsigned char)richHeaderPtr[i + 2];
+        WORD buildID = ((unsigned char)richHeaderPtr[i + 1] << 8) | (unsigned char)richHeaderPtr[i];
+        DWORD useCount = ((unsigned char)richHeaderPtr[i + 7] << 24) |
+            ((unsigned char)richHeaderPtr[i + 6] << 16) |
+            ((unsigned char)richHeaderPtr[i + 5] << 8) |
+            (unsigned char)richHeaderPtr[i + 4];
+
+        PEFILE_RICH_HEADER.entries[(i / 8) - 2] = { prodID, buildID, useCount };
+
+        if (i + 8 >= richHeaderSize) {
+            PEFILE_RICH_HEADER.entries[(i / 8) - 1] = { 0x0000, 0x0000, 0x00000000 };
+        }
+    }
+}
+
+
+
+int
+DecryptRichHeader(char key[], int index, char* dataPtr) {
+        memcpy(key, dataPtr + (index + 4), 4);
+
+    int indexPointer = index - 4;
+    int richHeaderSize = 0;
+
+    while (true) {
+        char tmpchar[4];
+        memcpy(tmpchar, dataPtr + indexPointer, 4);
+
+        for (int i = 0; i < 4; i++) {
+            tmpchar[i] ^= key[i];
+        }
+
+        indexPointer -= 4;
+        richHeaderSize += 4;
+
+        if (tmpchar[1] == 0x61 && tmpchar[0] == 0x44) {
+            break;
+        }
+    }
+
+    return richHeaderSize;
+}
+
+
+
+
+
 VOID
 PeHexDump(CHAR * Ptr, int Size, int SecAddress)
 {
@@ -121,6 +201,40 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
     //
     DosHeader = (PIMAGE_DOS_HEADER)BaseAddr; // 0x04000000
 
+    char key[4];
+    int richHeaderOffset = FindRichHeader(DosHeader, key);
+
+    if (richHeaderOffset == 0) {
+         ShowMessages("Rich header not found\n");
+    }
+    char* dataPtr = new char[DosHeader->e_lfanew];
+    DWORD bytesRead = 0;
+
+    BOOL result = ReadFile(FileHandle, dataPtr, DosHeader->e_lfanew, &bytesRead, NULL);
+    if (!result || bytesRead != DosHeader->e_lfanew) {
+        ShowMessages("ReadFile failed or incomplete read");
+    }
+    int richHeaderSize = DecryptRichHeader(key, richHeaderOffset, dataPtr);
+    int indexPointer = richHeaderOffset - richHeaderSize;
+
+    char* richHeaderPtr = new char[richHeaderSize];
+    memcpy(richHeaderPtr, dataPtr + indexPointer, richHeaderSize);
+    delete[] dataPtr;
+
+    FindRichEntries(richHeaderPtr, richHeaderSize, key);
+    PEFILE_RICH_HEADER.entries = new RICH_HEADER_ENTRY[PEFILE_RICH_HEADER_INFO.entries];
+    SetRichEntries(richHeaderSize, richHeaderPtr);
+    for (int i = 0; i < PEFILE_RICH_HEADER_INFO.entries; i++) {
+        ShowMessages(" 0x%X 0x%X 0x%X: %d.%d.%d\n",
+            PEFILE_RICH_HEADER.entries[i].buildID,
+            PEFILE_RICH_HEADER.entries[i].prodID,
+            PEFILE_RICH_HEADER.entries[i].useCount,
+            PEFILE_RICH_HEADER.entries[i].buildID,
+            PEFILE_RICH_HEADER.entries[i].prodID,
+            PEFILE_RICH_HEADER.entries[i].useCount);
+    }
+
+
     //
     // Check for Valid DOS file
     //
@@ -169,6 +283,12 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         Result = FALSE;
         goto Finished;
     }
+
+
+
+
+
+
 
     //
     // Offset of NT Header is found at 0x3c location in DOS header specified by
