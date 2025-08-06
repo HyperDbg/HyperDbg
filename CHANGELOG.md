@@ -12,7 +12,7 @@ New release of the HyperDbg Debugger.
 - Export the SDK functions for SMI operations ([link](https://docs.hyperdbg.org/commands/extension-commands/smi#sdk))
 
 ### Changed
--
+- Enhanced the '.pe' command to support PE Rich Headers thanks to [@Alish14](https://github.com/Alish14) ([link](https://github.com/HyperDbg/HyperDbg/pull/539))
 
 ## [0.14.1.0] - 2025-07-27
 New release of the HyperDbg Debugger.
