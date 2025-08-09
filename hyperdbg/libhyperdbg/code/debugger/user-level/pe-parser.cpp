@@ -320,8 +320,8 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
 BOOLEAN
 PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit)
 {
-    PRICH_HEADER_INFO PeFileRichHeaderInfo{ 0 };
-    PRICH_HEADER PeFileRichHeader = {0};
+    RICH_HEADER_INFO PeFileRichHeaderInfo{ 0 };
+    RICH_HEADER PeFileRichHeader = {0};
     BOOLEAN                 Result = FALSE, RichFound = FALSE;
     HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
     UINT32                  NumberOfSections;            // Number of sections
@@ -389,10 +389,10 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         memcpy(richHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
         delete[] DataPtr;
 
-        FindRichEntries(richHeaderPtr, RichHeaderSize, Key,PeFileRichHeaderInfo);
-        PeFileRichHeader->Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo->Entries];
+        FindRichEntries(richHeaderPtr, RichHeaderSize, Key,&PeFileRichHeaderInfo);
+        PeFileRichHeader.Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo.Entries];
 
-        SetRichEntries(RichHeaderSize, richHeaderPtr,PeFileRichHeader);
+        SetRichEntries(RichHeaderSize, richHeaderPtr,&PeFileRichHeader);
         RichFound = TRUE;
     }
 
@@ -450,16 +450,16 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         ShowMessages("\n===============================================================================\n");
         ShowMessages("                              RICH HEADER                                     \n");
         ShowMessages("===============================================================================\n");
-        ShowMessages("Entries: %d\n\n", PeFileRichHeaderInfo->Entries);
+        ShowMessages("Entries: %d\n\n", PeFileRichHeaderInfo.Entries);
         ShowMessages("%-10s %-10s %-10s\n", "Build ID", "Prod ID", "Use Count");
         ShowMessages("---------------------------------------\n");
 
-        for (int i = 0; i < PeFileRichHeaderInfo->Entries; i++)
+        for (int i = 0; i < PeFileRichHeaderInfo.Entries; i++)
         {
             ShowMessages("0x%08X 0x%08X %10d\n",
-                         PeFileRichHeader->Entries[i].BuildID,
-                         PeFileRichHeader->Entries[i].ProdID,
-                         PeFileRichHeader->Entries[i].UseCount);
+                         PeFileRichHeader.Entries[i].BuildID,
+                         PeFileRichHeader.Entries[i].ProdID,
+                         PeFileRichHeader.Entries[i].UseCount);
         }
 
         ShowMessages("==============Rich Header End ==================\n");
