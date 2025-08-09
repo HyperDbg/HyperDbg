@@ -51,10 +51,10 @@ INT
 FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[]);
 
 VOID
-SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr);
+SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr,RICH_HEADER_ENTRY * PeFileRichHeader);
 
 VOID
-FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[]);
+FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[],RICH_HEADER_INFO * RichHeaderInfo);
 
 INT
 DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr);
