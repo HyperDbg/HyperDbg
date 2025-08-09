@@ -97,6 +97,12 @@ AsmVmexitHandler();
  */
 extern void inline AsmSaveVmxOffState();
 
+/**
+ * @brief Restore XMM registers
+ *
+ */
+extern void inline AsmVmxoffRestoreXmmRegs(unsigned long long XmmRegs);
+
 //
 // ====================  Extended Page Tables ====================
 // File : AsmEpt.asm
@@ -143,7 +149,7 @@ AsmGetCs();
 extern unsigned short
 AsmGetDs();
 
-extern void 
+extern void
 AsmSetDs(unsigned short DsSelector);
 
 /**

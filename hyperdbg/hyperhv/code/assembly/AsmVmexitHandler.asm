@@ -1,4 +1,5 @@
 PUBLIC AsmVmexitHandler
+PUBLIC AsmVmxoffRestoreXmmRegs
 
 EXTERN VmxVmexitHandler:PROC
 EXTERN VmxVmresume:PROC
@@ -131,6 +132,35 @@ AsmVmexitHandler ENDP
 
 ;------------------------------------------------------------------------
 
+AsmVmxoffRestoreXmmRegs PROC
+
+    ; ------------ Restore XMM Registers ------------
+
+    movaps xmm0, xmmword ptr [rcx+000h]
+    movaps xmm1, xmmword ptr [rcx+010h]
+    movaps xmm2, xmmword ptr [rcx+020h]
+    movaps xmm3, xmmword ptr [rcx+030h]
+    movaps xmm4, xmmword ptr [rcx+040h]
+    movaps xmm5, xmmword ptr [rcx+050h]
+    movaps xmm6, xmmword ptr [rcx+060h]
+    movaps xmm7, xmmword ptr [rcx+070h]
+    movaps xmm8, xmmword ptr [rcx+080h]
+    movaps xmm9, xmmword ptr [rcx+090h]
+    movaps xmm10, xmmword ptr [rcx+0a0h]
+    movaps xmm11, xmmword ptr [rcx+0b0h]
+    movaps xmm12, xmmword ptr [rcx+0c0h]
+    movaps xmm13, xmmword ptr [rcx+0d0h]
+    movaps xmm14, xmmword ptr [rcx+0e0h]
+    movaps xmm15, xmmword ptr [rcx+0f0h]
+
+    ldmxcsr dword ptr [rcx+0100h]
+
+    ret
+
+AsmVmxoffRestoreXmmRegs ENDP
+
+;------------------------------------------------------------------------
+
 AsmVmxoffHandler PROC
 
     ; ------ Restore General-purpose Registers ------
@@ -154,32 +184,12 @@ RestoreState:
     pop r14
     pop r15
 
-    ; ------------ Restore XMM Registers ------------
+    ; ------------- Pass over XMM Regs -------------
 
-    movaps xmm0, xmmword ptr [rsp+000h]
-    movaps xmm1, xmmword ptr [rsp+010h]
-    movaps xmm2, xmmword ptr [rsp+020h]
-    movaps xmm3, xmmword ptr [rsp+030h]
-    movaps xmm4, xmmword ptr [rsp+040h]
-    movaps xmm5, xmmword ptr [rsp+050h]
-    movaps xmm6, xmmword ptr [rsp+060h]
-    movaps xmm7, xmmword ptr [rsp+070h]
-    movaps xmm8, xmmword ptr [rsp+080h]
-    movaps xmm9, xmmword ptr [rsp+090h]
-    movaps xmm10, xmmword ptr [rsp+0a0h]
-    movaps xmm11, xmmword ptr [rsp+0b0h]
-    movaps xmm12, xmmword ptr [rsp+0c0h]
-    movaps xmm13, xmmword ptr [rsp+0d0h]
-    movaps xmm14, xmmword ptr [rsp+0e0h]
-    movaps xmm15, xmmword ptr [rsp+0f0h]
-    
-    ldmxcsr dword ptr [rsp+0100h]
-    
-    add     rsp, 0110h
-
-    ; --------------- Restore RFLAGS ---------------
-
-    popfq               ; Restore the flags register (RFLAGS)
+    ; XMM registers are restored by AsmVmxoffRestoreXmmRegs
+    ; Size of XMM registers are 110 bytes but we also remove the RFLAGS register (+8) 
+    ; so we have 118 bytes to remove from the stack
+    add     rsp, 0118h
 
     ; ------------ Get Stack Pointer ---------------
 
