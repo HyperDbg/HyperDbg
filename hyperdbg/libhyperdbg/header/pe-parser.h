@@ -39,7 +39,9 @@ typedef struct _RICH_HEADER
 //////////////////////////////////////////////////
 
 BOOLEAN
-PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit);
+PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
+                                const CHAR *  SectionToShow,
+                                BOOLEAN       Is32Bit);
 
 BOOLEAN
 PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit);
@@ -51,10 +53,13 @@ INT
 FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[]);
 
 VOID
-SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr,RICH_HEADER_ENTRY * PeFileRichHeader);
+SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRichHeader);
 
 VOID
-FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[],RICH_HEADER_INFO * RichHeaderInfo);
+FindRichEntries(CHAR *            RichHeaderPtr,
+                INT               RichHeaderSize,
+                CHAR              Key[],
+                PRICH_HEADER_INFO PeFileRichHeaderInfo);
 
 INT
 DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr);

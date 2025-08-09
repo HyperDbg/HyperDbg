@@ -11,7 +11,7 @@
  */
 #include "pch.h"
 
- /**
+/**
  * @brief Locates the Rich header signature in a PE file
  *
  * The Rich header is an undocumented Microsoft structure embedded in PE files
@@ -86,8 +86,11 @@ FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[])
  * @note Each entry represents one compilation tool (compiler, linker, assembler, etc.)
  *
  */
-void
-FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[],PRICH_HEADER_INFO  PeFileRichHeaderInfo)
+VOID
+FindRichEntries(CHAR *            RichHeaderPtr,
+                INT               RichHeaderSize,
+                CHAR              Key[],
+                PRICH_HEADER_INFO PeFileRichHeaderInfo)
 {
     //
     // Decrypt the entire Rich header using XOR with the 4-byte key
@@ -133,7 +136,7 @@ FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[],PRICH_HEADE
  * @warning Assumes the Rich header has been properly decrypted first
  */
 VOID
-SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr,PRICH_HEADER PeFileRichHeader )
+SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRichHeader)
 {
     //
     // Start at offset 16 to skip the header metadata, process 8-byte entries
@@ -302,10 +305,12 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
  * @return BOOLEAN
  */
 BOOLEAN
-PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit)
+PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
+                                const CHAR *  SectionToShow,
+                                BOOLEAN       Is32Bit)
 {
-    RICH_HEADER_INFO PeFileRichHeaderInfo{ 0 };
-    RICH_HEADER PeFileRichHeader {0};
+    RICH_HEADER_INFO        PeFileRichHeaderInfo {0};
+    RICH_HEADER             PeFileRichHeader {0};
     BOOLEAN                 Result = FALSE, RichFound = FALSE;
     HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
     UINT32                  NumberOfSections;            // Number of sections
@@ -322,17 +327,17 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
     // Open the EXE File
     //
     FileHandle = CreateFileW(AddressOfFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
     if (FileHandle == INVALID_HANDLE_VALUE)
     {
         ShowMessages("err, could not open the file specified\n");
         return FALSE;
-    };
+    }
 
     //
     // Mapping Given EXE file to Memory
     //
-    MapObjectHandle =
-        CreateFileMapping(FileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
+    MapObjectHandle = CreateFileMapping(FileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
 
     if (MapObjectHandle == NULL)
     {
@@ -373,10 +378,10 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         memcpy(richHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
         delete[] DataPtr;
 
-        FindRichEntries(richHeaderPtr, RichHeaderSize, Key,&PeFileRichHeaderInfo);
+        FindRichEntries(richHeaderPtr, RichHeaderSize, Key, &PeFileRichHeaderInfo);
         PeFileRichHeader.Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo.Entries];
 
-        SetRichEntries(RichHeaderSize, richHeaderPtr,&PeFileRichHeader);
+        SetRichEntries(RichHeaderSize, richHeaderPtr, &PeFileRichHeader);
         RichFound = TRUE;
     }
 
