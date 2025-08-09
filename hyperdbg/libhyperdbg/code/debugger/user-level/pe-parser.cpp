@@ -17,7 +17,7 @@
  * Contains the size of the Rich header, pointer to the decrypted buffer,
  * and the number of tool entries found in the header.
  */
-RICH_HEADER_INFO PeFileRichHeaderInfo = {0};
+//RICH_HEADER_INFO PeFileRichHeaderInfo = {0};
 
 /**
  * @brief Global structure containing the parsed Rich header entries
@@ -25,7 +25,7 @@ RICH_HEADER_INFO PeFileRichHeaderInfo = {0};
  * Holds an array of individual Rich header entries, each containing
  * product ID, build ID, and usage count for compilation tools.
  */
-RICH_HEADER PeFileRichHeader = {0};
+//RICH_HEADER PeFileRichHeader = {0};
 
 /**
  * @brief Locates the Rich header signature in a PE file
@@ -89,12 +89,13 @@ FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[])
  * @brief Decrypts Rich header data using XOR decryption and initializes header info
  *
  * The Rich header is encrypted using a simple XOR cipher with a 4-byte key.
- * This function decrypts the entire header in-place and populates the global
+ * This function decrypts the entire header in-place and populates the
  * PEFILE_RICH_HEADER_INFO structure with metadata about the decrypted data.
  *
  * @param RichHeaderPtr Pointer to the raw Rich header data to be decrypted
  * @param RichHeaderSize Size of the Rich header data in bytes
  * @param Key 4-byte XOR key used for decryption
+ * @param PeFileRichHeaderInfo structure containing Rich header metadata and buffer information
  *
  * @note The Rich header uses a repeating 4-byte XOR key for encryption
  * @note After decryption, the header contains 16 bytes of metadata followed by 8-byte entries
@@ -102,7 +103,7 @@ FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[])
  *
  */
 void
-FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[])
+FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[],PRICH_HEADER_INFO  PeFileRichHeaderInfo)
 {
     //
     // Decrypt the entire Rich header using XOR with the 4-byte key
@@ -121,13 +122,13 @@ FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[])
     //
     // Initialize the Rich header info structure
     //
-    PeFileRichHeaderInfo.Size        = RichHeaderSize;
-    PeFileRichHeaderInfo.PtrToBuffer = RichHeaderPtr;
+    PeFileRichHeaderInfo->Size        = RichHeaderSize;
+    PeFileRichHeaderInfo->PtrToBuffer = RichHeaderPtr;
 
     //
     // Calculate number of entries: subtract 16-byte header, divide by 8 bytes per entry
     //
-    PeFileRichHeaderInfo.Entries = (RichHeaderSize - 16) / 8;
+    PeFileRichHeaderInfo->Entries = (RichHeaderSize - 16) / 8;
 }
 
 /**
@@ -143,11 +144,12 @@ FindRichEntries(CHAR * RichHeaderPtr, INT RichHeaderSize, CHAR Key[])
  *
  * @param RichHeaderSize Size of the entire Rich header in bytes
  * @param RichHeaderPtr Pointer to the decrypted Rich header data
+ * @param PeFileRichHeader structure containing the parsed Rich header entries
  *
  * @warning Assumes the Rich header has been properly decrypted first
  */
 VOID
-SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr)
+SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr,PRICH_HEADER PeFileRichHeader )
 {
     //
     // Start at offset 16 to skip the header metadata, process 8-byte entries
@@ -175,14 +177,14 @@ SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr)
         //
         // Store the parsed entry (adjust index: i/8 gives entry number, -2 for header offset)
         //
-        PeFileRichHeader.Entries[(i / 8) - 2] = {ProdID, BuildID, UseCount};
+        PeFileRichHeader->Entries[(i / 8) - 2] = {ProdID, BuildID, UseCount};
 
         //
         // Add null terminator entry if this is the last entry
         //
         if (i + 8 >= RichHeaderSize)
         {
-            PeFileRichHeader.Entries[(i / 8) - 1] = {0x0000, 0x0000, 0x00000000};
+            PeFileRichHeader->Entries[(i / 8) - 1] = {0x0000, 0x0000, 0x00000000};
         }
     }
 }
@@ -318,6 +320,8 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
 BOOLEAN
 PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit)
 {
+    PRICH_HEADER_INFO PeFileRichHeaderInfo{ 0 };
+    PRICH_HEADER PeFileRichHeader = {0};
     BOOLEAN                 Result = FALSE, RichFound = FALSE;
     HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
     UINT32                  NumberOfSections;            // Number of sections
@@ -385,10 +389,10 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         memcpy(richHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
         delete[] DataPtr;
 
-        FindRichEntries(richHeaderPtr, RichHeaderSize, Key);
-        PeFileRichHeader.Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo.Entries];
+        FindRichEntries(richHeaderPtr, RichHeaderSize, Key,PeFileRichHeaderInfo);
+        PeFileRichHeader->Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo->Entries];
 
-        SetRichEntries(RichHeaderSize, richHeaderPtr);
+        SetRichEntries(RichHeaderSize, richHeaderPtr,PeFileRichHeader);
         RichFound = TRUE;
     }
 
@@ -446,16 +450,16 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         ShowMessages("\n===============================================================================\n");
         ShowMessages("                              RICH HEADER                                     \n");
         ShowMessages("===============================================================================\n");
-        ShowMessages("Entries: %d\n\n", PeFileRichHeaderInfo.Entries);
+        ShowMessages("Entries: %d\n\n", PeFileRichHeaderInfo->Entries);
         ShowMessages("%-10s %-10s %-10s\n", "Build ID", "Prod ID", "Use Count");
         ShowMessages("---------------------------------------\n");
 
-        for (int i = 0; i < PeFileRichHeaderInfo.Entries; i++)
+        for (int i = 0; i < PeFileRichHeaderInfo->Entries; i++)
         {
             ShowMessages("0x%08X 0x%08X %10d\n",
-                         PeFileRichHeader.Entries[i].BuildID,
-                         PeFileRichHeader.Entries[i].ProdID,
-                         PeFileRichHeader.Entries[i].UseCount);
+                         PeFileRichHeader->Entries[i].BuildID,
+                         PeFileRichHeader->Entries[i].ProdID,
+                         PeFileRichHeader->Entries[i].UseCount);
         }
 
         ShowMessages("==============Rich Header End ==================\n");
