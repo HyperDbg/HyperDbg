@@ -16,6 +16,8 @@ New release of the HyperDbg Debugger.
 - Reformat VMXOFF restoring routines to restore general-purpose and XMM registers correctly before moving to the previous stack
 - Fix unloading (VMXOFF) crash when restoring XMM registers
 - Fix the problem with restoring XMM registers (#468) ([link](https://github.com/HyperDbg/HyperDbg/issues/468))
+- Enhanced the '.pe' command to support PE Rich Headers thanks to [@Alish14](https://github.com/Alish14) ([link](https://github.com/HyperDbg/HyperDbg/pull/539))
+
 
 ## [0.14.1.0] - 2025-07-27
 New release of the HyperDbg Debugger.
