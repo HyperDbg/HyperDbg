@@ -11,23 +11,7 @@
  */
 #include "pch.h"
 
-/**
- * @brief Global structure containing Rich header metadata and buffer information
- *
- * Contains the size of the Rich header, pointer to the decrypted buffer,
- * and the number of tool entries found in the header.
- */
-//RICH_HEADER_INFO PeFileRichHeaderInfo = {0};
-
-/**
- * @brief Global structure containing the parsed Rich header entries
- *
- * Holds an array of individual Rich header entries, each containing
- * product ID, build ID, and usage count for compilation tools.
- */
-//RICH_HEADER PeFileRichHeader = {0};
-
-/**
+ /**
  * @brief Locates the Rich header signature in a PE file
  *
  * The Rich header is an undocumented Microsoft structure embedded in PE files
@@ -321,7 +305,7 @@ BOOLEAN
 PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit)
 {
     RICH_HEADER_INFO PeFileRichHeaderInfo{ 0 };
-    RICH_HEADER PeFileRichHeader = {0};
+    RICH_HEADER PeFileRichHeader {0};
     BOOLEAN                 Result = FALSE, RichFound = FALSE;
     HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
     UINT32                  NumberOfSections;            // Number of sections
