@@ -119,6 +119,8 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64               MsrValue;
     UINT64               GuestRip;
     UINT64               GuestRflags;
+    UINT64               Ssp;
+    UINT64               ZeroSsp = NULL64_ZERO;
 
     //
     // Reading guest's RIP
@@ -153,6 +155,13 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
 
     //
+    // Peform emulation of Intel CET (Shadow stacks)
+    //
+    Ssp = AsmReadSsp();
+    __writemsr(IA32_PL3_SSP, Ssp);
+    AsmWriteSsp(&ZeroSsp); // Fill SSP by zero
+
+    //
     // Load the CS and SS selectors with values derived from bits 47:32 of IA32_STAR
     //
     MsrValue             = __readmsr(IA32_STAR);
@@ -185,6 +194,7 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64               MsrValue;
     UINT64               GuestRip;
     UINT64               GuestRflags;
+    UINT64               Ssp;
 
     //
     // Load RIP from RCX
@@ -197,6 +207,12 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     //
     GuestRflags = (VCpu->Regs->r11 & ~(X86_FLAGS_RF | X86_FLAGS_VM | X86_FLAGS_RESERVED_BITS)) | X86_FLAGS_FIXED;
     __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
+
+    //
+    // Restore user-mode SPP
+    //
+    Ssp = __readmsr(IA32_PL3_SSP);
+    AsmWriteSsp(&Ssp);
 
     //
     // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of IA32_STAR
