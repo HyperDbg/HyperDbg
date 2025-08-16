@@ -144,7 +144,11 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
      *
      */
     DECLSPEC_ALIGN(PAGE_SIZE)
-    EPT_PML1_ENTRY PML1[VMM_EPT_PML1E_COUNT];
+    union
+    {
+        EPT_PML1_ENTRY PML1[VMM_EPT_PML1E_COUNT];
+        EPT_PML2_ENTRY PML2[VMM_EPT_PML2E_COUNT];
+    };
 
     /**
      * @brief The pointer to the 2MB entry in the page table which this split is servicing.
@@ -152,8 +156,10 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
      */
     union
     {
-        PEPT_PML2_ENTRY   Entry;
-        PEPT_PML2_POINTER Pointer;
+        PEPT_PML2_ENTRY   EntryPml2;
+        PEPT_PML2_POINTER PointerPml2;
+        PEPT_PML3_ENTRY   EntryPml3;
+        PEPT_PML3_POINTER PointerPml3;
     } u;
 
     /**
@@ -214,12 +220,15 @@ EptAllocateAndCreateIdentityPageTable(VOID);
  * @param EptPageTable
  * @param UsePreAllocatedBuffer
  * @param PhysicalAddress
+ * @param EptLevel
+ *
  * @return BOOLEAN
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
                   BOOLEAN             UsePreAllocatedBuffer,
-                  SIZE_T              PhysicalAddress);
+                  SIZE_T              PhysicalAddress,
+                  UINT8               EptLevel);
 
 /**
  * @brief Split 2MB (LargePage) into 4kb pages
@@ -232,6 +241,16 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
  */
 PEPT_PML2_ENTRY
 EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
+
+/**
+ * @brief Get the PML3 entry for this physical address
+ *
+ * @param EptPageTable The EPT Page Table
+ * @param PhysicalAddress Physical Address that we want to get its PML3
+ * @return PEPT_PML3_ENTRY The PML3 Entry Structure
+ */
+PEPT_PML3_ENTRY
+EptGetPml3Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
 
 /**
  * @brief Initialize EPT Table based on Processor Index

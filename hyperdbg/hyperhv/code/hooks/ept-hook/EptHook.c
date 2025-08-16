@@ -279,7 +279,10 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
         //
         // We need to split the large page to 4KB page using pre-allocated pools
         //
-        if (!EptSplitLargePage(g_GuestState[i].EptPageTable, TRUE, PhysicalBaseAddress))
+        if (!EptSplitLargePage(g_GuestState[i].EptPageTable,
+                               TRUE,
+                               PhysicalBaseAddress,
+                               EPT_LEVEL_PTE))
         {
             PoolManagerFreePool((UINT64)HookedPage);
 
@@ -1256,7 +1259,10 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         //
         // We need to split the large page to 4KB page using pre-allocated pools
         //
-        if (!EptSplitLargePage(g_GuestState[i].EptPageTable, TRUE, PhysicalBaseAddress))
+        if (!EptSplitLargePage(g_GuestState[i].EptPageTable,
+                               TRUE,
+                               PhysicalBaseAddress,
+                               EPT_LEVEL_PTE))
         {
             PoolManagerFreePool((UINT64)HookedPage);
 

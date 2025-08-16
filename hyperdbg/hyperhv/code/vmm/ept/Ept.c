@@ -450,43 +450,144 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
 }
 
 /**
+ * @brief Get the PML3 entry for this physical address
+ *
+ * @param EptPageTable The EPT Page Table
+ * @param PhysicalAddress Physical Address that we want to get its PML3
+ * @return PEPT_PML3_ENTRY The PML3 Entry Structure
+ */
+PEPT_PML3_ENTRY
+EptGetPml3Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
+{
+    SIZE_T          DirectoryPointer, PML4Entry;
+    PEPT_PML3_ENTRY PML3;
+
+    DirectoryPointer = ADDRMASK_EPT_PML3_INDEX(PhysicalAddress);
+    PML4Entry        = ADDRMASK_EPT_PML4_INDEX(PhysicalAddress);
+
+    //
+    // Addresses above 512GB are handled in different entry
+    //
+    if (PML4Entry == 0)
+    {
+        PML3 = (PEPT_PML3_ENTRY)&EptPageTable->PML3[DirectoryPointer];
+    }
+    else
+    {
+        PML3 = (PEPT_PML3_ENTRY)&EptPageTable->PML3_RSVD[PML4Entry - 1][DirectoryPointer];
+    }
+
+    return PML3;
+}
+
+/**
  * @brief Convert large pages to 4KB pages
  *
  * @param EptPageTable The EPT Page Table
  * @param UsePreAllocatedBuffer Whether allocate a memory or use pre-allocated buffer
  * @param PhysicalAddress Physical address of where we want to split
+ * @param EptLevel The EPT Level of the page table
  *
  * @return BOOLEAN Returns true if it was successful or false if there was an error
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
                   BOOLEAN             UsePreAllocatedBuffer,
-                  SIZE_T              PhysicalAddress)
+                  SIZE_T              PhysicalAddress,
+                  UINT8               EptLevel)
 {
     PVMM_EPT_DYNAMIC_SPLIT NewSplit;
     EPT_PML1_ENTRY         EntryTemplate;
     SIZE_T                 EntryIndex;
-    PEPT_PML2_ENTRY        TargetEntry;
-    EPT_PML2_POINTER       NewPointer;
+    PEPT_PML2_ENTRY        TargetEntryPml2 = NULL;
+    EPT_PML2_POINTER       NewPointerPml2  = {0};
+    PEPT_PML3_ENTRY        TargetEntryPml3 = NULL;
+    EPT_PML3_POINTER       NewPointerPml3  = {0};
 
     //
-    // Find the PML2 entry that's currently used
+    // Check if the EPT level is valid
     //
-    TargetEntry = EptGetPml2Entry(EptPageTable, PhysicalAddress);
-
-    if (!TargetEntry)
+    if (EptLevel != EPT_LEVEL_PDE && EptLevel != EPT_LEVEL_PTE)
     {
-        LogError("Err, an invalid physical address passed");
+        //
+        // This function only supports splitting 2MB pages to 4KB pages
+        // and splitting 1GB pages to 2MB pages, otherwise return FALSE
+        //
         return FALSE;
     }
 
     //
-    // If this large page is not marked a large page, that means it's a pointer already.
-    // That page is therefore already split.
+    // Check if the requested level is PTE or PDE
     //
-    if (!TargetEntry->LargePage)
+    if (EptLevel == EPT_LEVEL_PTE)
     {
-        return TRUE;
+        //
+        // *** PTE Level ***
+        //
+
+        //
+        // Find the PML2 entry that's currently used
+        //
+        TargetEntryPml2 = EptGetPml2Entry(EptPageTable, PhysicalAddress);
+
+        if (!TargetEntryPml2)
+        {
+            //
+            // If there is no PML2 entry for this physical address, we recursively call to allocate the PML3 entry
+            //
+            if (EptSplitLargePage(EptPageTable, UsePreAllocatedBuffer, PhysicalAddress, EPT_LEVEL_PDE))
+            {
+                TargetEntryPml2 = EptGetPml2Entry(EptPageTable, PhysicalAddress);
+            }
+            else
+            {
+                LogError("Err, unable to split large page to 4KB pages, no PML3 entry found");
+                return FALSE;
+            }
+
+            //
+            // Since we split the PML3 entry, we can now get the PML2 entry
+            //
+            TargetEntryPml2 = EptGetPml2Entry(EptPageTable, PhysicalAddress);
+
+            if (!TargetEntryPml2)
+            {
+                LogError("Err, an invalid physical address passed");
+                return FALSE;
+            }
+        }
+
+        //
+        // If this large page is not marked a large page, that means it's a pointer already.
+        // That page is therefore already split.
+        //
+        if (!TargetEntryPml2->LargePage)
+        {
+            return TRUE;
+        }
+    }
+    else
+    {
+        //
+        // *** PDE Level ***
+        //
+
+        TargetEntryPml3 = EptGetPml3Entry(EptPageTable, PhysicalAddress);
+
+        if (!TargetEntryPml3)
+        {
+            LogError("Err, an invalid physical address passed");
+            return FALSE;
+        }
+
+        //
+        // If this large page is not marked a large page, that means it's a pointer already.
+        // That page is therefore already split.
+        //
+        if (!TargetEntryPml3->LargePage)
+        {
+            return TRUE;
+        }
     }
 
     //
@@ -506,13 +607,21 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
         LogError("Err, failed to allocate dynamic split memory");
         return FALSE;
     }
+
     RtlZeroMemory(NewSplit, sizeof(VMM_EPT_DYNAMIC_SPLIT));
 
     //
     // Point back to the entry in the dynamic split for easy reference for which entry that
     // dynamic split is for
     //
-    NewSplit->u.Entry = TargetEntry;
+    if (EptLevel == EPT_LEVEL_PTE)
+    {
+        NewSplit->u.EntryPml2 = TargetEntryPml2;
+    }
+    else
+    {
+        NewSplit->u.EntryPml3 = TargetEntryPml3;
+    }
 
     //
     // Make a template for RWX
@@ -537,9 +646,9 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     // copy other bits from target entry
     //
-    EntryTemplate.MemoryType = TargetEntry->MemoryType;
-    EntryTemplate.IgnorePat  = TargetEntry->IgnorePat;
-    EntryTemplate.SuppressVe = TargetEntry->SuppressVe;
+    EntryTemplate.MemoryType = EptLevel == EPT_LEVEL_PTE ? TargetEntryPml2->MemoryType : TargetEntryPml3->MemoryType;
+    EntryTemplate.IgnorePat  = EptLevel == EPT_LEVEL_PTE ? TargetEntryPml2->IgnorePat : TargetEntryPml3->IgnorePat;
+    EntryTemplate.SuppressVe = EptLevel == EPT_LEVEL_PTE ? TargetEntryPml2->SuppressVe : TargetEntryPml3->SuppressVe;
 
     //
     // Copy the template into all the PML1 entries
@@ -547,43 +656,98 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     __stosq((SIZE_T *)&NewSplit->PML1[0], EntryTemplate.AsUInt, VMM_EPT_PML1E_COUNT);
 
     //
-    // Set the page frame numbers for identity mapping
+    // Check if the EPT level is PTE or PDE
     //
-    for (EntryIndex = 0; EntryIndex < VMM_EPT_PML1E_COUNT; EntryIndex++)
+    if (EptLevel == EPT_LEVEL_PTE)
     {
         //
-        // Convert the 2MB page frame number to the 4096 page entry number plus the offset into the frame
+        // *** PTE Level ***
         //
-        NewSplit->PML1[EntryIndex].PageFrameNumber = ((TargetEntry->PageFrameNumber * SIZE_2_MB) / PAGE_SIZE) + EntryIndex;
-        NewSplit->PML1[EntryIndex].MemoryType      = EptGetMemoryType(NewSplit->PML1[EntryIndex].PageFrameNumber, FALSE);
-    }
 
-    //
-    // Allocate a new pointer which will replace the 2MB entry with a pointer to 512 4096 byte entries
-    //
-    NewPointer.AsUInt        = 0;
-    NewPointer.WriteAccess   = 1;
-    NewPointer.ReadAccess    = 1;
-    NewPointer.ExecuteAccess = 1;
+        //
+        // Set the page frame numbers for identity mapping
+        //
+        for (EntryIndex = 0; EntryIndex < VMM_EPT_PML1E_COUNT; EntryIndex++)
+        {
+            //
+            // Convert the 2MB page frame number to the 4096 page entry number plus the offset into the frame
+            //
+            NewSplit->PML1[EntryIndex].PageFrameNumber = ((TargetEntryPml2->PageFrameNumber * SIZE_2_MB) / PAGE_SIZE) + EntryIndex;
+            NewSplit->PML1[EntryIndex].MemoryType      = EptGetMemoryType(NewSplit->PML1[EntryIndex].PageFrameNumber, FALSE);
+        }
 
-    //
-    // Set the UserModeExecute bit based on the global state of MBEC
-    //
-    if (g_ModeBasedExecutionControlState)
-    {
-        NewPointer.UserModeExecute = 1;
+        //
+        // Allocate a new pointer which will replace the 2MB/1GB entry with a pointer to 512 4KB/2MB byte entries
+        //
+        NewPointerPml2.AsUInt        = 0;
+        NewPointerPml2.WriteAccess   = 1;
+        NewPointerPml2.ReadAccess    = 1;
+        NewPointerPml2.ExecuteAccess = 1;
+
+        //
+        // Set the UserModeExecute bit based on the global state of MBEC
+        //
+        if (g_ModeBasedExecutionControlState)
+        {
+            NewPointerPml2.UserModeExecute = 1;
+        }
+        else
+        {
+            NewPointerPml2.UserModeExecute = 0;
+        }
+
+        NewPointerPml2.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&NewSplit->PML1[0]) / PAGE_SIZE;
+
+        //
+        // Now, replace the entry in the page table with our new split pointer
+        //
+        RtlCopyMemory(TargetEntryPml2, &NewPointerPml2, sizeof(NewPointerPml2));
     }
     else
     {
-        NewPointer.UserModeExecute = 0;
+        //
+        // *** PDE Level ***
+        //
+
+        //
+        // Set the page frame numbers for identity mapping
+        //
+        for (EntryIndex = 0; EntryIndex < VMM_EPT_PML2E_COUNT; EntryIndex++)
+        {
+            //
+            // Convert the 2MB page frame number to the 4096 page entry number plus the offset into the frame
+            //
+            NewSplit->PML2[EntryIndex].PageFrameNumber = ((TargetEntryPml3->PageFrameNumber * SIZE_1_GB) >> 30) + EntryIndex;
+            NewSplit->PML2[EntryIndex].MemoryType      = EptGetMemoryType(NewSplit->PML2[EntryIndex].PageFrameNumber, FALSE);
+        }
+
+        //
+        // Allocate a new pointer which will replace the 2MB/1GB entry with a pointer to 512 4KB/2MB byte entries
+        //
+        NewPointerPml3.AsUInt        = 0;
+        NewPointerPml3.WriteAccess   = 1;
+        NewPointerPml3.ReadAccess    = 1;
+        NewPointerPml3.ExecuteAccess = 1;
+
+        //
+        // Set the UserModeExecute bit based on the global state of MBEC
+        //
+        if (g_ModeBasedExecutionControlState)
+        {
+            NewPointerPml3.UserModeExecute = 1;
+        }
+        else
+        {
+            NewPointerPml3.UserModeExecute = 0;
+        }
+
+        NewPointerPml3.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&NewSplit->PML1[0]) >> 30;
+
+        //
+        // Now, replace the entry in the page table with our new split pointer
+        //
+        RtlCopyMemory(TargetEntryPml3, &NewPointerPml3, sizeof(NewPointerPml3));
     }
-
-    NewPointer.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&NewSplit->PML1[0]) / PAGE_SIZE;
-
-    //
-    // Now, replace the entry in the page table with our new split pointer
-    //
-    RtlCopyMemory(TargetEntry, &NewPointer, sizeof(NewPointer));
 
     return TRUE;
 }
@@ -649,7 +813,10 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
         //
         // Here we won't need to use pre-allocated buffers
         //
-        return EptSplitLargePage(EptPageTable, FALSE, PageFrameNumber * SIZE_2_MB);
+        return EptSplitLargePage(EptPageTable,
+                                 FALSE,
+                                 PageFrameNumber * SIZE_2_MB,
+                                 EPT_LEVEL_PTE);
     }
 }
 
@@ -667,6 +834,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     EPT_PML2_ENTRY      PML2EntryTemplate;
     SIZE_T              EntryGroupIndex;
     SIZE_T              EntryIndex;
+    UINT8               MemoryType;
 
     //
     // Allocate all paging structures as 4KB aligned pages
@@ -734,7 +902,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     PML3TemplateLarge.ReadAccess    = 1;
     PML3TemplateLarge.WriteAccess   = 1;
     PML3TemplateLarge.ExecuteAccess = 1;
-    PML3TemplateLarge.MemoryType    = MEMORY_TYPE_UNCACHEABLE;
+    PML3TemplateLarge.MemoryType    = MEMORY_TYPE_UNCACHEABLE; // Default memory type for PML3 entries
 
     //
     // Copy the template into each of the 512 PML3 entry slots for the original entries
@@ -776,6 +944,9 @@ EptAllocateAndCreateIdentityPageTable(VOID)
             PageTable->PML3_RSVD[i][j].PageFrameNumber = (SIZE_512_GB +                           // First 512GB is used for system memory
                                                           (i * SIZE_512_GB) + (j * SIZE_1_GB)) >> // MMIO ranges
                                                          30;                                      // Convert to page frame number
+
+            MemoryType                            = EptGetMemoryType(PageTable->PML3_RSVD[i][j].PageFrameNumber, FALSE);
+            PageTable->PML3_RSVD[i][j].MemoryType = MemoryType == (UINT8)-1 ? MEMORY_TYPE_UNCACHEABLE : MemoryType;
         }
     }
 
