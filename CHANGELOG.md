@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.15.0.0] - 2025-XX-XX
+## [0.15.0.0] - 2025-08-18
 New release of the HyperDbg Debugger.
 
 ### Added
@@ -22,6 +22,8 @@ New release of the HyperDbg Debugger.
 - Enhanced the '.pe' command to support PE Rich Headers thanks to [@Alish14](https://github.com/Alish14) ([link](https://github.com/HyperDbg/HyperDbg/pull/539))
 - Updated ia32-doc to fix VMCS PL3 SSP fields ([link](https://github.com/HyperDbg/ia32-doc))
 - Fix the terminating process issue of the '!syscall/!sysret' commands on 11 generation (Rocket Lake/Tiger Lake) and newer Intel processors ([link](https://github.com/HyperDbg/HyperDbg/issues/392))
+- Reenable the support for the '.start' command in the Debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
+- The '!mode' event command is now compatible with different EPT hook commands (e.g., !epthook, !epthook2, !monitor, .start, and .restart) ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
 
 ## [0.14.1.0] - 2025-07-27
 New release of the HyperDbg Debugger.
