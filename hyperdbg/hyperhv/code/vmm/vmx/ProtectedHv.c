@@ -215,11 +215,11 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
 
     //
     // In order to enable External Interrupt Exiting we have to set
-    // PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT in vmx
+    // IA32_VMX_PINBASED_CTLS_EXTERNAL_INTERRUPT_EXITING_FLAG in vmx
     // pin-based controls (PIN_BASED_VM_EXEC_CONTROL) and also
-    // we should enable VM_EXIT_ACK_INTR_ON_EXIT on vmx vm-exit
-    // controls (VMCS_CTRL_VMEXIT_CONTROLS), also this function might not
-    // always be successful if the guest is not in the interruptible
+    // we should enable IA32_VMX_EXIT_CTLS_ACKNOWLEDGE_INTERRUPT_ON_EXIT_FLAG
+    // on vmx vm-exit controls (VMCS_CTRL_VMEXIT_CONTROLS), also this function
+    // might not always be successful if the guest is not in the interruptible
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //
@@ -232,13 +232,13 @@ ProtectedHvApplySetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEA
 
     if (Set)
     {
-        PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT;
-        VmExitControls |= VM_EXIT_ACK_INTR_ON_EXIT;
+        PinBasedControls |= IA32_VMX_PINBASED_CTLS_EXTERNAL_INTERRUPT_EXITING_FLAG;
+        VmExitControls |= IA32_VMX_EXIT_CTLS_ACKNOWLEDGE_INTERRUPT_ON_EXIT_FLAG;
     }
     else
     {
-        PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT;
-        VmExitControls &= ~VM_EXIT_ACK_INTR_ON_EXIT;
+        PinBasedControls &= ~IA32_VMX_PINBASED_CTLS_EXTERNAL_INTERRUPT_EXITING_FLAG;
+        VmExitControls &= ~IA32_VMX_EXIT_CTLS_ACKNOWLEDGE_INTERRUPT_ON_EXIT_FLAG;
     }
 
     //
@@ -314,11 +314,11 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
 
     if (Set)
     {
-        CpuBasedVmExecControls |= CPU_BASED_RDTSC_EXITING;
+        CpuBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS_RDTSC_EXITING_FLAG;
     }
     else
     {
-        CpuBasedVmExecControls &= ~CPU_BASED_RDTSC_EXITING;
+        CpuBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS_RDTSC_EXITING_FLAG;
     }
     //
     // Set the new value
@@ -368,11 +368,11 @@ ProtectedHvSetMovDebugRegsVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROT
 
     if (Set)
     {
-        CpuBasedVmExecControls |= CPU_BASED_MOV_DR_EXITING;
+        CpuBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS_MOV_DR_EXITING_FLAG;
     }
     else
     {
-        CpuBasedVmExecControls &= ~CPU_BASED_MOV_DR_EXITING;
+        CpuBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS_MOV_DR_EXITING_FLAG;
     }
 
     //
@@ -513,11 +513,11 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
 
     if (Set)
     {
-        CpuBasedVmExecControls |= CPU_BASED_CR3_LOAD_EXITING;
+        CpuBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS_CR3_LOAD_EXITING_FLAG;
     }
     else
     {
-        CpuBasedVmExecControls &= ~CPU_BASED_CR3_LOAD_EXITING;
+        CpuBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS_CR3_LOAD_EXITING_FLAG;
     }
 
     //

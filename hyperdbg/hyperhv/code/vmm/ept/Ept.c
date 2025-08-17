@@ -747,7 +747,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     __stosq((SIZE_T *)&PageTable->PML3[0], PML3Template.AsUInt, VMM_EPT_PML3E_COUNT);
 
     //
-    // Copt the template into each of the 512 PML3 entry slots for the reserved entries
+    // Copy the template into each of the 512 PML3 entry slots for the reserved entries
     //
     for (size_t i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
     {
