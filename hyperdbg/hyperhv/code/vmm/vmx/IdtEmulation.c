@@ -278,6 +278,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
                 IntrTrapFrame->rsp,
                 IntrTrapFrame->error,
                 IntrTrapFrame->vector);
+        DbgBreakPoint();
 
         break;
     }
@@ -516,11 +517,11 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
     //
     // In order to enable External Interrupt Exiting we have to set
-    // PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT in vmx
+    // IA32_VMX_PINBASED_CTLS_EXTERNAL_INTERRUPT_EXITING_FLAG in vmx
     // pin-based controls (PIN_BASED_VM_EXEC_CONTROL) and also
-    // we should enable VM_EXIT_ACK_INTR_ON_EXIT on vmx vm-exit
-    // controls (VMCS_CTRL_VMEXIT_CONTROLS), also this function might not
-    // always be successful if the guest is not in the interruptible
+    // we should enable IA32_VMX_EXIT_CTLS_ACKNOWLEDGE_INTERRUPT_ON_EXIT_FLAG
+    // on vmx vm-exit controls (VMCS_CTRL_VMEXIT_CONTROLS), also this function
+    // might not always be successful if the guest is not in the interruptible
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //

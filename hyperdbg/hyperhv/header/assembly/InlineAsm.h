@@ -288,6 +288,13 @@ AsmReloadGdtr(void * GdtBase, unsigned long GdtLimit);
 extern void
 AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
 
+/**
+ * @brief Read SSP
+ *
+ */
+extern unsigned long long
+AsmReadSsp();
+
 //
 // ====================  Hook Functions ====================
 // File : AsmHooks.asm

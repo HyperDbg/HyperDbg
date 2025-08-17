@@ -243,7 +243,8 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES:
-        ShowMessages("err, could not convert 2MB large page to 4KB pages (%x)\n",
+        ShowMessages("err, could not convert 2MB large page to 4KB pages "
+                     "(maybe pre-allocated buffers are empty?) (%x)\n",
                      Error);
         break;
 

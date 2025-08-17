@@ -150,7 +150,6 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     EPT_PML1_ENTRY          ChangedEntry;
     SIZE_T                  PhysicalBaseAddress;
     PVOID                   VirtualTarget;
-    PVOID                   TargetBuffer;
     UINT64                  TargetAddressInFakePageContent;
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
@@ -278,23 +277,15 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     for (size_t i = 0; i < ProcessorsCount; i++)
     {
         //
-        // Set target buffer, request buffer from pool manager,
-        // we also need to allocate new page to replace the current page
+        // We need to split the large page to 4KB page using pre-allocated pools
         //
-        TargetBuffer = (PVOID)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
-
-        if (!TargetBuffer)
+        if (!EptSplitLargePage(g_GuestState[i].EptPageTable, TRUE, PhysicalBaseAddress))
         {
             PoolManagerFreePool((UINT64)HookedPage);
 
-            VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
-            return FALSE;
-        }
-
-        if (!EptSplitLargePage(g_GuestState[i].EptPageTable, TargetBuffer, PhysicalBaseAddress))
-        {
-            PoolManagerFreePool((UINT64)HookedPage);
-            PoolManagerFreePool((UINT64)TargetBuffer); // Here also other previous pools should be specified, but we forget it for now
+            //
+            // Here also other previous pools should be specified, but we forget it for now
+            //
 
             LogDebugInfo("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
             VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
@@ -312,7 +303,10 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
         if (!TargetPage)
         {
             PoolManagerFreePool((UINT64)HookedPage);
-            PoolManagerFreePool((UINT64)TargetBuffer); // Here also other previous pools should be specified, but we forget it for now
+
+            //
+            // Here also other previous pools should be specified, but we forget it for now
+            //
 
             VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
             return FALSE;
@@ -1007,7 +1001,6 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     EPT_PML1_ENTRY          ChangedEntry;
     SIZE_T                  PhysicalBaseAddress;
     PVOID                   AlignedTargetVaOrPa;
-    PVOID                   TargetBuffer;
     PVOID                   TargetAddress;
     PVOID                   HookFunction;
     UINT64                  TargetAddressInSafeMemory;
@@ -1261,24 +1254,15 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     for (size_t i = 0; i < ProcessorsCount; i++)
     {
         //
-        // Set target buffer, request buffer from pool manager,
-        // we also need to allocate new page to replace the current page
+        // We need to split the large page to 4KB page using pre-allocated pools
         //
-        TargetBuffer = (PVOID)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
-
-        if (!TargetBuffer)
+        if (!EptSplitLargePage(g_GuestState[i].EptPageTable, TRUE, PhysicalBaseAddress))
         {
             PoolManagerFreePool((UINT64)HookedPage);
 
-            VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
-            return FALSE;
-        }
-
-        if (!EptSplitLargePage(g_GuestState[i].EptPageTable, TargetBuffer, PhysicalBaseAddress))
-        {
-            PoolManagerFreePool((UINT64)HookedPage);
-            PoolManagerFreePool((UINT64)TargetBuffer); // Here also other previous pools should be specified, but we forget it for now
-
+            //
+            // Here also other previous pools should be specified, but we forget it for now
+            //
             LogDebugInfo("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
             VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
             return FALSE;
@@ -1295,7 +1279,10 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         if (!TargetPage)
         {
             PoolManagerFreePool((UINT64)HookedPage);
-            PoolManagerFreePool((UINT64)TargetBuffer); // Here also other previous pools should be specified, but we forget it for now
+
+            //
+            // Here also other previous pools should be specified, but we forget it for now
+            //
 
             VmmCallbackSetLastError(DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
             return FALSE;
