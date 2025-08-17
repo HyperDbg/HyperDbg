@@ -10,3 +10,6 @@
 [submodule "hyperdbg/miscellaneous/constants/pciid"]
 	path = hyperdbg/miscellaneous/constants/pciid
 	url = https://github.com/HyperDbg/pciids
+[submodule "hyperdbg/dependencies/ia32-doc"]
+	path = hyperdbg/dependencies/ia32-doc
+	url = https://github.com/HyperDbg/ia32-doc.git
