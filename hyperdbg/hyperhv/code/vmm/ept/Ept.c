@@ -450,17 +450,17 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
 }
 
 /**
- * @brief Split 2MB (LargePage) into 4kb pages
+ * @brief Convert large pages to 4KB pages
  *
  * @param EptPageTable The EPT Page Table
- * @param PreAllocatedBuffer The address of pre-allocated buffer
+ * @param UsePreAllocatedBuffer Whether allocate a memory or use pre-allocated buffer
  * @param PhysicalAddress Physical address of where we want to split
  *
  * @return BOOLEAN Returns true if it was successful or false if there was an error
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
-                  PVOID               PreAllocatedBuffer,
+                  BOOLEAN             UsePreAllocatedBuffer,
                   SIZE_T              PhysicalAddress)
 {
     PVMM_EPT_DYNAMIC_SPLIT NewSplit;
@@ -486,19 +486,21 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     if (!TargetEntry->LargePage)
     {
-        //
-        // As it's a large page and we request a pool for it, we need to
-        // free the pool because it's not used anymore
-        //
-        PoolManagerFreePool((UINT64)PreAllocatedBuffer);
-
         return TRUE;
     }
 
     //
     // Allocate the PML1 entries
     //
-    NewSplit = (PVMM_EPT_DYNAMIC_SPLIT)PreAllocatedBuffer;
+    if (UsePreAllocatedBuffer)
+    {
+        NewSplit = (PVMM_EPT_DYNAMIC_SPLIT)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+    }
+    else
+    {
+        NewSplit = (PVMM_EPT_DYNAMIC_SPLIT)PlatformMemAllocateNonPagedPool(sizeof(VMM_EPT_DYNAMIC_SPLIT));
+    }
+
     if (!NewSplit)
     {
         LogError("Err, failed to allocate dynamic split memory");
@@ -627,8 +629,6 @@ EptIsValidForLargePage(SIZE_T PageFrameNumber)
 BOOLEAN
 EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
 {
-    PVOID TargetBuffer;
-
     //
     // Each of the 512 collections of 512 PML2 entries is setup here
     // This will, in total, identity map every physical address from 0x0
@@ -646,15 +646,10 @@ EptSetupPML2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, PEPT_PML2_ENTRY NewEntry, SI
     }
     else
     {
-        TargetBuffer = (PVOID)PlatformMemAllocateNonPagedPool(sizeof(VMM_EPT_DYNAMIC_SPLIT));
-
-        if (!TargetBuffer)
-        {
-            LogError("Err, cannot allocate page for splitting edge large pages");
-            return FALSE;
-        }
-
-        return EptSplitLargePage(EptPageTable, TargetBuffer, PageFrameNumber * SIZE_2_MB);
+        //
+        // Here we won't need to use pre-allocated buffers
+        //
+        return EptSplitLargePage(EptPageTable, FALSE, PageFrameNumber * SIZE_2_MB);
     }
 }
 
@@ -747,7 +742,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     __stosq((SIZE_T *)&PageTable->PML3[0], PML3Template.AsUInt, VMM_EPT_PML3E_COUNT);
 
     //
-    // Copy the template into each of the 512 PML3 entry slots for the reserved entries
+    // Copt the template into each of the 512 PML3 entry slots for the reserved entries
     //
     for (size_t i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
     {

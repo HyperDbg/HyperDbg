@@ -10,6 +10,7 @@ New release of the HyperDbg Debugger.
 ### Added
 - Added the '!smi' command for performing operations related to System Management Interrupt (SMI) ([link](https://docs.hyperdbg.org/commands/extension-commands/smi))
 - Export the SDK functions for SMI operations ([link](https://docs.hyperdbg.org/commands/extension-commands/smi#sdk))
+- Added support to Intel CET for SYSCALL/SYSRET emulation ([link](https://docs.hyperdbg.org/commands/extension-commands/syscall))
 
 ### Changed
 - The 'hyperhv' project now has build optimizations enabled
@@ -17,7 +18,7 @@ New release of the HyperDbg Debugger.
 - Fix unloading (VMXOFF) crash when restoring XMM registers
 - Fix the problem with restoring XMM registers (#468) ([link](https://github.com/HyperDbg/HyperDbg/issues/468))
 - Enhanced the '.pe' command to support PE Rich Headers thanks to [@Alish14](https://github.com/Alish14) ([link](https://github.com/HyperDbg/HyperDbg/pull/539))
-
+- Updated ia32-doc to fix VMCS PL3 SSP fields ([link](https://github.com/HyperDbg/ia32-doc))
 
 ## [0.14.1.0] - 2025-07-27
 New release of the HyperDbg Debugger.
