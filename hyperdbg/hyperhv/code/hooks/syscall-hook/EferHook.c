@@ -120,6 +120,7 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64               GuestRip;
     UINT64               GuestRflags;
     UINT64               Ssp;
+    IA32_U_CET_REGISTER  UcetMsr;
 
     //
     // Reading guest's RIP
@@ -156,9 +157,20 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Peform emulation of Intel CET (Shadow stacks)
     //
-    __vmx_vmread(VMCS_GUEST_SSP, &Ssp);
-    __writemsr(IA32_PL3_SSP, Ssp);
-    __vmx_vmwrite(VMCS_GUEST_SSP, 0);
+    if (g_CompatibilityCheck.CetShadowStackSupport)
+    {
+        UcetMsr.AsUInt = __readmsr(IA32_U_CET);
+
+        //
+        // If the shadow stack is enabled, we have to save the current
+        //
+        if (UcetMsr.ShStkEn)
+        {
+            __vmx_vmread(VMCS_GUEST_SSP, &Ssp);
+            __writemsr(IA32_PL3_SSP, Ssp);
+            __vmx_vmwrite(VMCS_GUEST_SSP, 0);
+        }
+    }
 
     //
     // Load the CS and SS selectors with values derived from bits 47:32 of IA32_STAR
@@ -194,6 +206,7 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64               GuestRip;
     UINT64               GuestRflags;
     UINT64               Ssp;
+    IA32_U_CET_REGISTER  UcetMsr;
 
     //
     // Load RIP from RCX
@@ -210,8 +223,19 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Restore user-mode SPP
     //
-    Ssp = __readmsr(IA32_PL3_SSP);
-    __vmx_vmwrite(VMCS_GUEST_SSP, Ssp);
+    if (g_CompatibilityCheck.CetShadowStackSupport)
+    {
+        UcetMsr.AsUInt = __readmsr(IA32_U_CET);
+
+        //
+        // If the shadow stack is enabled, we have to restore the current
+        //
+        if (UcetMsr.ShStkEn)
+        {
+            Ssp = __readmsr(IA32_PL3_SSP);
+            __vmx_vmwrite(VMCS_GUEST_SSP, Ssp);
+        }
+    }
 
     //
     // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of IA32_STAR
