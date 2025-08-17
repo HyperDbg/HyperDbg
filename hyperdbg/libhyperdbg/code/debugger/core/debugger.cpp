@@ -496,7 +496,7 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED:
-        ShowMessages("err, the '!mode' event command cannot be directly initialized in the Debugger Mode. "
+        ShowMessages("err, for performance reasons, the '!mode' event command cannot be directly initialized in the Debugger Mode. "
                      "You can use the 'preactivate mode' command to preactivate this mechanism after that, "
                      "you can use the '!mode' event (%x)\n",
                      Error);

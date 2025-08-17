@@ -24,6 +24,7 @@ New release of the HyperDbg Debugger.
 - Fix the terminating process issue of the '!syscall/!sysret' commands on 11 generation (Rocket Lake/Tiger Lake) and newer Intel processors ([link](https://github.com/HyperDbg/HyperDbg/issues/392))
 - Reenable the support for the '.start' command in the Debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
 - The '!mode' event command is now compatible with different EPT hook commands (e.g., !epthook, !epthook2, !monitor, .start, and .restart) ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
+- The '!mode' command doesn't need allocating extra EPTPs ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
 
 ## [0.14.1.0] - 2025-07-27
 New release of the HyperDbg Debugger.
