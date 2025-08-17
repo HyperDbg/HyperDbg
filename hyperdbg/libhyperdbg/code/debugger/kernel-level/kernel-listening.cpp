@@ -69,6 +69,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_BP_PACKET                          BpPacket;
     PDEBUGGER_SHORT_CIRCUITING_EVENT             ShortCircuitingPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS    PtePacket;
+    PSMI_OPERATION_PACKETS                       SmiOperationPacket;
     PDEBUGGER_PAGE_IN_REQUEST                    PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS           Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET           ListOrModifyBreakpointPacket;
@@ -981,6 +982,27 @@ StartAgain:
             // Signal the event relating to receiving result of PTE query
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_SMI_OPERATION_REQUESTS:
+
+            SmiOperationPacket = (SMI_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT, &CallerAddress, &CallerSize);
+
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, SmiOperationPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of SMI operation
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT);
 
             break;
 

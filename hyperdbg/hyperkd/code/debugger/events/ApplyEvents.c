@@ -1205,15 +1205,6 @@ ApplyEventTrapModeChangeEvent(PDEBUGGER_EVENT                   Event,
         // or not and if it's activated then we can just add the current process
         // to the watchlist, otherwise the user needs to preactivate this event
         //
-
-        //
-        // Technically, it's possible to initiate this mechanism at this point
-        // but it involves preallocating huge buffers so we prefer not to allocate
-        // these amount of buffers by default in HyperDbg as the users might not
-        // really use this mechanism and it would be a waste of system resources
-        // so, if the user needs to use this mechanism, it can use the 'preactivate'
-        // command to first activate this mechanism and then use it
-        //
         if (VmFuncQueryModeExecTrap())
         {
             //

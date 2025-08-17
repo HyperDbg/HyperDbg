@@ -55,12 +55,12 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
         //
         // Set VM-Entry controls to load EFER
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls | IA32_VMX_ENTRY_CTLS_LOAD_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
         //
         // Set VM-Exit controls to save EFER
         //
-        __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+        __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls | IA32_VMX_EXIT_CTLS_SAVE_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
         //
         // Set the GUEST EFER to use this value as the EFER
@@ -79,12 +79,12 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
         //
         // Set VM-Entry controls to load EFER
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~IA32_VMX_ENTRY_CTLS_LOAD_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
         //
         // Set VM-Exit controls to save EFER
         //
-        __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls & ~VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+        __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls & ~IA32_VMX_EXIT_CTLS_SAVE_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
         //
         // Set the GUEST EFER to use this value as the EFER
@@ -119,6 +119,8 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64               MsrValue;
     UINT64               GuestRip;
     UINT64               GuestRflags;
+    UINT64               Ssp;
+    IA32_U_CET_REGISTER  UcetMsr;
 
     //
     // Reading guest's RIP
@@ -153,6 +155,24 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
 
     //
+    // Peform emulation of Intel CET (Shadow stacks)
+    //
+    if (g_CompatibilityCheck.CetShadowStackSupport)
+    {
+        UcetMsr.AsUInt = __readmsr(IA32_U_CET);
+
+        //
+        // If the shadow stack is enabled, we have to save the current
+        //
+        if (UcetMsr.ShStkEn)
+        {
+            __vmx_vmread(VMCS_GUEST_SSP, &Ssp);
+            __writemsr(IA32_PL3_SSP, Ssp);
+            __vmx_vmwrite(VMCS_GUEST_SSP, 0);
+        }
+    }
+
+    //
     // Load the CS and SS selectors with values derived from bits 47:32 of IA32_STAR
     //
     MsrValue             = __readmsr(IA32_STAR);
@@ -185,6 +205,8 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64               MsrValue;
     UINT64               GuestRip;
     UINT64               GuestRflags;
+    UINT64               Ssp;
+    IA32_U_CET_REGISTER  UcetMsr;
 
     //
     // Load RIP from RCX
@@ -197,6 +219,23 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     //
     GuestRflags = (VCpu->Regs->r11 & ~(X86_FLAGS_RF | X86_FLAGS_VM | X86_FLAGS_RESERVED_BITS)) | X86_FLAGS_FIXED;
     __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
+
+    //
+    // Restore user-mode SPP
+    //
+    if (g_CompatibilityCheck.CetShadowStackSupport)
+    {
+        UcetMsr.AsUInt = __readmsr(IA32_U_CET);
+
+        //
+        // If the shadow stack is enabled, we have to restore the current
+        //
+        if (UcetMsr.ShStkEn)
+        {
+            Ssp = __readmsr(IA32_PL3_SSP);
+            __vmx_vmwrite(VMCS_GUEST_SSP, Ssp);
+        }
+    }
 
     //
     // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of IA32_STAR

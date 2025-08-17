@@ -1225,6 +1225,39 @@ static_assert(sizeof(IO_APIC_ENTRY_PACKETS) < PacketChunkSize,
  */
 
 /**
+ * @brief Perform actions related to SMIs
+ *
+ */
+typedef enum _SMI_OPERATION_REQUEST_TYPE
+{
+    SMI_OPERATION_REQUEST_TYPE_READ_COUNT,
+    SMI_OPERATION_REQUEST_TYPE_TRIGGER_POWER_SMI,
+
+} SMI_OPERATION_REQUEST_TYPE;
+
+/**
+ * @brief The structure of I/O APIC result packet in HyperDbg
+ *
+ */
+typedef struct _SMI_OPERATION_PACKETS
+{
+    SMI_OPERATION_REQUEST_TYPE SmiOperationType;
+    UINT64                     SmiCount;
+    UINT32                     KernelStatus;
+
+} SMI_OPERATION_PACKETS, *PSMI_OPERATION_PACKETS;
+
+/**
+ * @brief Debugger size of SMI_OPERATION_PACKETS
+ *
+ */
+#define SIZEOF_SMI_OPERATION_PACKETS \
+    sizeof(SMI_OPERATION_PACKETS)
+
+/* ==============================================================================================
+ */
+
+/**
  * @brief Maximum number of IDT entries
  *
  */

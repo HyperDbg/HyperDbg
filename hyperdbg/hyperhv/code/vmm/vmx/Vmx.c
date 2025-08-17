@@ -875,8 +875,11 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     VmxVmwrite64(VMCS_GUEST_FS_BASE, __readmsr(IA32_FS_BASE));
     VmxVmwrite64(VMCS_GUEST_GS_BASE, __readmsr(IA32_GS_BASE));
 
-    CpuBasedVmExecControls = HvAdjustControls(CPU_BASED_ACTIVATE_IO_BITMAP | CPU_BASED_ACTIVATE_MSR_BITMAP | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS,
-                                              VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PROCBASED_CTLS : IA32_VMX_PROCBASED_CTLS);
+    CpuBasedVmExecControls = HvAdjustControls(
+        IA32_VMX_PROCBASED_CTLS_USE_IO_BITMAPS_FLAG |
+            IA32_VMX_PROCBASED_CTLS_USE_MSR_BITMAPS_FLAG |
+            IA32_VMX_PROCBASED_CTLS_ACTIVATE_SECONDARY_CONTROLS_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PROCBASED_CTLS : IA32_VMX_PROCBASED_CTLS);
 
     VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 
@@ -897,11 +900,22 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 
     LogDebugInfo("Secondary Proc Based VM Exec Controls (IA32_VMX_PROCBASED_CTLS2) : 0x%x", SecondaryProcBasedVmExecControls);
 
-    VmxVmwrite64(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, HvAdjustControls(0, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PINBASED_CTLS : IA32_VMX_PINBASED_CTLS));
+    VmxVmwrite64(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS,
+                 HvAdjustControls(
+                     0,
+                     VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PINBASED_CTLS : IA32_VMX_PINBASED_CTLS));
 
-    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS,
+                 HvAdjustControls(
+                     IA32_VMX_EXIT_CTLS_HOST_ADDRESS_SPACE_SIZE_FLAG |
+                         IA32_VMX_EXIT_CTLS_LOAD_IA32_CET_STATE_FLAG,
+                     VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
-    VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VM_ENTRY_IA32E_MODE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS,
+                 HvAdjustControls(
+                     IA32_VMX_ENTRY_CTLS_IA32E_MODE_GUEST_FLAG |
+                         IA32_VMX_ENTRY_CTLS_LOAD_CET_STATE_FLAG,
+                     VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
     VmxVmwrite64(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
     VmxVmwrite64(VMCS_CTRL_CR4_GUEST_HOST_MASK, 0);
@@ -1157,6 +1171,15 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     HvRestoreRegisters();
 
     //
+    // Restore XMM registers
+    // We restore XMM registers here because we are going to execute vmxoff instruction
+    // which enables interrupts and we don't want to lose the XMM registers
+    // since immediately after vmxoff, an interrupt might occur and context switch
+    // might change the XMM registers
+    //
+    AsmVmxoffRestoreXmmRegs((unsigned long long)VCpu->XmmRegs);
+
+    //
     // Before using vmxoff, you first need to use vmclear on any VMCSes that you want to be able to use again.
     // See sections 24.1 and 24.11 of the SDM.
     //
@@ -1166,6 +1189,11 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     // Execute Vmxoff
     //
     __vmx_off();
+
+    //
+    // *** Note: After executing VMXOFF, XMM registers should not be used anymore
+    // Since we already restored them ***
+    //
 
     //
     // Indicate the current core is not currently virtualized

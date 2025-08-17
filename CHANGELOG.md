@@ -4,13 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0.0] - 2025-08-18
+New release of the HyperDbg Debugger.
+
+### Added
+- Added the '!smi' command for performing operations related to System Management Interrupt (SMI) ([link](https://docs.hyperdbg.org/commands/extension-commands/smi))
+- Export the SDK functions for SMI operations ([link](https://docs.hyperdbg.org/commands/extension-commands/smi#sdk))
+- Check for Intel CET IBT (indirect branch tracking) support
+- Check for Intel CET shadow stack support
+- Added support to Intel CET for SYSCALL/SYSRET emulation ([link](https://docs.hyperdbg.org/commands/extension-commands/syscall))([link](https://docs.hyperdbg.org/commands/extension-commands/sysret))
+
+### Changed
+- The 'hyperhv' project now has build optimizations enabled
+- Reformat VMXOFF restoring routines to restore general-purpose and XMM registers correctly before moving to the previous stack
+- Fix unloading (VMXOFF) crash when restoring XMM registers
+- Fix the problem with restoring XMM registers (#468) ([link](https://github.com/HyperDbg/HyperDbg/issues/468))
+- Enhanced the '.pe' command to support PE Rich Headers thanks to [@Alish14](https://github.com/Alish14) ([link](https://github.com/HyperDbg/HyperDbg/pull/539))
+- Updated ia32-doc to fix VMCS PL3 SSP fields ([link](https://github.com/HyperDbg/ia32-doc))
+- Fix the terminating process issue of the '!syscall/!sysret' commands on 11 generation (Rocket Lake/Tiger Lake) and newer Intel processors ([link](https://github.com/HyperDbg/HyperDbg/issues/392))
+- Reenable the support for the '.start' command in the Debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
+- The '!mode' event command is now compatible with different EPT hook commands (e.g., !epthook, !epthook2, !monitor, .start, and .restart) ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
+- The '!mode' command doesn't need allocating extra EPTPs ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
+
 ## [0.14.1.0] - 2025-07-27
 New release of the HyperDbg Debugger.
 
 ### Changed
 - Restored the previous optimization on the release builds
 - Fixed the issue of not properly restoring registers after the 'CPUID' instruction
-- Fixed the of the user debugger with the 'bp' and the '.start' commands
+- Fixed the building issues of the user debugger with the 'bp' and the '.start' commands
 
 ## [0.14.0.0] - 2025-07-23
 New release of the HyperDbg Debugger.

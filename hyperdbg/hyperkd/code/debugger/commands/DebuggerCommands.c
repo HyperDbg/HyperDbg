@@ -1455,7 +1455,7 @@ DebuggerCommandPreactivateFunctionality(PDEBUGGER_PREACTIVATE_COMMAND Preactivat
     case DEBUGGER_PREACTIVATE_COMMAND_TYPE_MODE:
 
         //
-        // Request for allocating the mode mechanism
+        // Request for enabling the mode mechanism
         //
         ConfigureInitializeExecTrapOnAllProcessors();
 

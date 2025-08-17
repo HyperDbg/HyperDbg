@@ -243,7 +243,8 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES:
-        ShowMessages("err, could not convert 2MB large page to 4KB pages (%x)\n",
+        ShowMessages("err, could not convert 2MB large page to 4KB pages "
+                     "(maybe pre-allocated buffers are empty?) (%x)\n",
                      Error);
         break;
 
@@ -495,7 +496,7 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_THE_MODE_EXEC_TRAP_IS_NOT_INITIALIZED:
-        ShowMessages("err, the '!mode' event command cannot be directly initialized in the Debugger Mode. "
+        ShowMessages("err, for performance reasons, the '!mode' event command cannot be directly initialized in the Debugger Mode. "
                      "You can use the 'preactivate mode' command to preactivate this mechanism after that, "
                      "you can use the '!mode' event (%x)\n",
                      Error);
@@ -550,6 +551,16 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_CANNOT_PUT_EPT_HOOKS_ON_PHYSICAL_ADDRESS_ABOVE_512_GB:
         ShowMessages("err, putting EPT hooks on physical address above 512 GB is not supported (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INVALID_SMI_OPERATION_PARAMETERS:
+        ShowMessages("err, invalid SMI operation parameter(s) are specified (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_TRIGGER_SMI:
+        ShowMessages("err, unable to trigger SMI, are you running on a nested-virtualization environment? (%x)\n",
                      Error);
         break;
 

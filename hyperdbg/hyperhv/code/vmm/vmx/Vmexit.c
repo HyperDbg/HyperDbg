@@ -31,9 +31,10 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     VCpu = &g_GuestState[KeGetCurrentProcessorNumberEx(NULL)];
 
     //
-    // Set the registers
+    // Set the registers (general-purpose and XMM)
     //
-    VCpu->Regs = GuestRegs;
+    VCpu->Regs    = GuestRegs;
+    VCpu->XmmRegs = (GUEST_XMM_REGS *)(((CHAR *)GuestRegs) + sizeof(GUEST_REGS));
 
     //
     // Indicates we are in Vmx root mode in this logical core
@@ -77,6 +78,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
     // LogInfo("VMCS_EXIT_QUALIFICATION : 0x%llx", VCpu->ExitQualification);
     //
+
     switch (ExitReason)
     {
     case VMX_EXIT_REASON_TRIPLE_FAULT:

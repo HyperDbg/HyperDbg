@@ -209,16 +209,16 @@ PVMM_EPT_PAGE_TABLE
 EptAllocateAndCreateIdentityPageTable(VOID);
 
 /**
- * @brief Convert 2MB pages to 4KB pages
+ * @brief Convert large pages to 4KB pages
  *
  * @param EptPageTable
- * @param PreAllocatedBuffer
+ * @param UsePreAllocatedBuffer
  * @param PhysicalAddress
  * @return BOOLEAN
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
-                  PVOID               PreAllocatedBuffer,
+                  BOOLEAN             UsePreAllocatedBuffer,
                   SIZE_T              PhysicalAddress);
 
 /**

@@ -66,7 +66,7 @@ CommandStart(vector<CommandToken> CommandTokens, string Command)
 //
 #if ActivateUserModeDebugger == FALSE
 
-    if (!g_IsSerialConnectedToRemoteDebuggee)
+    if (!g_IsSerialConnectedToRemoteDebugger)
     {
         ShowMessages("the user-mode debugger in VMI Mode is still in the beta version and not stable. "
                      "we decided to exclude it from this release and release it in future versions. "

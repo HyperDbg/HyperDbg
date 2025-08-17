@@ -353,11 +353,11 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
 
     if (Set)
     {
-        CpuBasedVmExecControls |= CPU_BASED_MONITOR_TRAP_FLAG;
+        CpuBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS_MONITOR_TRAP_FLAG_FLAG;
     }
     else
     {
-        CpuBasedVmExecControls &= ~CPU_BASED_MONITOR_TRAP_FLAG;
+        CpuBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS_MONITOR_TRAP_FLAG_FLAG;
     }
 
     //
@@ -406,11 +406,11 @@ HvSetLoadDebugControls(BOOLEAN Set)
 
     if (Set)
     {
-        VmentryControls |= VM_ENTRY_LOAD_DEBUG_CONTROLS;
+        VmentryControls |= IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG;
     }
     else
     {
-        VmentryControls &= ~VM_ENTRY_LOAD_DEBUG_CONTROLS;
+        VmentryControls &= ~IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG;
     }
 
     //
@@ -437,11 +437,11 @@ HvSetSaveDebugControls(BOOLEAN Set)
 
     if (Set)
     {
-        VmexitControls |= VM_EXIT_SAVE_DEBUG_CONTROLS;
+        VmexitControls |= IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG;
     }
     else
     {
-        VmexitControls &= ~VM_EXIT_SAVE_DEBUG_CONTROLS;
+        VmexitControls &= ~IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG;
     }
 
     //
@@ -529,11 +529,11 @@ HvSetPmcVmexit(BOOLEAN Set)
 
     if (Set)
     {
-        CpuBasedVmExecControls |= CPU_BASED_RDPMC_EXITING;
+        CpuBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS_RDPMC_EXITING_FLAG;
     }
     else
     {
-        CpuBasedVmExecControls &= ~CPU_BASED_RDPMC_EXITING;
+        CpuBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS_RDPMC_EXITING_FLAG;
     }
 
     //
@@ -629,11 +629,11 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
     //
     if (Set)
     {
-        CpuBasedVmExecControls |= CPU_BASED_VIRTUAL_INTR_PENDING;
+        CpuBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS_INTERRUPT_WINDOW_EXITING_FLAG;
     }
     else
     {
-        CpuBasedVmExecControls &= ~CPU_BASED_VIRTUAL_INTR_PENDING;
+        CpuBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS_INTERRUPT_WINDOW_EXITING_FLAG;
     }
 
     //
@@ -737,11 +737,11 @@ HvSetNmiWindowExiting(BOOLEAN Set)
     //
     if (Set)
     {
-        CpuBasedVmExecControls |= CPU_BASED_VIRTUAL_NMI_PENDING;
+        CpuBasedVmExecControls |= IA32_VMX_PROCBASED_CTLS_NMI_WINDOW_EXITING_FLAG;
     }
     else
     {
-        CpuBasedVmExecControls &= ~CPU_BASED_VIRTUAL_NMI_PENDING;
+        CpuBasedVmExecControls &= ~IA32_VMX_PROCBASED_CTLS_NMI_WINDOW_EXITING_FLAG;
     }
 
     //
@@ -978,13 +978,13 @@ HvSetNmiExiting(BOOLEAN Set)
 
     if (Set)
     {
-        PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING;
-        VmExitControls |= VM_EXIT_ACK_INTR_ON_EXIT;
+        PinBasedControls |= IA32_VMX_PINBASED_CTLS_NMI_EXITING_FLAG;
+        VmExitControls |= IA32_VMX_EXIT_CTLS_ACKNOWLEDGE_INTERRUPT_ON_EXIT_FLAG;
     }
     else
     {
-        PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING;
-        VmExitControls &= ~VM_EXIT_ACK_INTR_ON_EXIT;
+        PinBasedControls &= ~IA32_VMX_PINBASED_CTLS_NMI_EXITING_FLAG;
+        VmExitControls &= ~IA32_VMX_EXIT_CTLS_ACKNOWLEDGE_INTERRUPT_ON_EXIT_FLAG;
     }
 
     //
@@ -1012,11 +1012,11 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
 
     if (Set)
     {
-        PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER;
+        PinBasedControls |= IA32_VMX_PINBASED_CTLS_ACTIVATE_VMX_PREEMPTION_TIMER_FLAG;
     }
     else
     {
-        PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER;
+        PinBasedControls &= ~IA32_VMX_PINBASED_CTLS_ACTIVATE_VMX_PREEMPTION_TIMER_FLAG;
     }
 
     //

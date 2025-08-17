@@ -73,7 +73,7 @@ CompatibilityCheckGetX86VirtualAddressWidth()
 UINT32
 CompatibilityCheckGetX86PhysicalAddressWidth()
 {
-    int Regs[4];
+    INT32 Regs[4];
 
     CommonCpuidInstruction(CPUID_ADDR_WIDTH, 0, Regs);
 
@@ -81,6 +81,36 @@ CompatibilityCheckGetX86PhysicalAddressWidth()
     // Extracting bit 7:0 from eax register
     //
     return (Regs[0] & 0x0ff);
+}
+
+/**
+ * @brief Check if the processor supports CET IBT
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CompatibilityCheckCetShadowStackSupport()
+{
+    INT32 Regs[4];
+
+    CommonCpuidInstruction(7, 0, Regs);
+
+    return (BOOLEAN)((Regs[2] & (1 << 7)) != 0); // // CpuInfo[3] is ECX
+}
+
+/**
+ * @brief Check for Intel CET IBT support
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CompatibilityCheckCetIbtSupport()
+{
+    INT32 Regs[4];
+
+    CommonCpuidInstruction(7, 0, Regs);
+
+    return (BOOLEAN)((Regs[3] & (1 << 20)) != 0); // CpuInfo[3] is EDX
 }
 
 /**
@@ -96,7 +126,7 @@ CompatibilityCheckModeBasedExecution()
     // the "enable PML" VM - execution control
     //
     UINT32 SecondaryProcBasedVmExecControls = HvAdjustControls(IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG,
-                                                              IA32_VMX_PROCBASED_CTLS2);
+                                                               IA32_VMX_PROCBASED_CTLS2);
 
     if (SecondaryProcBasedVmExecControls & IA32_VMX_PROCBASED_CTLS2_MODE_BASED_EXECUTE_CONTROL_FOR_EPT_FLAG)
     {
@@ -171,6 +201,16 @@ CompatibilityCheckPerformChecks()
     // Check Mode-based execution compatibility
     //
     g_CompatibilityCheck.ModeBasedExecutionSupport = CompatibilityCheckModeBasedExecution();
+
+    //
+    // Check Intel CET IBT support
+    //
+    g_CompatibilityCheck.CetIbtSupport = CompatibilityCheckCetIbtSupport();
+
+    //
+    // Check Intel CET shadow stack support
+    //
+    g_CompatibilityCheck.CetShadowStackSupport = CompatibilityCheckCetShadowStackSupport();
 
     //
     // Check PML support

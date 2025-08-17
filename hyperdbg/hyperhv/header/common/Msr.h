@@ -12,6 +12,18 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				    MSR Numbers					//
+//////////////////////////////////////////////////
+
+/**
+ * @brief MSR for System Management Interrupt (SMI) count
+ *
+ * @details This MSR is used to read the count of System Management Interrupts (SMIs)
+ * that have occurred since the last reset
+ */
+#define MSR_SMI_COUNT 0x00000034
+
+//////////////////////////////////////////////////
 //				    Structures					//
 //////////////////////////////////////////////////
 

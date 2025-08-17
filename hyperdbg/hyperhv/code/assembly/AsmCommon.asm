@@ -68,4 +68,18 @@ AsmReloadIdtr ENDP
 
 ;------------------------------------------------------------------------
 
+; AsmReadSsp ( );
+
+AsmReadSsp PROC
+
+    ; Save the current SSP to a memory location
+    rdsspq rax  ; Save SSP to memory at the current location (stack pointer)
+
+    ; Return from the function
+    ret
+
+AsmReadSsp ENDP
+
+;------------------------------------------------------------------------
+
 END                     

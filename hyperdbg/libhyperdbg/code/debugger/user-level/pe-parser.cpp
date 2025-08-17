@@ -12,6 +12,238 @@
 #include "pch.h"
 
 /**
+ * @brief Locates the Rich header signature in a PE file
+ *
+ * The Rich header is an undocumented Microsoft structure embedded in PE files
+ * that contains information about the tools and compilers used during the build process.
+ * This function searches for the "Rich" signature string within the DOS stub area.
+ *
+ * @param DosHeader Pointer to the DOS header structure of the PE file
+ * @param Key       Output buffer to store the 4-byte XOR key found after "Rich" signature
+ *
+ * @note The Rich header is located between the DOS header and PE header
+ * @note The XOR key is used to decode the actual Rich header entries
+ **/
+INT
+FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[])
+{
+    //
+    // Get base address for offset calculations
+    //
+    CHAR * BaseAddr = (CHAR *)DosHeader;
+
+    //
+    // Get PE header offset - this defines our search boundary
+    //
+    DWORD Offset = DosHeader->e_lfanew;
+
+    //
+    // Search for "Rich" signature
+    // We stop 4 bytes before the PE header to avoid reading beyond bounds
+    //
+    for (DWORD i = 0; i < Offset - 4; ++i)
+    {
+        //
+        // Check for "Rich" signature (4 ASCII bytes)
+        //
+        if (BaseAddr[i] == 'R' &&
+            BaseAddr[i + 1] == 'i' &&
+            BaseAddr[i + 2] == 'c' &&
+            BaseAddr[i + 3] == 'h')
+        {
+            //
+            // Extract the 4-byte XOR key that immediately follows "Rich"
+            //
+            memcpy(Key, BaseAddr + i + 4, 4);
+
+            //
+            // Return the offset where "Rich" signature was found
+            //
+            return i;
+        }
+    }
+
+    //
+    // Rich header signature not found
+    //
+    return 0;
+}
+
+/**
+ * @brief Decrypts Rich header data using XOR decryption and initializes header info
+ *
+ * The Rich header is encrypted using a simple XOR cipher with a 4-byte key.
+ * This function decrypts the entire header in-place and populates the
+ * PEFILE_RICH_HEADER_INFO structure with metadata about the decrypted data.
+ *
+ * @param RichHeaderPtr Pointer to the raw Rich header data to be decrypted
+ * @param RichHeaderSize Size of the Rich header data in bytes
+ * @param Key 4-byte XOR key used for decryption
+ * @param PeFileRichHeaderInfo structure containing Rich header metadata and buffer information
+ *
+ * @note The Rich header uses a repeating 4-byte XOR key for encryption
+ * @note After decryption, the header contains 16 bytes of metadata followed by 8-byte entries
+ * @note Each entry represents one compilation tool (compiler, linker, assembler, etc.)
+ *
+ */
+VOID
+FindRichEntries(CHAR *            RichHeaderPtr,
+                INT               RichHeaderSize,
+                CHAR              Key[],
+                PRICH_HEADER_INFO PeFileRichHeaderInfo)
+{
+    //
+    // Decrypt the entire Rich header using XOR with the 4-byte key
+    //
+    for (int i = 0; i < RichHeaderSize; i += 4)
+    {
+        //
+        // Apply XOR decryption to each 4-byte block
+        //
+        for (int x = 0; x < 4; x++)
+        {
+            RichHeaderPtr[i + x] ^= Key[x];
+        }
+    }
+
+    //
+    // Initialize the Rich header info structure
+    //
+    PeFileRichHeaderInfo->Size        = RichHeaderSize;
+    PeFileRichHeaderInfo->PtrToBuffer = RichHeaderPtr;
+
+    //
+    // Calculate number of entries: subtract 16-byte header, divide by 8 bytes per entry
+    //
+    PeFileRichHeaderInfo->Entries = (RichHeaderSize - 16) / 8;
+}
+
+/**
+ * @brief Parses decrypted Rich header data into structured entries
+ *
+ * After decryption, the Rich header contains a series of 8-byte entries, each describing
+ * a compilation tool used during the build process. This function extracts and converts
+ * the little-endian binary data into structured RICH_ENTRY objects.
+ *
+ * Rich header format after decryption:
+ * - Bytes 0-15: Header metadata (DanS signature + padding)
+ * - Bytes 16+: 8-byte entries (prodID:2, buildID:2, useCount:4)
+ *
+ * @param RichHeaderSize Size of the entire Rich header in bytes
+ * @param RichHeaderPtr Pointer to the decrypted Rich header data
+ * @param PeFileRichHeader structure containing the parsed Rich header entries
+ *
+ * @warning Assumes the Rich header has been properly decrypted first
+ */
+VOID
+SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRichHeader)
+{
+    //
+    // Start at offset 16 to skip the header metadata, process 8-byte entries
+    //
+    for (int i = 16; i < RichHeaderSize; i += 8)
+    {
+        //
+        // Extract Product ID (bytes 2-3 of entry, little-endian)
+        //
+        WORD ProdID = ((unsigned char)RichHeaderPtr[i + 3] << 8) | (unsigned char)RichHeaderPtr[i + 2];
+
+        //
+        // Extract Build ID (bytes 0-1 of entry, little-endian)
+        //
+        WORD BuildID = ((unsigned char)RichHeaderPtr[i + 1] << 8) | (unsigned char)RichHeaderPtr[i];
+
+        //
+        // Extract Use Count (bytes 4-7 of entry, little-endian 32-bit)
+        //
+        DWORD UseCount = ((unsigned char)RichHeaderPtr[i + 7] << 24) |
+                         ((unsigned char)RichHeaderPtr[i + 6] << 16) |
+                         ((unsigned char)RichHeaderPtr[i + 5] << 8) |
+                         (unsigned char)RichHeaderPtr[i + 4];
+
+        //
+        // Store the parsed entry (adjust index: i/8 gives entry number, -2 for header offset)
+        //
+        PeFileRichHeader->Entries[(i / 8) - 2] = {ProdID, BuildID, UseCount};
+
+        //
+        // Add null terminator entry if this is the last entry
+        //
+        if (i + 8 >= RichHeaderSize)
+        {
+            PeFileRichHeader->Entries[(i / 8) - 1] = {0x0000, 0x0000, 0x00000000};
+        }
+    }
+}
+
+/**
+ * @brief Determines the size of the Rich header by finding the DanS signature
+ *
+ * The Rich header begins with the "DanS" signature (after decryption) and ends
+ * with the "Rich" signature. This function works backwards from the "Rich" signature
+ * to find the beginning and calculate the total size.
+ *
+ * Rich header structure:
+ * [DanS signature] [Padding] [Tool Entries] [Rich signature] [XOR Key]
+ *
+ * @param Key 4-byte XOR key for decryption (extracted from after "Rich" signature)
+ * @param Index Offset where "Rich" signature was found
+ * @param DataPtr Pointer to the beginning of the PE file data
+ *
+ * @return int Size of the Rich header in bytes, or 0 if DanS signature not found
+ *
+ */
+int
+DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
+{
+    //
+    // Copy the XOR key from the 4 bytes immediately following "Rich"
+    //
+    memcpy(Key, DataPtr + (Index + 4), 4);
+
+    //
+    // Start searching backwards from just before the "Rich" signature
+    //
+    int IndexPointer   = Index - 4;
+    int RichHeaderSize = 0;
+
+    //
+    // Search backwards for the DanS signature that marks the beginning
+    //
+    while (true)
+    {
+        char TmpChar[4];
+
+        //
+        // Read 4 bytes and decrypt them with the XOR key
+        //
+        memcpy(TmpChar, DataPtr + IndexPointer, 4);
+
+        for (int i = 0; i < 4; i++)
+        {
+            TmpChar[i] ^= Key[i];
+        }
+
+        //
+        // Move backwards and increment size counter
+        //
+        IndexPointer -= 4;
+        RichHeaderSize += 4;
+
+        //
+        // Check for DanS signature (0x44='D', 0x61='a' after decryption)
+        // Note: Checking bytes 1,0 due to little-endian storage
+        //
+        if (TmpChar[1] == 0x61 && TmpChar[0] == 0x44)
+        {
+            break;
+        }
+    }
+
+    return RichHeaderSize;
+}
+
+/**
  * @brief Show hex dump of sections of PE
  * @param Ptr
  * @param Size
@@ -19,6 +251,7 @@
  *
  * @return VOID
  */
+
 VOID
 PeHexDump(CHAR * Ptr, int Size, int SecAddress)
 {
@@ -72,9 +305,13 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
  * @return BOOLEAN
  */
 BOOLEAN
-PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit)
+PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
+                                const CHAR *  SectionToShow,
+                                BOOLEAN       Is32Bit)
 {
-    BOOLEAN                 Result = FALSE;
+    RICH_HEADER_INFO        PeFileRichHeaderInfo {0};
+    RICH_HEADER             PeFileRichHeader {0};
+    BOOLEAN                 Result = FALSE, RichFound = FALSE;
     HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
     UINT32                  NumberOfSections;            // Number of sections
     LPVOID                  BaseAddr;                    // Pointer to the base memory of mapped file
@@ -90,17 +327,17 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
     // Open the EXE File
     //
     FileHandle = CreateFileW(AddressOfFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
     if (FileHandle == INVALID_HANDLE_VALUE)
     {
         ShowMessages("err, could not open the file specified\n");
         return FALSE;
-    };
+    }
 
     //
     // Mapping Given EXE file to Memory
     //
-    MapObjectHandle =
-        CreateFileMapping(FileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
+    MapObjectHandle = CreateFileMapping(FileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
 
     if (MapObjectHandle == NULL)
     {
@@ -120,6 +357,33 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
     // Get the DOS Header Base
     //
     DosHeader = (PIMAGE_DOS_HEADER)BaseAddr; // 0x04000000
+
+    char Key[4];
+    int  RichHeaderOffset = FindRichHeader(DosHeader, Key);
+
+    if (RichHeaderOffset != 0)
+    {
+        char * DataPtr   = new char[DosHeader->e_lfanew];
+        DWORD  BytesRead = 0;
+
+        BOOL result = ReadFile(FileHandle, DataPtr, DosHeader->e_lfanew, &BytesRead, NULL);
+        if (!result || BytesRead != DosHeader->e_lfanew)
+        {
+            ShowMessages("ReadFile failed or incomplete read");
+        }
+        int RichHeaderSize = DecryptRichHeader(Key, RichHeaderOffset, DataPtr);
+        int IndexPointer   = RichHeaderOffset - RichHeaderSize;
+
+        char * richHeaderPtr = new char[RichHeaderSize];
+        memcpy(richHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
+        delete[] DataPtr;
+
+        FindRichEntries(richHeaderPtr, RichHeaderSize, Key, &PeFileRichHeaderInfo);
+        PeFileRichHeader.Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo.Entries];
+
+        SetRichEntries(RichHeaderSize, richHeaderPtr, &PeFileRichHeader);
+        RichFound = TRUE;
+    }
 
     //
     // Check for Valid DOS file
@@ -168,6 +432,30 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
         ShowMessages("\nGiven File is not a valid DOS file\n");
         Result = FALSE;
         goto Finished;
+    }
+
+    if (RichFound)
+    {
+        ShowMessages("\n===============================================================================\n");
+        ShowMessages("                              RICH HEADER                                     \n");
+        ShowMessages("===============================================================================\n");
+        ShowMessages("Entries: %d\n\n", PeFileRichHeaderInfo.Entries);
+        ShowMessages("%-10s %-10s %-10s\n", "Build ID", "Prod ID", "Use Count");
+        ShowMessages("---------------------------------------\n");
+
+        for (int i = 0; i < PeFileRichHeaderInfo.Entries; i++)
+        {
+            ShowMessages("0x%08X 0x%08X %10d\n",
+                         PeFileRichHeader.Entries[i].BuildID,
+                         PeFileRichHeader.Entries[i].ProdID,
+                         PeFileRichHeader.Entries[i].UseCount);
+        }
+
+        ShowMessages("==============Rich Header End ==================\n");
+    }
+    else
+    {
+        ShowMessages("=========== Rich Header Not Found ===========\n");
     }
 
     //
