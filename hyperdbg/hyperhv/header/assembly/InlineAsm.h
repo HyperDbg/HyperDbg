@@ -289,16 +289,8 @@ extern void
 AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
 
 /**
- * @brief Write SSP
- *
- * @param AddressToWriteIntoSsp
- */
-extern void
-AsmWriteSsp(void * AddressToWriteIntoSsp);
-
-/**
  * @brief Read SSP
- * 
+ *
  */
 extern unsigned long long
 AsmReadSsp();

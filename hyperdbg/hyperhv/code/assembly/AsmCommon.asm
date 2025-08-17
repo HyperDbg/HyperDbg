@@ -68,26 +68,12 @@ AsmReloadIdtr ENDP
 
 ;------------------------------------------------------------------------
 
-; AsmWriteSsp (void * AddressToWriteIntoSsp );
-
-AsmWriteSsp PROC
-    
-    ; Use RSTORSSP instruction to restore SSP from memory pointed by RCX
-    rstorssp qword ptr [rcx]    ; Restores SSP from the address in RCX
-
-    ; Return from the function (uses the return address in SSP)
-    ret
-
-AsmWriteSsp ENDP
-
-;------------------------------------------------------------------------
-
 ; AsmReadSsp ( );
 
 AsmReadSsp PROC
 
     ; Save the current SSP to a memory location
-    RDSSPQ rax  ; Save SSP to memory at the current location (stack pointer)
+    rdsspq rax  ; Save SSP to memory at the current location (stack pointer)
 
     ; Return from the function
     ret

@@ -110,6 +110,8 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
  * @param VCpu The virtual processor's state
  * @return BOOLEAN
  */
+#define VMCS_GUEST_SSP1 0x682a
+
 _Use_decl_annotations_
 BOOLEAN
 SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
@@ -120,7 +122,6 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64               GuestRip;
     UINT64               GuestRflags;
     UINT64               Ssp;
-    UINT64               ZeroSsp = NULL64_ZERO;
 
     //
     // Reading guest's RIP
@@ -157,9 +158,9 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Peform emulation of Intel CET (Shadow stacks)
     //
-    Ssp = AsmReadSsp();
+    __vmx_vmread(VMCS_GUEST_SSP1, &Ssp);
     __writemsr(IA32_PL3_SSP, Ssp);
-    AsmWriteSsp(&ZeroSsp); // Fill SSP by zero
+    __vmx_vmwrite(VMCS_GUEST_SSP1, 0);
 
     //
     // Load the CS and SS selectors with values derived from bits 47:32 of IA32_STAR
@@ -212,7 +213,7 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     // Restore user-mode SPP
     //
     Ssp = __readmsr(IA32_PL3_SSP);
-    AsmWriteSsp(&Ssp);
+    __vmx_vmwrite(VMCS_GUEST_SSP1, Ssp);
 
     //
     // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of IA32_STAR
