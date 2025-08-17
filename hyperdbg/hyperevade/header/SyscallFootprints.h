@@ -161,6 +161,8 @@ SYSTEM_CALL_NUMBERS_INFORMATION g_SystemCallNumbersInformation;
 //				   Constants        			//
 //////////////////////////////////////////////////
 
+#if DISABLE_HYPERDBG_HYPEREVADE == FALSE
+
 /**
  * @brief A list of windows processes, for which to ignore systemcall requests
  * when the transparency mode is enabled
@@ -608,6 +610,8 @@ static const PCHAR HV_FIRM_NAMES[] = {
     "Virtual",
 
 };
+
+#endif
 
 //////////////////////////////////////////////////
 //				   Functions					//

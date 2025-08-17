@@ -24,6 +24,13 @@
 #ifdef ENV_WINDOWS
 
 //
+// The DLL is flagged by antivirus software, since it contains anti-debugging and anti-hypervisor methods
+// as well as different anti-debugging strings
+// For now, we disable the HyperDbg Hyperevade module
+//
+#    define DISABLE_HYPERDBG_HYPEREVADE TRUE
+
+//
 // Windows defined functions
 //
 #    include <ntddk.h>
