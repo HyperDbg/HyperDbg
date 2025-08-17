@@ -11,6 +11,28 @@
  */
 #include "pch.h"
 
+VOID
+TransparentHandleSystemCallHook(GUEST_REGS * Regs)
+{
+    UNREFERENCED_PARAMETER(Regs);
+}
+
+VOID
+TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
+                                      UINT32                            ProcessId,
+                                      UINT32                            ThreadId,
+                                      UINT64                            Context,
+                                      SYSCALL_CALLBACK_CONTEXT_PARAMS * Params)
+{
+    UNREFERENCED_PARAMETER(Regs);
+    UNREFERENCED_PARAMETER(ProcessId);
+    UNREFERENCED_PARAMETER(ThreadId);
+    UNREFERENCED_PARAMETER(Context);
+    UNREFERENCED_PARAMETER(Params);
+}
+
+#if DISABLE_HYPERDBG_HYPEREVADE == FALSE
+
 /**
  * @brief Handle The triggered hook on KiSystemCall64 system call handler
  * when the Transparency mode is enabled
@@ -1927,3 +1949,4 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
                 Params->OptionalParam4);
     }
 }
+#endif
