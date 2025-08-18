@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 15
+#define VERSION_MINOR 16
 #define VERSION_PATCH 0
 
 //

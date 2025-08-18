@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0.0] - 2025-XX-XX
+New release of the HyperDbg Debugger.
+
+### Added
+- 
+
+### Changed
+- Non-volatile XMM registers are no longer saved/restored on VM-exit handler ([link](https://learn.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-170))
+
 ## [0.15.0.0] - 2025-08-18
 New release of the HyperDbg Debugger.
 

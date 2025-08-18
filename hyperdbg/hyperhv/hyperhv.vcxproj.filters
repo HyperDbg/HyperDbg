@@ -628,7 +628,7 @@
       <Filter>code\assembly</Filter>
     </MASM>
     <MASM Include="code\assembly\AsmInterruptHandlers.asm">
-      <Filter>code</Filter>
+      <Filter>code\assembly</Filter>
     </MASM>
   </ItemGroup>
 </Project>
