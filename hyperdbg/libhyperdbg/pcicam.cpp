@@ -1,6 +1,6 @@
 /**
  * @file pcicam.cpp
- * @author Björn Ruytenberg (bjorn@bjornweb.nl)
+ * @author Bjï¿½rn Ruytenberg (bjorn@bjornweb.nl)
  * @brief !pcicam command
  * @details
  * @version 0.13
@@ -365,7 +365,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
             //
             // An err occurred, no results
             //
-            ShowMessages("An err occured, no results:");
+            ShowMessages("An error occurred, no results:");
 
             ShowErrorMessage(PcidevinfoPacket.KernelStatus);
         }

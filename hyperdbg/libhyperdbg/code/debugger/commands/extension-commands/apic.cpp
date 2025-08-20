@@ -104,7 +104,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
         //
         Status = DeviceIoControl(
             g_DeviceHandle,                // Handle to device
-            IOCTL_PERFROM_ACTIONS_ON_APIC, // IO Control Code (IOCTL)
+            IOCTL_PERFORM_ACTIONS_ON_APIC, // IO Control Code (IOCTL)
             ApicRequest,                   // Input Buffer to driver.
             SIZEOF_DEBUGGER_APIC_REQUEST,  // Input buffer length
             ApicRequest,                   // Output Buffer from driver.

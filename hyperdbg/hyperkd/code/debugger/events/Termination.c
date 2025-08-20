@@ -1130,7 +1130,7 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     //
     // For this event we should also check for sysret instructions events too
     // because both of them are emulated by a single bit in vmx controls
-    // and a MSR so if there is anything in out events list then we can
+    // and an MSR so if there is anything in out events list then we can
     // remove all the events
     //
     if (DebuggerEventListCount(&g_Events->SyscallHooksEferSyscallEventsHead) > 1 ||
@@ -1221,7 +1221,7 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     //
     // For this event we should also check for syscall instructions events too
     // because both of them are emulated by a single bit in vmx controls
-    // and a MSR so if there is anything in out events list then we can
+    // and an MSR so if there is anything in out events list then we can
     // remove all the events
     //
     if (DebuggerEventListCount(&g_Events->SyscallHooksEferSysretEventsHead) > 1 ||
