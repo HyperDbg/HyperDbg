@@ -148,6 +148,8 @@ BOOLEAN g_TriggerEventForVmcalls;
  */
 BOOLEAN g_TriggerEventForCpuids;
 
+BOOLEAN g_TriggerEventForXsetbvs;
+
 //////////////////////////////////////////////////
 //  	Global Variable (Execution Trap)	    //
 //////////////////////////////////////////////////

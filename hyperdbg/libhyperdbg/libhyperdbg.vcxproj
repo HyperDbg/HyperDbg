@@ -184,6 +184,7 @@
     <ClCompile Include="code\debugger\commands\extension-commands\trace.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\track.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\mode.cpp" />
+    <ClCompile Include="code\debugger\commands\extension-commands\xsetbv.cpp" />
     <ClCompile Include="code\debugger\commands\hwdbg-commands\hw.cpp" />
     <ClCompile Include="code\debugger\commands\hwdbg-commands\hw_clk.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\dump.cpp" />

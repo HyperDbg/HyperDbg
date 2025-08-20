@@ -108,6 +108,9 @@ IMPORT_EXPORT_VMM VOID
 VmFuncSetTriggerEventForCpuids(BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
+VmFuncSetTriggerEventForXsetbvs(BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
 VmFuncSetInterruptibilityState(UINT64 InterruptibilityState);
 
 IMPORT_EXPORT_VMM VOID

@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
-- 
+- The **!xsetbv** event command is added to execution of XSETBV instruction thanks to HyperDbg group members ([link](https://docs.hyperdbg.org/commands/extension-commands/xsetbv))
 
 ### Changed
 - Non-volatile XMM registers are no longer saved/restored on VM-exit handler ([link](https://learn.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-170))

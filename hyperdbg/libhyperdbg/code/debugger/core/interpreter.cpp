@@ -1637,4 +1637,6 @@ InitializeCommandsDictionary()
     g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
 
     g_CommandsList["!hw"] = {&CommandHw, &CommandHwHelp, DEBUGGER_COMMAND_HWDBG_HW_ATTRIBUTES};
+
+    g_CommandsList["!xsetbv"] = {&CommandXsetbv, &CommandXsetbvHelp, DEBUGGER_COMMAND_XSETBV_ATTRIBUTES};
 }

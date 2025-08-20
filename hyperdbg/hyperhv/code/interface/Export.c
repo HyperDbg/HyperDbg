@@ -590,6 +590,18 @@ VmFuncSetTriggerEventForCpuids(BOOLEAN Set)
 }
 
 /**
+ * @brief Set trigger event for XSETBVs
+ *
+ * @param Set Set or unset the trigger
+ * @return VOID
+ */
+VOID
+VmFuncSetTriggerEventForXsetbvs(BOOLEAN Set)
+{
+    g_TriggerEventForXsetbvs = Set;
+}
+
+/**
  * @brief VMX-root compatible strlen
  * @param s A pointer to the string
  *
