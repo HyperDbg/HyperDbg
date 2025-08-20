@@ -41,7 +41,7 @@ SmmTriggerPowerSmi()
     UINT8 SmmResponse = 0;
 
     //
-    // check the initial value recieve from 0xB3 port
+    // check the initial value received from 0xB3 port
     //
     SmmResponse = __inbyte(0xb2);
 

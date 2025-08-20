@@ -956,7 +956,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
-        case IOCTL_PERFROM_KERNEL_SIDE_TESTS:
+        case IOCTL_PERFORM_KERNEL_SIDE_TESTS:
 
             //
             // First validate the parameters.
@@ -1082,7 +1082,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
-        case IOCTL_PERFROM_ACTIONS_ON_APIC:
+        case IOCTL_PERFORM_ACTIONS_ON_APIC:
 
             //
             // First validate the parameters.

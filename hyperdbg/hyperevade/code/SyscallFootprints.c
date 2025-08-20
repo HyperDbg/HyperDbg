@@ -1070,7 +1070,7 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
 
     //
     // If the buffer size is too big, we cant do any mitigations with the current implementation an it exceeds
-    // the size of an EPT page, risking curruption when allocating the copy buffer space in root-mode.
+    // the size of an EPT page, risking corruption when allocating the copy buffer space in root-mode.
     //
     if (BufMaxSize > PAGE_SIZE / 2)
     {
@@ -1421,11 +1421,11 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
     }
 
     //
-    // An error occured while performing the mitigations, the user buffer might be left unmodified
+    // An error occurred while performing the mitigations, the user buffer might be left unmodified
     //
 ReturnWithError:
     LogInfo("A call for to read a registry entry, which could contain hypervisor specific data, was intercepted but the mitigations failed");
-    LogInfo("The caller process recieved the results in this virtual address: %llx", Params->OptionalParam2);
+    LogInfo("The caller process received the results in this virtual address: %llx", Params->OptionalParam2);
 
     if (Buf != NULL)
     {

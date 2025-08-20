@@ -62,7 +62,7 @@ CommandTestPerformKernelTestsIoctl()
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                       // Handle to device
-        IOCTL_PERFROM_KERNEL_SIDE_TESTS,      // IO Control Code (IOCTL)
+        IOCTL_PERFORM_KERNEL_SIDE_TESTS,      // IO Control Code (IOCTL)
         &KernelTestRequest,                   // Input Buffer to driver.
         SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS, // Input buffer length
         &KernelTestRequest,                   // Output Buffer from driver.

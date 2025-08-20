@@ -1,7 +1,7 @@
 /**
  * @file test-semanitc-scripts.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Perfrom test on semantic scripts
+ * @brief Perform test on semantic scripts
  * @details
  * @version 0.11
  * @date 2024-08-16

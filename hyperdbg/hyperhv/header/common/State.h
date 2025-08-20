@@ -344,7 +344,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     NMI_BROADCASTING_STATE  NmiBroadcastingState;                                   // Shows the state of NMI broadcasting
     VM_EXIT_TRANSPARENCY    TransparencyState;                                      // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                                 // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    UINT8                   LastExceptionOccuredInHost;                             // The vector of last exception occured in host
+    UINT8                   LastExceptionOccurredInHost;                            // The vector of last exception occurred in host
     UINT64                  HostIdt;                                                // host Interrupt Descriptor Table (actual type is SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64*)
     UINT64                  HostGdt;                                                // host Global Descriptor Table (actual type is SEGMENT_DESCRIPTOR_32* or SEGMENT_DESCRIPTOR_64*)
     UINT64                  HostTss;                                                // host Task State Segment (actual type is TASK_STATE_SEGMENT_64*)
