@@ -197,19 +197,6 @@ DispatchEventXsetbv(VIRTUAL_MACHINE_STATE * VCpu)
     BOOLEAN                                   PostEventTriggerReq = FALSE;
 
     //
-    // Check if attaching is for command dispatching in user debugger
-    // or a regular XSETBV
-    //
-    if (g_Callbacks.UdCheckForCommand != NULL && g_Callbacks.UdCheckForCommand())
-    {
-        //
-        // It's a thread command for user debugger, no need to run the
-        // actual XSETBV instruction and change the registers
-        //
-        return;
-    }
-
-    //
     // As the context to event trigger, we send the ecx (XCR index) before the xsetbv
     // so that the debugger can both read the ecx as it contains the XCR index
     // and also can modify the results
