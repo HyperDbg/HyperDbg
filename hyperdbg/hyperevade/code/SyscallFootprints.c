@@ -1010,7 +1010,7 @@ TransparentHandleProcessInformationQuery(SYSCALL_CALLBACK_CONTEXT_PARAMS * Param
         }
 
         //
-        // Zero out the matching entry, so that its data doesnt remain in memory
+        // Zero out the matching entry, so that its data doesn't remain in memory
         //
         if (MatchFound)
         {
@@ -1069,7 +1069,7 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
     }
 
     //
-    // If the buffer size is too big, we cant do any mitigations with the current implementation an it exceeds
+    // If the buffer size is too big, we can't do any mitigations with the current implementation and it exceeds
     // the size of an EPT page, risking corruption when allocating the copy buffer space in root-mode.
     //
     if (BufMaxSize > PAGE_SIZE / 2)
@@ -1214,11 +1214,11 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
 }
 
 /**
- * @brief Replace occurances of a hypervisor specific strings with legitimate vendor strings in a provided buffer
+ * @brief Replace occurrences of a hypervisor specific strings with legitimate vendor strings in a provided buffer
  *
  * @param Params        Set transparent callback params that contain:
                         in OptionalParam2 a pointer to a valid read/writable memory buffer that contains both, a WCHAR string and its length in bytes
-                        in OptionalParam3 max size in bytes of the allocatec buffer
+                        in OptionalParam3 max size in bytes of the allocated buffer
                         in OptionalParam4 a pointer to a ULONG containing current size of the buffer
  *
  * @param DataOffset    Offset in bytes from OptionalParam2 to the start of the WCHAR data string
@@ -1442,7 +1442,7 @@ ReturnWithError:
  * @param Params        The set transparent callback params that contain:
                         in OptionalParam1 the KEY_VALUE_INFORMATION_CLASS enum value
                         in OptionalParam2 a pointer to a valid read/writable memory buffer that contains both, a WCHAR string and its length in bytes
-                        in OptionalParam3 max size in bytes of the allocatec buffer
+                        in OptionalParam3 max size in bytes of the allocated buffer
                         in OptionalParam4 a pointer to a ULONG containing current size of the buffer
  *
  * @return UINT64
@@ -1524,7 +1524,7 @@ TransparentCallbackHandleAfterNtQueryValueKeySyscall(SYSCALL_CALLBACK_CONTEXT_PA
  * @param Params        The set transparent callback params that contain:
                         in OptionalParam1 the KEY_VALUE_INFORMATION_CLASS enum value
                         in OptionalParam2 a pointer to a valid read/writable memory buffer that contains both, a WCHAR string and its length in bytes
-                        in OptionalParam3 max size in bytes of the allocatec buffer
+                        in OptionalParam3 max size in bytes of the allocated buffer
                         in OptionalParam4 a pointer to a ULONG containing current size of the buffer
  *
  * @return UINT64
@@ -1879,10 +1879,10 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
     //
     // Handle the return code modification after NtNtQueryValueKey system call
     //
-    // NOTE: The transparent mitigation will replace all occurances of a hypervisor vendor string in the registry
+    // NOTE: The transparent mitigation will replace all occurrences of a hypervisor vendor string in the registry
     // key data to a randomized real hardware vendor string, no matter the meaning of the key,
-    // This can cause some keys to illogical data, for example,
-    // a disk drive ID having a vendor string of ASUS even though(as far as I know) ASUS doesnt produce storage devices.
+    // This can cause some keys to produce illogical data, for example,
+    // a disk drive ID having a vendor string of ASUS even though (as far as I know) ASUS doesn't produce storage devices.
     //
     else if (Context == g_SystemCallNumbersInformation.SysNtQueryValueKey)
     {

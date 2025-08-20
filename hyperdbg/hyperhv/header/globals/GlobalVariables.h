@@ -183,7 +183,7 @@ BOOLEAN g_IsInterceptingInstructions;
 //////////////////////////////////////////////////
 
 /**
- * @brief Shows whether the the VMM is waiting to inject a page-fault
+ * @brief Shows whether the VMM is waiting to inject a page-fault
  * or not
  *
  */
