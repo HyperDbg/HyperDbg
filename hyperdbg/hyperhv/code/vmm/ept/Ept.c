@@ -1085,15 +1085,15 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-    if (ExecTrapHandleEptViolationVmexit(VCpu, &ViolationQualification))
-    {
-        return TRUE;
-    }
-    else if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr))
+    if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr))
     {
         //
         // Handled by page hook code
         //
+        return TRUE;
+    }
+    else if (ExecTrapHandleEptViolationVmexit(VCpu, &ViolationQualification))
+    {
         return TRUE;
     }
     else if (VmmCallbackUnhandledEptViolation(VCpu->CoreId, (UINT64)ViolationQualification.AsUInt, GuestPhysicalAddr))
