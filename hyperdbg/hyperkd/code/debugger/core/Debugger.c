@@ -1147,7 +1147,8 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         }
 
         //
-        // Check event type specific conditions
+        // Check event type specific conditions, if the event is not mentioned
+        // here, it means that it doesn't have any special condition
         //
         switch (CurrentEvent->EventType)
         {
@@ -1405,7 +1406,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
 
             break;
 
-        default:
+        default: // All other events that don't have conditions
             break;
         }
 

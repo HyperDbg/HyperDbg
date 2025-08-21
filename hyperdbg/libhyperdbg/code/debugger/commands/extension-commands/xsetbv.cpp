@@ -1,6 +1,6 @@
 /**
  * @file xsetbv.cpp
- * @author Community members from HyperDbg group
+ * @author unrustled.jimmies
  * @brief !xsetbv command
  * @details This command
  * @version 0.16
@@ -19,18 +19,19 @@
 VOID
 CommandXsetbvHelp()
 {
-    ShowMessages("!xsetbv : notifies when the XSETBV instruction is executed.\n\n");
+    ShowMessages("!xsetbv : monitors execution of xsetbv instructions.\n\n");
 
-    ShowMessages("syntax : \t!xsetbv [pid ProcessId (hex)] [core CoreId (hex)] [imm IsImmediate (yesno)] "
-                 "[sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] [buffer PreAllocatedBuffer (hex)] "
-                 "[script { Script (string) }] [asm condition { Condition (assembly/hex) }] [asm code { Code (assembly/hex) }] "
-                 "[output {OutputName (string)}]\n");
+    ShowMessages("syntax : \t!xsetbv [Xcr (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [sc EnableShortCircuiting (onoff)] [stage CallingStage (prepostall)] "
+                 "[buffer PreAllocatedBuffer (hex)] [script { Script (string) }] [asm condition { Condition (assembly/hex) }] "
+                 "[asm code { Code (assembly/hex) }] [output {OutputName (string)}]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !xsetbv\n");
+    ShowMessages("\t\te.g : !xsetbv 0\n");
     ShowMessages("\t\te.g : !xsetbv pid 400\n");
     ShowMessages("\t\te.g : !xsetbv core 2 pid 400\n");
-    ShowMessages("\t\te.g : !xsetbv script { printf(\"XSETBV executed from RIP: %%llx\\n\", @rip); }\n");
+    ShowMessages("\t\te.g : !xsetbv script { printf(\"XSETBV instruction is executed with XCR index: %%llx\\n\", @rcx); }\n");
     ShowMessages("\t\te.g : !xsetbv asm code { nop; nop; nop }\n");
 }
 
@@ -49,7 +50,9 @@ CommandXsetbv(vector<CommandToken> CommandTokens, string Command)
     PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionCustomCode      = NULL;
     PDEBUGGER_GENERAL_ACTION           ActionScript          = NULL;
+    BOOLEAN                            GetXcr                = FALSE;
     UINT32                             EventLength;
+    UINT64                             SpecialTarget               = 0;
     UINT32                             ActionBreakToDebuggerLength = 0;
     UINT32                             ActionCustomCodeLength      = 0;
     UINT32                             ActionScriptLength          = 0;
@@ -57,7 +60,6 @@ CommandXsetbv(vector<CommandToken> CommandTokens, string Command)
 
     //
     // Interpret and fill the general event and action fields
-    //
     //
     if (!InterpretGeneralEventAndActionsFields(
             &CommandTokens,
@@ -76,16 +78,62 @@ CommandXsetbv(vector<CommandToken> CommandTokens, string Command)
     }
 
     //
-    // Check for size
+    // Interpret command specific details (if any), of XCR index
     //
-    if (CommandTokens.size() > 1)
+    for (auto Section : CommandTokens)
     {
-        ShowMessages("incorrect use of the '%s'\n\n",
-                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
-        CommandXsetbvHelp();
+        if (CompareLowerCaseStrings(Section, "!xsetbv"))
+        {
+            continue;
+        }
+        else if (!GetXcr)
+        {
+            //
+            // It's probably an XCR index
+            //
+            if (!ConvertTokenToUInt64(Section, &SpecialTarget))
+            {
+                //
+                // Unknown parameter
+                //
+                ShowMessages("unknown parameter '%s'\n\n",
+                             GetCaseSensitiveStringFromCommandToken(Section).c_str());
+                CommandXsetbvHelp();
 
-        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
-        return;
+                FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+                return;
+            }
+            else
+            {
+                //
+                // A special XCR is set
+                //
+                GetXcr = TRUE;
+            }
+        }
+        else
+        {
+            //
+            // Unknown parameter
+            //
+            ShowMessages("unknown parameter '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(Section).c_str());
+
+            CommandXsetbvHelp();
+
+            FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+            return;
+        }
+    }
+
+    //
+    // Set the target XCR (if not specific then it means all XCRs)
+    //
+    Event->Options.OptionalParam1 = GetXcr;
+
+    if (GetXcr)
+    {
+        Event->Options.OptionalParam2 = SpecialTarget;
     }
 
     //
@@ -117,7 +165,6 @@ CommandXsetbv(vector<CommandToken> CommandTokens, string Command)
         //
         // There was an error
         //
-
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
