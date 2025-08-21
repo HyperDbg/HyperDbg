@@ -68,6 +68,7 @@ typedef struct _DEBUGGER_CORE_EVENTS
     LIST_ENTRY TrapExecutionInstructionTraceEventsHead;    // TRAP_EXECUTION_INSTRUCTION_TRACE
     LIST_ENTRY ControlRegister3ModifiedEventsHead;         // CONTROL_REGISTER_3_MODIFIED
     LIST_ENTRY ControlRegisterModifiedEventsHead;          // CONTROL_REGISTER_MODIFIED
+    LIST_ENTRY XsetbvInstructionExecutionEventsHead;       // XSETBV_INSTRUCTION_EXECUTION
 
 } DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 

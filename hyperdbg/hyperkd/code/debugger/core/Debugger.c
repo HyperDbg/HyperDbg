@@ -111,6 +111,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->TrapExecutionInstructionTraceEventsHead);
     InitializeListHead(&g_Events->ControlRegister3ModifiedEventsHead);
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
+    InitializeListHead(&g_Events->XsetbvInstructionExecutionEventsHead);
 
     //
     // Enabled Debugger Events
@@ -1146,7 +1147,8 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         }
 
         //
-        // Check event type specific conditions
+        // Check event type specific conditions, if the event is not mentioned
+        // here, it means that it doesn't have any special condition
         //
         switch (CurrentEvent->EventType)
         {
@@ -1389,7 +1391,22 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
 
             break;
 
-        default:
+        case XSETBV_INSTRUCTION_EXECUTION:
+
+            //
+            // check if XSETBV is what we want or not
+            //
+            if (CurrentEvent->Options.OptionalParam1 != (UINT64)NULL /*FALSE*/ && CurrentEvent->Options.OptionalParam2 != (UINT64)Context)
+            {
+                //
+                // The XCR is not what we want (and the user didn't intend to get all XSETBVs)
+                //
+                continue;
+            }
+
+            break;
+
+        default: // All other events that don't have conditions
             break;
         }
 
@@ -2101,6 +2118,9 @@ DebuggerGetEventListByEventType(VMM_EVENT_TYPE_ENUM EventType)
         break;
     case CONTROL_REGISTER_MODIFIED:
         ResultList = &g_Events->ControlRegisterModifiedEventsHead;
+        break;
+    case XSETBV_INSTRUCTION_EXECUTION:
+        ResultList = &g_Events->XsetbvInstructionExecutionEventsHead;
         break;
     default:
 
@@ -3005,6 +3025,15 @@ DebuggerApplyEvent(PDEBUGGER_EVENT                   Event,
 
         break;
     }
+    case XSETBV_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Apply the XSETBV instruction execution events
+        //
+        ApplyEventXsetbvExecutionEvent(Event, ResultsToReturn, InputFromVmxRoot);
+
+        break;
+    }
     default:
     {
         //
@@ -3572,6 +3601,16 @@ DebuggerTerminateEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot)
         // Call mov to control register event terminator
         //
         TerminateControlRegistersEvent(Event, InputFromVmxRoot);
+        Result = TRUE;
+
+        break;
+    }
+    case XSETBV_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call XSETBV instruction execution event terminator
+        //
+        TerminateXsetbvExecutionEvent(Event, InputFromVmxRoot);
         Result = TRUE;
 
         break;

@@ -26,6 +26,9 @@ VOID
 DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
+DispatchEventXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp);
 
 VOID

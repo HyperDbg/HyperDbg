@@ -296,12 +296,12 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_XSETBV:
     {
-        //
-        // Handle xsetbv (unconditional vm-exit)
-        //
-        VmxHandleXsetbv(VCpu);
+      //
+      // Dispatch and trigger the XSETBV instruction events
+      //
+      DispatchEventXsetbv(VCpu);
 
-        break;
+      break;
     }
     case VMX_EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED:
     {

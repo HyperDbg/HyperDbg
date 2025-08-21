@@ -82,3 +82,6 @@ TerminateQueryDebuggerResource(UINT32                               CoreId,
                                PROTECTED_HV_RESOURCES_TYPE          ResourceType,
                                PVOID                                Context,
                                PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver);
+
+VOID
+TerminateXsetbvExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot);
