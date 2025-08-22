@@ -77,12 +77,6 @@ typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION)(UINT32 C
 typedef BOOLEAN (*DEBUGGING_CALLBACK_CHECK_THREAD_INTERCEPTION)(UINT32 CoreId);
 
 /**
- * @brief Check for commands in user-debugger
- *
- */
-typedef BOOLEAN (*UD_CHECK_FOR_COMMAND)();
-
-/**
  * @brief Handle registered MTF callback
  *
  */
@@ -206,7 +200,6 @@ typedef struct _VMM_CALLBACKS
     // Callbacks to be removed
     //
     BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT              BreakpointCheckAndHandleReApplyingBreakpoint;
-    UD_CHECK_FOR_COMMAND                                           UdCheckForCommand;
     KD_CHECK_AND_HANDLE_NMI_CALLBACK                               KdCheckAndHandleNmiCallback;
     VMM_CALLBACK_REGISTERED_MTF_HANDLER                            VmmCallbackRegisteredMtfHandler; // Fixed but not good
     INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI                    DebuggerCheckProcessOrThreadChange;

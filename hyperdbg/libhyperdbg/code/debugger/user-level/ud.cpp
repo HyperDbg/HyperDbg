@@ -1060,7 +1060,7 @@ UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEB
             .IsOnWaitingState = TRUE;
 
     //
-    // Send the 'continue' command
+    // Send the 'step' command
     //
     UdSendCommand(ProcessDetailToken,
                   TargetThreadId,

@@ -117,19 +117,6 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     BOOLEAN                                   PostEventTriggerReq = FALSE;
 
     //
-    // Check if attaching is for command dispatching in user debugger
-    // or a regular CPUID
-    //
-    if (g_Callbacks.UdCheckForCommand != NULL && g_Callbacks.UdCheckForCommand())
-    {
-        //
-        // It's a thread command for user debugger, no need to run the
-        // actual CPUID instruction and change the registers
-        //
-        return;
-    }
-
-    //
     // As the context to event trigger, we send the eax before the cpuid
     // so that the debugger can both read the eax as it's now changed by
     // the cpuid instruction and also can modify the results
