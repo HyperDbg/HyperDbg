@@ -1298,9 +1298,10 @@ UdShowListActiveDebuggingProcessesAndThreads()
                     {
                         CheckCurrentProcessOrThread = TRUE;
                     }
-                    ShowMessages("\t%s %04x (thread)\n",
+                    ShowMessages("\t%s %04x (thread) | # blk ctx switches: %llx\n",
                                  CheckCurrentProcessOrThread ? "->" : "  ",
-                                 AddressOfThreadsAndProcessDetails[i].ThreadId);
+                                 AddressOfThreadsAndProcessDetails[i].ThreadId,
+                                 AddressOfThreadsAndProcessDetails[i].NumberOfBlockedContextSwitches);
                 }
             }
         }

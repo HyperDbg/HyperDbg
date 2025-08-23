@@ -638,9 +638,11 @@ ThreadHolderQueryDetailsOfActiveDebuggingThreadsAndProcesses(
                     //
                     // A paused thread should be saved
                     //
-                    BufferToStoreDetails[CurrentIndex].IsProcess = FALSE;
-                    BufferToStoreDetails[CurrentIndex].ProcessId = ProcessDebuggingDetails->ProcessId;
-                    BufferToStoreDetails[CurrentIndex].ThreadId  = ThreadHolder->Threads[i].ThreadId;
+                    BufferToStoreDetails[CurrentIndex].IsProcess                      = FALSE;
+                    BufferToStoreDetails[CurrentIndex].ProcessId                      = ProcessDebuggingDetails->ProcessId;
+                    BufferToStoreDetails[CurrentIndex].ThreadId                       = ThreadHolder->Threads[i].ThreadId;
+                    BufferToStoreDetails[CurrentIndex].NumberOfBlockedContextSwitches = ThreadHolder->Threads[i].NumberOfBlockedContextSwitches;
+
                     CurrentIndex++;
                     if (MaxCount == CurrentIndex)
                     {

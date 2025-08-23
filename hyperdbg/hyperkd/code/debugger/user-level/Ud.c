@@ -319,7 +319,7 @@ UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 
     //
     // If we reached here, the current thread is in debugger attached mechanism
-    // now we check whether it's a regular CPUID or a debugger paused thread CPUID
+    // now we check whether it's paused or not
     //
     if (!ThreadDebuggingDetails->IsPaused)
     {
@@ -436,6 +436,11 @@ UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetai
     ThreadDebuggingDetails->ThreadRip = VmFuncGetRip();
 
     //
+    // Set the number of context switches to one (reset it if already set)
+    //
+    ThreadDebuggingDetails->NumberOfBlockedContextSwitches = 1;
+
+    //
     // Indicate that it's spinning
     //
     ThreadDebuggingDetails->IsPaused = TRUE;
@@ -537,6 +542,11 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     if (ThreadDebuggingDetails->IsPaused)
     {
+        //
+        // Increase the number of context switches
+        //
+        ThreadDebuggingDetails->NumberOfBlockedContextSwitches++;
+
         //
         // The thread is already paused, so we don't need to pause it again
         //
