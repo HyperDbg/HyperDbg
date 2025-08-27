@@ -401,17 +401,6 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     }
 
     //
-    // Based on the documentation, HyperDbg stops intercepting threads
-    // when the debugger sent the first command, but if user presses
-    // run the 'pause' command, all the threads (or new threads) that will enter
-    // the user-mode will be intercepted
-    //
-    if (ProcessDebuggingDetails->IsOnThreadInterceptingPhase)
-    {
-        AttachingConfigureInterceptingThreads(ProcessDebuggingDetails->Token, FALSE);
-    }
-
-    //
     // Apply the command to all threads or just one thread
     //
     return ThreadHolderApplyActionToPausedThreads(ProcessDebuggingDetails, ActionRequest);

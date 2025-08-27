@@ -50,9 +50,9 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
         break;
     case DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED:
 
-        ShowMessages("\nthread: %x from process: %x intercepted\n",
-                     PausePacket->ThreadId,
-                     PausePacket->ProcessId);
+        // ShowMessages("\nthread: %x from process: %x intercepted\n",
+        //              PausePacket->ThreadId,
+        //              PausePacket->ProcessId);
 
         break;
 
@@ -77,31 +77,37 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
         }
     }
 
-    if (!PausePacket->Is32Bit)
+    //
+    // For the first thread that is paused, show the disassembly
+    //
+    if (g_ActiveProcessDebuggingState.IsPaused == FALSE || PausePacket->ThreadId == g_ActiveProcessDebuggingState.ThreadId)
     {
-        //
-        // Show diassembles
-        //
-        ShowMessages("\n");
-        HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
-                               PausePacket->Rip,
-                               MAXIMUM_INSTR_SIZE,
-                               1,
-                               TRUE,
-                               (PRFLAGS)&PausePacket->Rflags);
-    }
-    else
-    {
-        //
-        // Show diassembles
-        //
-        ShowMessages("\n");
-        HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
-                               PausePacket->Rip,
-                               MAXIMUM_INSTR_SIZE,
-                               1,
-                               TRUE,
-                               (PRFLAGS)&PausePacket->Rflags);
+        if (!PausePacket->Is32Bit)
+        {
+            //
+            // Show diassembles
+            //
+            ShowMessages("\n");
+            HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
+                                   PausePacket->Rip,
+                                   MAXIMUM_INSTR_SIZE,
+                                   1,
+                                   TRUE,
+                                   (PRFLAGS)&PausePacket->Rflags);
+        }
+        else
+        {
+            //
+            // Show diassembles
+            //
+            ShowMessages("\n");
+            HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
+                                   PausePacket->Rip,
+                                   MAXIMUM_INSTR_SIZE,
+                                   1,
+                                   TRUE,
+                                   (PRFLAGS)&PausePacket->Rflags);
+        }
     }
 
     //

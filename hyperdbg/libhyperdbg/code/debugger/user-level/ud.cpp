@@ -68,7 +68,7 @@ UdUninitializeUserDebugger()
         //
         // Remove the active process
         //
-        UdRemoveActiveDebuggingProcess(TRUE);
+        UdRemoveActiveDebuggingProcess();
 
         //
         // Initialize the handle table
@@ -110,30 +110,35 @@ UdSetActiveDebuggingProcess(UINT64  DebuggingId,
                             BOOLEAN Is32Bit,
                             BOOLEAN IsPaused)
 {
-    g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
-    g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
-    g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
-    g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
+    if (g_ActiveProcessDebuggingState.IsPaused == FALSE)
+    {
+        //
+        // Activate the debugging
+        //
+        g_ActiveProcessDebuggingState.IsActive = TRUE;
 
-    //
-    // Set pausing state
-    //
-    g_ActiveProcessDebuggingState.IsPaused = IsPaused;
+        //
+        // Set the details
+        //
+        g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
+        g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
+        g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
+        g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
 
-    //
-    // Activate the debugging
-    //
-    g_ActiveProcessDebuggingState.IsActive = TRUE;
+        //
+        // Set pausing state
+        //
+        g_ActiveProcessDebuggingState.IsPaused = IsPaused;
+    }
 }
 
 /**
  * @brief Remove the current active debugging process (thread)
- * @param DontSwitchToNewProcess
  *
  * @return VOID
  */
 VOID
-UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess)
+UdRemoveActiveDebuggingProcess()
 {
     //
     // Activate the debugging
@@ -743,7 +748,7 @@ UdKillProcess(UINT32 TargetPid)
         //
         // Remove the current active debugging process (thread)
         //
-        UdRemoveActiveDebuggingProcess(FALSE);
+        UdRemoveActiveDebuggingProcess();
 
         //
         // The operation of attaching was successful
@@ -825,7 +830,7 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
         //
         // Remove the current active debugging process (thread)
         //
-        UdRemoveActiveDebuggingProcess(FALSE);
+        UdRemoveActiveDebuggingProcess();
 
         //
         // The operation of attaching was successful
@@ -1298,7 +1303,7 @@ UdShowListActiveDebuggingProcessesAndThreads()
                     {
                         CheckCurrentProcessOrThread = TRUE;
                     }
-                    ShowMessages("\t%s %04x (thread) | # blk ctx switches: %llx\n",
+                    ShowMessages("\t%s %04x (thread) | # blkd exec attempts: %llx\n",
                                  CheckCurrentProcessOrThread ? "->" : "  ",
                                  AddressOfThreadsAndProcessDetails[i].ThreadId,
                                  AddressOfThreadsAndProcessDetails[i].NumberOfBlockedContextSwitches);

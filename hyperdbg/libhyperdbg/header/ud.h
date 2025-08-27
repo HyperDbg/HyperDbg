@@ -67,7 +67,7 @@ VOID
 UdUninitializeUserDebugger();
 
 VOID
-UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess);
+UdRemoveActiveDebuggingProcess();
 
 VOID
 UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);
