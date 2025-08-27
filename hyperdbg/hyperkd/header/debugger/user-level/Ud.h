@@ -65,4 +65,4 @@ BOOLEAN
 UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest);
 
 BOOLEAN
-UdCheckForCommand();
+UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);

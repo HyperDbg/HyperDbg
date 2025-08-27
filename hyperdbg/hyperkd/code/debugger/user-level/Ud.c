@@ -184,6 +184,7 @@ UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingD
  * @brief Perform stepping though the instructions in target thread
  *
  * @param ThreadDebuggingDetails
+ * @param SteppingType
  *
  * @return VOID
  */
@@ -226,11 +227,6 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
     }
 
     //
-    // Continue the current instruction won't pass it
-    //
-    VmFuncSuppressRipIncrement(KeGetCurrentProcessorNumberEx(NULL));
-
-    //
     // It's not paused anymore!
     //
     ThreadDebuggingDetails->IsPaused = FALSE;
@@ -239,6 +235,7 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
 /**
  * @brief Perform the user-mode commands
  *
+ * @param ProcessDebuggingDetails
  * @param ThreadDebuggingDetails
  * @param UserAction
  * @param OptionalParam1
@@ -249,12 +246,13 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
  * @return BOOLEAN
  */
 BOOLEAN
-UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
-                 DEBUGGER_UD_COMMAND_ACTION_TYPE    UserAction,
-                 UINT64                             OptionalParam1,
-                 UINT64                             OptionalParam2,
-                 UINT64                             OptionalParam3,
-                 UINT64                             OptionalParam4)
+UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
+                 PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
+                 DEBUGGER_UD_COMMAND_ACTION_TYPE     UserAction,
+                 UINT64                              OptionalParam1,
+                 UINT64                              OptionalParam2,
+                 UINT64                              OptionalParam3,
+                 UINT64                              OptionalParam4)
 {
     UNREFERENCED_PARAMETER(OptionalParam2);
     UNREFERENCED_PARAMETER(OptionalParam3);
@@ -272,6 +270,17 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
         //
         UdStepInstructions(ThreadDebuggingDetails, (DEBUGGER_REMOTE_STEPPING_REQUEST)OptionalParam1);
 
+        //
+        // Continue the debuggee process
+        //
+        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
+        {
+            //
+            // Unpause the threads of the target process
+            //
+            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
+        }
+
         break;
 
     default:
@@ -280,6 +289,7 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
         // Invalid user action
         //
         return FALSE;
+
         break;
     }
 
@@ -289,20 +299,15 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
 /**
  * @brief Check for the user-mode commands
  *
+ * @param ProcessDebuggingDetail
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-UdCheckForCommand()
+UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
-
-    //
-    // Check if user-debugger is initialized or not
-    //
-    if (!g_UserDebuggerState)
-    {
-        return FALSE;
-    }
+    BOOLEAN                            CommandFound = FALSE;
 
     ThreadDebuggingDetails = ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(HANDLE_TO_UINT32(PsGetCurrentProcessId()),
                                                                                        HANDLE_TO_UINT32(PsGetCurrentThreadId()));
@@ -314,7 +319,7 @@ UdCheckForCommand()
 
     //
     // If we reached here, the current thread is in debugger attached mechanism
-    // now we check whether it's a regular CPUID or a debugger paused thread CPUID
+    // now we check whether it's paused or not
     //
     if (!ThreadDebuggingDetails->IsPaused)
     {
@@ -330,9 +335,15 @@ UdCheckForCommand()
         if (ThreadDebuggingDetails->UdAction[i].ActionType != DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
         {
             //
+            // We found a command for this thread
+            //
+            CommandFound = TRUE;
+
+            //
             // Perform the command
             //
-            UdPerformCommand(ThreadDebuggingDetails,
+            UdPerformCommand(ProcessDebuggingDetail,
+                             ThreadDebuggingDetails,
                              ThreadDebuggingDetails->UdAction[i].ActionType,
                              ThreadDebuggingDetails->UdAction[i].OptionalParam1,
                              ThreadDebuggingDetails->UdAction[i].OptionalParam2,
@@ -360,9 +371,9 @@ UdCheckForCommand()
     }
 
     //
-    // Won't change the registers for cpuid
+    // Return whether we found a command or not
     //
-    return TRUE;
+    return CommandFound;
 }
 
 /**
@@ -390,17 +401,6 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     }
 
     //
-    // Based on the documentation, HyperDbg stops intercepting threads
-    // when the debugger sent the first command, but if user presses
-    // run the 'pause' command, all the threads (or new threads) that will enter
-    // the user-mode will be intercepted
-    //
-    if (ProcessDebuggingDetails->IsOnThreadInterceptingPhase)
-    {
-        AttachingConfigureInterceptingThreads(ProcessDebuggingDetails->Token, FALSE);
-    }
-
-    //
     // Apply the command to all threads or just one thread
     //
     return ThreadHolderApplyActionToPausedThreads(ProcessDebuggingDetails, ActionRequest);
@@ -423,6 +423,11 @@ UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetai
     // Save the RIP for future return
     //
     ThreadDebuggingDetails->ThreadRip = VmFuncGetRip();
+
+    //
+    // Set the number of context switches to one (reset it if already set)
+    //
+    ThreadDebuggingDetails->NumberOfBlockedContextSwitches = 1;
 
     //
     // Indicate that it's spinning
@@ -526,6 +531,11 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     if (ThreadDebuggingDetails->IsPaused)
     {
+        //
+        // Increase the number of context switches
+        //
+        ThreadDebuggingDetails->NumberOfBlockedContextSwitches++;
+
         //
         // The thread is already paused, so we don't need to pause it again
         //

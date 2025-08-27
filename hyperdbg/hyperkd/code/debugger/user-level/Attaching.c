@@ -656,11 +656,17 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
         //
         // Handling state through the user-mode debugger
         //
-        UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
-                                                  NULL);
+        if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
+                                                      NULL))
+        {
+            //
+            // Check for possible commands that need to be executed
+            //
+            UdCheckForCommand(ProcessDebuggingDetail);
 
-        return TRUE;
+            return TRUE;
+        }
     }
 
     //

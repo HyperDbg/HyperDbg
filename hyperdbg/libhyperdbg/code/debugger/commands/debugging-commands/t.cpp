@@ -93,7 +93,7 @@ CommandT(vector<CommandToken> CommandTokens, string Command)
         if (g_ActiveProcessDebuggingState.IsActive && !g_ActiveProcessDebuggingState.IsPaused)
         {
             ShowMessages("the target process is running, use the "
-                         "'pause' command or press CTRL+C to pause the process\n");
+                         "'pause' command to pause the process\n");
             return;
         }
 
