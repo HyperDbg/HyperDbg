@@ -2004,12 +2004,10 @@ ScriptEngineFunctionEventTraceStepIn()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
-
     //
     // Call instrumentation step in
     //
-    TracingPerformRegularStepInInstruction(&g_DbgState[CurrentCore]);
+    TracingPerformRegularStepInInstruction();
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

@@ -53,7 +53,10 @@ typedef struct _ACTIVE_DEBUGGING_PROCESS
     BOOLEAN    IsPaused;
     GUEST_REGS Registers; // thread registers
     UINT64     Context;   // $context
+    UINT64     Rip;
     BOOLEAN    Is32Bit;
+    BYTE       InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+
 } ACTIVE_DEBUGGING_PROCESS, *PACTIVE_DEBUGGING_PROCESS;
 
 //////////////////////////////////////////////////
@@ -77,10 +80,13 @@ UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, UINT32 TargetThreadId, DEBU
 
 VOID
 UdSetActiveDebuggingProcess(UINT64  DebuggingId,
+                            UINT64  Rip,
                             UINT32  ProcessId,
                             UINT32  ThreadId,
                             BOOLEAN Is32Bit,
-                            BOOLEAN IsPaused);
+                            BOOLEAN IsPaused,
+                            BYTE    InstructionBytesOnRip[]);
+
 BOOLEAN
 UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid);
 

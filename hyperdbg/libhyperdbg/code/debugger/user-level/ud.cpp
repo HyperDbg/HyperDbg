@@ -97,39 +97,47 @@ UdUninitializeUserDebugger()
 /**
  * @brief set the current active debugging process (thread)
  * @param DebuggingId
+ * @param Rip
  * @param ProcessId
  * @param ThreadId
  * @param Is32Bit
+ * @param InstructionBytesOnRip
  *
  * @return VOID
  */
 VOID
 UdSetActiveDebuggingProcess(UINT64  DebuggingId,
+                            UINT64  Rip,
                             UINT32  ProcessId,
                             UINT32  ThreadId,
                             BOOLEAN Is32Bit,
-                            BOOLEAN IsPaused)
+                            BOOLEAN IsPaused,
+                            BYTE    InstructionBytesOnRip[])
 {
-    if (g_ActiveProcessDebuggingState.IsPaused == FALSE)
-    {
-        //
-        // Activate the debugging
-        //
-        g_ActiveProcessDebuggingState.IsActive = TRUE;
+    //
+    // Activate the debugging
+    //
+    g_ActiveProcessDebuggingState.IsActive = TRUE;
 
-        //
-        // Set the details
-        //
-        g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
-        g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
-        g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
-        g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
+    //
+    // Set the details
+    //
+    g_ActiveProcessDebuggingState.ProcessId = ProcessId;
+    g_ActiveProcessDebuggingState.ThreadId  = ThreadId;
+    g_ActiveProcessDebuggingState.Is32Bit   = Is32Bit;
+    g_ActiveProcessDebuggingState.Rip       = Rip;
 
-        //
-        // Set pausing state
-        //
-        g_ActiveProcessDebuggingState.IsPaused = IsPaused;
-    }
+    g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
+
+    //
+    // Set current instruction
+    //
+    memcpy(&g_ActiveProcessDebuggingState.InstructionBytesOnRip[0], &InstructionBytesOnRip[0], MAXIMUM_INSTR_SIZE);
+
+    //
+    // Set pausing state
+    //
+    g_ActiveProcessDebuggingState.IsPaused = IsPaused;
 }
 
 /**
@@ -1057,6 +1065,32 @@ UdSendCommand(UINT64                          ProcessDetailToken,
 VOID
 UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
 {
+    BOOLEAN IsCurrentInstructionACall = FALSE;
+    UINT32  CallInstructionSize       = 0;
+
+    //
+    // Check for specific stepping type
+    //
+    if (StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
+    {
+        //
+        // We should check whether the current instruction is a 'call'
+        // instruction or not, if yes we have to compute the length of call
+        //
+        if (HyperDbgCheckWhetherTheCurrentInstructionIsCall(
+                (unsigned char *)&g_ActiveProcessDebuggingState.InstructionBytesOnRip[0],
+                MAXIMUM_INSTR_SIZE,
+                g_ActiveProcessDebuggingState.Is32Bit ? FALSE : TRUE, // equals to !g_IsRunningInstruction32Bit
+                &CallInstructionSize))
+        {
+            //
+            // It's a call in step-over
+            //
+            IsCurrentInstructionACall = TRUE;
+            CallInstructionSize       = CallInstructionSize;
+        }
+    }
+
     //
     // Wait until the result of user-input received
     //
@@ -1072,8 +1106,8 @@ UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEB
                   DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
                   FALSE,
                   StepType,
-                  NULL,
-                  NULL,
+                  IsCurrentInstructionACall,
+                  CallInstructionSize,
                   NULL);
 
     WaitForSingleObject(
@@ -1125,8 +1159,7 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                                  // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
-                                                         // code
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control code
         &SwitchRequest,                                  // Input Buffer to driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
         &SwitchRequest,                                  // Output Buffer from driver.
@@ -1151,10 +1184,12 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
         // Set the current active debugging process (thread)
         //
         UdSetActiveDebuggingProcess(SwitchRequest.Token,
+                                    SwitchRequest.Rip,
                                     SwitchRequest.ProcessId,
                                     SwitchRequest.ThreadId,
                                     SwitchRequest.Is32Bit,
-                                    SwitchRequest.IsPaused);
+                                    SwitchRequest.IsPaused,
+                                    SwitchRequest.InstructionBytesOnRip);
 
         //
         // The operation of attaching was successful

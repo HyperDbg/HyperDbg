@@ -165,76 +165,162 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
 }
 
 /**
- * @brief Restore the thread to the original direction
+ * @brief Apply hardware debug registers to all cores
  *
- * @param ThreadDebuggingDetails
+ * @param TargetAddress
  *
  * @return VOID
  */
 VOID
-UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
+UdApplyHardwareDebugRegister(PVOID TargetAddress)
+{
+    SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                      BREAK_ON_INSTRUCTION_FETCH,
+                      FALSE,
+                      (UINT64)TargetAddress);
+}
+
+/**
+ * @brief routines to broadcast setting hardware debug registers on all cores
+ * @param TargetAddress
+ *
+ * @return VOID
+ */
+VOID
+UdBroadcastSetHardwareDebugRegistersAllCores(PVOID TargetAddress)
 {
     //
-    // Configure the RIP again
+    // Broadcast to all cores
     //
-    VmFuncSetRip(ThreadDebuggingDetails->ThreadRip);
+    KeGenericCallDpc(DpcRoutineSetHardwareDebugRegisters, TargetAddress);
+}
+
+/**
+ * @brief Regular step-over, step one instruction to the debuggee on user debugger if
+ * there is a call then it jumps the call
+ *
+ * @param LastRip Last RIP register
+ * @param IsNextInstructionACall
+ * @param CallLength
+ *
+ * @return VOID
+ */
+VOID
+UdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLength)
+{
+    UINT64 NextAddressForHardwareDebugBp = 0;
+
+    // LogInfo("Last Rip: %llx, IsNextInstructionACall: %s, Call length: %x",
+    //         LastRip,
+    //         IsNextInstructionACall ? "true" : "false",
+    //         CallLength);
+
+    if (IsNextInstructionACall)
+    {
+        //
+        // It's a call, we should put a hardware debug register breakpoint
+        // on the next instruction
+        //
+        NextAddressForHardwareDebugBp = LastRip + CallLength;
+
+        //
+        // Broadcast to apply hardware debug registers to all cores
+        //
+        UdBroadcastSetHardwareDebugRegistersAllCores((PVOID)NextAddressForHardwareDebugBp);
+    }
+    else
+    {
+        //
+        // Any instruction other than call (regular step)
+        //
+        TracingRegularStepInInstruction();
+    }
+}
+
+/**
+ * @brief Handles debug events when user-debugger is attached
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param TrapSetByDebugger Shows whether a trap set by debugger or not
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdHandleDebugEventsWhenUserDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                              BOOLEAN                     TrapSetByDebugger)
+{
+    UNREFERENCED_PARAMETER(TrapSetByDebugger);
+
+    if (UdHandleInstantBreak(DbgState,
+                             DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                             NULL))
+    {
+        //
+        // Handled by user debugger
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not handled by user debugger
+        //
+        return FALSE;
+    }
 }
 
 /**
  * @brief Perform stepping though the instructions in target thread
  *
+ * @param DbgState The state of the debugger on the current core
  * @param ThreadDebuggingDetails
  * @param SteppingType
+ * @param IsCurrentInstructionACall
+ * @param CallInstructionSize
  *
  * @return VOID
  */
 VOID
-UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
-                   DEBUGGER_REMOTE_STEPPING_REQUEST   SteppingType)
+UdStepInstructions(PROCESSOR_DEBUGGING_STATE *        DbgState,
+                   PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
+                   DEBUGGER_REMOTE_STEPPING_REQUEST   SteppingType,
+                   BOOLEAN                            IsCurrentInstructionACall,
+                   UINT32                             CallInstructionSize)
 {
-    //
-    // Configure the RIP
-    //
-    UdRestoreToOriginalDirection(ThreadDebuggingDetails);
+    UNREFERENCED_PARAMETER(ThreadDebuggingDetails);
 
     switch (SteppingType)
     {
     case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN:
 
         //
-        // Set the trap-flag
+        // Apply step-in (t command)
         //
-        VmFuncSetRflagTrapFlag(TRUE);
-
-        //
-        // Indicate that we should set the trap flag to the FALSE next time on
-        // the same process/thread
-        //
-        if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
-        {
-            LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
-                       "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
-        }
+        TracingRegularStepInInstruction();
 
         break;
 
     case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER:
+
+        //
+        // Apply Step-over (p command)
+        //
+        UdRegularStepOver(
+            VmFuncGetLastVmexitRip(DbgState->CoreId),
+            IsCurrentInstructionACall,
+            CallInstructionSize);
 
         break;
 
     default:
         break;
     }
-
-    //
-    // It's not paused anymore!
-    //
-    ThreadDebuggingDetails->IsPaused = FALSE;
 }
 
 /**
  * @brief Perform the user-mode commands
  *
+ * @param DbgState The state of the debugger on the current core
  * @param ProcessDebuggingDetails
  * @param ThreadDebuggingDetails
  * @param UserAction
@@ -246,7 +332,8 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
  * @return BOOLEAN
  */
 BOOLEAN
-UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
+UdPerformCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                 PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
                  PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
                  DEBUGGER_UD_COMMAND_ACTION_TYPE     UserAction,
                  UINT64                              OptionalParam1,
@@ -254,8 +341,6 @@ UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
                  UINT64                              OptionalParam3,
                  UINT64                              OptionalParam4)
 {
-    UNREFERENCED_PARAMETER(OptionalParam2);
-    UNREFERENCED_PARAMETER(OptionalParam3);
     UNREFERENCED_PARAMETER(OptionalParam4);
 
     //
@@ -268,7 +353,11 @@ UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
         //
         // Stepping through the instructions
         //
-        UdStepInstructions(ThreadDebuggingDetails, (DEBUGGER_REMOTE_STEPPING_REQUEST)OptionalParam1);
+        UdStepInstructions(DbgState,
+                           ThreadDebuggingDetails,
+                           (DEBUGGER_REMOTE_STEPPING_REQUEST)OptionalParam1,
+                           (BOOLEAN)OptionalParam2,
+                           (UINT32)OptionalParam3);
 
         //
         // Continue the debuggee process
@@ -299,12 +388,14 @@ UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
 /**
  * @brief Check for the user-mode commands
  *
+ * @param DbgState The state of the debugger on the current core
  * @param ProcessDebuggingDetail
  *
  * @return BOOLEAN
  */
 BOOLEAN
-UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                  PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
     BOOLEAN                            CommandFound = FALSE;
@@ -342,7 +433,8 @@ UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
             //
             // Perform the command
             //
-            UdPerformCommand(ProcessDebuggingDetail,
+            UdPerformCommand(DbgState,
+                             ProcessDebuggingDetail,
                              ThreadDebuggingDetails,
                              ThreadDebuggingDetails->UdAction[i].ActionType,
                              ThreadDebuggingDetails->UdAction[i].OptionalParam1,
@@ -411,11 +503,16 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
  *
  * @param ThreadDebuggingDetails
  * @param ProcessDebuggingDetails
+ * @param InstructionBytesBuffer
+ * @param SizeOfInstruction
+ *
  * @return VOID
  */
 VOID
 UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
-                        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
+                        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails,
+                        PVOID                               InstructionBytesBuffer,
+                        UINT32                              SizeOfInstruction)
 {
     UNREFERENCED_PARAMETER(ProcessDebuggingDetails);
 
@@ -433,6 +530,16 @@ UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetai
     // Indicate that it's spinning
     //
     ThreadDebuggingDetails->IsPaused = TRUE;
+
+    //
+    // Set size of instruction
+    //
+    ThreadDebuggingDetails->SizeOfInstruction = SizeOfInstruction;
+
+    //
+    // Copy the current running instruction
+    //
+    memcpy(&ThreadDebuggingDetails->InstructionBytesOnRip[0], InstructionBytesBuffer, SizeOfInstruction);
 }
 
 /**
@@ -656,7 +763,10 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Set the thread debugging details
     //
-    UdSetThreadPausingState(ThreadDebuggingDetails, ProcessDebuggingDetails);
+    UdSetThreadPausingState(ThreadDebuggingDetails,
+                            ProcessDebuggingDetails,
+                            &PausePacket.InstructionBytesOnRip,
+                            ExitInstructionLength);
 
     //
     // Everything was okay

@@ -290,9 +290,8 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             //
             KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
         }
-        else if (UdHandleInstantBreak(DbgState,
-                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                      NULL))
+        else if (g_UserDebuggerState == TRUE &&
+                 UdHandleDebugEventsWhenUserDebuggerIsAttached(DbgState, TrapSetByDebugger))
         {
             //
             // if the above function returns true, no need for further action
@@ -338,9 +337,8 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId)
             //
             KdHandleDebugEventsWhenKernelDebuggerIsAttached(DbgState, TrapSetByDebugger);
         }
-        else if (UdHandleInstantBreak(DbgState,
-                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
-                                      NULL))
+        else if (g_UserDebuggerState == TRUE &&
+                 UdHandleDebugEventsWhenUserDebuggerIsAttached(DbgState, TrapSetByDebugger))
         {
             //
             // if the above function returns true, no need for further action

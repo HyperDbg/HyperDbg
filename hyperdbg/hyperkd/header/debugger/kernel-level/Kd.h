@@ -135,12 +135,6 @@ KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len
 static VOID
 KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState);
 
-static VOID
-KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState);
-
-static VOID
-KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructionACall, UINT32 CallLength);
-
 static BOOLEAN
 KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader,
                        DEBUGGER_EVENT_AND_ACTION_RESULT *                  DebuggerEventAndActionResult);

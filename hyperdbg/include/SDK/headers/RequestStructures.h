@@ -666,7 +666,10 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
     UINT32                                               ThreadId;
     BOOLEAN                                              CheckCallbackAtFirstInstruction;
     BOOLEAN                                              Is32Bit;
-    BOOLEAN                                              IsPaused; // used in switching to threads
+    UINT64                                               Rip;                                       // used in switching threads
+    BYTE                                                 InstructionBytesOnRip[MAXIMUM_INSTR_SIZE]; // used in switching threads
+    UINT32                                               SizeOfInstruction;                         // used in switching threads
+    BOOLEAN                                              IsPaused;                                  // used in switching to threads
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
     UINT32                                               CountOfActiveDebuggingThreadsAndProcesses; // used in showing the list of active threads/processes
     UINT64                                               Token;
