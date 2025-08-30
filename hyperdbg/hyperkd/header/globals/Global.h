@@ -17,6 +17,12 @@
 PROCESSOR_DEBUGGING_STATE * g_DbgState;
 
 /**
+ * @brief Event to show whether the user debugger is waiting for a command or not
+ *
+ */
+KEVENT g_UserDebuggerWaitingCommandEvent;
+
+/**
  * @brief Holder of script engines global variables
  *
  */

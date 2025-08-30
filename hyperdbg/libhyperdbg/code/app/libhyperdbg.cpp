@@ -34,6 +34,8 @@ extern BOOLEAN    g_IsDebuggerModulesLoaded;
 extern BOOLEAN    g_IsReversingMachineModulesLoaded;
 extern BOOLEAN    g_PrivilegesAlreadyAdjusted;
 extern LIST_ENTRY g_OutputSources;
+extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
+    g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
 
 /**
  * @brief Set the function callback that will be called if any message

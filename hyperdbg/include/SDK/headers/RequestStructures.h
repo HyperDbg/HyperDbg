@@ -903,6 +903,7 @@ typedef enum _DEBUGGER_UD_COMMAND_ACTION_TYPE
     DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE = 0,
     DEBUGGER_UD_COMMAND_ACTION_TYPE_PAUSE,
     DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS,
 
 } DEBUGGER_UD_COMMAND_ACTION_TYPE;
 
@@ -930,6 +931,7 @@ typedef struct _DEBUGGER_UD_COMMAND_PACKET
     UINT64                     ProcessDebuggingDetailToken;
     UINT32                     TargetThreadId;
     BOOLEAN                    ApplyToAllPausedThreads;
+    BOOLEAN                    WaitForEventCompletion;
     UINT32                     Result;
 
 } DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;

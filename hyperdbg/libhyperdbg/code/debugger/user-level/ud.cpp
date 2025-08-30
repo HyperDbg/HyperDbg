@@ -994,6 +994,7 @@ UdContinueProcess(UINT64 ProcessDebuggingToken)
  * @param ThreadId
  * @param ActionType
  * @param ApplyToAllPausedThreads
+ * @param WaitForEventCompletion
  * @param OptionalParam1
  * @param OptionalParam2
  * @param OptionalParam3
@@ -1006,6 +1007,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
               UINT32                          ThreadId,
               DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
               BOOLEAN                         ApplyToAllPausedThreads,
+              BOOLEAN                         WaitForEventCompletion,
               UINT64                          OptionalParam1,
               UINT64                          OptionalParam2,
               UINT64                          OptionalParam3,
@@ -1028,6 +1030,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
     CommandPacket.ProcessDebuggingDetailToken = ProcessDetailToken;
     CommandPacket.ApplyToAllPausedThreads     = ApplyToAllPausedThreads;
     CommandPacket.TargetThreadId              = ThreadId;
+    CommandPacket.WaitForEventCompletion      = WaitForEventCompletion;
     CommandPacket.UdAction.ActionType         = ActionType;
     CommandPacket.UdAction.OptionalParam1     = OptionalParam1;
     CommandPacket.UdAction.OptionalParam2     = OptionalParam2;
@@ -1055,6 +1058,52 @@ UdSendCommand(UINT64                          ProcessDetailToken,
 }
 
 /**
+ * @brief Send the command to the user debugger+
+ *
+ * @param ProcessDetailToken
+ * @param TargetThreadId
+ * @param RegDes
+ * @param RegBuffSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdSendReadRegisterToUserDebugger(UINT64                              ProcessDetailToken,
+                                 UINT32                              TargetThreadId,
+                                 PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes,
+                                 UINT32                              RegBuffSize)
+
+{
+    //
+    // Set the request data
+    //
+    DbgWaitSetUserRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_READ_REGISTERS, RegDes, RegBuffSize);
+
+    //
+    // Send the 'step' command
+    //
+    UdSendCommand(ProcessDetailToken,
+                  TargetThreadId,
+                  DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS,
+                  FALSE,
+                  TRUE,
+                  RegDes->RegisterId,
+                  NULL,
+                  NULL,
+                  NULL);
+
+    //
+    // Wait until the result of read registers received
+    //
+    DbgWaitForUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_READ_REGISTERS);
+
+    //
+    // Reading it was successful
+    //
+    return TRUE;
+}
+
+/**
  * @brief Send stepping instructions packet to user debugger
  * @param ProcessDetailToken
  * @param TargetThreadId
@@ -1063,7 +1112,9 @@ UdSendCommand(UINT64                          ProcessDetailToken,
  * @return VOID
  */
 VOID
-UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
+UdSendStepPacketToDebuggee(UINT64                           ProcessDetailToken,
+                           UINT32                           TargetThreadId,
+                           DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
 {
     BOOLEAN IsCurrentInstructionACall = FALSE;
     UINT32  CallInstructionSize       = 0;
@@ -1092,29 +1143,22 @@ UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEB
     }
 
     //
-    // Wait until the result of user-input received
-    //
-    g_UserSyncronizationObjectsHandleTable
-        [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
-            .IsOnWaitingState = TRUE;
-
-    //
     // Send the 'step' command
     //
     UdSendCommand(ProcessDetailToken,
                   TargetThreadId,
                   DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
                   FALSE,
+                  FALSE,
                   StepType,
                   IsCurrentInstructionACall,
                   CallInstructionSize,
                   NULL);
 
-    WaitForSingleObject(
-        g_UserSyncronizationObjectsHandleTable
-            [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
-                .EventHandle,
-        INFINITE);
+    //
+    // Wait until the result of user-input received
+    //
+    DbgWaitForUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING);
 }
 
 /**

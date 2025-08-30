@@ -17,7 +17,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 std::map<std::string, REGS_ENUM> RegistersMap = {
     {"rax", REGISTER_RAX},
@@ -201,10 +202,30 @@ HyperDbgReadAllRegisters(GUEST_REGS * GuestRegisters, GUEST_EXTRA_REGISTERS * Ex
     //
     RegState->RegisterId = DEBUGGEE_SHOW_ALL_REGISTERS;
 
-    if (!KdSendReadRegisterPacketToDebuggee(RegState, SizeOfRegState))
+    //
+    // Check whether a kernel debugger is connected or a user-mode debugger is active
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        free(RegState);
-        return FALSE;
+        if (!KdSendReadRegisterPacketToDebuggee(RegState, SizeOfRegState))
+        {
+            free(RegState);
+            return FALSE;
+        }
+    }
+    else if (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused)
+    {
+        //
+        // It's stepping over user debugger
+        //
+        if (!UdSendReadRegisterToUserDebugger(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                              g_ActiveProcessDebuggingState.ThreadId,
+                                              RegState,
+                                              SizeOfRegState))
+        {
+            free(RegState);
+            return FALSE;
+        }
     }
 
     if (RegState->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
@@ -253,9 +274,25 @@ HyperDbgReadTargetRegister(REGS_ENUM RegisterId, UINT64 * TargetRegister)
     //
     RegState.RegisterId = (UINT32)RegisterId;
 
-    if (!KdSendReadRegisterPacketToDebuggee(&RegState, sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        return FALSE;
+        if (!KdSendReadRegisterPacketToDebuggee(&RegState, sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+        {
+            return FALSE;
+        }
+    }
+    else if (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused)
+    {
+        //
+        // It's stepping over user debugger
+        //
+        if (!UdSendReadRegisterToUserDebugger(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                              g_ActiveProcessDebuggingState.ThreadId,
+                                              &RegState,
+                                              sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+        {
+            return FALSE;
+        }
     }
 
     if (RegState.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
@@ -423,22 +460,40 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
     UINT32                   Pointer;
     REGS_ENUM                RegKind;
     std::vector<std::string> Tmp;
+    std::string              SetRegValue;
 
-    std::string SetRegValue;
+//
+// Disable user-mode debugger in this version
+//
+#if ActivateUserModeDebugger == FALSE
+
+    if (!g_IsSerialConnectedToRemoteDebugger)
+    {
+        ShowMessages("the user-mode debugger in VMI Mode is still in the beta version and not stable. "
+                     "we decided to exclude it from this release and release it in future versions. "
+                     "if you want to test the user-mode debugger in VMI Mode, you should build "
+                     "HyperDbg with special instructions. But starting processes is fully supported "
+                     "in the Debugger Mode.\n"
+                     "(it's not recommended to use it in VMI Mode yet!)\n");
+        return;
+    }
+
+#endif // !ActivateUserModeDebugger
 
     if (CommandTokens.size() == 1)
     {
         //
         // show all registers
         //
-        if (g_IsSerialConnectedToRemoteDebuggee)
+        if (g_IsSerialConnectedToRemoteDebuggee ||
+            (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused))
         {
             HyperDbgRegisterShowAll();
         }
         else
         {
             ShowMessages("err, reading registers (r) is not valid in the current "
-                         "context, you should connect to a debuggee\n");
+                         "context, you should connect to a debuggee or attach to a process\n");
         }
 
         return;
@@ -476,14 +531,15 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
             //
             // send the request
             //
-            if (g_IsSerialConnectedToRemoteDebuggee)
+            if (g_IsSerialConnectedToRemoteDebuggee ||
+                (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused))
             {
                 HyperDbgRegisterShowTargetRegister(RegKind);
             }
             else
             {
                 ShowMessages("err, reading registers (r) is not valid in the current "
-                             "context, you should connect to a debuggee\n");
+                             "context, you should connect to a debuggee or attach to a process\n");
             }
         }
         else
@@ -495,7 +551,6 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
     //
     // if command contains a '=' means user wants modify the register
     //
-
     else if (Command.find('=', 0) != string::npos)
     {
         Command.erase(0, 1);

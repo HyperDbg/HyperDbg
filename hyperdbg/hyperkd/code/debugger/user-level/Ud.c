@@ -68,6 +68,11 @@ UdInitializeUserDebugger()
     ThreadHolderAllocateThreadHoldingBuffers();
 
     //
+    // Initialize command waiting event
+    //
+    KeInitializeEvent(&g_UserDebuggerWaitingCommandEvent, SynchronizationEvent, FALSE);
+
+    //
     // Indicate that the user debugger is active
     //
     g_UserDebuggerState = TRUE;
@@ -273,6 +278,7 @@ UdHandleDebugEventsWhenUserDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgSta
  * @brief Perform stepping though the instructions in target thread
  *
  * @param DbgState The state of the debugger on the current core
+ * @param ProcessDebuggingDetail
  * @param ThreadDebuggingDetails
  * @param SteppingType
  * @param IsCurrentInstructionACall
@@ -281,11 +287,12 @@ UdHandleDebugEventsWhenUserDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgSta
  * @return VOID
  */
 VOID
-UdStepInstructions(PROCESSOR_DEBUGGING_STATE *        DbgState,
-                   PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
-                   DEBUGGER_REMOTE_STEPPING_REQUEST   SteppingType,
-                   BOOLEAN                            IsCurrentInstructionACall,
-                   UINT32                             CallInstructionSize)
+UdStepInstructions(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                   PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
+                   PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
+                   DEBUGGER_REMOTE_STEPPING_REQUEST    SteppingType,
+                   BOOLEAN                             IsCurrentInstructionACall,
+                   UINT32                              CallInstructionSize)
 {
     UNREFERENCED_PARAMETER(ThreadDebuggingDetails);
 
@@ -297,6 +304,17 @@ UdStepInstructions(PROCESSOR_DEBUGGING_STATE *        DbgState,
         // Apply step-in (t command)
         //
         TracingRegularStepInInstruction();
+
+        //
+        // Continue the debuggee process
+        //
+        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
+        {
+            //
+            // Unpause the threads of the target process
+            //
+            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
+        }
 
         break;
 
@@ -310,11 +328,55 @@ UdStepInstructions(PROCESSOR_DEBUGGING_STATE *        DbgState,
             IsCurrentInstructionACall,
             CallInstructionSize);
 
+        //
+        // Continue the debuggee process
+        //
+        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
+        {
+            //
+            // Unpause the threads of the target process
+            //
+            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
+        }
+
         break;
 
     default:
         break;
     }
+}
+
+/**
+ * @brief Perform stepping though the instructions in target thread
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param ProcessDebuggingDetail
+ * @param ThreadDebuggingDetails
+ * @param SteppingType
+ * @param IsCurrentInstructionACall
+ * @param CallInstructionSize
+ *
+ * @return VOID
+ */
+VOID
+UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
+                UINT32                      RegisterId)
+{
+    UNREFERENCED_PARAMETER(DbgState);
+    UNREFERENCED_PARAMETER(RegisterId);
+
+    //
+    // Send the register packet to the user debugger
+    //
+    // LogCallbackSendBuffer(OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_READ_REGISTERS,
+    //                       &PausePacket,
+    //                       sizeof(DEBUGGEE_UD_PAUSED_PACKET),
+    //                       TRUE);
+
+    //
+    // Set the event to indicate that the command is completed
+    //
+    KeSetEvent(&g_UserDebuggerWaitingCommandEvent, IO_NO_INCREMENT, FALSE);
 }
 
 /**
@@ -354,21 +416,21 @@ UdPerformCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
         // Stepping through the instructions
         //
         UdStepInstructions(DbgState,
+                           ProcessDebuggingDetail,
                            ThreadDebuggingDetails,
                            (DEBUGGER_REMOTE_STEPPING_REQUEST)OptionalParam1,
                            (BOOLEAN)OptionalParam2,
                            (UINT32)OptionalParam3);
 
+        break;
+
+    case DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS:
+
         //
-        // Continue the debuggee process
+        // Read the registers
         //
-        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
-        {
-            //
-            // Unpause the threads of the target process
-            //
-            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
-        }
+        UdReadRegisters(DbgState,
+                        (UINT32)OptionalParam1);
 
         break;
 
@@ -478,6 +540,7 @@ BOOLEAN
 UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
+    BOOLEAN                             Result;
 
     //
     // Find the thread debugging detail of the thread
@@ -495,7 +558,24 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     //
     // Apply the command to all threads or just one thread
     //
-    return ThreadHolderApplyActionToPausedThreads(ProcessDebuggingDetails, ActionRequest);
+    Result = ThreadHolderApplyActionToPausedThreads(ProcessDebuggingDetails, ActionRequest);
+
+    //
+    // Check if we need to wait for the command event completion or not
+    //
+    if (Result && ActionRequest->WaitForEventCompletion)
+    {
+        //
+        // Wait for the command to be completed
+        //
+        KeWaitForSingleObject(&g_UserDebuggerWaitingCommandEvent,
+                              Executive,
+                              KernelMode,
+                              FALSE,
+                              NULL);
+    }
+
+    return Result;
 }
 
 /**
@@ -745,11 +825,6 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     MemoryMapperReadMemorySafeOnTargetProcess(LastVmexitRip,
                                               &PausePacket.InstructionBytesOnRip,
                                               ExitInstructionLength);
-
-    //
-    // Copy registers to the pause packet
-    //
-    RtlCopyMemory(&PausePacket.GuestRegs, DbgState->Regs, sizeof(GUEST_REGS));
 
     //
     // Send the pause packet, along with RIP and an indication
