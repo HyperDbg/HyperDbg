@@ -113,13 +113,6 @@ static VOID
 KdContinueDebuggeeJustCurrentCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static BOOLEAN
-KdReadRegisters(_In_ PROCESSOR_DEBUGGING_STATE *            DbgState,
-                _Inout_ PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
-static BOOLEAN
-KdReadMemory(_In_ PGUEST_REGS                            Regs,
-             _Inout_ PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
-
-static BOOLEAN
 KdSwitchCore(PROCESSOR_DEBUGGING_STATE *   DbgState,
              DEBUGGEE_CHANGE_CORE_PACKET * ChangeCorePacket);
 

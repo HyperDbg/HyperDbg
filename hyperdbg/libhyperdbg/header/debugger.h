@@ -102,7 +102,6 @@ typedef enum _DEBUGGER_EVENT_PARSING_ERROR_CAUSE
 // User-debugger
 //
 #define DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING 0x0
-#define DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_READ_REGISTERS      0x1
 
 //////////////////////////////////////////////////
 //            	   Event Details                //

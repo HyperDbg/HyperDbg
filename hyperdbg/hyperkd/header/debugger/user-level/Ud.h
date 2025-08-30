@@ -65,7 +65,9 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
                                           PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
 BOOLEAN
-UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest);
+UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
+                           UINT32                      ActionRequestInputLength,
+                           UINT32                      ActionRequestOutputLength);
 
 BOOLEAN
 UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,

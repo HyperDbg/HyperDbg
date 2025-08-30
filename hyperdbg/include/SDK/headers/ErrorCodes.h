@@ -575,6 +575,12 @@
  */
 #define DEBUGGER_ERROR_UNABLE_TO_TRIGGER_SMI 0xc0000058
 
+/**
+ * @brief error, unable to apply the command to the target thread
+ *
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_APPLY_COMMAND_TO_THE_TARGET_THREAD 0xc0000059
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

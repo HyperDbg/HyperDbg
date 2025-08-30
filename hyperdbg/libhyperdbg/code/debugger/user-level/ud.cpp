@@ -993,6 +993,8 @@ UdContinueProcess(UINT64 ProcessDebuggingToken)
  * @param ProcessDetailToken
  * @param ThreadId
  * @param ActionType
+ * @param OptionalBuffer
+ * @param OptionalBufferSize
  * @param ApplyToAllPausedThreads
  * @param WaitForEventCompletion
  * @param OptionalParam1
@@ -1000,12 +1002,14 @@ UdContinueProcess(UINT64 ProcessDebuggingToken)
  * @param OptionalParam3
  * @param OptionalParam4
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 UdSendCommand(UINT64                          ProcessDetailToken,
               UINT32                          ThreadId,
               DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
+              PVOID                           OptionalBuffer,
+              UINT32                          OptionalBufferSize,
               BOOLEAN                         ApplyToAllPausedThreads,
               BOOLEAN                         WaitForEventCompletion,
               UINT64                          OptionalParam1,
@@ -1013,48 +1017,113 @@ UdSendCommand(UINT64                          ProcessDetailToken,
               UINT64                          OptionalParam3,
               UINT64                          OptionalParam4)
 {
-    BOOL                       Status;
-    ULONG                      ReturnedLength;
-    DEBUGGER_UD_COMMAND_PACKET CommandPacket;
+    BOOL                         Status;
+    ULONG                        ReturnedLength;
+    UINT32                       TargetBufferSize = 0;
+    DEBUGGER_UD_COMMAND_PACKET * CommandPacket;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+
+    //
+    // Calculate the target buffer size
+    //
+    if (OptionalBufferSize == 0)
+    {
+        TargetBufferSize = sizeof(DEBUGGER_UD_COMMAND_PACKET);
+    }
+    else
+    {
+        TargetBufferSize = sizeof(DEBUGGER_UD_COMMAND_PACKET) + OptionalBufferSize;
+    }
+
+    //
+    // Allocate the target buffer
+    //
+    CommandPacket = (DEBUGGER_UD_COMMAND_PACKET *)malloc(TargetBufferSize);
+
+    if (CommandPacket == NULL)
+    {
+        ShowMessages("err, unable to allocate memory for command\n");
+        return FALSE;
+    }
 
     //
     // Zero the packet
     //
-    RtlZeroMemory(&CommandPacket, sizeof(DEBUGGER_UD_COMMAND_PACKET));
+    RtlZeroMemory(CommandPacket, TargetBufferSize);
 
     //
     // Set to the details
     //
-    CommandPacket.ProcessDebuggingDetailToken = ProcessDetailToken;
-    CommandPacket.ApplyToAllPausedThreads     = ApplyToAllPausedThreads;
-    CommandPacket.TargetThreadId              = ThreadId;
-    CommandPacket.WaitForEventCompletion      = WaitForEventCompletion;
-    CommandPacket.UdAction.ActionType         = ActionType;
-    CommandPacket.UdAction.OptionalParam1     = OptionalParam1;
-    CommandPacket.UdAction.OptionalParam2     = OptionalParam2;
-    CommandPacket.UdAction.OptionalParam3     = OptionalParam3;
-    CommandPacket.UdAction.OptionalParam4     = OptionalParam4;
+    CommandPacket->ProcessDebuggingDetailToken = ProcessDetailToken;
+    CommandPacket->ApplyToAllPausedThreads     = ApplyToAllPausedThreads;
+    CommandPacket->TargetThreadId              = ThreadId;
+    CommandPacket->WaitForEventCompletion      = WaitForEventCompletion;
+    CommandPacket->UdAction.ActionType         = ActionType;
+    CommandPacket->UdAction.OptionalParam1     = OptionalParam1;
+    CommandPacket->UdAction.OptionalParam2     = OptionalParam2;
+    CommandPacket->UdAction.OptionalParam3     = OptionalParam3;
+    CommandPacket->UdAction.OptionalParam4     = OptionalParam4;
+
+    //
+    // Copy the optional buffer if it's present
+    //
+    if (OptionalBuffer != NULL && OptionalBufferSize != 0)
+    {
+        //
+        // Append the optional buffer to the command packet buffer
+        //
+        memcpy((VOID *)((UINT8 *)CommandPacket + sizeof(DEBUGGER_UD_COMMAND_PACKET)), OptionalBuffer, OptionalBufferSize);
+    }
 
     //
     // Send IOCTL
     //
-    Status = DeviceIoControl(g_DeviceHandle,                     // Handle to device
-                             IOCTL_SEND_USER_DEBUGGER_COMMANDS,  // IO Control Code (IOCTL)
-                             &CommandPacket,                     // Input Buffer to driver.
-                             sizeof(DEBUGGER_UD_COMMAND_PACKET), // Input buffer length
-                             &CommandPacket,                     // Output Buffer from driver.
-                             sizeof(DEBUGGER_UD_COMMAND_PACKET), // Length of output buffer in bytes.
-                             &ReturnedLength,                    // Bytes placed in buffer.
-                             NULL                                // synchronous call
+    Status = DeviceIoControl(g_DeviceHandle,                    // Handle to device
+                             IOCTL_SEND_USER_DEBUGGER_COMMANDS, // IO Control Code (IOCTL)
+                             CommandPacket,                     // Input Buffer to driver.
+                             TargetBufferSize,                  // Input buffer length
+                             CommandPacket,                     // Output Buffer from driver.
+                             TargetBufferSize,                  // Length of output buffer in bytes.
+                             &ReturnedLength,                   // Bytes placed in buffer.
+                             NULL                               // synchronous call
     );
 
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
+
+        free(CommandPacket);
+        return FALSE;
     }
+
+    if (CommandPacket->Result != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        ShowErrorMessage((UINT32)CommandPacket->Result);
+
+        free(CommandPacket);
+        return FALSE;
+    }
+
+    //
+    // Copy the result of optional buffer to the caller buffer
+    //
+    if (OptionalBuffer != NULL && OptionalBufferSize != 0)
+    {
+        //
+        // Append the optional buffer to the command packet buffer
+        //
+        memcpy(OptionalBuffer,
+               (VOID *)((UINT8 *)CommandPacket + sizeof(DEBUGGER_UD_COMMAND_PACKET)),
+               OptionalBufferSize);
+    }
+
+    //
+    // Free the allocated buffer
+    //
+    free(CommandPacket);
+
+    return TRUE;
 }
 
 /**
@@ -1075,32 +1144,19 @@ UdSendReadRegisterToUserDebugger(UINT64                              ProcessDeta
 
 {
     //
-    // Set the request data
-    //
-    DbgWaitSetUserRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_READ_REGISTERS, RegDes, RegBuffSize);
-
-    //
     // Send the 'step' command
     //
-    UdSendCommand(ProcessDetailToken,
-                  TargetThreadId,
-                  DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS,
-                  FALSE,
-                  TRUE,
-                  RegDes->RegisterId,
-                  NULL,
-                  NULL,
-                  NULL);
-
-    //
-    // Wait until the result of read registers received
-    //
-    DbgWaitForUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_READ_REGISTERS);
-
-    //
-    // Reading it was successful
-    //
-    return TRUE;
+    return UdSendCommand(ProcessDetailToken,
+                         TargetThreadId,
+                         DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS,
+                         RegDes,
+                         RegBuffSize,
+                         FALSE,
+                         TRUE,
+                         RegDes->RegisterId,
+                         NULL,
+                         NULL,
+                         NULL);
 }
 
 /**
@@ -1145,20 +1201,23 @@ UdSendStepPacketToDebuggee(UINT64                           ProcessDetailToken,
     //
     // Send the 'step' command
     //
-    UdSendCommand(ProcessDetailToken,
-                  TargetThreadId,
-                  DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
-                  FALSE,
-                  FALSE,
-                  StepType,
-                  IsCurrentInstructionACall,
-                  CallInstructionSize,
-                  NULL);
-
-    //
-    // Wait until the result of user-input received
-    //
-    DbgWaitForUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING);
+    if (UdSendCommand(ProcessDetailToken,
+                      TargetThreadId,
+                      DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
+                      NULL,
+                      0,
+                      FALSE,
+                      FALSE,
+                      StepType,
+                      IsCurrentInstructionACall,
+                      CallInstructionSize,
+                      NULL))
+    {
+        //
+        // Wait until the result of user-input received
+        //
+        DbgWaitForUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING);
+    }
 }
 
 /**

@@ -23,6 +23,24 @@ PROCESSOR_DEBUGGING_STATE * g_DbgState;
 KEVENT g_UserDebuggerWaitingCommandEvent;
 
 /**
+ * @brief Buffer to hold the command from user debugger
+ *
+ */
+PVOID g_UserDebuggerWaitingCommandBuffer;
+
+/**
+ * @brief Length of the input command buffer from user debugger
+ *
+ */
+UINT32 g_UserDebuggerWaitingCommandInputBufferLength;
+
+/**
+ * @brief Length of the output command buffer from user debugger
+ *
+ */
+UINT32 g_UserDebuggerWaitingCommandOutputBufferLength;
+
+/**
  * @brief Holder of script engines global variables
  *
  */

@@ -101,3 +101,16 @@ UdSendReadRegisterToUserDebugger(UINT64                              ProcessDeta
                                  UINT32                              TargetThreadId,
                                  PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes,
                                  UINT32                              RegBuffSize);
+
+BOOLEAN
+UdSendCommand(UINT64                          ProcessDetailToken,
+              UINT32                          ThreadId,
+              DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
+              PVOID                           OptionalBuffer,
+              UINT32                          OptionalBufferSize,
+              BOOLEAN                         ApplyToAllPausedThreads,
+              BOOLEAN                         WaitForEventCompletion,
+              UINT64                          OptionalParam1,
+              UINT64                          OptionalParam2,
+              UINT64                          OptionalParam3,
+              UINT64                          OptionalParam4);

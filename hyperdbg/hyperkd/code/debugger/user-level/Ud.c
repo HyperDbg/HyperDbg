@@ -365,13 +365,29 @@ UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
     UNREFERENCED_PARAMETER(DbgState);
     UNREFERENCED_PARAMETER(RegisterId);
 
+    PDEBUGGER_UD_COMMAND_PACKET         ActionRequest;
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDesc;
+
     //
-    // Send the register packet to the user debugger
+    // Recover the action request buffer and optional storage buffer
     //
-    // LogCallbackSendBuffer(OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_READ_REGISTERS,
-    //                       &PausePacket,
-    //                       sizeof(DEBUGGEE_UD_PAUSED_PACKET),
-    //                       TRUE);
+    ActionRequest = (DEBUGGER_UD_COMMAND_PACKET *)g_UserDebuggerWaitingCommandBuffer;
+    RegDesc       = (PDEBUGGEE_REGISTER_READ_DESCRIPTION)((UINT8 *)g_UserDebuggerWaitingCommandBuffer + sizeof(DEBUGGER_UD_COMMAND_PACKET));
+
+    //
+    // *** Here, we should read the registers and put them in the optional storage buffer ***
+    //
+    DebuggerCommandReadRegisters(DbgState->Regs, RegDesc);
+
+    //
+    // Set the register request result
+    //
+    RegDesc->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    //
+    // Set the action request result
+    //
+    ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     //
     // Set the event to indicate that the command is completed
@@ -534,10 +550,15 @@ UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
  * @brief Dispatch the user-mode commands
  *
  * @param ActionRequest
+ * @param ActionRequestInputLength
+ * @param ActionRequestOutputLength
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
+UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
+                           UINT32                      ActionRequestInputLength,
+                           UINT32                      ActionRequestOutputLength)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
     BOOLEAN                             Result;
@@ -552,7 +573,30 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
         //
         // Token not found!
         //
+        ActionRequest->Result = DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN;
+
         return FALSE;
+    }
+
+    //
+    // Check if this command needs the action request to be waited for completion or not
+    //
+    if (ActionRequest->WaitForEventCompletion)
+    {
+        //
+        // Set the command event buffer
+        //
+        g_UserDebuggerWaitingCommandBuffer = (PVOID)ActionRequest;
+
+        //
+        // Set the input command buffer length
+        //
+        g_UserDebuggerWaitingCommandInputBufferLength = ActionRequestInputLength;
+
+        //
+        // Set the output command buffer length
+        //
+        g_UserDebuggerWaitingCommandOutputBufferLength = ActionRequestOutputLength;
     }
 
     //
@@ -569,6 +613,25 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
         // Wait for the command to be completed
         //
         SynchronizationWaitForEvent(&g_UserDebuggerWaitingCommandEvent);
+    }
+
+    //
+    // Since the command is applied successfully, we can set the result
+    // Note that if the command contains another layer of optional buffers
+    // the result of that optional buffer might be different than this result
+    // this one is just for applying the command itself
+    //
+    if (Result)
+    {
+        //
+        // If we are not waiting for the event completion, we should set the
+        // result of the action request here as we successfully applied the command
+        //
+        ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+    else
+    {
+        ActionRequest->Result = DEBUGGER_ERROR_UNABLE_TO_APPLY_COMMAND_TO_THE_TARGET_THREAD;
     }
 
     return Result;
