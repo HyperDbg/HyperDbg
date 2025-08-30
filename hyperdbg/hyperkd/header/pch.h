@@ -110,6 +110,7 @@
 #include "header/debugger/script-engine/ScriptEngine.h"
 #include "header/debugger/memory/Memory.h"
 #include "header/common/Common.h"
+#include "header/common/Synchronization.h"
 #include "header/debugger/memory/Allocations.h"
 #include "header/debugger/kernel-level/Kd.h"
 #include "header/debugger/user-level/Ud.h"

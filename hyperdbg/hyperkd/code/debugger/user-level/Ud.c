@@ -70,7 +70,7 @@ UdInitializeUserDebugger()
     //
     // Initialize command waiting event
     //
-    KeInitializeEvent(&g_UserDebuggerWaitingCommandEvent, SynchronizationEvent, FALSE);
+    SynchronizationInitializeEvent(&g_UserDebuggerWaitingCommandEvent);
 
     //
     // Indicate that the user debugger is active
@@ -376,7 +376,7 @@ UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Set the event to indicate that the command is completed
     //
-    KeSetEvent(&g_UserDebuggerWaitingCommandEvent, IO_NO_INCREMENT, FALSE);
+    SynchronizationSetEvent(&g_UserDebuggerWaitingCommandEvent);
 }
 
 /**
@@ -568,11 +568,7 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
         //
         // Wait for the command to be completed
         //
-        KeWaitForSingleObject(&g_UserDebuggerWaitingCommandEvent,
-                              Executive,
-                              KernelMode,
-                              FALSE,
-                              NULL);
+        SynchronizationWaitForEvent(&g_UserDebuggerWaitingCommandEvent);
     }
 
     return Result;
