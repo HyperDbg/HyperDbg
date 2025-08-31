@@ -110,4 +110,4 @@ UINT64
 ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError);
 
 BOOLEAN
-ScriptEngineExecuteSingleExpression(string Expr, BOOLEAN ShowErrorMessageIfAny, BOOLEAN IsFormat);
+ScriptEngineExecuteSingleExpression(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny, BOOLEAN IsFormat);

@@ -14,7 +14,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of the ? command
@@ -194,11 +195,6 @@ ErrorMessage:
 VOID
 CommandEval(vector<CommandToken> CommandTokens, string Command)
 {
-    PVOID  CodeBuffer;
-    UINT64 BufferAddress;
-    UINT32 BufferLength;
-    UINT32 Pointer;
-
     if (CommandTokens.size() == 1)
     {
         ShowMessages("incorrect use of the '%s'\n\n",
@@ -242,56 +238,26 @@ CommandEval(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    if (g_IsSerialConnectedToRemoteDebuggee)
+    //
+    // Check if we're connected to a remote debuggee (kernel debugger) or the user debugger
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee ||
+        (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused))
     {
         //
-        // Send over serial
+        // Send data to the target user debugger or kernel debugger
         //
-
-        //
-        // Run script engine handler
-        //
-        CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str(), TRUE);
-
-        if (CodeBuffer == NULL)
-        {
-            //
-            // return to show that this item contains an script
-            //
-            return;
-        }
-
-        //
-        // Print symbols (test)
-        //
-        // PrintSymbolBufferWrapper(CodeBuffer);
-
-        //
-        // Set the buffer and length
-        //
-        BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-        BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
-        Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
-
-        //
-        // Send it to the remote debuggee
-        //
-        KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
-
-        //
-        // Remove the buffer of script engine interpreted code
-        //
-        ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+        ScriptEngineExecuteSingleExpression((CHAR *)Command.c_str(), TRUE, FALSE);
     }
     else
     {
         //
-        // It's a test
+        // It's a test (simulated) run of the script-engine
         //
-        ShowMessages("this command should not be used while you're in VMI-Mode or not in debugger-mode, "
-                     "the results that you see is a simulated result for TESTING script-engine "
-                     "and is not based on the status of your system. You can use this command, "
-                     "ONLY in debugger-mode\n\n");
+        ShowMessages("this command should not be used while you're in VMI-Mode (not attached to the user debugger) "
+                     "or not in debugger-mode, the results that you see is a simulated result for TESTING script-engine "
+                     "and is not based on the status of your system. You can use this command, either in the debugger mode "
+                     "(kernel debugger), or when you attached to a user debugger\n\n");
 
         ShowMessages("test expression : %s \n", Command.c_str());
         ScriptEngineWrapperTestParser(Command);

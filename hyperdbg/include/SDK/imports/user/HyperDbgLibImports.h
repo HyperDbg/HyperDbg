@@ -289,6 +289,12 @@ hwdbg_script_run_script(const CHAR * script,
 VOID
 hwdbg_script_engine_wrapper_test_parser(const CHAR * Expr);
 
+//
+// Run script
+//
+BOOLEAN
+hyperdbg_u_run_script(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny);
+
 #ifdef __cplusplus
 }
 #endif

@@ -135,7 +135,7 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
  * @return BOOLEAN Returns TRUE if it was successful
  */
 BOOLEAN
-ScriptEngineExecuteSingleExpression(string Expr, BOOLEAN ShowErrorMessageIfAny, BOOLEAN IsFormat)
+ScriptEngineExecuteSingleExpression(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny, BOOLEAN IsFormat)
 {
     PVOID   CodeBuffer;
     UINT64  BufferAddress;
@@ -146,7 +146,7 @@ ScriptEngineExecuteSingleExpression(string Expr, BOOLEAN ShowErrorMessageIfAny, 
     //
     // Run script engine handler
     //
-    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str(), ShowErrorMessageIfAny);
+    CodeBuffer = ScriptEngineParseWrapper(Expr, ShowErrorMessageIfAny);
 
     if (CodeBuffer == NULL)
     {

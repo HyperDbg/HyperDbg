@@ -453,7 +453,7 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
 {
     REGS_ENUM                RegKind;
     std::vector<std::string> Tmp;
-    std::string              SetRegValue;
+    std::string              SetRegisterValue;
 
 //
 // Disable user-mode debugger in this version
@@ -573,12 +573,12 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
                 //
                 // send the request
                 //
-                SetRegValue = "@" + tmp + '=' + Tmp[1] + "; ";
+                SetRegisterValue = "@" + tmp + '=' + Tmp[1] + "; ";
 
                 //
                 // Send data to the target user debugger or kernel debugger
                 //
-                ScriptEngineExecuteSingleExpression(SetRegValue, TRUE, FALSE);
+                ScriptEngineExecuteSingleExpression((CHAR *)SetRegisterValue.c_str(), TRUE, FALSE);
             }
             else
             {

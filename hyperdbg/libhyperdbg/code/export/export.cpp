@@ -799,3 +799,17 @@ hyperdbg_u_disable_transparent_mode()
 {
     return HyperDbgDisableTransparentMode();
 }
+
+/**
+ * @brief Run HyperDbg scripts in the target process (user debugger) or
+ * debuggee (kernel debugger)
+ * @param Expr The expression to run
+ * @param ShowErrorMessageIfAny If true, show error message if any
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_run_script(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny)
+{
+    return ScriptEngineExecuteSingleExpression(Expr, ShowErrorMessageIfAny, FALSE);
+}
