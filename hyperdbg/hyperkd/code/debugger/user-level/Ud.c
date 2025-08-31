@@ -275,7 +275,7 @@ UdHandleDebugEventsWhenUserDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgSta
 }
 
 /**
- * @brief Perform stepping though the instructions in target thread
+ * @brief Perform stepping though the instructions in the target thread
  *
  * @param DbgState The state of the debugger on the current core
  * @param ProcessDebuggingDetail
@@ -347,14 +347,10 @@ UdStepInstructions(PROCESSOR_DEBUGGING_STATE *         DbgState,
 }
 
 /**
- * @brief Perform stepping though the instructions in target thread
+ * @brief Perform reading register(s) in the target thread
  *
  * @param DbgState The state of the debugger on the current core
- * @param ProcessDebuggingDetail
- * @param ThreadDebuggingDetails
- * @param SteppingType
- * @param IsCurrentInstructionACall
- * @param CallInstructionSize
+ * @param RegisterId
  *
  * @return VOID
  */
@@ -383,6 +379,61 @@ UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
     // Set the register request result
     //
     RegDesc->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    //
+    // Set the action request result
+    //
+    ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    //
+    // Set the event to indicate that the command is completed
+    //
+    SynchronizationSetEvent(&g_UserDebuggerWaitingCommandEvent);
+}
+
+/**
+ * @brief Perform running script in the target thread
+ *
+ * @param DbgState The state of the debugger on the current core
+ *
+ * @return VOID
+ */
+VOID
+UdRunScript(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    PDEBUGGER_UD_COMMAND_PACKET ActionRequest;
+    DEBUGGEE_SCRIPT_PACKET *    ScriptPacket;
+
+    //
+    // Recover the action request buffer and optional storage buffer
+    //
+    ActionRequest = (DEBUGGER_UD_COMMAND_PACKET *)g_UserDebuggerWaitingCommandBuffer;
+    ScriptPacket  = (DEBUGGEE_SCRIPT_PACKET *)((UINT8 *)g_UserDebuggerWaitingCommandBuffer + sizeof(DEBUGGER_UD_COMMAND_PACKET));
+
+    //
+    // *** Here, we should execute script buffer and put them in the optional storage buffer ***
+    //
+
+    //
+    // Run the script in the target process (thread)
+    //
+    if (DebuggerPerformRunScript(DbgState,
+                                 NULL,
+                                 ScriptPacket,
+                                 &g_EventTriggerDetail))
+    {
+        //
+        // Set status
+        //
+        ScriptPacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+    else
+    {
+        //
+        // Set status
+        //
+        ScriptPacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPT;
+    }
 
     //
     // Set the action request result
@@ -447,6 +498,15 @@ UdPerformCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
         //
         UdReadRegisters(DbgState,
                         (UINT32)OptionalParam1);
+
+        break;
+
+    case DEBUGGER_UD_COMMAND_ACTION_TYPE_EXECUTE_SCRIPT_BUFFER:
+
+        //
+        // Execute the script buffer
+        //
+        UdRunScript(DbgState);
 
         break;
 

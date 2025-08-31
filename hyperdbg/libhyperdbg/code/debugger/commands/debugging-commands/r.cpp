@@ -451,13 +451,6 @@ HyperDbgRegisterShowTargetRegister(REGS_ENUM RegisterId)
 VOID
 CommandR(vector<CommandToken> CommandTokens, string Command)
 {
-    //
-    // Interpret here
-    //
-    PVOID                    CodeBuffer;
-    UINT64                   BufferAddress;
-    UINT32                   BufferLength;
-    UINT32                   Pointer;
     REGS_ENUM                RegKind;
     std::vector<std::string> Tmp;
     std::string              SetRegValue;
@@ -582,53 +575,10 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
                 //
                 SetRegValue = "@" + tmp + '=' + Tmp[1] + "; ";
 
-                if (g_IsSerialConnectedToRemoteDebuggee)
-                {
-                    //
-                    // Send over serial
-                    //
-
-                    //
-                    // Run script engine handler
-                    //
-                    CodeBuffer = ScriptEngineParseWrapper((char *)SetRegValue.c_str(), TRUE);
-                    if (CodeBuffer == NULL)
-                    {
-                        //
-                        // return to show that this item contains an script
-                        //
-                        return;
-                    }
-
-                    //
-                    // Print symbols (test)
-                    //
-                    // PrintSymbolBufferWrapper(CodeBuffer);
-
-                    //
-                    // Set the buffer and length
-                    //
-                    BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-                    BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
-                    Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
-
-                    //
-                    // Send it to the remote debuggee
-                    //
-                    KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
-
-                    //
-                    // Remove the buffer of script engine interpreted code
-                    //
-                    ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
-                }
-                else
-                {
-                    //
-                    // error
-                    //
-                    ShowMessages("err, you're not connected to any debuggee\n");
-                }
+                //
+                // Send data to the target user debugger or kernel debugger
+                //
+                ScriptEngineExecuteSingleExpression(SetRegValue, TRUE, FALSE);
             }
             else
             {

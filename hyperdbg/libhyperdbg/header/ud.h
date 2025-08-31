@@ -97,12 +97,6 @@ BOOLEAN
 UdPauseProcess(UINT64 ProcessDebuggingToken);
 
 BOOLEAN
-UdSendReadRegisterToUserDebugger(UINT64                              ProcessDetailToken,
-                                 UINT32                              TargetThreadId,
-                                 PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes,
-                                 UINT32                              RegBuffSize);
-
-BOOLEAN
 UdSendCommand(UINT64                          ProcessDetailToken,
               UINT32                          ThreadId,
               DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
@@ -114,3 +108,17 @@ UdSendCommand(UINT64                          ProcessDetailToken,
               UINT64                          OptionalParam2,
               UINT64                          OptionalParam3,
               UINT64                          OptionalParam4);
+
+BOOLEAN
+UdSendScriptBufferToProcess(UINT64  ProcessDetailToken,
+                            UINT32  TargetThreadId,
+                            UINT64  BufferAddress,
+                            UINT32  BufferLength,
+                            UINT32  Pointer,
+                            BOOLEAN IsFormat);
+
+BOOLEAN
+UdSendReadRegisterToUserDebugger(UINT64                              ProcessDetailToken,
+                                 UINT32                              TargetThreadId,
+                                 PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes,
+                                 UINT32                              RegBuffSize);

@@ -1127,7 +1127,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
 }
 
 /**
- * @brief Send the command to the user debugger+
+ * @brief Send the command to the user debugger
  *
  * @param ProcessDetailToken
  * @param TargetThreadId
@@ -1144,7 +1144,7 @@ UdSendReadRegisterToUserDebugger(UINT64                              ProcessDeta
 
 {
     //
-    // Send the 'step' command
+    // Send the read register command
     //
     return UdSendCommand(ProcessDetailToken,
                          TargetThreadId,
@@ -1157,6 +1157,70 @@ UdSendReadRegisterToUserDebugger(UINT64                              ProcessDeta
                          NULL,
                          NULL,
                          NULL);
+}
+
+/**
+ * @brief Send script buffer to the user debugger
+ *
+ * @param ProcessDetailToken
+ * @param TargetThreadId
+ * @param BufferAddress
+ * @param BufferLength
+ * @param Pointer
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdSendScriptBufferToProcess(UINT64  ProcessDetailToken,
+                            UINT32  TargetThreadId,
+                            UINT64  BufferAddress,
+                            UINT32  BufferLength,
+                            UINT32  Pointer,
+                            BOOLEAN IsFormat)
+
+{
+    PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
+    UINT32                  SizeOfStruct = 0;
+    BOOLEAN                 Result       = FALSE;
+
+    SizeOfStruct = sizeof(DEBUGGEE_SCRIPT_PACKET) + BufferLength;
+
+    ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)malloc(SizeOfStruct);
+
+    RtlZeroMemory(ScriptPacket, SizeOfStruct);
+
+    //
+    // Fill the script packet buffer
+    //
+    ScriptPacket->ScriptBufferSize    = BufferLength;
+    ScriptPacket->ScriptBufferPointer = Pointer;
+    ScriptPacket->IsFormat            = IsFormat;
+
+    //
+    // Move the buffer at the bottom of the script packet
+    //
+    memcpy((PVOID)((UINT64)ScriptPacket + sizeof(DEBUGGEE_SCRIPT_PACKET)),
+           (PVOID)BufferAddress,
+           BufferLength);
+
+    //
+    // Send the script buffer command
+    //
+    Result = UdSendCommand(ProcessDetailToken,
+                           TargetThreadId,
+                           DEBUGGER_UD_COMMAND_ACTION_TYPE_EXECUTE_SCRIPT_BUFFER,
+                           ScriptPacket,
+                           SizeOfStruct,
+                           FALSE,
+                           TRUE,
+                           NULL,
+                           NULL,
+                           NULL,
+                           NULL);
+
+    free(ScriptPacket);
+
+    return Result;
 }
 
 /**

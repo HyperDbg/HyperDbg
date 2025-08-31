@@ -14,9 +14,10 @@
 //
 // Global Variables
 //
-extern UINT64  g_ResultOfEvaluatedExpression;
-extern UINT32  g_ErrorStateOfResultOfEvaluatedExpression;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern UINT64                   g_ResultOfEvaluatedExpression;
+extern UINT32                   g_ErrorStateOfResultOfEvaluatedExpression;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief Get the value from the evaluation of single expression
@@ -121,5 +122,91 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
     //
     ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
 
+    return Result;
+}
+
+/**
+ * @brief Execute single expression for the kernel debugger and the user-mode debugger
+ *
+ * @param Expr
+ * @param ShowErrorMessageIfAny
+ * @param IsFormat If it's a format expression
+ *
+ * @return BOOLEAN Returns TRUE if it was successful
+ */
+BOOLEAN
+ScriptEngineExecuteSingleExpression(string Expr, BOOLEAN ShowErrorMessageIfAny, BOOLEAN IsFormat)
+{
+    PVOID   CodeBuffer;
+    UINT64  BufferAddress;
+    UINT32  BufferLength;
+    UINT32  Pointer;
+    BOOLEAN Result = FALSE;
+
+    //
+    // Run script engine handler
+    //
+    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str(), ShowErrorMessageIfAny);
+
+    if (CodeBuffer == NULL)
+    {
+        //
+        // return to show that this item contains an error
+        //
+        return FALSE;
+    }
+
+    //
+    // Print symbols (test)
+    //
+    // PrintSymbolBufferWrapper(CodeBuffer);
+
+    //
+    // Set the buffer and length
+    //
+    BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
+    BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
+    Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
+
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // Send it to the remote debuggee (kernel debugger)
+        //
+        Result = KdSendScriptPacketToDebuggee(BufferAddress,
+                                              BufferLength,
+                                              Pointer,
+                                              IsFormat);
+    }
+    else if (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused)
+    {
+        //
+        // Send it to the user debugger
+        //
+        Result = UdSendScriptBufferToProcess(
+            g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+            g_ActiveProcessDebuggingState.ThreadId,
+            BufferAddress,
+            BufferLength,
+            Pointer,
+            IsFormat);
+    }
+    else
+    {
+        //
+        // Not connected to any debuggee
+        //
+        ShowMessages("err, you're not connected to any debuggee (neither user debugger nor kernel debugger)\n");
+        Result = FALSE;
+    }
+
+    //
+    // Remove the buffer of script engine interpreted code
+    //
+    ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+
+    //
+    // Return result
+    //
     return Result;
 }

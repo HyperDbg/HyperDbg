@@ -1068,8 +1068,8 @@ KdSendQueryIdtPacketsToDebuggee(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtR
     // Set the request data
     //
     DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES,
-                          IdtRequest,
-                          sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS));
+                                IdtRequest,
+                                sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS));
 
     //
     // Send the IDT request packets
