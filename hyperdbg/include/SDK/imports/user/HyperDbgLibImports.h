@@ -286,14 +286,17 @@ hwdbg_script_run_script(const CHAR * script,
                         const CHAR * hardware_script_file_path_to_save,
                         UINT32       initial_bram_buffer_size);
 
-VOID
+IMPORT_EXPORT_LIBHYPERDBG VOID
 hwdbg_script_engine_wrapper_test_parser(const CHAR * Expr);
 
 //
-// Run script
+// Run script and evaluate expression
 //
-BOOLEAN
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_run_script(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny);
+
+IMPORT_EXPORT_LIBHYPERDBG UINT64
+hyperdbg_u_eval_expression(CHAR * Expr, PBOOLEAN HasError);
 
 #ifdef __cplusplus
 }

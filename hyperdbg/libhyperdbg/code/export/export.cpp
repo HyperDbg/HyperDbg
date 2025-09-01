@@ -813,3 +813,18 @@ hyperdbg_u_run_script(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny)
 {
     return ScriptEngineExecuteSingleExpression(Expr, ShowErrorMessageIfAny, FALSE);
 }
+
+/**
+ * @brief Evaluate expression and return result based on the target
+ * process (user debugger) or debuggee (kernel debugger) context
+ *
+ * @param Expr The expression to evaluate
+ * @param HasError If true, there was an error in evaluation
+ *
+ * @return UINT64 The result of the evaluated expression
+ */
+UINT64
+hyperdbg_u_eval_expression(CHAR * Expr, PBOOLEAN HasError)
+{
+    return ScriptEngineEvalSingleExpression(Expr, HasError);
+}
