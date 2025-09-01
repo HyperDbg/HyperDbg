@@ -836,7 +836,7 @@ KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len
 }
 
 /**
- * @brief Notify user-mode to unload the debuggee and close the connections
+ * @brief Send the result of formats command to the kernel debugger
  * @param Value
  *
  * @return VOID

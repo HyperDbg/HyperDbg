@@ -85,6 +85,12 @@ DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;
 HARDWARE_DEBUG_REGISTER_DETAILS g_HardwareDebugRegisterDetailsForStepOver;
 
 /**
+ * @brief Holds the result of user debugger formats command
+ *
+ */
+DEBUGGEE_FORMATS_PACKET g_UserDebuggerFormatsResultPacket;
+
+/**
  * @brief Process switch to EPROCESS or Process ID
  *
  */

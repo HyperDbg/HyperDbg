@@ -186,6 +186,19 @@ UdApplyHardwareDebugRegister(PVOID TargetAddress)
 }
 
 /**
+ * @brief Send the result of formats command to the user debugger
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+UdSendFormatsFunctionResult(UINT64 Value)
+{
+    g_UserDebuggerFormatsResultPacket.Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    g_UserDebuggerFormatsResultPacket.Value  = Value;
+}
+
+/**
  * @brief routines to broadcast setting hardware debug registers on all cores
  * @param TargetAddress
  *
@@ -423,9 +436,25 @@ UdRunScript(PROCESSOR_DEBUGGING_STATE * DbgState)
                                  &g_EventTriggerDetail))
     {
         //
-        // Set status
+        // Check if we need to format the output or not
         //
-        ScriptPacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        if (ScriptPacket->IsFormat)
+        {
+            //
+            // For the format, we need to get the result from the script engine
+            // through global variables, we store the result of format into
+            // optional parameters
+            //
+            ScriptPacket->Result      = g_UserDebuggerFormatsResultPacket.Result;
+            ScriptPacket->FormatValue = g_UserDebuggerFormatsResultPacket.Value;
+        }
+        else
+        {
+            //
+            // Set status
+            //
+            ScriptPacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        }
     }
     else
     {

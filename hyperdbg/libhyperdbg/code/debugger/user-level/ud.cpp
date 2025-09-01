@@ -17,6 +17,8 @@
 extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsUserDebuggerInitialized;
+extern UINT64                   g_ResultOfEvaluatedExpression;
+extern UINT32                   g_ErrorStateOfResultOfEvaluatedExpression;
 extern CommandType              g_CommandsList;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
@@ -1217,6 +1219,15 @@ UdSendScriptBufferToProcess(UINT64  ProcessDetailToken,
                            NULL,
                            NULL,
                            NULL);
+
+    //
+    // Check if it's a format expression and if there was an error or not
+    //
+    if (IsFormat && Result)
+    {
+        g_ErrorStateOfResultOfEvaluatedExpression = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        g_ResultOfEvaluatedExpression             = ScriptPacket->FormatValue;
+    }
 
     free(ScriptPacket);
 

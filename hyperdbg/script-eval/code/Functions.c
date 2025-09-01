@@ -1225,6 +1225,10 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
     {
         KdSendFormatsFunctionResult(Value);
     }
+    else if (g_UserDebuggerState)
+    {
+        UdSendFormatsFunctionResult(Value);
+    }
     else
     {
         //

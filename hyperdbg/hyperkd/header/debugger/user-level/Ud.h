@@ -76,3 +76,6 @@ UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
 BOOLEAN
 UdHandleDebugEventsWhenUserDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState,
                                               BOOLEAN                     TrapSetByDebugger);
+
+VOID
+UdSendFormatsFunctionResult(UINT64 Value);
