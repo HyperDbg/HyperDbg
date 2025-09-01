@@ -597,7 +597,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
     // Prepare a buffer to bypass allocating a huge stack space for logging
     //
     char   TempBuffer[20] = {0};
-    UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx", Value);
+    UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx\n", Value);
 
     LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
 

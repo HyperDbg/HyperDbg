@@ -8,16 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
-- The **!xsetbv** event command is added to the execution of the XSETBV instruction thanks to HyperDbg group members ([link](https://docs.hyperdbg.org/commands/extension-commands/xsetbv))
-- Number of blocked context switches in the '.switch' command ([link](https://docs.hyperdbg.org/commands/meta-commands/.switch))
-- Added support to the step-in (the 't' command) for the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/t))
-- Added support to the step-over (the 'p' command) for the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/p))
-- Added support to show all registers or a specific register for the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/r))
-- Export SDK API for running scripts in the kernel debugger or the user debugger
-- Added support to modify registers or a specific register for the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/r))
+- The **!xsetbv** event command was added for handling the execution of the XSETBV instruction, thanks to HyperDbg group members ([link](https://docs.hyperdbg.org/commands/extension-commands/xsetbv))
+- Display of the number of blocked context switches in the '.switch' command ([link](https://docs.hyperdbg.org/commands/meta-commands/.switch))
+- Added support for step-in (the 't' command) in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/t))
+- Added support for step-over (the 'p' command) in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/p))
+- Added support to show all registers or a specific register in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/r))
+- Exported SDK API for running scripts in either the kernel debugger or the user debugger
+- Added support to modify registers or a specific register in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/r))
 - Added support to evaluate (run) scripts on the target thread in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/eval))
-- Added indication of a thread running or paused state to the HyperDbg signature in the user debugger ([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/signatures))
-- Added support to the '.formats' command for the user debugger ([link](https://docs.hyperdbg.org/commands/meta-commands/.formats))
+- Added an indication of a thread's running or paused state to the HyperDbg signature in the user debugger ([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/signatures))
+- Added support for the '.formats' command in the user debugger ([link](https://docs.hyperdbg.org/commands/meta-commands/.formats))
+- Added support for interpreting parameters based on script engine expressions in the user debugger
 
 ### Changed
 - Non-volatile XMM registers are no longer saved/restored on VM-exit handler ([link](https://learn.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-170))

@@ -167,7 +167,9 @@ CommandSyscallAndSysret(vector<CommandToken> CommandTokens, string Command)
                 //
                 // It's probably a syscall address
                 //
-                if (!ConvertTokenToUInt64(Section, &SpecialTarget))
+                if (!SymbolConvertNameOrExprToAddress(
+                        GetCaseSensitiveStringFromCommandToken(Section),
+                        &SpecialTarget))
                 {
                     //
                     // Unknown parameter

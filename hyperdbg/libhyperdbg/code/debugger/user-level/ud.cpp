@@ -473,9 +473,8 @@ UdAttachToProcess(UINT32        TargetPid,
             // it's a .attach command, no need for further action
             //
             ShowMessages("successfully attached to the target process!\n"
-                         "please keep interacting with the process until all the "
-                         "threads are intercepted and halted; whenever you execute "
-                         "the first command, the thread interception will be stopped\n");
+                         "please keep interacting with the process until all the threads are "
+                         "intercepted and halted; you can run the 'g' command to continue the debuggee\n");
             return TRUE;
         }
 

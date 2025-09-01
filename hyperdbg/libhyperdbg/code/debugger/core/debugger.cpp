@@ -2072,7 +2072,7 @@ InterpretGeneralEventAndActionsFields(
         ShowMessages("notice: as you're debugging a user-mode application, "
                      "this event will only trigger on your current debugging process "
                      "(pid:%x). If you want the event from the entire system, "
-                     "add 'pid all' to the event\n",
+                     "add 'pid all' to the event\n\n",
                      g_ActiveProcessDebuggingState.ProcessId);
 
         TempEvent->ProcessId = g_ActiveProcessDebuggingState.ProcessId;
