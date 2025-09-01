@@ -241,8 +241,7 @@ CommandEval(vector<CommandToken> CommandTokens, string Command)
     //
     // Check if we're connected to a remote debuggee (kernel debugger) or the user debugger
     //
-    if (g_IsSerialConnectedToRemoteDebuggee ||
-        (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused))
+    if (g_IsSerialConnectedToRemoteDebuggee || g_ActiveProcessDebuggingState.IsActive)
     {
         //
         // Send data to the target user debugger or kernel debugger
@@ -255,7 +254,7 @@ CommandEval(vector<CommandToken> CommandTokens, string Command)
         // It's a test (simulated) run of the script-engine
         //
         ShowMessages("this command should not be used while you're in VMI-Mode (not attached to the user debugger) "
-                     "or not in debugger-mode, the results that you see is a simulated result for TESTING script-engine "
+                     "or not in the debugger mode, the results that you see is a simulated result for TESTING  the script engine "
                      "and is not based on the status of your system. You can use this command, either in the debugger mode "
                      "(kernel debugger), or when you attached to a user debugger\n\n");
 

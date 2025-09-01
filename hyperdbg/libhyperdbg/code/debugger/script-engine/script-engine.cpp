@@ -144,6 +144,30 @@ ScriptEngineExecuteSingleExpression(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny, 
     BOOLEAN Result = FALSE;
 
     //
+    // Check whether a kernel debugger is connected or a user-mode debugger is active
+    //
+    if (!g_IsSerialConnectedToRemoteDebuggee && !g_ActiveProcessDebuggingState.IsActive)
+    {
+        if (ShowErrorMessageIfAny)
+        {
+            ShowMessages("err, you're not connected to any debuggee (neither user debugger nor kernel debugger)\n");
+        }
+        return FALSE;
+    }
+
+    //
+    // Check if the user-mode debuggee is paused
+    //
+    if (g_ActiveProcessDebuggingState.IsActive && !g_ActiveProcessDebuggingState.IsPaused)
+    {
+        if (ShowErrorMessageIfAny)
+        {
+            ShowMessages("err, the target process is NOT paused, you should run 'pause' to pause it\n");
+        }
+        return FALSE;
+    }
+
+    //
     // Run script engine handler
     //
     CodeBuffer = ScriptEngineParseWrapper(Expr, ShowErrorMessageIfAny);
@@ -178,7 +202,7 @@ ScriptEngineExecuteSingleExpression(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny, 
                                               Pointer,
                                               IsFormat);
     }
-    else if (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused)
+    else if (g_ActiveProcessDebuggingState.IsActive)
     {
         //
         // Send it to the user debugger
