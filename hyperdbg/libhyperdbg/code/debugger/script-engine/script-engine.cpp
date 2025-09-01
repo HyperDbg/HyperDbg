@@ -30,10 +30,6 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 UINT64
 ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
 {
-    PVOID  CodeBuffer;
-    UINT64 BufferAddress;
-    UINT32 BufferLength;
-    UINT32 Pointer;
     UINT64 Result = NULL;
 
     //
@@ -42,45 +38,16 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
     Expr.insert(0, "formats(");
     Expr.append(");");
 
-    //
-    // Run script engine handler
-    //
-    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str(), FALSE);
-
-    if (CodeBuffer == NULL)
+    if (g_IsSerialConnectedToRemoteDebuggee || g_ActiveProcessDebuggingState.IsActive)
     {
         //
-        // return to show that this item contains an script
+        // Send data to the target user debugger or kernel debugger
         //
-        *HasError = TRUE;
-        return NULL;
-    }
-
-    //
-    // Print symbols (test)
-    //
-    // PrintSymbolBufferWrapper(CodeBuffer);
-
-    //
-    // Set the buffer and length
-    //
-    BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-    BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
-    Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
-
-    //
-    // Check if it's connected over remote debuggee (in the Debugger Mode)
-    //
-    if (g_IsSerialConnectedToRemoteDebuggee)
-    {
-        //
-        // Send over serial
-        //
-
-        //
-        // Send it to the remote debuggee
-        //
-        KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, TRUE);
+        if (!ScriptEngineExecuteSingleExpression((CHAR *)Expr.c_str(), TRUE, FALSE))
+        {
+            *HasError = TRUE;
+            return NULL;
+        }
 
         //
         // Check whether there was an error in evaluation or not
@@ -116,11 +83,6 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
         //
         Result = ScriptEngineEvalUInt64StyleExpressionWrapper(Expr, HasError);
     }
-
-    //
-    // Remove the buffer of script engine interpreted code
-    //
-    ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
 
     return Result;
 }

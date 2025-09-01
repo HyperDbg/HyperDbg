@@ -17,7 +17,7 @@ New release of the HyperDbg Debugger.
 - Added support to modify registers or a specific register for the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/r))
 - Added support to evaluate (run) scripts on the target thread in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/eval))
 - Added indication of a thread running or paused state to the HyperDbg signature in the user debugger ([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/signatures))
-- Added support to the 'print' command for the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/print))
+- Added support to the '.formats' command for the user debugger ([link](https://docs.hyperdbg.org/commands/meta-commands/.formats))
 
 ### Changed
 - Non-volatile XMM registers are no longer saved/restored on VM-exit handler ([link](https://learn.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-170))
