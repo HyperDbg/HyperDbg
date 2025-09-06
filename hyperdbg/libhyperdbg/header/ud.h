@@ -52,9 +52,6 @@ VOID
 UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);
 
 VOID
-UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType);
-
-VOID
 UdSetActiveDebuggingProcess(UINT64  DebuggingId,
                             UINT64  Rip,
                             UINT32  ProcessId,
@@ -62,6 +59,11 @@ UdSetActiveDebuggingProcess(UINT64  DebuggingId,
                             BOOLEAN Is32Bit,
                             BOOLEAN IsPaused,
                             BYTE    InstructionBytesOnRip[]);
+
+BOOLEAN
+UdSendStepPacketToDebuggee(UINT64                           ThreadDetailToken,
+                           UINT32                           TargetThreadId,
+                           DEBUGGER_REMOTE_STEPPING_REQUEST StepType);
 
 BOOLEAN
 UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid);

@@ -175,9 +175,9 @@ ReadIrpBasedBuffer()
     BOOL                   Status;
     ULONG                  ReturnedLength;
     REGISTER_NOTIFY_BUFFER RegisterEvent;
-    UINT32                 OperationCode;
     DWORD                  ErrorNum;
     HANDLE                 Handle;
+    UINT32                 OperationCode;
 
     RegisterEvent.hEvent = NULL;
     RegisterEvent.Type   = IRP_BASED;
@@ -240,8 +240,6 @@ ReadIrpBasedBuffer()
                 //
                 ZeroMemory(OutputBuffer, UsermodeBufferSize);
 
-                Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
-
                 Status = DeviceIoControl(
                     Handle,                    // Handle to device
                     IOCTL_REGISTER_EVENT,      // IO Control Code (IOCTL)
@@ -271,13 +269,19 @@ ReadIrpBasedBuffer()
                 //
                 // Compute the received buffer's operation code
                 //
-                OperationCode = 0;
                 memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
-                /*
-        ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
-        ShowMessages("Operation Code : 0x%x \n", OperationCode);
-                */
+                // ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
+                // ShowMessages("Operation Code : 0x%x \n", OperationCode);
+
+                //
+                // Check if the operation code contains mandatory debuggee bit
+                // If that's the case, we shouldn't wait (sleep) for new messages
+                //
+                if ((OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT) == 0)
+                {
+                    Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
+                }
 
                 switch (OperationCode)
                 {

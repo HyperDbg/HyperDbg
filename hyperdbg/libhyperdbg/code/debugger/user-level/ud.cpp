@@ -1239,9 +1239,9 @@ UdSendScriptBufferToProcess(UINT64  ProcessDetailToken,
  * @param TargetThreadId
  * @param StepType
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 UdSendStepPacketToDebuggee(UINT64                           ProcessDetailToken,
                            UINT32                           TargetThreadId,
                            DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
@@ -1291,7 +1291,14 @@ UdSendStepPacketToDebuggee(UINT64                           ProcessDetailToken,
         // Wait until the result of user-input received
         //
         DbgWaitForUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING);
+
+        return TRUE;
     }
+
+    //
+    // An error happened
+    //
+    return FALSE;
 }
 
 /**
