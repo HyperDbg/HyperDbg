@@ -28,4 +28,7 @@ VOID
 TracingPerformInstrumentationStepIn(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 VOID
-TracingPerformRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState);
+TracingRegularStepInInstruction();
+
+VOID
+TracingPerformRegularStepInInstruction();

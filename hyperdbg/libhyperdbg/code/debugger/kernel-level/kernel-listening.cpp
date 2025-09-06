@@ -801,7 +801,7 @@ StartAgain:
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller
@@ -822,7 +822,7 @@ StartAgain:
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller
@@ -843,7 +843,7 @@ StartAgain:
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller
@@ -864,7 +864,7 @@ StartAgain:
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller
@@ -885,7 +885,7 @@ StartAgain:
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller
@@ -906,7 +906,7 @@ StartAgain:
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller
@@ -992,7 +992,7 @@ StartAgain:
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller

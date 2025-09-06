@@ -68,6 +68,11 @@ UdInitializeUserDebugger()
     ThreadHolderAllocateThreadHoldingBuffers();
 
     //
+    // Initialize command waiting event
+    //
+    SynchronizationInitializeEvent(&g_UserDebuggerWaitingCommandEvent);
+
+    //
     // Indicate that the user debugger is active
     //
     g_UserDebuggerState = TRUE;
@@ -165,76 +170,321 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
 }
 
 /**
- * @brief Restore the thread to the original direction
+ * @brief Apply hardware debug registers to all cores
  *
- * @param ThreadDebuggingDetails
+ * @param TargetAddress
  *
  * @return VOID
  */
 VOID
-UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
+UdApplyHardwareDebugRegister(PVOID TargetAddress)
 {
-    //
-    // Configure the RIP again
-    //
-    VmFuncSetRip(ThreadDebuggingDetails->ThreadRip);
+    SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                      BREAK_ON_INSTRUCTION_FETCH,
+                      FALSE,
+                      (UINT64)TargetAddress);
 }
 
 /**
- * @brief Perform stepping though the instructions in target thread
- *
- * @param ThreadDebuggingDetails
- * @param SteppingType
+ * @brief Send the result of formats command to the user debugger
+ * @param Value
  *
  * @return VOID
  */
 VOID
-UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
-                   DEBUGGER_REMOTE_STEPPING_REQUEST   SteppingType)
+UdSendFormatsFunctionResult(UINT64 Value)
+{
+    g_UserDebuggerFormatsResultPacket.Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    g_UserDebuggerFormatsResultPacket.Value  = Value;
+}
+
+/**
+ * @brief routines to broadcast setting hardware debug registers on all cores
+ * @param TargetAddress
+ *
+ * @return VOID
+ */
+VOID
+UdBroadcastSetHardwareDebugRegistersAllCores(PVOID TargetAddress)
 {
     //
-    // Configure the RIP
+    // Broadcast to all cores
     //
-    UdRestoreToOriginalDirection(ThreadDebuggingDetails);
+    KeGenericCallDpc(DpcRoutineSetHardwareDebugRegisters, TargetAddress);
+}
+
+/**
+ * @brief Regular step-over, step one instruction to the debuggee on user debugger if
+ * there is a call then it jumps the call
+ *
+ * @param LastRip Last RIP register
+ * @param IsNextInstructionACall
+ * @param CallLength
+ *
+ * @return VOID
+ */
+VOID
+UdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLength)
+{
+    UINT64 NextAddressForHardwareDebugBp = 0;
+
+    // LogInfo("Last Rip: %llx, IsNextInstructionACall: %s, Call length: %x",
+    //         LastRip,
+    //         IsNextInstructionACall ? "true" : "false",
+    //         CallLength);
+
+    if (IsNextInstructionACall)
+    {
+        //
+        // It's a call, we should put a hardware debug register breakpoint
+        // on the next instruction
+        //
+        NextAddressForHardwareDebugBp = LastRip + CallLength;
+
+        //
+        // Broadcast to apply hardware debug registers to all cores
+        //
+        UdBroadcastSetHardwareDebugRegistersAllCores((PVOID)NextAddressForHardwareDebugBp);
+    }
+    else
+    {
+        //
+        // Any instruction other than call (regular step)
+        //
+        TracingRegularStepInInstruction();
+    }
+}
+
+/**
+ * @brief Handles debug events when user-debugger is attached
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param TrapSetByDebugger Shows whether a trap set by debugger or not
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdHandleDebugEventsWhenUserDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                              BOOLEAN                     TrapSetByDebugger)
+{
+    UNREFERENCED_PARAMETER(TrapSetByDebugger);
+
+    if (UdHandleInstantBreak(DbgState,
+                             DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                             NULL))
+    {
+        //
+        // Handled by user debugger
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not handled by user debugger
+        //
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Perform stepping though the instructions in the target thread
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param ProcessDebuggingDetail
+ * @param ThreadDebuggingDetails
+ * @param SteppingType
+ * @param IsCurrentInstructionACall
+ * @param CallInstructionSize
+ *
+ * @return VOID
+ */
+VOID
+UdStepInstructions(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                   PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
+                   PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
+                   DEBUGGER_REMOTE_STEPPING_REQUEST    SteppingType,
+                   BOOLEAN                             IsCurrentInstructionACall,
+                   UINT32                              CallInstructionSize)
+{
+    UNREFERENCED_PARAMETER(ThreadDebuggingDetails);
 
     switch (SteppingType)
     {
     case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN:
 
         //
-        // Set the trap-flag
+        // Apply step-in (t command)
         //
-        VmFuncSetRflagTrapFlag(TRUE);
+        TracingRegularStepInInstruction();
 
         //
-        // Indicate that we should set the trap flag to the FALSE next time on
-        // the same process/thread
+        // Continue the debuggee process
         //
-        if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
+        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
         {
-            LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
-                       "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
+            //
+            // Unpause the threads of the target process
+            //
+            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
         }
 
         break;
 
     case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER:
 
+        //
+        // Apply Step-over (p command)
+        //
+        UdRegularStepOver(
+            VmFuncGetLastVmexitRip(DbgState->CoreId),
+            IsCurrentInstructionACall,
+            CallInstructionSize);
+
+        //
+        // Continue the debuggee process
+        //
+        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
+        {
+            //
+            // Unpause the threads of the target process
+            //
+            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
+        }
+
         break;
 
     default:
         break;
     }
+}
+
+/**
+ * @brief Perform reading register(s) in the target thread
+ *
+ * @param DbgState The state of the debugger on the current core
+ * @param RegisterId
+ *
+ * @return VOID
+ */
+VOID
+UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
+                UINT32                      RegisterId)
+{
+    UNREFERENCED_PARAMETER(DbgState);
+    UNREFERENCED_PARAMETER(RegisterId);
+
+    PDEBUGGER_UD_COMMAND_PACKET         ActionRequest;
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDesc;
 
     //
-    // It's not paused anymore!
+    // Recover the action request buffer and optional storage buffer
     //
-    ThreadDebuggingDetails->IsPaused = FALSE;
+    ActionRequest = (DEBUGGER_UD_COMMAND_PACKET *)g_UserDebuggerWaitingCommandBuffer;
+    RegDesc       = (PDEBUGGEE_REGISTER_READ_DESCRIPTION)((UINT8 *)g_UserDebuggerWaitingCommandBuffer + sizeof(DEBUGGER_UD_COMMAND_PACKET));
+
+    //
+    // *** Here, we should read the registers and put them in the optional storage buffer ***
+    //
+    DebuggerCommandReadRegisters(DbgState->Regs, RegDesc);
+
+    //
+    // Set the register request result
+    //
+    RegDesc->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    //
+    // Set the action request result
+    //
+    ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    //
+    // Set the event to indicate that the command is completed
+    //
+    SynchronizationSetEvent(&g_UserDebuggerWaitingCommandEvent);
+}
+
+/**
+ * @brief Perform running script in the target thread
+ *
+ * @param DbgState The state of the debugger on the current core
+ *
+ * @return VOID
+ */
+VOID
+UdRunScript(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    PDEBUGGER_UD_COMMAND_PACKET      ActionRequest;
+    DEBUGGEE_SCRIPT_PACKET *         ScriptPacket;
+    DEBUGGER_TRIGGERED_EVENT_DETAILS EventTriggerDetail = {0};
+
+    //
+    // Recover the action request buffer and optional storage buffer
+    //
+    ActionRequest = (DEBUGGER_UD_COMMAND_PACKET *)g_UserDebuggerWaitingCommandBuffer;
+    ScriptPacket  = (DEBUGGEE_SCRIPT_PACKET *)((UINT8 *)g_UserDebuggerWaitingCommandBuffer + sizeof(DEBUGGER_UD_COMMAND_PACKET));
+
+    //
+    // *** Here, we should execute script buffer and put them in the optional storage buffer ***
+    //
+
+    //
+    // Set a tag to the script so it shows the message is from script engine
+    //
+    EventTriggerDetail.Tag = OPERATION_LOG_MESSAGE_MANDATORY;
+
+    //
+    // Run the script in the target process (thread)
+    //
+    if (DebuggerPerformRunScript(DbgState,
+                                 NULL,
+                                 ScriptPacket,
+                                 &EventTriggerDetail))
+    {
+        //
+        // Check if we need to format the output or not
+        //
+        if (ScriptPacket->IsFormat)
+        {
+            //
+            // For the format, we need to get the result from the script engine
+            // through global variables, we store the result of format into
+            // optional parameters
+            //
+            ScriptPacket->Result      = g_UserDebuggerFormatsResultPacket.Result;
+            ScriptPacket->FormatValue = g_UserDebuggerFormatsResultPacket.Value;
+        }
+        else
+        {
+            //
+            // Set status
+            //
+            ScriptPacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        }
+    }
+    else
+    {
+        //
+        // Set status
+        //
+        ScriptPacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPT;
+    }
+
+    //
+    // Set the action request result
+    //
+    ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    //
+    // Set the event to indicate that the command is completed
+    //
+    SynchronizationSetEvent(&g_UserDebuggerWaitingCommandEvent);
 }
 
 /**
  * @brief Perform the user-mode commands
  *
+ * @param DbgState The state of the debugger on the current core
  * @param ProcessDebuggingDetails
  * @param ThreadDebuggingDetails
  * @param UserAction
@@ -246,7 +496,8 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
  * @return BOOLEAN
  */
 BOOLEAN
-UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
+UdPerformCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                 PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
                  PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
                  DEBUGGER_UD_COMMAND_ACTION_TYPE     UserAction,
                  UINT64                              OptionalParam1,
@@ -254,8 +505,6 @@ UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
                  UINT64                              OptionalParam3,
                  UINT64                              OptionalParam4)
 {
-    UNREFERENCED_PARAMETER(OptionalParam2);
-    UNREFERENCED_PARAMETER(OptionalParam3);
     UNREFERENCED_PARAMETER(OptionalParam4);
 
     //
@@ -268,18 +517,31 @@ UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
         //
         // Stepping through the instructions
         //
-        UdStepInstructions(ThreadDebuggingDetails, (DEBUGGER_REMOTE_STEPPING_REQUEST)OptionalParam1);
+        UdStepInstructions(DbgState,
+                           ProcessDebuggingDetail,
+                           ThreadDebuggingDetails,
+                           (DEBUGGER_REMOTE_STEPPING_REQUEST)OptionalParam1,
+                           (BOOLEAN)OptionalParam2,
+                           (UINT32)OptionalParam3);
+
+        break;
+
+    case DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS:
 
         //
-        // Continue the debuggee process
+        // Read the registers
         //
-        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
-        {
-            //
-            // Unpause the threads of the target process
-            //
-            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
-        }
+        UdReadRegisters(DbgState,
+                        (UINT32)OptionalParam1);
+
+        break;
+
+    case DEBUGGER_UD_COMMAND_ACTION_TYPE_EXECUTE_SCRIPT_BUFFER:
+
+        //
+        // Execute the script buffer
+        //
+        UdRunScript(DbgState);
 
         break;
 
@@ -299,12 +561,14 @@ UdPerformCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail,
 /**
  * @brief Check for the user-mode commands
  *
+ * @param DbgState The state of the debugger on the current core
  * @param ProcessDebuggingDetail
  *
  * @return BOOLEAN
  */
 BOOLEAN
-UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                  PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
     BOOLEAN                            CommandFound = FALSE;
@@ -342,7 +606,8 @@ UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
             //
             // Perform the command
             //
-            UdPerformCommand(ProcessDebuggingDetail,
+            UdPerformCommand(DbgState,
+                             ProcessDebuggingDetail,
                              ThreadDebuggingDetails,
                              ThreadDebuggingDetails->UdAction[i].ActionType,
                              ThreadDebuggingDetails->UdAction[i].OptionalParam1,
@@ -380,12 +645,18 @@ UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
  * @brief Dispatch the user-mode commands
  *
  * @param ActionRequest
+ * @param ActionRequestInputLength
+ * @param ActionRequestOutputLength
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
+UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
+                           UINT32                      ActionRequestInputLength,
+                           UINT32                      ActionRequestOutputLength)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
+    BOOLEAN                             Result;
 
     //
     // Find the thread debugging detail of the thread
@@ -397,13 +668,68 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
         //
         // Token not found!
         //
+        ActionRequest->Result = DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN;
+
         return FALSE;
+    }
+
+    //
+    // Check if this command needs the action request to be waited for completion or not
+    //
+    if (ActionRequest->WaitForEventCompletion)
+    {
+        //
+        // Set the command event buffer
+        //
+        g_UserDebuggerWaitingCommandBuffer = (PVOID)ActionRequest;
+
+        //
+        // Set the input command buffer length
+        //
+        g_UserDebuggerWaitingCommandInputBufferLength = ActionRequestInputLength;
+
+        //
+        // Set the output command buffer length
+        //
+        g_UserDebuggerWaitingCommandOutputBufferLength = ActionRequestOutputLength;
     }
 
     //
     // Apply the command to all threads or just one thread
     //
-    return ThreadHolderApplyActionToPausedThreads(ProcessDebuggingDetails, ActionRequest);
+    Result = ThreadHolderApplyActionToPausedThreads(ProcessDebuggingDetails, ActionRequest);
+
+    //
+    // Check if we need to wait for the command event completion or not
+    //
+    if (Result && ActionRequest->WaitForEventCompletion)
+    {
+        //
+        // Wait for the command to be completed
+        //
+        SynchronizationWaitForEvent(&g_UserDebuggerWaitingCommandEvent);
+    }
+
+    //
+    // Since the command is applied successfully, we can set the result
+    // Note that if the command contains another layer of optional buffers
+    // the result of that optional buffer might be different than this result
+    // this one is just for applying the command itself
+    //
+    if (Result)
+    {
+        //
+        // If we are not waiting for the event completion, we should set the
+        // result of the action request here as we successfully applied the command
+        //
+        ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+    else
+    {
+        ActionRequest->Result = DEBUGGER_ERROR_UNABLE_TO_APPLY_COMMAND_TO_THE_TARGET_THREAD;
+    }
+
+    return Result;
 }
 
 /**
@@ -411,11 +737,16 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
  *
  * @param ThreadDebuggingDetails
  * @param ProcessDebuggingDetails
+ * @param InstructionBytesBuffer
+ * @param SizeOfInstruction
+ *
  * @return VOID
  */
 VOID
 UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
-                        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
+                        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails,
+                        PVOID                               InstructionBytesBuffer,
+                        UINT32                              SizeOfInstruction)
 {
     UNREFERENCED_PARAMETER(ProcessDebuggingDetails);
 
@@ -433,6 +764,16 @@ UdSetThreadPausingState(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetai
     // Indicate that it's spinning
     //
     ThreadDebuggingDetails->IsPaused = TRUE;
+
+    //
+    // Set size of instruction
+    //
+    ThreadDebuggingDetails->SizeOfInstruction = SizeOfInstruction;
+
+    //
+    // Copy the current running instruction
+    //
+    memcpy(&ThreadDebuggingDetails->InstructionBytesOnRip[0], InstructionBytesBuffer, SizeOfInstruction);
 }
 
 /**
@@ -640,11 +981,6 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
                                               ExitInstructionLength);
 
     //
-    // Copy registers to the pause packet
-    //
-    RtlCopyMemory(&PausePacket.GuestRegs, DbgState->Regs, sizeof(GUEST_REGS));
-
-    //
     // Send the pause packet, along with RIP and an indication
     // to pause to the user debugger
     //
@@ -656,7 +992,10 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Set the thread debugging details
     //
-    UdSetThreadPausingState(ThreadDebuggingDetails, ProcessDebuggingDetails);
+    UdSetThreadPausingState(ThreadDebuggingDetails,
+                            ProcessDebuggingDetails,
+                            &PausePacket.InstructionBytesOnRip,
+                            ExitInstructionLength);
 
     //
     // Everything was okay

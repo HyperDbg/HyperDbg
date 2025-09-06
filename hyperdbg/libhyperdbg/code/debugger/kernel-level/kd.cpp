@@ -529,7 +529,7 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, U
     //
     // Set the request data
     //
-    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, RegDes, RegBuffSize);
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS, RegDes, RegBuffSize);
 
     //
     // Send the 'r' command as read register packet
@@ -564,7 +564,7 @@ KdSendWriteRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_WRITE_DESCRIPTION RegDes)
     //
     // Set the request data
     //
-    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER, RegDes, sizeof(DEBUGGEE_REGISTER_WRITE_DESCRIPTION));
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER, RegDes, sizeof(DEBUGGEE_REGISTER_WRITE_DESCRIPTION));
 
     //
     // Send write register packet
@@ -599,7 +599,7 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem, UINT32 RequestSi
     //
     // Set the request data
     //
-    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY, ReadMem, RequestSize);
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY, ReadMem, RequestSize);
 
     //
     // Send u-d command as read memory packet
@@ -635,7 +635,7 @@ KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size)
     //
     // Set the request data
     //
-    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY, EditMem, sizeof(DEBUGGER_EDIT_MEMORY));
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY, EditMem, sizeof(DEBUGGER_EDIT_MEMORY));
 
     //
     // Send d command as read memory packet
@@ -997,7 +997,7 @@ KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 Exp
     //
     // Set the request data
     //
-    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS, ApicRequest, ExpectedRequestSize);
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS, ApicRequest, ExpectedRequestSize);
 
     //
     // Send the APIC request packets
@@ -1033,7 +1033,7 @@ KdSendSmiPacketsToDebuggee(PSMI_OPERATION_PACKETS SmiOperationRequest, UINT32 Ex
     //
     // Set the request data
     //
-    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT, SmiOperationRequest, ExpectedRequestSize);
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT, SmiOperationRequest, ExpectedRequestSize);
 
     //
     // Send the SMI request packets
@@ -1067,9 +1067,9 @@ KdSendQueryIdtPacketsToDebuggee(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtR
     //
     // Set the request data
     //
-    DbgWaitSetRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES,
-                          IdtRequest,
-                          sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS));
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES,
+                                IdtRequest,
+                                sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS));
 
     //
     // Send the IDT request packets

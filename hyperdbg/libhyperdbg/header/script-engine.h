@@ -108,3 +108,6 @@ ScriptEngineEvalUInt64StyleExpressionWrapper(const string & Expr, PBOOLEAN HasEr
 
 UINT64
 ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError);
+
+BOOLEAN
+ScriptEngineExecuteSingleExpression(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny, BOOLEAN IsFormat);

@@ -12,55 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//		            Definitions                 //
-//////////////////////////////////////////////////
-
-#define DbgWaitForKernelResponse(KernelSyncObjectId)                       \
-    do                                                                     \
-    {                                                                      \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
-            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
-                                                                           \
-        SyncronizationObject->IsOnWaitingState = TRUE;                     \
-        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
-                                                                           \
-    } while (FALSE);
-
-#define DbgWaitSetRequestData(KernelSyncObjectId, ReqData, ReqSize)        \
-    do                                                                     \
-    {                                                                      \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
-            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
-                                                                           \
-        SyncronizationObject->RequestData = (PVOID)ReqData;                \
-        SyncronizationObject->RequestSize = (UINT32)ReqSize;               \
-                                                                           \
-    } while (FALSE);
-
-#define DbgWaitGetRequestData(KernelSyncObjectId, ReqData, ReqSize)            \
-    do                                                                         \
-    {                                                                          \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =          \
-            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId];     \
-                                                                               \
-        *ReqData                          = SyncronizationObject->RequestData; \
-        *ReqSize                          = SyncronizationObject->RequestSize; \
-        SyncronizationObject->RequestData = NULL;                              \
-        SyncronizationObject->RequestSize = NULL_ZERO;                         \
-                                                                               \
-    } while (FALSE);
-
-#define DbgReceivedKernelResponse(KernelSyncObjectId)                      \
-    do                                                                     \
-    {                                                                      \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
-            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
-                                                                           \
-        SyncronizationObject->IsOnWaitingState = FALSE;                    \
-        SetEvent(SyncronizationObject->EventHandle);                       \
-    } while (FALSE);
-
-//////////////////////////////////////////////////
 //		    Display Windows Details             //
 //////////////////////////////////////////////////
 

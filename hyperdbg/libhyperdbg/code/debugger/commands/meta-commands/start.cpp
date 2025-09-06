@@ -61,7 +61,7 @@ CommandStart(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    //
+//
 // Disable user-mode debugger in this version
 //
 #if ActivateUserModeDebugger == FALSE

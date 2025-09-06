@@ -17,6 +17,30 @@
 PROCESSOR_DEBUGGING_STATE * g_DbgState;
 
 /**
+ * @brief Event to show whether the user debugger is waiting for a command or not
+ *
+ */
+KEVENT g_UserDebuggerWaitingCommandEvent;
+
+/**
+ * @brief Buffer to hold the command from user debugger
+ *
+ */
+PVOID g_UserDebuggerWaitingCommandBuffer;
+
+/**
+ * @brief Length of the input command buffer from user debugger
+ *
+ */
+UINT32 g_UserDebuggerWaitingCommandInputBufferLength;
+
+/**
+ * @brief Length of the output command buffer from user debugger
+ *
+ */
+UINT32 g_UserDebuggerWaitingCommandOutputBufferLength;
+
+/**
  * @brief Holder of script engines global variables
  *
  */
@@ -59,6 +83,12 @@ DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;
  *
  */
 HARDWARE_DEBUG_REGISTER_DETAILS g_HardwareDebugRegisterDetailsForStepOver;
+
+/**
+ * @brief Holds the result of user debugger formats command
+ *
+ */
+DEBUGGEE_FORMATS_PACKET g_UserDebuggerFormatsResultPacket;
 
 /**
  * @brief Process switch to EPROCESS or Process ID

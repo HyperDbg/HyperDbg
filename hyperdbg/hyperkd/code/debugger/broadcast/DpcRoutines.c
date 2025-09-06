@@ -277,3 +277,36 @@ DpcRoutineVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief Broadcast applying hardware debug register
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return BOOLEAN
+ */
+BOOLEAN
+DpcRoutineSetHardwareDebugRegisters(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Apply hardware debug registers
+    //
+    UdApplyHardwareDebugRegister(DeferredContext);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+
+    return TRUE;
+}

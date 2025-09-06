@@ -663,7 +663,7 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
             //
             // Check for possible commands that need to be executed
             //
-            UdCheckForCommand(ProcessDebuggingDetail);
+            UdCheckForCommand(DbgState, ProcessDebuggingDetail);
 
             return TRUE;
         }
@@ -1341,11 +1341,17 @@ AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
     //
     // Fill the needed details by user mode
     //
-    SwitchRequest->Token     = ProcessDebuggingDetail->Token;
-    SwitchRequest->ProcessId = ProcessDebuggingDetail->ProcessId;
-    SwitchRequest->ThreadId  = ThreadDebuggingDetail->ThreadId;
-    SwitchRequest->Is32Bit   = ProcessDebuggingDetail->Is32Bit;
-    SwitchRequest->IsPaused  = ThreadDebuggingDetail->IsPaused;
+    SwitchRequest->Token             = ProcessDebuggingDetail->Token;
+    SwitchRequest->ProcessId         = ProcessDebuggingDetail->ProcessId;
+    SwitchRequest->ThreadId          = ThreadDebuggingDetail->ThreadId;
+    SwitchRequest->Is32Bit           = ProcessDebuggingDetail->Is32Bit;
+    SwitchRequest->Rip               = ThreadDebuggingDetail->ThreadRip;
+    SwitchRequest->IsPaused          = ThreadDebuggingDetail->IsPaused;
+    SwitchRequest->SizeOfInstruction = ThreadDebuggingDetail->SizeOfInstruction;
+
+    memcpy(&SwitchRequest->InstructionBytesOnRip[0],
+           &ThreadDebuggingDetail->InstructionBytesOnRip[0],
+           ThreadDebuggingDetail->SizeOfInstruction);
 
     SwitchRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     return TRUE;

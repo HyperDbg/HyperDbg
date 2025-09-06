@@ -29,15 +29,6 @@ VOID
 UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
 {
     //
-    // Set the current active debugging process (thread)
-    //
-    UdSetActiveDebuggingProcess(PausePacket->ProcessDebuggingToken,
-                                PausePacket->ProcessId,
-                                PausePacket->ThreadId,
-                                PausePacket->Is32Bit,
-                                TRUE);
-
-    //
     // Perform extra tasks for pausing reasons
     //
     switch (PausePacket->PausingReason)
@@ -82,6 +73,17 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
     //
     if (g_ActiveProcessDebuggingState.IsPaused == FALSE || PausePacket->ThreadId == g_ActiveProcessDebuggingState.ThreadId)
     {
+        //
+        // Set the current active debugging process (thread)
+        //
+        UdSetActiveDebuggingProcess(PausePacket->ProcessDebuggingToken,
+                                    PausePacket->Rip,
+                                    PausePacket->ProcessId,
+                                    PausePacket->ThreadId,
+                                    PausePacket->Is32Bit,
+                                    TRUE,
+                                    &PausePacket->InstructionBytesOnRip[0]);
+
         if (!PausePacket->Is32Bit)
         {
             //

@@ -56,13 +56,26 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
                      DEBUGGEE_PAUSING_REASON             Reason,
                      PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
 
+VOID
+UdApplyHardwareDebugRegister(PVOID TargetAddress);
+
 BOOLEAN
 UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgState,
                                           DEBUGGEE_PAUSING_REASON           Reason,
                                           PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
 BOOLEAN
-UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest);
+UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
+                           UINT32                      ActionRequestInputLength,
+                           UINT32                      ActionRequestOutputLength);
 
 BOOLEAN
-UdCheckForCommand(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
+UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                  PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
+
+BOOLEAN
+UdHandleDebugEventsWhenUserDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState,
+                                              BOOLEAN                     TrapSetByDebugger);
+
+VOID
+UdSendFormatsFunctionResult(UINT64 Value);

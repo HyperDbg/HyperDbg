@@ -14,11 +14,6 @@
 
 using namespace std;
 
-//
-// Global Variables
-//
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-
 /**
  * @brief help of the print command
  *
@@ -46,11 +41,6 @@ CommandPrintHelp()
 VOID
 CommandPrint(vector<CommandToken> CommandTokens, string Command)
 {
-    PVOID  CodeBuffer;
-    UINT64 BufferAddress;
-    UINT32 BufferLength;
-    UINT32 Pointer;
-
     if (CommandTokens.size() == 1)
     {
         ShowMessages("incorrect use of the '%s'\n\n",
@@ -80,54 +70,8 @@ CommandPrint(vector<CommandToken> CommandTokens, string Command)
     Command.insert(0, "print(");
     Command.append(");");
 
-    if (g_IsSerialConnectedToRemoteDebuggee)
-    {
-        //
-        // Send over serial
-        //
-
-        //
-        // Run script engine handler
-        //
-        CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str(), TRUE);
-
-        if (CodeBuffer == NULL)
-        {
-            //
-            // return to show that this item contains an script
-            //
-            return;
-        }
-
-        //
-        // Print symbols (test)
-        //
-        // PrintSymbolBufferWrapper(CodeBuffer);
-
-        //
-        // Set the buffer and length
-        //
-        BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-        BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
-        Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
-
-        //
-        // Send it to the remote debuggee
-        //
-        KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
-
-        //
-        // Remove the buffer of script engine interpreted code
-        //
-        ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
-
-        ShowMessages("\n");
-    }
-    else
-    {
-        //
-        // error
-        //
-        ShowMessages("err, you're not connected to any debuggee\n");
-    }
+    //
+    // Execute the expression
+    //
+    ScriptEngineExecuteSingleExpression((CHAR *)Command.c_str(), TRUE, FALSE);
 }

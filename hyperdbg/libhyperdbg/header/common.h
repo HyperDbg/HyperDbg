@@ -83,6 +83,100 @@
 #define CPUID_ADDR_WIDTH 0x80000008
 
 //////////////////////////////////////////////////
+//		    Kernel & User Synchronization       //
+//////////////////////////////////////////////////
+
+#define DbgWaitForKernelResponse(KernelSyncObjectId)                       \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->IsOnWaitingState = TRUE;                     \
+        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
+                                                                           \
+    } while (FALSE);
+
+#define DbgWaitForUserResponse(UserSyncObjectId)                          \
+    do                                                                    \
+    {                                                                     \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =     \
+            &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId];    \
+                                                                          \
+        SyncronizationObject->IsOnWaitingState = TRUE;                    \
+        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE); \
+                                                                          \
+    } while (FALSE);
+
+#define DbgWaitSetKernelRequestData(KernelSyncObjectId, ReqData, ReqSize)  \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->RequestData = (PVOID)ReqData;                \
+        SyncronizationObject->RequestSize = (UINT32)ReqSize;               \
+                                                                           \
+    } while (FALSE);
+
+#define DbgWaitSetUserRequestData(UserSyncObjectId, ReqData, ReqSize)  \
+    do                                                                 \
+    {                                                                  \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =  \
+            &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId]; \
+                                                                       \
+        SyncronizationObject->RequestData = (PVOID)ReqData;            \
+        SyncronizationObject->RequestSize = (UINT32)ReqSize;           \
+                                                                       \
+    } while (FALSE);
+
+#define DbgWaitGetKernelRequestData(KernelSyncObjectId, ReqData, ReqSize)      \
+    do                                                                         \
+    {                                                                          \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =          \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId];     \
+                                                                               \
+        *ReqData                          = SyncronizationObject->RequestData; \
+        *ReqSize                          = SyncronizationObject->RequestSize; \
+        SyncronizationObject->RequestData = NULL;                              \
+        SyncronizationObject->RequestSize = NULL_ZERO;                         \
+                                                                               \
+    } while (FALSE);
+
+#define DbgWaitGetUserRequestData(UserSyncObjectId, ReqData, ReqSize)          \
+    do                                                                         \
+    {                                                                          \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =          \
+            &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId];         \
+                                                                               \
+        *ReqData                          = SyncronizationObject->RequestData; \
+        *ReqSize                          = SyncronizationObject->RequestSize; \
+        SyncronizationObject->RequestData = NULL;                              \
+        SyncronizationObject->RequestSize = NULL_ZERO;                         \
+                                                                               \
+    } while (FALSE);
+
+#define DbgReceivedKernelResponse(KernelSyncObjectId)                      \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->IsOnWaitingState = FALSE;                    \
+        SetEvent(SyncronizationObject->EventHandle);                       \
+    } while (FALSE);
+
+#define DbgReceivedUserResponse(UserSyncObjectId)                      \
+    do                                                                 \
+    {                                                                  \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =  \
+            &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId]; \
+                                                                       \
+        SyncronizationObject->IsOnWaitingState = FALSE;                \
+        SetEvent(SyncronizationObject->EventHandle);                   \
+    } while (FALSE);
+
+//////////////////////////////////////////////////
 //			  Assembly Functions                //
 //////////////////////////////////////////////////
 

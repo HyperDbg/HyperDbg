@@ -402,6 +402,62 @@ KdLoggingResponsePacketToDebugger(
 }
 
 /**
+ * @brief Regular step-over, step one instruction to the debuggee if
+ * there is a call then it jumps the call
+ *
+ * @param LastRip Last RIP register
+ * @param IsNextInstructionACall
+ * @param CallLength
+ *
+ * @return VOID
+ */
+VOID
+KdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLength)
+{
+    UINT64 NextAddressForHardwareDebugBp = 0;
+    ULONG  ProcessorsCount;
+
+    // LogInfo("Last Rip: %llx, IsNextInstructionACall: %s, Call length: %x",
+    //         LastRip,
+    //         IsNextInstructionACall ? "true" : "false",
+    //         CallLength);
+
+    if (IsNextInstructionACall)
+    {
+        //
+        // It's a call, we should put a hardware debug register breakpoint
+        // on the next instruction
+        //
+        NextAddressForHardwareDebugBp = LastRip + CallLength;
+
+        ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+        //
+        // Store the detail of the hardware debug register to avoid trigger
+        // in other processes
+        //
+        g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
+        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
+
+        //
+        // Add hardware debug breakpoints on all core on vm-entry
+        //
+        for (size_t i = 0; i < ProcessorsCount; i++)
+        {
+            g_DbgState[i].HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
+        }
+    }
+    else
+    {
+        //
+        // Any instruction other than call (regular step)
+        //
+        TracingRegularStepInInstruction();
+    }
+}
+
+/**
  * @brief Handles debug events when kernel-debugger is attached
  *
  * @param DbgState The state of the debugger on the current core
@@ -615,104 +671,6 @@ KdContinueDebuggeeJustCurrentCore(PROCESSOR_DEBUGGING_STATE * DbgState)
 }
 
 /**
- * @brief read registers
- * @param DbgState The state of the debugger on the current core
- * @param ReadRegisterRequest
- *
- * @return BOOLEAN
- */
-_Use_decl_annotations_
-BOOLEAN
-KdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
-{
-    GUEST_EXTRA_REGISTERS ERegs = {0};
-
-    if (ReadRegisterRequest->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
-    {
-        //
-        // Add General purpose registers
-        //
-        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
-               DbgState->Regs,
-               sizeof(GUEST_REGS));
-
-        //
-        // Read Extra registers
-        //
-        ERegs.CS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
-        ERegs.SS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
-        ERegs.DS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
-        ERegs.ES     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
-        ERegs.FS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
-        ERegs.GS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
-        ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
-        ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
-
-        //
-        // copy at the end of ReadRegisterRequest structure
-        //
-        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS)),
-               &ERegs,
-               sizeof(GUEST_EXTRA_REGISTERS));
-    }
-    else
-    {
-        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(DbgState->Regs, ReadRegisterRequest->RegisterId);
-    }
-
-    return TRUE;
-}
-
-/**
- * @brief read registers
- * @param Regs
- * @param ReadRegisterRequest
- *
- * @return BOOLEAN
- */
-_Use_decl_annotations_
-BOOLEAN
-KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
-{
-    GUEST_EXTRA_REGISTERS ERegs = {0};
-
-    if (ReadRegisterRequest->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
-    {
-        //
-        // Add General purpose registers
-        //
-        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
-               Regs,
-               sizeof(GUEST_REGS));
-
-        //
-        // Read Extra registers
-        //
-        ERegs.CS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
-        ERegs.SS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
-        ERegs.DS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
-        ERegs.ES     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
-        ERegs.FS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
-        ERegs.GS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
-        ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
-        ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
-
-        //
-        // copy at the end of ReadRegisterRequest structure
-        //
-        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS)),
-               &ERegs,
-               sizeof(GUEST_EXTRA_REGISTERS));
-    }
-    else
-    {
-        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterId);
-    }
-
-    return TRUE;
-}
-
-/**
  * @brief change the current operating core to new core
  *
  * @param DbgState The state of the debugger on the current core
@@ -878,7 +836,7 @@ KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len
 }
 
 /**
- * @brief Notify user-mode to unload the debuggee and close the connections
+ * @brief Send the result of formats command to the kernel debugger
  * @param Value
  *
  * @return VOID
@@ -1490,74 +1448,6 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
     // Execution modes are changed
     //
     return TRUE;
-}
-
-/**
- * @brief Regular step-in | step one instruction to the debuggee
- * @param DbgState The state of the debugger on the current core
- *
- * @return VOID
- */
-VOID
-KdRegularStepInInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
-{
-    TracingPerformRegularStepInInstruction(DbgState);
-
-    //
-    // Unset the trap flag on the next VM-exit
-    //
-    BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
-}
-
-/**
- * @brief Regular step-over | step one instruction to the debuggee if
- * there is a call then it jumps the call
- *
- * @param DbgState The state of the debugger on the current core
- * @param IsNextInstructionACall
- * @param CallLength
- *
- * @return VOID
- */
-VOID
-KdRegularStepOver(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN IsNextInstructionACall, UINT32 CallLength)
-{
-    UINT64 NextAddressForHardwareDebugBp = 0;
-    ULONG  ProcessorsCount;
-
-    if (IsNextInstructionACall)
-    {
-        //
-        // It's a call, we should put a hardware debug register breakpoint
-        // on the next instruction
-        //
-        NextAddressForHardwareDebugBp = VmFuncGetLastVmexitRip(DbgState->CoreId) + CallLength;
-
-        ProcessorsCount = KeQueryActiveProcessorCount(0);
-
-        //
-        // Store the detail of the hardware debug register to avoid trigger
-        // in other processes
-        //
-        g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
-        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
-        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
-
-        //
-        // Add hardware debug breakpoints on all core on vm-entry
-        //
-        for (size_t i = 0; i < ProcessorsCount; i++)
-        {
-            g_DbgState[i].HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
-        }
-    }
-    else
-    {
-        //
-        // Any instruction other than call (regular step)
-        //
-        KdRegularStepInInstruction(DbgState);
-    }
 }
 
 /**
@@ -2423,7 +2313,10 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
                     // Step-over (p command)
                     //
-                    KdRegularStepOver(DbgState, SteppingPacket->IsCurrentInstructionACall, SteppingPacket->CallLength);
+                    KdRegularStepOver(
+                        VmFuncGetLastVmexitRip(DbgState->CoreId),
+                        SteppingPacket->IsCurrentInstructionACall,
+                        SteppingPacket->CallLength);
 
                     //
                     // Unlock other cores
@@ -2449,9 +2342,9 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                     //
 
                     //
-                    // Indicate a step
+                    // Indicate a step-in
                     //
-                    KdRegularStepInInstruction(DbgState);
+                    TracingRegularStepInInstruction();
 
                     //
                     // Unlock other cores
@@ -2614,7 +2507,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Read registers
                 //
-                if (KdReadRegisters(DbgState, ReadRegisterPacket))
+                if (DebuggerCommandReadRegisters(DbgState->Regs, ReadRegisterPacket))
                 {
                     ReadRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }

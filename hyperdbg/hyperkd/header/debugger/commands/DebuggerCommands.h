@@ -18,6 +18,10 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
+DebuggerCommandReadRegisters(GUEST_REGS *                        Regs,
+                             PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest);
+
+BOOLEAN
 DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer, PSIZE_T ReturnSize);
 
 BOOLEAN
