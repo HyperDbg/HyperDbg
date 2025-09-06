@@ -725,6 +725,11 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     else
     {
         //
+        // Unpause the threads of the target process
+        //
+        ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
+
+        //
         // Remove the process from the watching list
         //
         ConfigureExecTrapRemoveProcessFromWatchingList(ProcessDebuggingDetail->ProcessId);
@@ -1099,11 +1104,6 @@ AttachingContinueProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ContinueReque
     //
     if (AttachingConfigureInterceptingThreads(ContinueRequest->Token, FALSE))
     {
-        //
-        // Unpause the threads of the target process
-        //
-        ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetails);
-
         //
         // The continuing operation was successful
         //

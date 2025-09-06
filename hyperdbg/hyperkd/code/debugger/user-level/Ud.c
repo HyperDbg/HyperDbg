@@ -321,13 +321,7 @@ UdStepInstructions(PROCESSOR_DEBUGGING_STATE *         DbgState,
         //
         // Continue the debuggee process
         //
-        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
-        {
-            //
-            // Unpause the threads of the target process
-            //
-            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
-        }
+        AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE);
 
         break;
 
@@ -344,13 +338,7 @@ UdStepInstructions(PROCESSOR_DEBUGGING_STATE *         DbgState,
         //
         // Continue the debuggee process
         //
-        if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE))
-        {
-            //
-            // Unpause the threads of the target process
-            //
-            ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
-        }
+        AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE);
 
         break;
 
