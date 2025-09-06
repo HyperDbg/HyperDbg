@@ -414,8 +414,9 @@ UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
 VOID
 UdRunScript(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    PDEBUGGER_UD_COMMAND_PACKET ActionRequest;
-    DEBUGGEE_SCRIPT_PACKET *    ScriptPacket;
+    PDEBUGGER_UD_COMMAND_PACKET      ActionRequest;
+    DEBUGGEE_SCRIPT_PACKET *         ScriptPacket;
+    DEBUGGER_TRIGGERED_EVENT_DETAILS EventTriggerDetail = {0};
 
     //
     // Recover the action request buffer and optional storage buffer
@@ -428,12 +429,17 @@ UdRunScript(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
 
     //
+    // Set a tag to the script so it shows the message is from script engine
+    //
+    EventTriggerDetail.Tag = OPERATION_LOG_MESSAGE_MANDATORY;
+
+    //
     // Run the script in the target process (thread)
     //
     if (DebuggerPerformRunScript(DbgState,
                                  NULL,
                                  ScriptPacket,
-                                 &g_EventTriggerDetail))
+                                 &EventTriggerDetail))
     {
         //
         // Check if we need to format the output or not

@@ -299,6 +299,13 @@ ReadIrpBasedBuffer()
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 
                     break;
+
+                case OPERATION_LOG_MESSAGE_MANDATORY:
+
+                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
+                    break;
+
                 case OPERATION_LOG_INFO_MESSAGE:
 
                     if (g_BreakPrintingOutput)
@@ -313,6 +320,7 @@ ReadIrpBasedBuffer()
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 
                     break;
+
                 case OPERATION_LOG_ERROR_MESSAGE:
                     if (g_BreakPrintingOutput)
                     {
@@ -326,6 +334,7 @@ ReadIrpBasedBuffer()
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 
                     break;
+
                 case OPERATION_LOG_WARNING_MESSAGE:
 
                     if (g_BreakPrintingOutput)

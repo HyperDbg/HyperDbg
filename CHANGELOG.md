@@ -20,6 +20,7 @@ New release of the HyperDbg Debugger.
 - Added support for the '.formats' command in the user debugger ([link](https://docs.hyperdbg.org/commands/meta-commands/.formats))
 - Added support for interpreting parameters based on script engine expressions in the user debugger
 - Exported SDK API for evaluating expressions based on the context of the kernel debugger or the user debugger
+- Added a new mechanism for showing the 'printf' and the 'print' function messages in the user debugger ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/exports/printf))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/exports/print))
 
 ### Changed
 - Non-volatile XMM registers are no longer saved/restored on VM-exit handler ([link](https://learn.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-170))

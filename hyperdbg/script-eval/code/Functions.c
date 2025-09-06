@@ -1602,10 +1602,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                       GuestRegs,
 
         CHAR PercentageChar = Format[Position];
 
-        /*
-    printf("position = %d is %c%c \n", Position, PercentageChar,
-           IndicatorChar1);
-           */
+        // printf("position = %d is %c%c \n", Position, PercentageChar, IndicatorChar1);
 
         if (CurrentProcessedPositionFromStartOfFormat != Position)
         {
