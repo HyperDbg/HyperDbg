@@ -72,7 +72,7 @@
 /**
  * @brief Activates the user-mode debugger
  */
-#define ActivateUserModeDebugger TRUE
+#define ActivateUserModeDebugger FALSE
 
 /**
  * @brief Activates the hyperevade project
