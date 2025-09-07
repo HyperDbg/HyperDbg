@@ -33,9 +33,9 @@ DirtyLoggingInitialize()
     //
 
     //
-    // When PML is active each write that sets a dirty flag for EPT also generates an entry in an inmemory log,
+    // When PML is active each write that sets a dirty flag for EPT also generates an entry in an in-memory log,
     // reporting the guest-physical address of the write (aligned to 4 KBytes)
-    // When the log is full, a VM exit occurs, notifying the VMM.A VMM can monitor the number of pages modified
+    // When the log is full, a VM exit occurs, notifying the VMM. A VMM can monitor the number of pages modified
     //  by each thread by specifying an available set of log entries
     //
 

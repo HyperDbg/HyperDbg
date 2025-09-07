@@ -264,6 +264,9 @@
     <ClCompile Include="..\include\platform\kernel\code\Mem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="code\common\Synchronization.c">
+      <Filter>code\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -397,6 +400,9 @@
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\Mem.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="header\common\Synchronization.h">
+      <Filter>header\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

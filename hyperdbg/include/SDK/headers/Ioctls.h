@@ -209,7 +209,7 @@
  * @brief ioctl, to perform kernel-side tests
  *
  */
-#define IOCTL_PERFROM_KERNEL_SIDE_TESTS \
+#define IOCTL_PERFORM_KERNEL_SIDE_TESTS \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x815, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
@@ -300,7 +300,7 @@
  * @brief ioctl, to perform actions related to APIC
  *
  */
-#define IOCTL_PERFROM_ACTIONS_ON_APIC \
+#define IOCTL_PERFORM_ACTIONS_ON_APIC \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x822, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**

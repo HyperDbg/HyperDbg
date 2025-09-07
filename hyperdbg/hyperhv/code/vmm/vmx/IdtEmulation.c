@@ -198,7 +198,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
     //
     // Store the latest exception vector
     //
-    VCpu->LastExceptionOccuredInHost = IntrTrapFrame->vector;
+    VCpu->LastExceptionOccurredInHost = IntrTrapFrame->vector;
 
     switch (IntrTrapFrame->vector)
     {

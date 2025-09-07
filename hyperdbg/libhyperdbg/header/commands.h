@@ -348,6 +348,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_CPUID_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
+#define DEBUGGER_COMMAND_XSETBV_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
+
 #define DEBUGGER_COMMAND_MSRREAD_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
 #define DEBUGGER_COMMAND_MSRWRITE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
@@ -769,3 +771,9 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandHw(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandXsetbv(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandXsetbvHelp();

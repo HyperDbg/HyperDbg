@@ -160,6 +160,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_IO_SMI:
     case VMX_EXIT_REASON_SMI:
     {
+        //
+        // Handle SMI and IO-SMI (should never happen in normal cases)
+        //
         LogInfo("VM-exit reason SMM %llx | qual: %llx", ExitReason, VCpu->ExitQualification);
 
         break;
@@ -185,6 +188,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EPT_VIOLATION:
     {
+        //
+        // Handle EPT violation
+        //
         if (EptHandleEptViolation(VCpu) == FALSE)
         {
             LogError("Err, there were errors in handling EPT violation");
@@ -194,6 +200,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EPT_MISCONFIGURATION:
     {
+        //
+        // Handle EPT misconfiguration (should never happen)
+        //
         EptHandleMisconfiguration();
 
         break;
@@ -297,9 +306,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_EXECUTE_XSETBV:
     {
         //
-        // Handle xsetbv (unconditional vm-exit)
+        // Dispatch and trigger the XSETBV instruction events
         //
-        VmxHandleXsetbv(VCpu);
+        DispatchEventXsetbv(VCpu);
 
         break;
     }
@@ -323,6 +332,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     default:
     {
+        //
+        // Not handled vm-exit
+        //
         LogError("Err, unknown vmexit, reason : 0x%llx", ExitReason);
 
         break;

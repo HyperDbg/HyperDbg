@@ -1304,3 +1304,30 @@ ApplyEventTracingEvent(PDEBUGGER_EVENT                   Event,
     //
     Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
 }
+
+/**
+ * @brief Applying XSETBV instruction execution events
+ *
+ * @param Event The created event object
+ * @param ResultsToReturn Result buffer that should be returned to
+ * the user-mode
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return VOID
+ */
+VOID
+ApplyEventXsetbvExecutionEvent(PDEBUGGER_EVENT                   Event,
+                               PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
+                               BOOLEAN                           InputFromVmxRoot)
+{
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(ResultsToReturn);
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
+    //
+    // Enable triggering events for XSETBVs. This event doesn't support custom optional
+    // parameter(s) because it's unconditional. Users can use condition(s) to check for
+    // their custom optional parameters
+    //
+    VmFuncSetTriggerEventForXsetbvs(TRUE);
+}

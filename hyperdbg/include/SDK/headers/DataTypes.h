@@ -238,7 +238,6 @@ typedef struct _DEBUGGEE_UD_PAUSED_PACKET
     VMM_CALLBACK_EVENT_CALLING_STAGE_TYPE EventCallingStage;
     BYTE                                  InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
     UINT16                                ReadInstructionLen;
-    GUEST_REGS                            GuestRegs;
 
 } DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
 

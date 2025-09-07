@@ -597,7 +597,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
     // Prepare a buffer to bypass allocating a huge stack space for logging
     //
     char   TempBuffer[20] = {0};
-    UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx", Value);
+    UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx\n", Value);
 
     LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
 
@@ -1225,6 +1225,10 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
     {
         KdSendFormatsFunctionResult(Value);
     }
+    else if (g_UserDebuggerState)
+    {
+        UdSendFormatsFunctionResult(Value);
+    }
     else
     {
         //
@@ -1598,10 +1602,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                       GuestRegs,
 
         CHAR PercentageChar = Format[Position];
 
-        /*
-    printf("position = %d is %c%c \n", Position, PercentageChar,
-           IndicatorChar1);
-           */
+        // printf("position = %d is %c%c \n", Position, PercentageChar, IndicatorChar1);
 
         if (CurrentProcessedPositionFromStartOfFormat != Position)
         {
@@ -2004,12 +2005,10 @@ ScriptEngineFunctionEventTraceStepIn()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
-
     //
     // Call instrumentation step in
     //
-    TracingPerformRegularStepInInstruction(&g_DbgState[CurrentCore]);
+    TracingPerformRegularStepInInstruction();
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

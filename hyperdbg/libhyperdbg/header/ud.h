@@ -12,30 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//		            Definitions                 //
-//////////////////////////////////////////////////
-
-#define DbgWaitForUserResponse(UserSyncObjectId)                          \
-    do                                                                    \
-    {                                                                     \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =     \
-            &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId];    \
-                                                                          \
-        SyncronizationObject->IsOnWaitingState = TRUE;                    \
-        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE); \
-    } while (FALSE);
-
-#define DbgReceivedUserResponse(UserSyncObjectId)                      \
-    do                                                                 \
-    {                                                                  \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =  \
-            &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId]; \
-                                                                       \
-        SyncronizationObject->IsOnWaitingState = FALSE;                \
-        SetEvent(SyncronizationObject->EventHandle);                   \
-    } while (FALSE);
-
-//////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////
 
@@ -53,7 +29,10 @@ typedef struct _ACTIVE_DEBUGGING_PROCESS
     BOOLEAN    IsPaused;
     GUEST_REGS Registers; // thread registers
     UINT64     Context;   // $context
+    UINT64     Rip;
     BOOLEAN    Is32Bit;
+    BYTE       InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+
 } ACTIVE_DEBUGGING_PROCESS, *PACTIVE_DEBUGGING_PROCESS;
 
 //////////////////////////////////////////////////
@@ -67,20 +46,25 @@ VOID
 UdUninitializeUserDebugger();
 
 VOID
-UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess);
+UdRemoveActiveDebuggingProcess();
 
 VOID
 UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);
 
 VOID
-UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType);
-
-VOID
 UdSetActiveDebuggingProcess(UINT64  DebuggingId,
+                            UINT64  Rip,
                             UINT32  ProcessId,
                             UINT32  ThreadId,
                             BOOLEAN Is32Bit,
-                            BOOLEAN IsPaused);
+                            BOOLEAN IsPaused,
+                            BYTE    InstructionBytesOnRip[]);
+
+BOOLEAN
+UdSendStepPacketToDebuggee(UINT64                           ThreadDetailToken,
+                           UINT32                           TargetThreadId,
+                           DEBUGGER_REMOTE_STEPPING_REQUEST StepType);
+
 BOOLEAN
 UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid);
 
@@ -113,3 +97,30 @@ UdContinueProcess(UINT64 ProcessDebuggingToken);
 
 BOOLEAN
 UdPauseProcess(UINT64 ProcessDebuggingToken);
+
+BOOLEAN
+UdSendCommand(UINT64                          ProcessDetailToken,
+              UINT32                          ThreadId,
+              DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
+              PVOID                           OptionalBuffer,
+              UINT32                          OptionalBufferSize,
+              BOOLEAN                         ApplyToAllPausedThreads,
+              BOOLEAN                         WaitForEventCompletion,
+              UINT64                          OptionalParam1,
+              UINT64                          OptionalParam2,
+              UINT64                          OptionalParam3,
+              UINT64                          OptionalParam4);
+
+BOOLEAN
+UdSendScriptBufferToProcess(UINT64  ProcessDetailToken,
+                            UINT32  TargetThreadId,
+                            UINT64  BufferAddress,
+                            UINT32  BufferLength,
+                            UINT32  Pointer,
+                            BOOLEAN IsFormat);
+
+BOOLEAN
+UdSendReadRegisterToUserDebugger(UINT64                              ProcessDetailToken,
+                                 UINT32                              TargetThreadId,
+                                 PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes,
+                                 UINT32                              RegBuffSize);

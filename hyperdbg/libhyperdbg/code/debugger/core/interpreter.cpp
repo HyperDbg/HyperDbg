@@ -1102,9 +1102,10 @@ HyperDbgShowSignature()
         //
         // Debugging a special process
         //
-        ShowMessages("%x:%x u%sHyperDbg> ",
+        ShowMessages("%x:%x %s u%sHyperDbg> ",
                      g_ActiveProcessDebuggingState.ProcessId,
                      g_ActiveProcessDebuggingState.ThreadId,
+                     g_ActiveProcessDebuggingState.IsPaused ? "(paused)" : "(running)",
                      g_ActiveProcessDebuggingState.Is32Bit ? "86" : "64");
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
@@ -1637,4 +1638,6 @@ InitializeCommandsDictionary()
     g_CommandsList["!hwdbg_clock"] = {&CommandHwClk, &CommandHwClkHelp, DEBUGGER_COMMAND_HWDBG_HW_CLK_ATTRIBUTES};
 
     g_CommandsList["!hw"] = {&CommandHw, &CommandHwHelp, DEBUGGER_COMMAND_HWDBG_HW_ATTRIBUTES};
+
+    g_CommandsList["!xsetbv"] = {&CommandXsetbv, &CommandXsetbvHelp, DEBUGGER_COMMAND_XSETBV_ATTRIBUTES};
 }

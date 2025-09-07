@@ -33,6 +33,7 @@ CommandSwitchHelp()
     ShowMessages("syntax : \t.switch [tid ThreadId (hex)]\n");
 
     ShowMessages("\n");
+    ShowMessages("\t\te.g : .switch\n");
     ShowMessages("\t\te.g : .switch list\n");
     ShowMessages("\t\te.g : .switch pid b60 \n");
     ShowMessages("\t\te.g : .switch tid b60 \n");
@@ -51,7 +52,7 @@ CommandSwitch(vector<CommandToken> CommandTokens, string Command)
 {
     UINT32 PidOrTid = NULL;
 
-    if (CommandTokens.size() > 3 || CommandTokens.size() == 2)
+    if (CommandTokens.size() > 3)
     {
         ShowMessages("incorrect use of the '%s'\n\n",
                      GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
@@ -62,7 +63,7 @@ CommandSwitch(vector<CommandToken> CommandTokens, string Command)
     //
     // Perform switching or listing the threads
     //
-    if (CommandTokens.size() == 1)
+    if (CommandTokens.size() == 1 || (CommandTokens.size() == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "list")))
     {
         UdShowListActiveDebuggingProcessesAndThreads();
     }

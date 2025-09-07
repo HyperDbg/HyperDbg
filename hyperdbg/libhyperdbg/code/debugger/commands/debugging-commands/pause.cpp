@@ -54,9 +54,8 @@ CommandPauseRequest()
     }
     else if (g_ActiveProcessDebuggingState.IsActive && UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken))
     {
-        ShowMessages("please keep interacting with the process until all the "
-                     "threads are intercepted and halted; whenever you execute "
-                     "the first command, the thread interception will be stopped\n");
+        ShowMessages("please keep interacting with the process until all the threads are intercepted "
+                     "and halted; you can run the 'g' command to continue the debuggee\n");
     }
 }
 

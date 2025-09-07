@@ -1130,7 +1130,7 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     //
     // For this event we should also check for sysret instructions events too
     // because both of them are emulated by a single bit in vmx controls
-    // and a MSR so if there is anything in out events list then we can
+    // and an MSR so if there is anything in out events list then we can
     // remove all the events
     //
     if (DebuggerEventListCount(&g_Events->SyscallHooksEferSyscallEventsHead) > 1 ||
@@ -1221,7 +1221,7 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
     //
     // For this event we should also check for syscall instructions events too
     // because both of them are emulated by a single bit in vmx controls
-    // and a MSR so if there is anything in out events list then we can
+    // and an MSR so if there is anything in out events list then we can
     // remove all the events
     //
     if (DebuggerEventListCount(&g_Events->SyscallHooksEferSysretEventsHead) > 1 ||
@@ -1768,4 +1768,47 @@ TerminateQueryDebuggerResource(UINT32                               CoreId,
     // Check termination result
     //
     return Result;
+}
+
+/**
+ * @brief Termination function for XSETBV Instruction events
+ *
+ * @param Event Target Event Object
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return VOID
+ */
+VOID
+TerminateXsetbvExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
+{
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+
+    if (DebuggerEventListCount(&g_Events->XsetbvInstructionExecutionEventsHead) > 1)
+    {
+        //
+        // There are still other events in the queue (list), we should only remove
+        // this special event (not all events)
+        //
+
+        //
+        // Nothing we can do for this event type, let it work because of other events
+        //
+        return;
+    }
+    else
+    {
+        //
+        // Nothing else is in the list, we have to restore everything to default
+        // as the current event is the only event in the list
+        //
+
+        //
+        // We set the global variable related to the xsetbv to FALSE
+        // so the vm-exit handler, no longer triggers events related
+        // to the xsetbvs (still they cause vm-exits as xsetbv is an
+        // unconditional instruction for vm-exit)
+        //
+        VmFuncSetTriggerEventForXsetbvs(FALSE);
+    }
 }

@@ -1,7 +1,7 @@
 /**
  * @file test-parser.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Perfrom test on command parser
+ * @brief Perform test on command parser
  * @details
  * @version 0.11
  * @date 2024-08-11
@@ -309,9 +309,9 @@ TestCommandParser()
     auto testCases = parseTestCases(filePath);
 
     //
-    // Perfom testing test cases with parsed file
+    // Perform testing test cases with parsed file
     //
-    cout << "Perfom testing test cases with parsed file:" << endl;
+    cout << "Perform testing test cases with parsed file:" << endl;
 
     //
     // Output the parsed test cases

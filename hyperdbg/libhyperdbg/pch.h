@@ -144,7 +144,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 // PCI IDs
 //
-#include "pci-id.h"
+#include "header/pci-id.h"
 
 //
 // General

@@ -17,6 +17,8 @@
 extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsUserDebuggerInitialized;
+extern UINT64                   g_ResultOfEvaluatedExpression;
+extern UINT32                   g_ErrorStateOfResultOfEvaluatedExpression;
 extern CommandType              g_CommandsList;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
@@ -68,7 +70,7 @@ UdUninitializeUserDebugger()
         //
         // Remove the active process
         //
-        UdRemoveActiveDebuggingProcess(TRUE);
+        UdRemoveActiveDebuggingProcess();
 
         //
         // Initialize the handle table
@@ -97,43 +99,56 @@ UdUninitializeUserDebugger()
 /**
  * @brief set the current active debugging process (thread)
  * @param DebuggingId
+ * @param Rip
  * @param ProcessId
  * @param ThreadId
  * @param Is32Bit
+ * @param InstructionBytesOnRip
  *
  * @return VOID
  */
 VOID
 UdSetActiveDebuggingProcess(UINT64  DebuggingId,
+                            UINT64  Rip,
                             UINT32  ProcessId,
                             UINT32  ThreadId,
                             BOOLEAN Is32Bit,
-                            BOOLEAN IsPaused)
+                            BOOLEAN IsPaused,
+                            BYTE    InstructionBytesOnRip[])
 {
-    g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
-    g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
-    g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
+    //
+    // Activate the debugging
+    //
+    g_ActiveProcessDebuggingState.IsActive = TRUE;
+
+    //
+    // Set the details
+    //
+    g_ActiveProcessDebuggingState.ProcessId = ProcessId;
+    g_ActiveProcessDebuggingState.ThreadId  = ThreadId;
+    g_ActiveProcessDebuggingState.Is32Bit   = Is32Bit;
+    g_ActiveProcessDebuggingState.Rip       = Rip;
+
     g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
+
+    //
+    // Set current instruction
+    //
+    memcpy(&g_ActiveProcessDebuggingState.InstructionBytesOnRip[0], &InstructionBytesOnRip[0], MAXIMUM_INSTR_SIZE);
 
     //
     // Set pausing state
     //
     g_ActiveProcessDebuggingState.IsPaused = IsPaused;
-
-    //
-    // Activate the debugging
-    //
-    g_ActiveProcessDebuggingState.IsActive = TRUE;
 }
 
 /**
  * @brief Remove the current active debugging process (thread)
- * @param DontSwitchToNewProcess
  *
  * @return VOID
  */
 VOID
-UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess)
+UdRemoveActiveDebuggingProcess()
 {
     //
     // Activate the debugging
@@ -458,9 +473,8 @@ UdAttachToProcess(UINT32        TargetPid,
             // it's a .attach command, no need for further action
             //
             ShowMessages("successfully attached to the target process!\n"
-                         "please keep interacting with the process until all the "
-                         "threads are intercepted and halted; whenever you execute "
-                         "the first command, the thread interception will be stopped\n");
+                         "please keep interacting with the process until all the threads are "
+                         "intercepted and halted; you can run the 'g' command to continue the debuggee\n");
             return TRUE;
         }
 
@@ -743,7 +757,7 @@ UdKillProcess(UINT32 TargetPid)
         //
         // Remove the current active debugging process (thread)
         //
-        UdRemoveActiveDebuggingProcess(FALSE);
+        UdRemoveActiveDebuggingProcess();
 
         //
         // The operation of attaching was successful
@@ -825,7 +839,7 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
         //
         // Remove the current active debugging process (thread)
         //
-        UdRemoveActiveDebuggingProcess(FALSE);
+        UdRemoveActiveDebuggingProcess();
 
         //
         // The operation of attaching was successful
@@ -980,65 +994,243 @@ UdContinueProcess(UINT64 ProcessDebuggingToken)
  * @param ProcessDetailToken
  * @param ThreadId
  * @param ActionType
+ * @param OptionalBuffer
+ * @param OptionalBufferSize
  * @param ApplyToAllPausedThreads
+ * @param WaitForEventCompletion
  * @param OptionalParam1
  * @param OptionalParam2
  * @param OptionalParam3
  * @param OptionalParam4
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 UdSendCommand(UINT64                          ProcessDetailToken,
               UINT32                          ThreadId,
               DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
+              PVOID                           OptionalBuffer,
+              UINT32                          OptionalBufferSize,
               BOOLEAN                         ApplyToAllPausedThreads,
+              BOOLEAN                         WaitForEventCompletion,
               UINT64                          OptionalParam1,
               UINT64                          OptionalParam2,
               UINT64                          OptionalParam3,
               UINT64                          OptionalParam4)
 {
-    BOOL                       Status;
-    ULONG                      ReturnedLength;
-    DEBUGGER_UD_COMMAND_PACKET CommandPacket;
+    BOOL                         Status;
+    ULONG                        ReturnedLength;
+    UINT32                       TargetBufferSize = 0;
+    DEBUGGER_UD_COMMAND_PACKET * CommandPacket;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+
+    //
+    // Calculate the target buffer size
+    //
+    if (OptionalBufferSize == 0)
+    {
+        TargetBufferSize = sizeof(DEBUGGER_UD_COMMAND_PACKET);
+    }
+    else
+    {
+        TargetBufferSize = sizeof(DEBUGGER_UD_COMMAND_PACKET) + OptionalBufferSize;
+    }
+
+    //
+    // Allocate the target buffer
+    //
+    CommandPacket = (DEBUGGER_UD_COMMAND_PACKET *)malloc(TargetBufferSize);
+
+    if (CommandPacket == NULL)
+    {
+        ShowMessages("err, unable to allocate memory for command\n");
+        return FALSE;
+    }
 
     //
     // Zero the packet
     //
-    RtlZeroMemory(&CommandPacket, sizeof(DEBUGGER_UD_COMMAND_PACKET));
+    RtlZeroMemory(CommandPacket, TargetBufferSize);
 
     //
     // Set to the details
     //
-    CommandPacket.ProcessDebuggingDetailToken = ProcessDetailToken;
-    CommandPacket.ApplyToAllPausedThreads     = ApplyToAllPausedThreads;
-    CommandPacket.TargetThreadId              = ThreadId;
-    CommandPacket.UdAction.ActionType         = ActionType;
-    CommandPacket.UdAction.OptionalParam1     = OptionalParam1;
-    CommandPacket.UdAction.OptionalParam2     = OptionalParam2;
-    CommandPacket.UdAction.OptionalParam3     = OptionalParam3;
-    CommandPacket.UdAction.OptionalParam4     = OptionalParam4;
+    CommandPacket->ProcessDebuggingDetailToken = ProcessDetailToken;
+    CommandPacket->ApplyToAllPausedThreads     = ApplyToAllPausedThreads;
+    CommandPacket->TargetThreadId              = ThreadId;
+    CommandPacket->WaitForEventCompletion      = WaitForEventCompletion;
+    CommandPacket->UdAction.ActionType         = ActionType;
+    CommandPacket->UdAction.OptionalParam1     = OptionalParam1;
+    CommandPacket->UdAction.OptionalParam2     = OptionalParam2;
+    CommandPacket->UdAction.OptionalParam3     = OptionalParam3;
+    CommandPacket->UdAction.OptionalParam4     = OptionalParam4;
+
+    //
+    // Copy the optional buffer if it's present
+    //
+    if (OptionalBuffer != NULL && OptionalBufferSize != 0)
+    {
+        //
+        // Append the optional buffer to the command packet buffer
+        //
+        memcpy((VOID *)((UINT8 *)CommandPacket + sizeof(DEBUGGER_UD_COMMAND_PACKET)), OptionalBuffer, OptionalBufferSize);
+    }
 
     //
     // Send IOCTL
     //
-    Status = DeviceIoControl(g_DeviceHandle,                     // Handle to device
-                             IOCTL_SEND_USER_DEBUGGER_COMMANDS,  // IO Control Code (IOCTL)
-                             &CommandPacket,                     // Input Buffer to driver.
-                             sizeof(DEBUGGER_UD_COMMAND_PACKET), // Input buffer length
-                             &CommandPacket,                     // Output Buffer from driver.
-                             sizeof(DEBUGGER_UD_COMMAND_PACKET), // Length of output buffer in bytes.
-                             &ReturnedLength,                    // Bytes placed in buffer.
-                             NULL                                // synchronous call
+    Status = DeviceIoControl(g_DeviceHandle,                    // Handle to device
+                             IOCTL_SEND_USER_DEBUGGER_COMMANDS, // IO Control Code (IOCTL)
+                             CommandPacket,                     // Input Buffer to driver.
+                             TargetBufferSize,                  // Input buffer length
+                             CommandPacket,                     // Output Buffer from driver.
+                             TargetBufferSize,                  // Length of output buffer in bytes.
+                             &ReturnedLength,                   // Bytes placed in buffer.
+                             NULL                               // synchronous call
     );
 
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
+
+        free(CommandPacket);
+        return FALSE;
     }
+
+    if (CommandPacket->Result != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        ShowErrorMessage((UINT32)CommandPacket->Result);
+
+        free(CommandPacket);
+        return FALSE;
+    }
+
+    //
+    // Copy the result of optional buffer to the caller buffer
+    //
+    if (OptionalBuffer != NULL && OptionalBufferSize != 0)
+    {
+        //
+        // Append the optional buffer to the command packet buffer
+        //
+        memcpy(OptionalBuffer,
+               (VOID *)((UINT8 *)CommandPacket + sizeof(DEBUGGER_UD_COMMAND_PACKET)),
+               OptionalBufferSize);
+    }
+
+    //
+    // Free the allocated buffer
+    //
+    free(CommandPacket);
+
+    return TRUE;
+}
+
+/**
+ * @brief Send the command to the user debugger
+ *
+ * @param ProcessDetailToken
+ * @param TargetThreadId
+ * @param RegDes
+ * @param RegBuffSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdSendReadRegisterToUserDebugger(UINT64                              ProcessDetailToken,
+                                 UINT32                              TargetThreadId,
+                                 PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes,
+                                 UINT32                              RegBuffSize)
+
+{
+    //
+    // Send the read register command
+    //
+    return UdSendCommand(ProcessDetailToken,
+                         TargetThreadId,
+                         DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS,
+                         RegDes,
+                         RegBuffSize,
+                         FALSE,
+                         TRUE,
+                         RegDes->RegisterId,
+                         NULL,
+                         NULL,
+                         NULL);
+}
+
+/**
+ * @brief Send script buffer to the user debugger
+ *
+ * @param ProcessDetailToken
+ * @param TargetThreadId
+ * @param BufferAddress
+ * @param BufferLength
+ * @param Pointer
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdSendScriptBufferToProcess(UINT64  ProcessDetailToken,
+                            UINT32  TargetThreadId,
+                            UINT64  BufferAddress,
+                            UINT32  BufferLength,
+                            UINT32  Pointer,
+                            BOOLEAN IsFormat)
+
+{
+    PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
+    UINT32                  SizeOfStruct = 0;
+    BOOLEAN                 Result       = FALSE;
+
+    SizeOfStruct = sizeof(DEBUGGEE_SCRIPT_PACKET) + BufferLength;
+
+    ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)malloc(SizeOfStruct);
+
+    RtlZeroMemory(ScriptPacket, SizeOfStruct);
+
+    //
+    // Fill the script packet buffer
+    //
+    ScriptPacket->ScriptBufferSize    = BufferLength;
+    ScriptPacket->ScriptBufferPointer = Pointer;
+    ScriptPacket->IsFormat            = IsFormat;
+
+    //
+    // Move the buffer at the bottom of the script packet
+    //
+    memcpy((PVOID)((UINT64)ScriptPacket + sizeof(DEBUGGEE_SCRIPT_PACKET)),
+           (PVOID)BufferAddress,
+           BufferLength);
+
+    //
+    // Send the script buffer command
+    //
+    Result = UdSendCommand(ProcessDetailToken,
+                           TargetThreadId,
+                           DEBUGGER_UD_COMMAND_ACTION_TYPE_EXECUTE_SCRIPT_BUFFER,
+                           ScriptPacket,
+                           SizeOfStruct,
+                           FALSE,
+                           TRUE,
+                           NULL,
+                           NULL,
+                           NULL,
+                           NULL);
+
+    //
+    // Check if it's a format expression and if there was an error or not
+    //
+    if (IsFormat && Result)
+    {
+        g_ErrorStateOfResultOfEvaluatedExpression = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        g_ResultOfEvaluatedExpression             = ScriptPacket->FormatValue;
+    }
+
+    free(ScriptPacket);
+
+    return Result;
 }
 
 /**
@@ -1047,35 +1239,66 @@ UdSendCommand(UINT64                          ProcessDetailToken,
  * @param TargetThreadId
  * @param StepType
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
+BOOLEAN
+UdSendStepPacketToDebuggee(UINT64                           ProcessDetailToken,
+                           UINT32                           TargetThreadId,
+                           DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
 {
-    //
-    // Wait until the result of user-input received
-    //
-    g_UserSyncronizationObjectsHandleTable
-        [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
-            .IsOnWaitingState = TRUE;
+    BOOLEAN IsCurrentInstructionACall = FALSE;
+    UINT32  CallInstructionSize       = 0;
 
     //
-    // Send the 'continue' command
+    // Check for specific stepping type
     //
-    UdSendCommand(ProcessDetailToken,
-                  TargetThreadId,
-                  DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
-                  FALSE,
-                  StepType,
-                  NULL,
-                  NULL,
-                  NULL);
+    if (StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
+    {
+        //
+        // We should check whether the current instruction is a 'call'
+        // instruction or not, if yes we have to compute the length of call
+        //
+        if (HyperDbgCheckWhetherTheCurrentInstructionIsCall(
+                (unsigned char *)&g_ActiveProcessDebuggingState.InstructionBytesOnRip[0],
+                MAXIMUM_INSTR_SIZE,
+                g_ActiveProcessDebuggingState.Is32Bit ? FALSE : TRUE, // equals to !g_IsRunningInstruction32Bit
+                &CallInstructionSize))
+        {
+            //
+            // It's a call in step-over
+            //
+            IsCurrentInstructionACall = TRUE;
+            CallInstructionSize       = CallInstructionSize;
+        }
+    }
 
-    WaitForSingleObject(
-        g_UserSyncronizationObjectsHandleTable
-            [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
-                .EventHandle,
-        INFINITE);
+    //
+    // Send the 'step' command
+    //
+    if (UdSendCommand(ProcessDetailToken,
+                      TargetThreadId,
+                      DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
+                      NULL,
+                      0,
+                      FALSE,
+                      FALSE,
+                      StepType,
+                      IsCurrentInstructionACall,
+                      CallInstructionSize,
+                      NULL))
+    {
+        //
+        // Wait until the result of user-input received
+        //
+        DbgWaitForUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING);
+
+        return TRUE;
+    }
+
+    //
+    // An error happened
+    //
+    return FALSE;
 }
 
 /**
@@ -1120,8 +1343,7 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                                  // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
-                                                         // code
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control code
         &SwitchRequest,                                  // Input Buffer to driver.
         SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
         &SwitchRequest,                                  // Output Buffer from driver.
@@ -1146,10 +1368,12 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
         // Set the current active debugging process (thread)
         //
         UdSetActiveDebuggingProcess(SwitchRequest.Token,
+                                    SwitchRequest.Rip,
                                     SwitchRequest.ProcessId,
                                     SwitchRequest.ThreadId,
                                     SwitchRequest.Is32Bit,
-                                    SwitchRequest.IsPaused);
+                                    SwitchRequest.IsPaused,
+                                    SwitchRequest.InstructionBytesOnRip);
 
         //
         // The operation of attaching was successful
@@ -1298,9 +1522,10 @@ UdShowListActiveDebuggingProcessesAndThreads()
                     {
                         CheckCurrentProcessOrThread = TRUE;
                     }
-                    ShowMessages("\t%s %04x (thread)\n",
+                    ShowMessages("\t%s %04x (thread) | # blkd exec attempts: %llx\n",
                                  CheckCurrentProcessOrThread ? "->" : "  ",
-                                 AddressOfThreadsAndProcessDetails[i].ThreadId);
+                                 AddressOfThreadsAndProcessDetails[i].ThreadId,
+                                 AddressOfThreadsAndProcessDetails[i].NumberOfBlockedContextSwitches);
                 }
             }
         }

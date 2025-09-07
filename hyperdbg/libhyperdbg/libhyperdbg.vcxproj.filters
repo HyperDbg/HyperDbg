@@ -173,7 +173,7 @@
     <ClInclude Include="header\hwdbg-scripts.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="pci-id.h">
+    <ClInclude Include="header\pci-id.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -580,12 +580,6 @@
     <ClCompile Include="code\debugger\commands\debugging-commands\gg.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="pci-id.cpp">
-      <Filter>code\debugger\misc</Filter>
-    </ClCompile>
-    <ClCompile Include="pcicam.cpp">
-      <Filter>code\debugger\commands\extension-commands</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\commands\extension-commands\idt.cpp">
       <Filter>code\debugger\commands\extension-commands</Filter>
     </ClCompile>
@@ -594,6 +588,15 @@
     </ClCompile>
     <ClCompile Include="code\debugger\commands\extension-commands\smi.cpp">
       <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\extension-commands\xsetbv.cpp">
+      <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\extension-commands\pcicam.cpp">
+      <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\misc\pci-id.cpp">
+      <Filter>code\debugger\misc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

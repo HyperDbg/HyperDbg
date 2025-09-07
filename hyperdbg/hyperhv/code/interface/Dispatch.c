@@ -117,19 +117,6 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     BOOLEAN                                   PostEventTriggerReq = FALSE;
 
     //
-    // Check if attaching is for command dispatching in user debugger
-    // or a regular CPUID
-    //
-    if (g_Callbacks.UdCheckForCommand != NULL && g_Callbacks.UdCheckForCommand())
-    {
-        //
-        // It's a thread command for user debugger, no need to run the
-        // actual CPUID instruction and change the registers
-        //
-        return;
-    }
-
-    //
     // As the context to event trigger, we send the eax before the cpuid
     // so that the debugger can both read the eax as it's now changed by
     // the cpuid instruction and also can modify the results
@@ -180,6 +167,73 @@ DispatchEventCpuid(VIRTUAL_MACHINE_STATE * VCpu)
         // normally
         //
         HvHandleCpuid(VCpu);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to XSETBV events
+ *
+ * @param VCpu The virtual processor's state
+ * @return VOID
+ */
+VOID
+DispatchEventXsetbv(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT64                                    Context;
+    VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                                   PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send the ecx (XCR index) before the xsetbv
+    // so that the debugger can both read the ecx as it contains the XCR index
+    // and also can modify the results
+    //
+    if (g_TriggerEventForXsetbvs)
+    {
+        //
+        // Adjusting the core context (save ECX for the debugger)
+        //
+        Context = VCpu->Regs->rcx & 0xffffffff;
+
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = VmmCallbackTriggerEvents(XSETBV_INSTRUCTION_EXECUTION,
+                                                      VMM_CALLBACK_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                      (PVOID)Context,
+                                                      &PostEventTriggerReq,
+                                                      VCpu->Regs);
+
+        //
+        // Check whether we need to short-circuiting event emulation or not
+        //
+        if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        {
+            //
+            // Handle the XSETBV event in the case of triggering event
+            //
+            VmxHandleXsetbv(VCpu);
+        }
+
+        //
+        // Check for the post-event triggering needs
+        //
+        if (PostEventTriggerReq)
+        {
+            VmmCallbackTriggerEvents(XSETBV_INSTRUCTION_EXECUTION,
+                                     VMM_CALLBACK_CALLING_STAGE_POST_EVENT_EMULATION,
+                                     (PVOID)Context,
+                                     NULL,
+                                     VCpu->Regs);
+        }
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the XSETBV
+        // normally
+        //
+        VmxHandleXsetbv(VCpu);
     }
 }
 

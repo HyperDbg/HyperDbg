@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0.0] - 2025-09-08
+New release of the HyperDbg Debugger.
+
+### Added
+- The **!xsetbv** event command was added for handling the execution of the XSETBV instruction, thanks to HyperDbg group members ([link](https://docs.hyperdbg.org/commands/extension-commands/xsetbv))
+- Display of the number of blocked context switches in the '.switch' command ([link](https://docs.hyperdbg.org/commands/meta-commands/.switch))
+- Added support for step-in (the 't' command) in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/t))
+- Added support for step-over (the 'p' command) in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/p))
+- Added support to show all registers or a specific register in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/r))
+- Exported SDK API for running scripts in either the kernel debugger or the user debugger
+- Added support to modify registers or a specific register in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/r))
+- Added support to evaluate (run) scripts on the target thread in the user debugger ([link](https://docs.hyperdbg.org/commands/debugging-commands/eval))
+- Added an indication of a thread's running or paused state to the HyperDbg signature in the user debugger ([link](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/signatures))
+- Added support for the '.formats' command in the user debugger ([link](https://docs.hyperdbg.org/commands/meta-commands/.formats))
+- Added support for interpreting parameters based on script engine expressions in the user debugger
+- Exported SDK API for evaluating expressions based on the context of the kernel debugger or the user debugger
+- Added a new mechanism for showing the 'printf' and the 'print' function messages in the user debugger ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/exports/printf))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/exports/print))
+
+### Changed
+- Non-volatile XMM registers are no longer saved/restored on VM-exit handler ([link](https://learn.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-170))
+- Fix grammar and spelling errors throughout HyperDbg codebase ([link](https://github.com/HyperDbg/HyperDbg/pull/546))
+- Relocate extension command files into their corresponding VS directory
+- Fix infinite VM-exit bug for the '!monitor x' command thanks to [@unlockable](https://github.com/unlockable) ([link](https://github.com/HyperDbg/HyperDbg/pull/545))
+
 ## [0.15.0.0] - 2025-08-18
 New release of the HyperDbg Debugger.
 

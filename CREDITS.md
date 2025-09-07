@@ -26,3 +26,4 @@ Just so you know – the attributions listed on this credits page are acknowledg
 - Björn Ruytenberg ([@0Xiphorus](https://twitter.com/0Xiphorus))
 - Marcis Zarins ([@CokeTree3](https://github.com/CokeTree3)) for his works on enhancing HyperEvade project
 - Artem Shishkin ([@honorary_bot](https://twitter.com/honorary_bot)) for always answering our hypervisor questions
+- unrustled.jimmies for helping us debug and fix issues, and his contributions in HyperDbg

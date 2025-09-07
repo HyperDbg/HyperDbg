@@ -13,6 +13,55 @@
 #include "pch.h"
 
 /**
+ * @brief read registers
+ * @param Regs
+ * @param ReadRegisterRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+DebuggerCommandReadRegisters(GUEST_REGS *                        Regs,
+                             PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
+{
+    GUEST_EXTRA_REGISTERS ERegs = {0};
+
+    if (ReadRegisterRequest->RegisterId == DEBUGGEE_SHOW_ALL_REGISTERS)
+    {
+        //
+        // Add General purpose registers
+        //
+        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
+               Regs,
+               sizeof(GUEST_REGS));
+
+        //
+        // Read Extra registers
+        //
+        ERegs.CS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
+        ERegs.SS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
+        ERegs.DS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
+        ERegs.ES     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
+        ERegs.FS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
+        ERegs.GS     = (UINT16)DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
+        ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
+        ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
+
+        //
+        // copy at the end of ReadRegisterRequest structure
+        //
+        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS)),
+               &ERegs,
+               sizeof(GUEST_EXTRA_REGISTERS));
+    }
+    else
+    {
+        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterId);
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Read memory for different commands
  *
  * @param ReadMemRequest request structure for reading memory

@@ -656,11 +656,17 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
         //
         // Handling state through the user-mode debugger
         //
-        UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
-                                                  NULL);
+        if (UdCheckAndHandleBreakpointsAndDebugBreaks(DbgState,
+                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
+                                                      NULL))
+        {
+            //
+            // Check for possible commands that need to be executed
+            //
+            UdCheckForCommand(DbgState, ProcessDebuggingDetail);
 
-        return TRUE;
+            return TRUE;
+        }
     }
 
     //
@@ -718,6 +724,11 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     }
     else
     {
+        //
+        // Unpause the threads of the target process
+        //
+        ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetail);
+
         //
         // Remove the process from the watching list
         //
@@ -1094,11 +1105,6 @@ AttachingContinueProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ContinueReque
     if (AttachingConfigureInterceptingThreads(ContinueRequest->Token, FALSE))
     {
         //
-        // Unpause the threads of the target process
-        //
-        ThreadHolderUnpauseAllThreadsInProcess(ProcessDebuggingDetails);
-
-        //
         // The continuing operation was successful
         //
         ContinueRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
@@ -1335,11 +1341,17 @@ AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
     //
     // Fill the needed details by user mode
     //
-    SwitchRequest->Token     = ProcessDebuggingDetail->Token;
-    SwitchRequest->ProcessId = ProcessDebuggingDetail->ProcessId;
-    SwitchRequest->ThreadId  = ThreadDebuggingDetail->ThreadId;
-    SwitchRequest->Is32Bit   = ProcessDebuggingDetail->Is32Bit;
-    SwitchRequest->IsPaused  = ThreadDebuggingDetail->IsPaused;
+    SwitchRequest->Token             = ProcessDebuggingDetail->Token;
+    SwitchRequest->ProcessId         = ProcessDebuggingDetail->ProcessId;
+    SwitchRequest->ThreadId          = ThreadDebuggingDetail->ThreadId;
+    SwitchRequest->Is32Bit           = ProcessDebuggingDetail->Is32Bit;
+    SwitchRequest->Rip               = ThreadDebuggingDetail->ThreadRip;
+    SwitchRequest->IsPaused          = ThreadDebuggingDetail->IsPaused;
+    SwitchRequest->SizeOfInstruction = ThreadDebuggingDetail->SizeOfInstruction;
+
+    memcpy(&SwitchRequest->InstructionBytesOnRip[0],
+           &ThreadDebuggingDetail->InstructionBytesOnRip[0],
+           ThreadDebuggingDetail->SizeOfInstruction);
 
     SwitchRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     return TRUE;

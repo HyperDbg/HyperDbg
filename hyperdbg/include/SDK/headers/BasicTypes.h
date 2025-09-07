@@ -107,23 +107,30 @@ typedef struct XMM_REG
 #pragma pack(push, 1) // Ensure no padding
 typedef struct GUEST_XMM_REGS
 {
-    XMM_REG xmm0;  // 0x00
-    XMM_REG xmm1;  // 0x10
-    XMM_REG xmm2;  // 0x20
-    XMM_REG xmm3;  // 0x30
-    XMM_REG xmm4;  // 0x40
-    XMM_REG xmm5;  // 0x50
-    XMM_REG xmm6;  // 0x60
-    XMM_REG xmm7;  // 0x70
-    XMM_REG xmm8;  // 0x80
-    XMM_REG xmm9;  // 0x90
-    XMM_REG xmm10; // 0xA0
-    XMM_REG xmm11; // 0xB0
-    XMM_REG xmm12; // 0xC0
-    XMM_REG xmm13; // 0xD0
-    XMM_REG xmm14; // 0xE0
-    XMM_REG xmm15; // 0xF0
-    UINT32  mxcsr; // 0x100
+    XMM_REG xmm0; // 0x00
+    XMM_REG xmm1; // 0x10
+    XMM_REG xmm2; // 0x20
+    XMM_REG xmm3; // 0x30
+    XMM_REG xmm4; // 0x40
+    XMM_REG xmm5; // 0x50
+
+    //
+    // As per Microsoft ABI documentation, the following registers are nonvolatile
+    // So, MSVC compiler will save them on the stack if they are used in the function
+    // Thus, for the sake of performance, we comment them out
+    //
+    XMM_REG xmm6_not_saved;  // 0x60
+    XMM_REG xmm7_not_saved;  // 0x70
+    XMM_REG xmm8_not_saved;  // 0x80
+    XMM_REG xmm9_not_saved;  // 0x90
+    XMM_REG xmm10_not_saved; // 0xA0
+    XMM_REG xmm11_not_saved; // 0xB0
+    XMM_REG xmm12_not_saved; // 0xC0
+    XMM_REG xmm13_not_saved; // 0xD0
+    XMM_REG xmm14_not_saved; // 0xE0
+    XMM_REG xmm15_not_saved; // 0xF0
+
+    UINT32 mxcsr; // 0x100
 
 } GUEST_XMM_REGS, *PGUEST_XMM_REGS;
 #pragma pack(pop)

@@ -98,11 +98,9 @@ SteppingRegularStepIn()
         //
         // It's stepping over user debugger
         //
-        UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                   g_ActiveProcessDebuggingState.ThreadId,
-                                   RequestFormat);
-
-        return TRUE;
+        return UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                          g_ActiveProcessDebuggingState.ThreadId,
+                                          RequestFormat);
     }
     else
     {
@@ -137,11 +135,9 @@ SteppingStepOver()
         //
         // It's stepping over user debugger
         //
-        UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                   g_ActiveProcessDebuggingState.ThreadId,
-                                   RequestFormat);
-
-        return TRUE;
+        return UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                          g_ActiveProcessDebuggingState.ThreadId,
+                                          RequestFormat);
     }
     else
     {
@@ -184,11 +180,9 @@ SteppingStepOverForGu(BOOLEAN LastInstruction)
         //
         // It's stepping over user debugger
         //
-        UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
-                                   g_ActiveProcessDebuggingState.ThreadId,
-                                   RequestFormat);
-
-        return TRUE;
+        return UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                          g_ActiveProcessDebuggingState.ThreadId,
+                                          RequestFormat);
     }
     else
     {

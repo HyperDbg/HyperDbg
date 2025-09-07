@@ -17,7 +17,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 std::map<std::string, REGS_ENUM> RegistersMap = {
     {"rax", REGISTER_RAX},
@@ -201,10 +202,30 @@ HyperDbgReadAllRegisters(GUEST_REGS * GuestRegisters, GUEST_EXTRA_REGISTERS * Ex
     //
     RegState->RegisterId = DEBUGGEE_SHOW_ALL_REGISTERS;
 
-    if (!KdSendReadRegisterPacketToDebuggee(RegState, SizeOfRegState))
+    //
+    // Check whether a kernel debugger is connected or a user-mode debugger is active
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        free(RegState);
-        return FALSE;
+        if (!KdSendReadRegisterPacketToDebuggee(RegState, SizeOfRegState))
+        {
+            free(RegState);
+            return FALSE;
+        }
+    }
+    else if (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused)
+    {
+        //
+        // It's stepping over user debugger
+        //
+        if (!UdSendReadRegisterToUserDebugger(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                              g_ActiveProcessDebuggingState.ThreadId,
+                                              RegState,
+                                              SizeOfRegState))
+        {
+            free(RegState);
+            return FALSE;
+        }
     }
 
     if (RegState->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
@@ -253,9 +274,25 @@ HyperDbgReadTargetRegister(REGS_ENUM RegisterId, UINT64 * TargetRegister)
     //
     RegState.RegisterId = (UINT32)RegisterId;
 
-    if (!KdSendReadRegisterPacketToDebuggee(&RegState, sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        return FALSE;
+        if (!KdSendReadRegisterPacketToDebuggee(&RegState, sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+        {
+            return FALSE;
+        }
+    }
+    else if (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused)
+    {
+        //
+        // It's stepping over user debugger
+        //
+        if (!UdSendReadRegisterToUserDebugger(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                              g_ActiveProcessDebuggingState.ThreadId,
+                                              &RegState,
+                                              sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)))
+        {
+            return FALSE;
+        }
     }
 
     if (RegState.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
@@ -414,31 +451,24 @@ HyperDbgRegisterShowTargetRegister(REGS_ENUM RegisterId)
 VOID
 CommandR(vector<CommandToken> CommandTokens, string Command)
 {
-    //
-    // Interpret here
-    //
-    PVOID                    CodeBuffer;
-    UINT64                   BufferAddress;
-    UINT32                   BufferLength;
-    UINT32                   Pointer;
     REGS_ENUM                RegKind;
     std::vector<std::string> Tmp;
-
-    std::string SetRegValue;
+    std::string              SetRegisterValue;
 
     if (CommandTokens.size() == 1)
     {
         //
         // show all registers
         //
-        if (g_IsSerialConnectedToRemoteDebuggee)
+        if (g_IsSerialConnectedToRemoteDebuggee ||
+            (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused))
         {
             HyperDbgRegisterShowAll();
         }
         else
         {
             ShowMessages("err, reading registers (r) is not valid in the current "
-                         "context, you should connect to a debuggee\n");
+                         "context, you should connect to a debuggee or attach to a process\n");
         }
 
         return;
@@ -476,14 +506,15 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
             //
             // send the request
             //
-            if (g_IsSerialConnectedToRemoteDebuggee)
+            if (g_IsSerialConnectedToRemoteDebuggee ||
+                (g_ActiveProcessDebuggingState.IsActive && g_ActiveProcessDebuggingState.IsPaused))
             {
                 HyperDbgRegisterShowTargetRegister(RegKind);
             }
             else
             {
                 ShowMessages("err, reading registers (r) is not valid in the current "
-                             "context, you should connect to a debuggee\n");
+                             "context, you should connect to a debuggee or attach to a process\n");
             }
         }
         else
@@ -495,7 +526,6 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
     //
     // if command contains a '=' means user wants modify the register
     //
-
     else if (Command.find('=', 0) != string::npos)
     {
         Command.erase(0, 1);
@@ -525,55 +555,12 @@ CommandR(vector<CommandToken> CommandTokens, string Command)
                 //
                 // send the request
                 //
-                SetRegValue = "@" + tmp + '=' + Tmp[1] + "; ";
+                SetRegisterValue = "@" + tmp + '=' + Tmp[1] + "; ";
 
-                if (g_IsSerialConnectedToRemoteDebuggee)
-                {
-                    //
-                    // Send over serial
-                    //
-
-                    //
-                    // Run script engine handler
-                    //
-                    CodeBuffer = ScriptEngineParseWrapper((char *)SetRegValue.c_str(), TRUE);
-                    if (CodeBuffer == NULL)
-                    {
-                        //
-                        // return to show that this item contains an script
-                        //
-                        return;
-                    }
-
-                    //
-                    // Print symbols (test)
-                    //
-                    // PrintSymbolBufferWrapper(CodeBuffer);
-
-                    //
-                    // Set the buffer and length
-                    //
-                    BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-                    BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
-                    Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
-
-                    //
-                    // Send it to the remote debuggee
-                    //
-                    KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
-
-                    //
-                    // Remove the buffer of script engine interpreted code
-                    //
-                    ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
-                }
-                else
-                {
-                    //
-                    // error
-                    //
-                    ShowMessages("err, you're not connected to any debuggee\n");
-                }
+                //
+                // Send data to the target user debugger or kernel debugger
+                //
+                ScriptEngineExecuteSingleExpression((CHAR *)SetRegisterValue.c_str(), TRUE, FALSE);
             }
             else
             {

@@ -666,7 +666,10 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
     UINT32                                               ThreadId;
     BOOLEAN                                              CheckCallbackAtFirstInstruction;
     BOOLEAN                                              Is32Bit;
-    BOOLEAN                                              IsPaused; // used in switching to threads
+    UINT64                                               Rip;                                       // used in switching threads
+    BYTE                                                 InstructionBytesOnRip[MAXIMUM_INSTR_SIZE]; // used in switching threads
+    UINT32                                               SizeOfInstruction;                         // used in switching threads
+    BOOLEAN                                              IsPaused;                                  // used in switching to threads
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
     UINT32                                               CountOfActiveDebuggingThreadsAndProcesses; // used in showing the list of active threads/processes
     UINT64                                               Token;
@@ -842,6 +845,7 @@ typedef struct _USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS
 {
     UINT32  ProcessId;
     UINT32  ThreadId;
+    UINT64  NumberOfBlockedContextSwitches;
     BOOLEAN IsProcess;
 
 } USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS, *PUSERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS;
@@ -899,6 +903,8 @@ typedef enum _DEBUGGER_UD_COMMAND_ACTION_TYPE
     DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE = 0,
     DEBUGGER_UD_COMMAND_ACTION_TYPE_PAUSE,
     DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_EXECUTE_SCRIPT_BUFFER,
 
 } DEBUGGER_UD_COMMAND_ACTION_TYPE;
 
@@ -926,6 +932,7 @@ typedef struct _DEBUGGER_UD_COMMAND_PACKET
     UINT64                     ProcessDebuggingDetailToken;
     UINT32                     TargetThreadId;
     BOOLEAN                    ApplyToAllPausedThreads;
+    BOOLEAN                    WaitForEventCompletion;
     UINT32                     Result;
 
 } DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;
@@ -1396,6 +1403,7 @@ typedef struct _DEBUGGEE_SCRIPT_PACKET
     UINT32  ScriptBufferSize;
     UINT32  ScriptBufferPointer;
     BOOLEAN IsFormat;
+    UINT64  FormatValue;
     UINT32  Result;
 
     //

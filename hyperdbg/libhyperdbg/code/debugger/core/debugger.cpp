@@ -564,6 +564,11 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_UNABLE_TO_APPLY_COMMAND_TO_THE_TARGET_THREAD:
+        ShowMessages("err, unable to apply command to the target thread (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);
@@ -2067,7 +2072,7 @@ InterpretGeneralEventAndActionsFields(
         ShowMessages("notice: as you're debugging a user-mode application, "
                      "this event will only trigger on your current debugging process "
                      "(pid:%x). If you want the event from the entire system, "
-                     "add 'pid all' to the event\n",
+                     "add 'pid all' to the event\n\n",
                      g_ActiveProcessDebuggingState.ProcessId);
 
         TempEvent->ProcessId = g_ActiveProcessDebuggingState.ProcessId;

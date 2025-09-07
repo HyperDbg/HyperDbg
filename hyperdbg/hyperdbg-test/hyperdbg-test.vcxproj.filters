@@ -23,9 +23,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>code</Filter>
-    </ClCompile>
     <ClCompile Include="code\tests\test-parser.cpp">
       <Filter>code\tests</Filter>
     </ClCompile>
@@ -44,11 +41,11 @@
     <ClCompile Include="code\hardware\hwdbg-tests.cpp">
       <Filter>code\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>header</Filter>
-    </ClInclude>
     <ClInclude Include="header\namedpipe.h">
       <Filter>header</Filter>
     </ClInclude>
@@ -62,6 +59,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="header\hwdbg-tests.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
