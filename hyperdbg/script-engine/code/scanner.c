@@ -708,7 +708,7 @@ GetToken(char * c, char * str)
                     AppendByte(Token, *c);
 
                 *c = sgetc(str);
-                if (IsHex(*c) || *c == '`')
+                if (IsHex(*c) || *c == '`'|| *c == '_')
                 {
                     // Nothing
                 }
