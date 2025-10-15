@@ -26,10 +26,11 @@ typedef enum
 
 typedef struct VARIABLE_TYPE
 {
-    VARIABLE_TYPE_KIND Kind;
-    int                Size;  // sizeof() value
-    int                Align; // alignment
-    BOOLEAN            IsUnsigned;
+    VARIABLE_TYPE_KIND     Kind;
+    int                    Size;  // sizeof() value
+    int                    Align; // alignment
+    BOOLEAN                IsUnsigned;
+    struct VARIABLE_TYPE * Base;
 } VARIABLE_TYPE;
 
 extern VARIABLE_TYPE * VARIABLE_TYPE_UNKNOWN;

@@ -52,7 +52,7 @@ NewUnknownToken()
     Token->Type         = UNKNOWN;
     Token->Len          = 0;
     Token->MaxLen       = TOKEN_VALUE_MAX_LEN;
-    Token->VariableType = 0;
+    Token->VariableType = (unsigned long long)VARIABLE_TYPE_LDOUBLE;
 
     return Token;
 }
@@ -81,7 +81,7 @@ NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
     Token->Len          = Len;
     Token->MaxLen       = Len;
     Token->Value        = (char *)calloc(Token->MaxLen + 1, sizeof(char));
-    Token->VariableType = 0;
+    Token->VariableType = (unsigned long long)VARIABLE_TYPE_LDOUBLE;
 
     if (Token->Value == NULL)
     {
@@ -509,6 +509,23 @@ Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
     uintptr_t              Head     = (uintptr_t)TokenList->Head;
     uintptr_t              Pointer  = (uintptr_t)TokenList->Pointer - 1;
     PSCRIPT_ENGINE_TOKEN * ReadAddr = (PSCRIPT_ENGINE_TOKEN *)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));
+
+    return *ReadAddr;
+}
+
+/**
+ * @brief
+ *
+ * @param TokenList Index
+ * @return Token
+ */
+PSCRIPT_ENGINE_TOKEN
+TopIndexed(PSCRIPT_ENGINE_TOKEN_LIST TokenList, int Index)
+{
+
+    uintptr_t Head = (uintptr_t)TokenList->Head;
+    uintptr_t Pointer = (uintptr_t)TokenList->Pointer - 1 - Index;
+    PSCRIPT_ENGINE_TOKEN* ReadAddr = (PSCRIPT_ENGINE_TOKEN*)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));
 
     return *ReadAddr;
 }

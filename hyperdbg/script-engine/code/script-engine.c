@@ -14,7 +14,7 @@
 
 // #define _SCRIPT_ENGINE_LALR_DBG_EN
 // #define _SCRIPT_ENGINE_LL1_DBG_EN
-// #define _SCRIPT_ENGINE_CODEGEN_DBG_EN
+#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
 //
 // Global Variables
@@ -640,12 +640,13 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
     PSCRIPT_ENGINE_TOKEN Op2  = NULL;
     PSCRIPT_ENGINE_TOKEN Temp = NULL;
 
-    PSYMBOL         OperatorSymbol = NULL;
-    PSYMBOL         Op0Symbol      = NULL;
-    PSYMBOL         Op1Symbol      = NULL;
-    PSYMBOL         Op2Symbol      = NULL;
-    PSYMBOL         TempSymbol     = NULL;
-    VARIABLE_TYPE * VariableType   = NULL;
+    PSYMBOL         OperatorSymbol      = NULL;
+    PSYMBOL         Op0Symbol           = NULL;
+    PSYMBOL         Op1Symbol           = NULL;
+    PSYMBOL         Op2Symbol           = NULL;
+    PSYMBOL         TempSymbol          = NULL;
+    VARIABLE_TYPE * VariableType        = NULL;
+    VARIABLE_TYPE * PointerVariableType = NULL;
 
     //
     // It is in user-defined function if CurrentFunctionSymbol is not null
@@ -1098,9 +1099,12 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (!strcmp(Operator->Value, "@MULTIPLE_ASSIGNMENT"))
         {
-            PSYMBOL Symbol = NewSymbol();
-            Symbol->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
-            Symbol->Value  = FUNC_MOV;
+            size_t                 Op1Capacity = 8;
+            size_t                 Op1Count    = 0;
+            PSCRIPT_ENGINE_TOKEN * Op1Array    = (PSCRIPT_ENGINE_TOKEN *)malloc(sizeof(PSCRIPT_ENGINE_TOKEN) * Op1Capacity);
+            PSYMBOL                Symbol      = NewSymbol();
+            Symbol->Type                       = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value                      = FUNC_MOV;
 
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
@@ -1108,6 +1112,14 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             for (int i = MatchedStack->Pointer; i > 0; i--)
             {
                 Op1 = Top(MatchedStack);
+
+                if (Op1Count >= Op1Capacity)
+                {
+                    Op1Capacity *= 2;
+                    Op1Array = (PSCRIPT_ENGINE_TOKEN *)realloc(Op1Array, sizeof(PSCRIPT_ENGINE_TOKEN) * Op1Capacity);
+                }
+                Op1Array[Op1Count++] = Op1;
+
                 if (Op1->Type == TEMP || Op1->Type == HEX || Op1->Type == OCTAL || Op1->Type == BINARY || Op1->Type == PSEUDO_REGISTER)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
@@ -1176,7 +1188,20 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                         break;
                     }
 
-                    // Op1Symbol->VariableType = (unsigned long long)VariableType;
+                    for (int i = 0; i < Op1Count; i++)
+                    {
+                        Op1 = Op1Array[i];
+                        if (Op1->Type == LOCAL_UNRESOLVED_ID || Op1->Type == LOCAL_ID)
+                        {
+                            SetLocalIdentifierVariableType(Op1, (unsigned long long)VariableType);
+                        }
+                        else if (Op1->Type == GLOBAL_UNRESOLVED_ID || Op1->Type == GLOBAL_ID)
+                        {
+                            SetGlobalIdentifierVariableType(Op1, (unsigned long long)VariableType);
+                        }
+                    }
+
+                    Op1 = 0;
                 }
             }
 
@@ -1188,6 +1213,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             {
                 break;
             }
+
+            free(Op1Array);
         }
         else if (!strcmp(Operator->Value, "@MOV"))
         {
@@ -1217,8 +1244,18 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
             if (MatchedStack->Pointer > 0)
             {
-                if (Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE)
+                if (!strcmp(Top(MatchedStack)->Value, "@DECLARE_POINTER_TYPE") || Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE)
                 {
+                    if (!strcmp(Top(MatchedStack)->Value, "@DECLARE_POINTER_TYPE"))
+                    {
+                        PointerVariableType             = calloc(1, sizeof(VARIABLE_TYPE));
+                        PointerVariableType->Kind       = TY_PTR;
+                        PointerVariableType->Size       = 8;
+                        PointerVariableType->Align      = 8;
+                        PointerVariableType->IsUnsigned = TRUE;
+                        Pop(MatchedStack);
+                    }
+
                     VariableType = HandleType(MatchedStack);
 
                     if (VariableType->Kind == TY_UNKNOWN)
@@ -1227,7 +1264,20 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                         break;
                     }
 
-                    // Op1Symbol->VariableType = (unsigned long long)VariableType;
+                    if (PointerVariableType)
+                    {
+                        PointerVariableType->Base = VariableType;
+                        VariableType              = PointerVariableType;
+                    }
+
+                    if (Op1->Type == LOCAL_UNRESOLVED_ID || Op1->Type == LOCAL_ID)
+                    {
+                        SetLocalIdentifierVariableType(Op1, (unsigned long long)VariableType);
+                    }
+                    else if (Op1->Type == GLOBAL_UNRESOLVED_ID || Op1->Type == GLOBAL_ID)
+                    {
+                        SetGlobalIdentifierVariableType(Op1, (unsigned long long)VariableType);
+                    }
                 }
             }
 
@@ -1243,6 +1293,10 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             {
                 break;
             }
+        }
+        else if (!strcmp(Operator->Value, "@DECLARE_POINTER_TYPE"))
+        {
+            Push(MatchedStack, CopyToken(Operator));
         }
         else if (IsType2Func(Operator))
         {
@@ -1530,68 +1584,344 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (IsAssignmentOperator(Operator))
         {
-            PushSymbol(CodeBuffer, OperatorSymbol);
-            Op0       = Pop(MatchedStack);
-            Op0Symbol = ToSymbol(Op0, Error);
+            BOOL Handled = FALSE;
+            Op1          = TopIndexed(MatchedStack, 1);
 
-            Op1       = Pop(MatchedStack);
-            Op1Symbol = ToSymbol(Op1, Error);
-
-            PushSymbol(CodeBuffer, Op0Symbol);
-            PushSymbol(CodeBuffer, Op1Symbol);
-            PushSymbol(CodeBuffer, Op1Symbol);
-
-            //
-            // Free the operand if it is a temp value
-            //
-            FreeTemp(Op0);
-            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            if (((VARIABLE_TYPE *)Op1->VariableType)->Kind == TY_PTR)
             {
-                break;
+                if (!strcmp(Operator->Value, "@ADD_ASSIGNMENT"))
+                {
+                    PSYMBOL Symbol = NULL;
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_MUL;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = ((VARIABLE_TYPE *)Op1->VariableType)->Base->Size;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Op0       = Pop(MatchedStack);
+                    Op0Symbol = ToSymbol(Op0, Error);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Temp       = NewTemp(Error);
+                    TempSymbol = ToSymbol(Temp, Error);
+                    PushSymbol(CodeBuffer, TempSymbol);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_ADD;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    PushSymbol(CodeBuffer, TempSymbol);
+
+                    Op1       = Pop(MatchedStack);
+                    Op1Symbol = ToSymbol(Op1, Error);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+
+                    FreeTemp(Op0);
+                    if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                    {
+                        break;
+                    }
+                }
+                else if (!strcmp(Operator->Value, "@SUB_ASSIGNMENT"))
+                {
+                    PSYMBOL Symbol = NULL;
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_MUL;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = ((VARIABLE_TYPE *)Op1->VariableType)->Base->Size;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Op0       = Pop(MatchedStack);
+                    Op0Symbol = ToSymbol(Op0, Error);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Temp       = NewTemp(Error);
+                    TempSymbol = ToSymbol(Temp, Error);
+                    PushSymbol(CodeBuffer, TempSymbol);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_SUB;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    PushSymbol(CodeBuffer, TempSymbol);
+
+                    Op1       = Pop(MatchedStack);
+                    Op1Symbol = ToSymbol(Op1, Error);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+
+                    FreeTemp(Op0);
+                    if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                    Op0    = Pop(MatchedStack);
+                    Op1    = Pop(MatchedStack);
+                }
+                Handled = TRUE;
+            }
+
+            if (!Handled)
+            {
+                PushSymbol(CodeBuffer, OperatorSymbol);
+                Op0       = Pop(MatchedStack);
+                Op0Symbol = ToSymbol(Op0, Error);
+
+                Op1       = Pop(MatchedStack);
+                Op1Symbol = ToSymbol(Op1, Error);
+
+                PushSymbol(CodeBuffer, Op0Symbol);
+                PushSymbol(CodeBuffer, Op1Symbol);
+                PushSymbol(CodeBuffer, Op1Symbol);
+
+                //
+                // Free the operand if it is a temp value
+                //
+                FreeTemp(Op0);
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
             }
         }
         else if (IsTwoOperandOperator(Operator))
         {
-            PushSymbol(CodeBuffer, OperatorSymbol);
-            Op0       = Pop(MatchedStack);
-            Op0Symbol = ToSymbol(Op0, Error);
+            BOOL Handled = FALSE;
+            Op0          = TopIndexed(MatchedStack, 0);
+            Op1          = TopIndexed(MatchedStack, 1);
 
-            Op1       = Pop(MatchedStack);
-            Op1Symbol = ToSymbol(Op1, Error);
-
-            Temp = NewTemp(Error);
-            Push(MatchedStack, Temp);
-            TempSymbol = ToSymbol(Temp, Error);
-
-            PushSymbol(CodeBuffer, Op0Symbol);
-            PushSymbol(CodeBuffer, Op1Symbol);
-            PushSymbol(CodeBuffer, TempSymbol);
-
-            //
-            // Free the operand if it is a temp value
-            //
-            FreeTemp(Op0);
-            FreeTemp(Op1);
-            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            if (!strcmp(Operator->Value, "@ADD") || !strcmp(Operator->Value, "@SUB"))
             {
-                break;
+                if (((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_PTR && ((VARIABLE_TYPE *)Op1->VariableType)->Kind == TY_PTR)
+                {
+                    *Error  = SCRIPT_ENGINE_ERROR_SYNTAX;
+                    Op0     = Pop(MatchedStack);
+                    Op1     = Pop(MatchedStack);
+                    Handled = TRUE;
+                }
+                else if (((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_PTR && ((VARIABLE_TYPE *)Op1->VariableType)->Kind != TY_PTR)
+                {
+                    if (!strcmp(Operator->Value, "@SUB"))
+                    {
+                        *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                        Op0    = Pop(MatchedStack);
+                        Op1    = Pop(MatchedStack);
+                    }
+                    else
+                    {
+                        PSYMBOL Symbol = NULL;
+
+                        Op0       = Pop(MatchedStack);
+                        Op1       = Pop(MatchedStack);
+                        Op0Symbol = ToSymbol(Op0, Error);
+                        Op1Symbol = ToSymbol(Op1, Error);
+
+                        Symbol        = NewSymbol();
+                        Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                        Symbol->Value = FUNC_MUL;
+                        PushSymbol(CodeBuffer, Symbol);
+
+                        Symbol        = NewSymbol();
+                        Symbol->Type  = SYMBOL_NUM_TYPE;
+                        Symbol->Value = ((VARIABLE_TYPE *)Op0->VariableType)->Base->Size;
+                        PushSymbol(CodeBuffer, Symbol);
+
+                        Op1Symbol = ToSymbol(Op1, Error);
+                        PushSymbol(CodeBuffer, Op1Symbol);
+
+                        Temp       = NewTemp(Error);
+                        TempSymbol = ToSymbol(Temp, Error);
+                        PushSymbol(CodeBuffer, TempSymbol);
+
+                        PushSymbol(CodeBuffer, OperatorSymbol);
+                        Op0Symbol = ToSymbol(Op0, Error);
+                        PushSymbol(CodeBuffer, Op0Symbol);
+                        PushSymbol(CodeBuffer, TempSymbol);
+                        PushSymbol(CodeBuffer, TempSymbol);
+
+                        Push(MatchedStack, Temp);
+
+                        //
+                        // Free the operand if it is a temp value
+                        //
+                        FreeTemp(Op0);
+                        FreeTemp(Op1);
+                        if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                        {
+                            break;
+                        }
+                    }
+                    Handled = TRUE;
+                }
+                else if (((VARIABLE_TYPE *)Op0->VariableType)->Kind != TY_PTR && ((VARIABLE_TYPE *)Op1->VariableType)->Kind == TY_PTR)
+                {
+                    PSYMBOL Symbol = NULL;
+
+                    Op0       = Pop(MatchedStack);
+                    Op1       = Pop(MatchedStack);
+                    Op0Symbol = ToSymbol(Op0, Error);
+                    Op1Symbol = ToSymbol(Op1, Error);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_MUL;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = ((VARIABLE_TYPE *)Op1->VariableType)->Base->Size;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    Temp       = NewTemp(Error);
+                    TempSymbol = ToSymbol(Temp, Error);
+                    PushSymbol(CodeBuffer, TempSymbol);
+
+                    PushSymbol(CodeBuffer, OperatorSymbol);
+                    PushSymbol(CodeBuffer, TempSymbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    PushSymbol(CodeBuffer, TempSymbol);
+
+                    Push(MatchedStack, Temp);
+
+                    //
+                    // Free the operand if it is a temp value
+                    //
+                    FreeTemp(Op0);
+                    FreeTemp(Op1);
+                    if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                    {
+                        break;
+                    }
+
+                    Handled = TRUE;
+                }
+            }
+
+            if (!Handled)
+            {
+                PushSymbol(CodeBuffer, OperatorSymbol);
+                Op0       = Pop(MatchedStack);
+                Op0Symbol = ToSymbol(Op0, Error);
+
+                Op1       = Pop(MatchedStack);
+                Op1Symbol = ToSymbol(Op1, Error);
+
+                Temp = NewTemp(Error);
+                Push(MatchedStack, Temp);
+                TempSymbol = ToSymbol(Temp, Error);
+
+                PushSymbol(CodeBuffer, Op0Symbol);
+                PushSymbol(CodeBuffer, Op1Symbol);
+                PushSymbol(CodeBuffer, TempSymbol);
+
+                //
+                // Free the operand if it is a temp value
+                //
+                FreeTemp(Op0);
+                FreeTemp(Op1);
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
             }
         }
         else if (IsOneOperandOperator(Operator))
         {
-            PushSymbol(CodeBuffer, OperatorSymbol);
-            Op0       = Pop(MatchedStack);
-            Op0Symbol = ToSymbol(Op0, Error);
+            BOOL Handled = FALSE;
+            Op0          = Top(MatchedStack);
 
-            PushSymbol(CodeBuffer, Op0Symbol);
-
-            //
-            // Free the operand if it is a temp value
-            //
-            FreeTemp(Op0);
-            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            if (((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_PTR)
             {
-                break;
+                if (!strcmp(Operator->Value, "@INC"))
+                {
+                    PSYMBOL Symbol = NULL;
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_ADD;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = ((VARIABLE_TYPE *)Op0->VariableType)->Base->Size;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Op0       = Pop(MatchedStack);
+                    Op0Symbol = ToSymbol(Op0, Error);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    FreeTemp(Op0);
+                    if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                    {
+                        break;
+                    }
+                    Handled = TRUE;
+                }
+
+                else if (!strcmp(Operator->Value, "@DEC"))
+                {
+                    PSYMBOL Symbol = NULL;
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_SUB;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = ((VARIABLE_TYPE *)Op0->VariableType)->Base->Size;
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Op0       = Pop(MatchedStack);
+                    Op0Symbol = ToSymbol(Op0, Error);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+
+                    FreeTemp(Op0);
+                    if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                    {
+                        break;
+                    }
+                    Handled = TRUE;
+                }
+            }
+
+            if (!Handled)
+            {
+                PushSymbol(CodeBuffer, OperatorSymbol);
+                Op0       = Pop(MatchedStack);
+                Op0Symbol = ToSymbol(Op0, Error);
+
+                PushSymbol(CodeBuffer, Op0Symbol);
+
+                //
+                // Free the operand if it is a temp value
+                //
+                FreeTemp(Op0);
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
             }
         }
         else if (!strcmp(Operator->Value, "@VARGSTART"))
@@ -3367,6 +3697,45 @@ NewGlobalIdentifier(PSCRIPT_ENGINE_TOKEN Token)
 }
 
 /**
+ * @brief
+ *
+ * @param Token
+ */
+VOID
+SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long VariableType)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < GlobalIdTable->Pointer; i++)
+    {
+        CurrentToken = *(GlobalIdTable->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            CurrentToken->VariableType = VariableType;
+        }
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param Token
+ */
+unsigned long long
+GetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < GlobalIdTable->Pointer; i++)
+    {
+        CurrentToken = *(GlobalIdTable->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            return CurrentToken->VariableType;
+        }
+    }
+    return 0;
+}
+
+/**
  * @brief Allocates a new local variable and returns the integer assigned to it
  *
  * @param Token
@@ -3379,6 +3748,46 @@ NewLocalIdentifier(PSCRIPT_ENGINE_TOKEN Token)
     Push(((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable), CopiedToken);
     CurrentUserDefinedFunction->LocalVariableNumber++;
     return ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer - 1;
+}
+
+/**
+ * @brief
+ *
+ * @param Token
+ */
+VOID
+SetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long VariableType)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer; i++)
+    {
+        CurrentToken = *(((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            CurrentToken->VariableType = VariableType;
+        }
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param Token
+ * @return unsigned long long
+ */
+unsigned long long
+GetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer; i++)
+    {
+        CurrentToken = *(((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            return CurrentToken->VariableType;
+        }
+    }
+    return 0;
 }
 
 /**

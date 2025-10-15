@@ -508,7 +508,8 @@ GetToken(char * c, char * str)
                 {
                     if (GetGlobalIdentifierVal(Token) != -1)
                     {
-                        Token->Type = GLOBAL_ID;
+                        Token->Type         = GLOBAL_ID;
+                        Token->VariableType = GetGlobalIdentifierVariableType(Token);
                     }
                     else
                     {
@@ -708,7 +709,7 @@ GetToken(char * c, char * str)
                     AppendByte(Token, *c);
 
                 *c = sgetc(str);
-                if (IsHex(*c) || *c == '`'|| *c == '_')
+                if (IsHex(*c) || *c == '`' || *c == '_')
                 {
                     // Nothing
                 }
@@ -779,7 +780,8 @@ GetToken(char * c, char * str)
                             }
                             else if (GetLocalIdentifierVal(Token) != -1)
                             {
-                                Token->Type = LOCAL_ID;
+                                Token->Type         = LOCAL_ID;
+                                Token->VariableType = GetLocalIdentifierVariableType(Token);
                             }
                             else
                             {
@@ -841,12 +843,14 @@ GetToken(char * c, char * str)
                             }
                             else if (GetLocalIdentifierVal(Token) != -1)
                             {
-                                Token->Type = LOCAL_ID;
+                                Token->Type         = LOCAL_ID;
+                                Token->VariableType = GetLocalIdentifierVariableType(Token);
                             }
                             else
                             {
                                 Token->Type = LOCAL_UNRESOLVED_ID;
                             }
+                            Token->VariableType;
                         }
                     }
                 }
@@ -914,7 +918,8 @@ GetToken(char * c, char * str)
                         }
                         else if (GetLocalIdentifierVal(Token) != -1)
                         {
-                            Token->Type = LOCAL_ID;
+                            Token->Type         = LOCAL_ID;
+                            Token->VariableType = GetLocalIdentifierVariableType(Token);
                         }
                         else
                         {
