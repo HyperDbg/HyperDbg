@@ -97,9 +97,9 @@ int
 GetGlobalIdentifierVal(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 VOID
-SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long VariableType);
+SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, VARIABLE_TYPE * VariableType);
 
-unsigned long long
+VARIABLE_TYPE *
 GetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token);
 
 unsigned long long
@@ -109,9 +109,9 @@ int
 GetLocalIdentifierVal(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 VOID
-SetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long VariableType);
+SetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, VARIABLE_TYPE * VariableType);
 
-unsigned long long
+VARIABLE_TYPE *
 GetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token);
 
 int

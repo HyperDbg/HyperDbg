@@ -52,7 +52,7 @@ NewUnknownToken()
     Token->Type              = UNKNOWN;
     Token->Len               = 0;
     Token->MaxLen            = TOKEN_VALUE_MAX_LEN;
-    Token->VariableType      = (unsigned long long)VARIABLE_TYPE_LONG;
+    Token->VariableType      = (VARIABLE_TYPE *)VARIABLE_TYPE_LONG;
     Token->VariableMemoryIdx = 0;
 
     return Token;
@@ -82,7 +82,7 @@ NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
     Token->Len               = Len;
     Token->MaxLen            = Len;
     Token->Value             = (char *)calloc(Token->MaxLen + 1, sizeof(char));
-    Token->VariableType      = (unsigned long long)VARIABLE_TYPE_LONG;
+    Token->VariableType      = (VARIABLE_TYPE *)VARIABLE_TYPE_LONG;
     Token->VariableMemoryIdx = 0;
 
     if (Token->Value == NULL)
@@ -677,7 +677,7 @@ void
 FreeTemp(PSCRIPT_ENGINE_TOKEN Temp)
 {
     int id = (int)DecimalToInt(Temp->Value);
-    if (Temp->Type == TEMP|| Temp->Type == DEFERENCE_TEMP)
+    if (Temp->Type == TEMP || Temp->Type == DEFERENCE_TEMP)
     {
         CurrentUserDefinedFunction->TempMap[id] = 0;
     }

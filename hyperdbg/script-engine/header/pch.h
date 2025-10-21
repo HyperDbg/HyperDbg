@@ -38,13 +38,13 @@
 #include "SDK/HyperDbgSdk.h"
 #include "SDK/imports/user/HyperDbgSymImports.h"
 #include "SDK/headers/HardwareDebugger.h"
+#include "type.h"
 #include "common.h"
 #include "scanner.h"
 #include "globals.h"
 #include "../include/SDK/headers/ScriptEngineCommonDefinitions.h"
 #include "script-engine.h"
 #include "parse-table.h"
-#include "type.h"
 #include "hardware.h"
 
 //
