@@ -26,10 +26,12 @@ typedef enum
 
 typedef struct VARIABLE_TYPE
 {
-    VARIABLE_TYPE_KIND Kind;
-    int                Size;  // sizeof() value
-    int                Align; // alignment
-    BOOLEAN            IsUnsigned;
+    VARIABLE_TYPE_KIND     Kind;
+    int                    Size;  // sizeof() value
+    int                    Align; // alignment
+    BOOLEAN                IsUnsigned;
+    struct VARIABLE_TYPE * Base;
+    int                    ArrayLen;
 } VARIABLE_TYPE;
 
 extern VARIABLE_TYPE * VARIABLE_TYPE_UNKNOWN;
@@ -53,4 +55,7 @@ extern VARIABLE_TYPE * VARIABLE_TYPE_LDOUBLE;
 
 VARIABLE_TYPE *
 HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack);
+
+VARIABLE_TYPE*
+GetCommonVariableType(VARIABLE_TYPE* Ty1, VARIABLE_TYPE* Ty2);
 #endif

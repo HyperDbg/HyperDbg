@@ -49,10 +49,11 @@ NewUnknownToken()
     // Init fields
     //
     strcpy(Token->Value, "");
-    Token->Type         = UNKNOWN;
-    Token->Len          = 0;
-    Token->MaxLen       = TOKEN_VALUE_MAX_LEN;
-    Token->VariableType = 0;
+    Token->Type              = UNKNOWN;
+    Token->Len               = 0;
+    Token->MaxLen            = TOKEN_VALUE_MAX_LEN;
+    Token->VariableType      = (unsigned long long)VARIABLE_TYPE_LONG;
+    Token->VariableMemoryIdx = 0;
 
     return Token;
 }
@@ -76,12 +77,13 @@ NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
     //
     // Init fields
     //
-    unsigned int Len    = (unsigned int)strlen(Value);
-    Token->Type         = Type;
-    Token->Len          = Len;
-    Token->MaxLen       = Len;
-    Token->Value        = (char *)calloc(Token->MaxLen + 1, sizeof(char));
-    Token->VariableType = 0;
+    unsigned int Len         = (unsigned int)strlen(Value);
+    Token->Type              = Type;
+    Token->Len               = Len;
+    Token->MaxLen            = Len;
+    Token->Value             = (char *)calloc(Token->MaxLen + 1, sizeof(char));
+    Token->VariableType      = (unsigned long long)VARIABLE_TYPE_LONG;
+    Token->VariableMemoryIdx = 0;
 
     if (Token->Value == NULL)
     {
@@ -211,6 +213,9 @@ PrintToken(PSCRIPT_ENGINE_TOKEN Token)
         break;
     case FUNCTION_PARAMETER_ID:
         printf(" FUNCTION_PARAMETER_ID>\n");
+        break;
+    case DEFERENCE_TEMP:
+        printf(" DEFERENCE_TEMP>\n");
         break;
     default:
         printf(" ERROR>\n");
@@ -514,6 +519,22 @@ Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 }
 
 /**
+ * @brief
+ *
+ * @param TokenList Index
+ * @return Token
+ */
+PSCRIPT_ENGINE_TOKEN
+TopIndexed(PSCRIPT_ENGINE_TOKEN_LIST TokenList, int Index)
+{
+    uintptr_t              Head     = (uintptr_t)TokenList->Head;
+    uintptr_t              Pointer  = (uintptr_t)TokenList->Pointer - 1 - Index;
+    PSCRIPT_ENGINE_TOKEN * ReadAddr = (PSCRIPT_ENGINE_TOKEN *)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));
+
+    return *ReadAddr;
+}
+
+/**
  * @brief Checks whether input char belongs to hexadecimal digit-set or not
  *
  * @param char
@@ -656,7 +677,7 @@ void
 FreeTemp(PSCRIPT_ENGINE_TOKEN Temp)
 {
     int id = (int)DecimalToInt(Temp->Value);
-    if (Temp->Type == TEMP)
+    if (Temp->Type == TEMP|| Temp->Type == DEFERENCE_TEMP)
     {
         CurrentUserDefinedFunction->TempMap[id] = 0;
     }
