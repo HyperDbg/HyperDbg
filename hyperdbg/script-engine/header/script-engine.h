@@ -102,8 +102,8 @@ SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long V
 unsigned long long
 GetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token);
 
-int
-NewLocalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN);
+unsigned long long
+NewLocalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN, unsigned int VariableSize);
 
 int
 GetLocalIdentifierVal(PSCRIPT_ENGINE_TOKEN PTOKEN);

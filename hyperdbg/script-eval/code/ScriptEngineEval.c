@@ -150,6 +150,14 @@ GetValue(PGUEST_REGS                      GuestRegs,
         else
             return ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx + Symbol->Value];
 
+    case SYMBOL_REFERENCE_TEMP_TYPE:
+
+        return (UINT64)&ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx + Symbol->Value];
+
+    case SYMBOL_DEREFERENCE_TEMP_TYPE:
+
+        return *(UINT64 *)ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx + Symbol->Value];
+
     case SYMBOL_FUNCTION_PARAMETER_ID_TYPE:
 
         if (ReturnReference)
@@ -202,6 +210,10 @@ SetValue(PGUEST_REGS                       GuestRegs,
 
     case SYMBOL_TEMP_TYPE:
         ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx + Symbol->Value] = Value;
+        return;
+
+    case SYMBOL_DEREFERENCE_TEMP_TYPE:
+        *(UINT64 *)ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx + Symbol->Value] = Value;
         return;
 
     case SYMBOL_FUNCTION_PARAMETER_ID_TYPE:

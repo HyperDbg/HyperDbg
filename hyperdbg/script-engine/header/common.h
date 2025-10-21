@@ -60,6 +60,7 @@ typedef enum _SCRIPT_ENGINE_TOKEN_TYPE
     FUNCTION_ID,
     FUNCTION_PARAMETER_ID,
     SCRIPT_VARIABLE_TYPE,
+    DEFERENCE_TEMP,
     UNKNOWN
 } SCRIPT_ENGINE_TOKEN_TYPE;
 
@@ -73,6 +74,7 @@ typedef struct _SCRIPT_ENGINE_TOKEN
     unsigned int             Len;
     unsigned int             MaxLen;
     unsigned long long       VariableType;
+    unsigned long long       VariableMemoryIdx;
 } SCRIPT_ENGINE_TOKEN, *PSCRIPT_ENGINE_TOKEN;
 
 /**
