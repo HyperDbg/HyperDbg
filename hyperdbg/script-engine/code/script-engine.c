@@ -1214,11 +1214,11 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                         Op1 = Op1Array[i];
                         if (Op1->Type == LOCAL_UNRESOLVED_ID || Op1->Type == LOCAL_ID)
                         {
-                            SetLocalIdentifierVariableType(Op1, (unsigned long long)VariableType);
+                            SetLocalIdentifierVariableType(Op1, VariableType);
                         }
                         else if (Op1->Type == GLOBAL_UNRESOLVED_ID || Op1->Type == GLOBAL_ID)
                         {
-                            SetGlobalIdentifierVariableType(Op1, (unsigned long long)VariableType);
+                            SetGlobalIdentifierVariableType(Op1, VariableType);
                         }
                     }
 
@@ -1428,11 +1428,11 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
                     if (Op1->Type == LOCAL_UNRESOLVED_ID || Op1->Type == LOCAL_ID)
                     {
-                        SetLocalIdentifierVariableType(Op1, (unsigned long long)VariableType);
+                        SetLocalIdentifierVariableType(Op1, VariableType);
                     }
                     else if (Op1->Type == GLOBAL_UNRESOLVED_ID || Op1->Type == GLOBAL_ID)
                     {
-                        SetGlobalIdentifierVariableType(Op1, (unsigned long long)VariableType);
+                        SetGlobalIdentifierVariableType(Op1, VariableType);
                     }
                 }
             }
@@ -1615,7 +1615,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             {
                 IdSymbol->Value = NewLocalIdentifier(IdToken, VariableType->Size);
                 SetType(&IdSymbol->Type, SYMBOL_REFERENCE_LOCAL_ID_TYPE);
-                SetLocalIdentifierVariableType(IdToken, (unsigned long long)VariableType);
+                SetLocalIdentifierVariableType(IdToken, VariableType);
             }
 
             for (int i = Last_ARRAY_DIM_NUMBER_Idx + 1; i < TokenCount; i++)
@@ -2403,7 +2403,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 Op1Symbol = ToSymbol(Op1, Error);
 
                 Temp               = NewTemp(Error);
-                Temp->VariableType = (unsigned long long)GetCommonVariableType((VARIABLE_TYPE *)Op0->VariableType, (VARIABLE_TYPE *)Op1->VariableType);
+                Temp->VariableType = (VARIABLE_TYPE *)GetCommonVariableType((VARIABLE_TYPE *)Op0->VariableType, (VARIABLE_TYPE *)Op1->VariableType);
                 Push(MatchedStack, Temp);
                 TempSymbol = ToSymbol(Temp, Error);
 
@@ -4306,7 +4306,7 @@ NewGlobalIdentifier(PSCRIPT_ENGINE_TOKEN Token)
  * @param Token
  */
 VOID
-SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long VariableType)
+SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, VARIABLE_TYPE * VariableType)
 {
     PSCRIPT_ENGINE_TOKEN CurrentToken;
     for (uintptr_t i = 0; i < GlobalIdTable->Pointer; i++)
@@ -4314,7 +4314,7 @@ SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long V
         CurrentToken = *(GlobalIdTable->Head + i);
         if (!strcmp(Token->Value, CurrentToken->Value))
         {
-            CurrentToken->VariableType = VariableType;
+            CurrentToken->VariableType = (VARIABLE_TYPE *)VariableType;
         }
     }
 }
@@ -4324,7 +4324,7 @@ SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long V
  *
  * @param Token
  */
-unsigned long long
+VARIABLE_TYPE *
 GetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
 {
     PSCRIPT_ENGINE_TOKEN CurrentToken;
@@ -4362,7 +4362,7 @@ NewLocalIdentifier(PSCRIPT_ENGINE_TOKEN Token, unsigned int VariableSize)
  * @param Token
  */
 VOID
-SetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long VariableType)
+SetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, VARIABLE_TYPE * VariableType)
 {
     PSCRIPT_ENGINE_TOKEN CurrentToken;
     for (uintptr_t i = 0; i < ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer; i++)
@@ -4379,9 +4379,9 @@ SetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, unsigned long long Va
  * @brief
  *
  * @param Token
- * @return unsigned long long
+ * @return VARIABLE_TYPE*
  */
-unsigned long long
+VARIABLE_TYPE *
 GetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
 {
     PSCRIPT_ENGINE_TOKEN CurrentToken;
