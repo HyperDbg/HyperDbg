@@ -60,11 +60,11 @@ extern const SYMBOL_MAP PseudoRegisterMapList[];
 extern const char* ScriptVariableTypeList[];
 
 
-#define LALR_RULES_COUNT 103
-#define LALR_TERMINAL_COUNT 76
-#define LALR_NONTERMINAL_COUNT 22
+#define LALR_RULES_COUNT 109
+#define LALR_TERMINAL_COUNT 78
+#define LALR_NONTERMINAL_COUNT 26
 #define LALR_MAX_RHS_LEN 9
-#define LALR_STATE_COUNT 298
+#define LALR_STATE_COUNT 307
 extern const struct _SCRIPT_ENGINE_TOKEN LalrLhs[RULES_COUNT];
 extern const struct _SCRIPT_ENGINE_TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int LalrRhsSize[RULES_COUNT];
