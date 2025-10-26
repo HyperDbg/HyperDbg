@@ -99,7 +99,11 @@ E12->( BE )
 E12->_register @PUSH
 E12->_global_id @PUSH
 E12->_local_id @PUSH
-E12->_function_parameter_id @PUSH 
+E12->_function_parameter_id @PUSH
+
+E12->ARRAY1
+
+
 
 # numbers 
 E12->_hex @PUSH
@@ -107,6 +111,7 @@ E12->_decimal @PUSH
 E12->_octal @PUSH
 E12->_binary @PUSH
 E12->_pseudo_register @PUSH
+
 
 E12->E13 ( VA2 ) @END_OF_CALLING_USER_DEFINED_FUNCTION_WITH_RETURNING_VALUE
 E13->_function_id @PUSH
@@ -124,3 +129,10 @@ StringNumber->STRING
 
 WstringNumber->EXP
 WstringNumber->WSTRING
+
+
+ARRAY1->ARRAY2 ARRAY3 ARRAY4 @ARRAY_INDEX_READ
+ARRAY2->_local_id @PUSH
+ARRAY3->[ EXP ] @ARRAY_DIM_NUMBER
+ARRAY4->ARRAY3 ARRAY4
+ARRAY4->eps
