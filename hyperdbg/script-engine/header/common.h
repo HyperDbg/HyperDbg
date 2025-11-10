@@ -60,6 +60,7 @@ typedef enum _SCRIPT_ENGINE_TOKEN_TYPE
     FUNCTION_ID,
     FUNCTION_PARAMETER_ID,
     SCRIPT_VARIABLE_TYPE,
+    DEFERENCE_TEMP,
     UNKNOWN
 } SCRIPT_ENGINE_TOKEN_TYPE;
 
@@ -72,7 +73,8 @@ typedef struct _SCRIPT_ENGINE_TOKEN
     char *                   Value;
     unsigned int             Len;
     unsigned int             MaxLen;
-    unsigned long long       VariableType;
+    VARIABLE_TYPE *          VariableType;
+    unsigned long long       VariableMemoryIdx;
 } SCRIPT_ENGINE_TOKEN, *PSCRIPT_ENGINE_TOKEN;
 
 /**
@@ -115,6 +117,12 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 void
     FreeTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
+VARIABLE_TYPE *
+HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack);
+
+VARIABLE_TYPE *
+GetCommonVariableType(VARIABLE_TYPE * Ty1, VARIABLE_TYPE * Ty2);
+
 ////////////////////////////////////////////////////
 //			SCRIPT_ENGINE_TOKEN_LIST related functions		  //
 ////////////////////////////////////////////////////
@@ -136,6 +144,9 @@ Pop(PSCRIPT_ENGINE_TOKEN_LIST TokenList);
 
 PSCRIPT_ENGINE_TOKEN
 Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList);
+
+PSCRIPT_ENGINE_TOKEN
+TopIndexed(PSCRIPT_ENGINE_TOKEN_LIST TokenList, int Index);
 
 char
 IsNoneTerminal(PSCRIPT_ENGINE_TOKEN Token);

@@ -91,28 +91,40 @@ char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str);
 
 int
+NewGlobalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN);
+
+int
 GetGlobalIdentifierVal(PSCRIPT_ENGINE_TOKEN PTOKEN);
+
+VOID
+SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, VARIABLE_TYPE * VariableType);
+
+VARIABLE_TYPE *
+GetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token);
+
+unsigned long long
+NewLocalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN, unsigned int VariableSize);
 
 int
 GetLocalIdentifierVal(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
-int
-NewGlobalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN);
+VOID
+SetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, VARIABLE_TYPE * VariableType);
 
-int
-NewLocalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN);
-
-int
-LalrGetRhsSize(int RuleId);
-
-BOOL
-LalrIsOperandType(PSCRIPT_ENGINE_TOKEN PTOKEN);
+VARIABLE_TYPE *
+GetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token);
 
 int
 NewFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token);
 
 int
 GetFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token);
+
+int
+LalrGetRhsSize(int RuleId);
+
+BOOL
+LalrIsOperandType(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 PUSER_DEFINED_FUNCTION_NODE
 GetUserDefinedFunctionNode(PSCRIPT_ENGINE_TOKEN Token);
