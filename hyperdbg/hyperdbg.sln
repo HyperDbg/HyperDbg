@@ -226,6 +226,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{035508
 		include\config\Definition.h = include\config\Definition.h
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hypertrace", "hypertrace\hypertrace.vcxproj", "{9FA45E25-DAEB-4C2D-806C-7908A180195D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|x64 = debug|x64
@@ -279,6 +281,12 @@ Global
 		{B226530A-14B1-40AC-B82E-D9057400E7EE}.debug|x64.Build.0 = debug|x64
 		{B226530A-14B1-40AC-B82E-D9057400E7EE}.release|x64.ActiveCfg = release|x64
 		{B226530A-14B1-40AC-B82E-D9057400E7EE}.release|x64.Build.0 = release|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.debug|x64.ActiveCfg = debug|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.debug|x64.Build.0 = debug|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.debug|x64.Deploy.0 = debug|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.release|x64.ActiveCfg = release|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.release|x64.Build.0 = release|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.release|x64.Deploy.0 = release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

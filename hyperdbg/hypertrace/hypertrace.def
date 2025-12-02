@@ -1,0 +1,6 @@
+LIBRARY hypertrace
+
+EXPORTS
+
+    DllInitialize PRIVATE
+    DllUnload PRIVATE
