@@ -2,8 +2,7 @@
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/string.h>
-#include "module_info.h"
-#include "../../include/platform/kernel/header/Mem.h"
+#include <platform/kernel/header/Mem.h>
 
 
 static void* g_AllocatedBuffer;
