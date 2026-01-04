@@ -19,6 +19,14 @@
 //
 // Some functions are globally defined in SDK
 //
+#ifdef __linux__
+#include <linux/types.h>
+void* MemAllocKernel(size_t Size);
+void  MemFree(void* Ptr);
+void  MemCopy(void* Destination, const void* Source, size_t Size);
+void  MemSet(void* Destination, int Value, size_t Size);
+
+#elif defined(_WIN32)
 
 PVOID
 PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes);
@@ -37,3 +45,6 @@ PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
 
 VOID
 PlatformMemFreePool(PVOID BufferAddress);
+#else
+#error "Unsupported platform"
+#endif

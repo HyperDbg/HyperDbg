@@ -1,10 +1,13 @@
 obj-m += mymodule.o
-mymodule-objs := mock.o mem.o
+mymodule-objs :=  mock.o \
+              ../../include/platform/kernel/code/Mem.o 
 
-PWD := $(CURDIR)
+KDIR ?= /lib/modules/$(shell uname -r)/build
+PWD  := $(shell pwd)
+EXTRA_CFLAGS += -I$(PWD)/../../include/platform/kernel/header
 
 all:
-	$(MAKE) -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 clean:
-	$(MAKE) -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
