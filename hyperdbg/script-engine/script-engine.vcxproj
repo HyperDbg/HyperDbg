@@ -75,7 +75,17 @@
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
-      <Command>robocopy "$(ProjectDir)script" "$(TargetDir)script" /E</Command>
+      <Command>set "SRC=$(ProjectDir)script"
+set "DST=$(TargetDir)script"
+
+if not exist "%DST%" mkdir "%DST%"
+
+robocopy "%SRC%" "%DST%" /E /NFL /NDL /NJH /NJS /NP
+set "RC=%ERRORLEVEL%"
+
+if %RC% GEQ 8 exit /b %RC%
+exit /b 0
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -104,7 +114,17 @@
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
-      <Command>robocopy "$(ProjectDir)script" "$(TargetDir)script" /E</Command>
+      <Command>set "SRC=$(ProjectDir)script"
+set "DST=$(TargetDir)script"
+
+if not exist "%DST%" mkdir "%DST%"
+
+robocopy "%SRC%" "%DST%" /E /NFL /NDL /NJH /NJS /NP
+set "RC=%ERRORLEVEL%"
+
+if %RC% GEQ 8 exit /b %RC%
+exit /b 0
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
