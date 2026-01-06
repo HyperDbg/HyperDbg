@@ -357,7 +357,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     // Run Parser
     //
-    PSYMBOL_BUFFER CodeBuffer = (PSYMBOL_BUFFER)ScriptEngineParse((char *)Expr.c_str());
+    PSYMBOL_BUFFER CodeBuffer = (PSYMBOL_BUFFER)ScriptEngineParse((char*)Expr.c_str());
 
 #ifdef _SCRIPT_ENGINE_IR_PRINT_EN
     //

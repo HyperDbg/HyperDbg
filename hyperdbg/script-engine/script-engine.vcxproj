@@ -75,8 +75,7 @@
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>robocopy "$(ProjectDir)script" "$(TargetDir)script" /E</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -105,8 +104,7 @@
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>robocopy "$(ProjectDir)script" "$(TargetDir)script" /E</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -119,6 +117,7 @@
     <ClInclude Include="header\scanner.h" />
     <ClInclude Include="header\script-engine.h" />
     <ClInclude Include="header\type.h" />
+    <ClInclude Include="script_include.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common.c" />
@@ -132,6 +131,7 @@
     <ClCompile Include="code\scanner.c" />
     <ClCompile Include="code\script-engine.c" />
     <ClCompile Include="code\type.c" />
+    <ClCompile Include="script_include.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -273,18 +273,27 @@ IsOneOperandOperator(PSCRIPT_ENGINE_TOKEN Operator);
 /**
  *
  */
-typedef struct USER_DEFINED_FUNCTION_NODE
+typedef struct _USER_DEFINED_FUNCTION_NODE
 {
-    char *                              Name;
-    long long unsigned                  Address;
-    long long unsigned                  VariableType;
-    long long unsigned                  ParameterNumber;
-    long long unsigned                  MaxTempNumber;
-    long long unsigned                  LocalVariableNumber;
-    long long unsigned                  IdTable;
-    long long unsigned                  FunctionParameterIdTable;
-    char *                              TempMap;
-    struct USER_DEFINED_FUNCTION_NODE * NextNode;
+    char *                               Name;
+    long long unsigned                   Address;
+    long long unsigned                   VariableType;
+    long long unsigned                   ParameterNumber;
+    long long unsigned                   MaxTempNumber;
+    long long unsigned                   LocalVariableNumber;
+    long long unsigned                   IdTable;
+    long long unsigned                   FunctionParameterIdTable;
+    char *                               TempMap;
+    struct _USER_DEFINED_FUNCTION_NODE * NextNode;
 } USER_DEFINED_FUNCTION_NODE, *PUSER_DEFINED_FUNCTION_NODE;
+
+/**
+ *
+ */
+typedef struct _INCLUDE_NODE
+{
+    char *                 FilePath;
+    struct _INCLUDE_NODE * NextNode;
+} INCLUDE_NODE, *PINCLUDE_NODE;
 
 #endif // !COMMON_H

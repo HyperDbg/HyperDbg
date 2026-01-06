@@ -41,6 +41,9 @@
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="script_include.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common.c">
@@ -65,6 +68,9 @@
       <Filter>code</Filter>
     </ClCompile>
     <ClCompile Include="code\pch.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="script_include.c">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>

@@ -76,7 +76,9 @@ CodeGen(
     PSCRIPT_ENGINE_TOKEN_LIST MatchedStack,
     PSYMBOL_BUFFER            CodeBuffer,
     PSCRIPT_ENGINE_TOKEN      Operator,
-    PSCRIPT_ENGINE_ERROR_TYPE Error);
+    PSCRIPT_ENGINE_ERROR_TYPE Error,
+    char** ScriptSource
+    );
 
 unsigned long long int
 RegisterToInt(char * str);

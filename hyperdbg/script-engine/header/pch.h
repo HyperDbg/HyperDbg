@@ -39,6 +39,7 @@
 #include "SDK/imports/user/HyperDbgSymImports.h"
 #include "SDK/headers/HardwareDebugger.h"
 #include "type.h"
+#include "script_include.h"
 #include "common.h"
 #include "scanner.h"
 #include "globals.h"
