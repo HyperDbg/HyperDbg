@@ -26,6 +26,8 @@ PUSER_DEFINED_FUNCTION_NODE UserDefinedFunctionHead;
 
 PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction;
 
+PINCLUDE_NODE IncludeHead;
+
 /**
  * @brief number of read characters from input
  */

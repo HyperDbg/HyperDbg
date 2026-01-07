@@ -535,6 +535,23 @@ GetToken(char * c, char * str)
         }
         return Token;
 
+    case '#':
+        do
+        {
+            if (*c != '`')
+                AppendByte(Token, *c);
+            *c = sgetc(str);
+        } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
+        if (IsKeyword(Token->Value))
+        {
+            Token->Type = KEYWORD;
+        }
+        else
+        {
+            Token->Type = UNKNOWN;
+        }
+        return Token;
+
     case ' ':
     case '\t':
         strcpy(Token->Value, "");

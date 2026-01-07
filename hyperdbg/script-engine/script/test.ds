@@ -1,0 +1,8 @@
+? {
+	void my_func(int var, int var2) {
+    printf("var = %d, var2 = %d\n", var, var2);
+    return;
+    printf("this statement is never shown!\n");
+  }
+
+}   

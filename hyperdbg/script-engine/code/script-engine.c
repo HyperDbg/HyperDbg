@@ -309,8 +309,9 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 PVOID
 ScriptEngineParse(char * str)
 {
-    PSCRIPT_ENGINE_TOKEN_LIST Stack = NewTokenList();
+    char * ScriptSource = _strdup(str);
 
+    PSCRIPT_ENGINE_TOKEN_LIST Stack        = NewTokenList();
     PSCRIPT_ENGINE_TOKEN_LIST MatchedStack = NewTokenList();
     PSYMBOL_BUFFER            CodeBuffer   = NewSymbolBuffer();
 
@@ -362,13 +363,13 @@ ScriptEngineParse(char * str)
     Push(Stack, EndToken);
     Push(Stack, StartToken);
 
-    c = sgetc(str);
+    c = sgetc(ScriptSource);
 
-    PSCRIPT_ENGINE_TOKEN CurrentIn = Scan(str, &c);
+    PSCRIPT_ENGINE_TOKEN CurrentIn = Scan(ScriptSource, &c);
     if (CurrentIn->Type == UNKNOWN)
     {
         Error               = SCRIPT_ENGINE_ERROR_SYNTAX;
-        ErrorMessage        = HandleError(&Error, str);
+        ErrorMessage        = HandleError(&Error, ScriptSource);
         CodeBuffer->Message = ErrorMessage;
 
         RemoveTokenList(Stack);
@@ -421,16 +422,16 @@ ScriptEngineParse(char * str)
         {
             if (!strcmp(TopToken->Value, "BOOLEAN_EXPRESSION"))
             {
-                UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression, CurrentIn);
+                UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(ScriptSource, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
-                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
+                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, ScriptSource, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
                 }
 
                 RemoveToken(&CurrentIn);
-                CurrentIn = Scan(str, &c);
+                CurrentIn = Scan(ScriptSource, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
                     Error = SCRIPT_ENGINE_ERROR_UNKNOWN_TOKEN;
@@ -438,7 +439,7 @@ ScriptEngineParse(char * str)
                 }
 
                 RemoveToken(&CurrentIn);
-                CurrentIn = Scan(str, &c);
+                CurrentIn = Scan(ScriptSource, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
                     Error = SCRIPT_ENGINE_ERROR_UNKNOWN_TOKEN;
@@ -494,7 +495,7 @@ ScriptEngineParse(char * str)
 
                 Push(MatchedStack, CurrentIn);
 
-                CurrentIn = Scan(str, &c);
+                CurrentIn = Scan(ScriptSource, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
                     Error = SCRIPT_ENGINE_ERROR_SYNTAX;
@@ -508,7 +509,7 @@ ScriptEngineParse(char * str)
                 {
                     WaitForWaitStatementBooleanExpression = TRUE;
                 }
-                CodeGen(MatchedStack, CodeBuffer, TopToken, &Error);
+                CodeGen(MatchedStack, CodeBuffer, TopToken, &Error, &ScriptSource);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -525,7 +526,7 @@ ScriptEngineParse(char * str)
             else
             {
                 RemoveToken(&CurrentIn);
-                CurrentIn = Scan(str, &c);
+                CurrentIn = Scan(ScriptSource, &c);
 
                 if (CurrentIn->Type == UNKNOWN)
                 {
@@ -543,7 +544,7 @@ ScriptEngineParse(char * str)
 
     if (Error != SCRIPT_ENGINE_ERROR_FREE)
     {
-        ErrorMessage = HandleError(&Error, str);
+        ErrorMessage = HandleError(&Error, ScriptSource);
     }
     else
     {
@@ -635,11 +636,28 @@ ScriptEngineParse(char * str)
         UserDefinedFunctionHead = 0;
     }
 
+    if (IncludeHead)
+    {
+        PINCLUDE_NODE Node = IncludeHead;
+        while (Node)
+        {
+            if (Node->FilePath)
+                free(Node->FilePath);
+
+            PINCLUDE_NODE Temp = Node;
+            Node               = Node->NextNode;
+            free(Temp);
+        }
+        IncludeHead = 0;
+    }
+
     if (CurrentIn)
         RemoveToken(&CurrentIn);
 
     if (TopToken)
         RemoveToken(&TopToken);
+
+    free(ScriptSource);
 
     return (PVOID)CodeBuffer;
 }
@@ -653,7 +671,7 @@ ScriptEngineParse(char * str)
  * @param Error
  */
 void
-CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRIPT_ENGINE_TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
+CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRIPT_ENGINE_TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error, char ** ScriptSource)
 {
     PSCRIPT_ENGINE_TOKEN Op0  = NULL;
     PSCRIPT_ENGINE_TOKEN Op1  = NULL;
@@ -692,7 +710,62 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
     while (TRUE)
     {
-        if (!strcmp(Operator->Value, "@START_OF_USER_DEFINED_FUNCTION"))
+        if (!strcmp(Operator->Value, "@INCLUDE"))
+        {
+            char *  IncludeFilePath;
+            char    FullPath[MAX_PATH_LEN];
+            char *  IncludeFileBuffer;
+            BOOLEAN IncludedPath = FALSE;
+
+            Temp            = Pop(MatchedStack);
+            IncludeFilePath = Temp->Value;
+
+            ResolveIncludePath(IncludeFilePath, FullPath);
+
+            if (!FileExists(FullPath))
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+
+            if (!ParseIncludeFile(FullPath, &IncludeFileBuffer))
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+
+            if (!IncludeHead)
+            {
+                IncludeHead           = calloc(sizeof(INCLUDE_NODE), 1);
+                IncludeHead->FilePath = _strdup(FullPath);
+            }
+            else
+            {
+                PINCLUDE_NODE Node, PrevNode = NULL;
+
+                for (Node = IncludeHead; Node; PrevNode = Node, Node = Node->NextNode)
+                {
+                    if (!strcmp(Node->FilePath, FullPath))
+                    {
+                        IncludedPath = TRUE;
+                        break;
+                    }
+                }
+
+                if (!IncludedPath && PrevNode)
+                {
+                    PrevNode->NextNode           = calloc(sizeof(INCLUDE_NODE), 1);
+                    PrevNode->NextNode->FilePath = _strdup(FullPath);
+                }
+            }
+
+            if (!IncludedPath)
+            {
+                *ScriptSource = InsertStrNew(*ScriptSource, InputIdx, IncludeFileBuffer);
+            }
+        }
+
+        else if (!strcmp(Operator->Value, "@START_OF_USER_DEFINED_FUNCTION"))
         {
             Op0          = Pop(MatchedStack);
             VariableType = HandleType(MatchedStack);
@@ -3514,7 +3587,7 @@ ScriptEngineBooleanExpresssionParse(
                 }
                 else
                 {
-                    CodeGen(MatchedStack, CodeBuffer, SemanticRule, Error);
+                    CodeGen(MatchedStack, CodeBuffer, SemanticRule, Error, &str);
                     if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                     {
                         break;
