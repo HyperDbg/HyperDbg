@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include "pch.h"
-
 // Intel MSR Constants
 #define MSR_IA32_DEBUGCTLMSR 0x000001D9
 #define DEBUGCTLMSR_LBR      (1ULL << 0)
@@ -26,46 +24,52 @@
 //                  Structures                  //
 //////////////////////////////////////////////////
 
-struct lbr_stack_entry
+typedef struct _LBR_STACK_ENTRY
 {
     ULONGLONG from;
     ULONGLONG to;
-};
 
-struct lbr_data
+} LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
+
+typedef struct _LBR_DATA
 {
-    ULONGLONG                lbr_tos;
-    struct lbr_stack_entry * entries;
-};
+    ULONGLONG         lbr_tos;
+    LBR_STACK_ENTRY * entries;
 
-struct lbr_config
+} LBR_DATA, *PLBR_DATA;
+
+typedef struct _LBR_CONFIG
 {
     ULONG     pid;
     ULONGLONG lbr_select;
-};
 
-struct lbr_state
+} LBR_CONFIG, *PLBR_CONFIG;
+
+typedef struct _LBR_STATE
 {
-    struct lbr_config  config;
-    struct lbr_data *  data;
-    struct lbr_state * parent;
-    LIST_ENTRY         list;
-};
+    LBR_CONFIG config;
+    LBR_DATA * data;
+    PVOID     parent;
+    LIST_ENTRY list;
 
-struct lbr_ioctl_request
+} LBR_STATE, *PLBR_STATE;
+
+typedef struct _LBR_IOCTL_REQUEST
 {
-    struct lbr_config lbr_config;
-    struct lbr_data * buffer;
-};
+    LBR_CONFIG lbr_config;
+    LBR_DATA * buffer;
 
-struct xioctl_request
+} LBR_IOCTL_REQUEST, *PLBR_IOCTL_REQUEST;
+
+typedef struct _XIOCTL_REQUEST
 {
     ULONG cmd;
     union
     {
-        struct lbr_ioctl_request lbr;
+        LBR_IOCTL_REQUEST lbr;
     } body;
-};
+
+} XIOCTL_REQUEST, *PXIOCTL_REQUEST;
 
 // IOCTL Commands
 #define LIBIHT_IOCTL_ENABLE_LBR  0x1
@@ -122,28 +126,38 @@ extern ULONGLONG  lbr_capacity;
 extern LIST_ENTRY lbr_state_head;
 extern KSPIN_LOCK lbr_state_lock; // Standardized to KSPIN_LOCK
 
-struct cpu_lbr_map
+typedef struct _CPU_LBR_MAP
 {
     ULONG model;
     ULONG lbr_capacity;
-};
+} CPU_LBR_MAP, *PCPU_LBR_MAP;
 
-extern struct cpu_lbr_map cpu_lbr_maps[];
+extern CPU_LBR_MAP CPU_LBR_MAPS[];
 
 //////////////////////////////////////////////////
 //                  Prototypes                  //
 //////////////////////////////////////////////////
 
-void
-LbrGetLbr(struct lbr_state * State);
-void
-                   LbrPutLbr(struct lbr_state * State);
-struct lbr_state * LbrCreateLbrState(VOID);
-struct lbr_state *
+VOID
+LbrGetLbr(LBR_STATE * State);
+
+VOID
+LbrPutLbr(LBR_STATE * State);
+
+LBR_STATE *
+LbrCreateLbrState();
+
+LBR_STATE *
 LbrFindLbrState(ULONG Pid);
-void
-LbrInsertLbrState(struct lbr_state * NewState);
-void
-         LbrRemoveLbrState(struct lbr_state * OldState);
-void     LbrFreeLbrStatList(VOID);
-NTSTATUS LbrCheck(VOID);
+
+VOID
+LbrInsertLbrState(LBR_STATE * NewState);
+
+VOID
+LbrRemoveLbrState(LBR_STATE * OldState);
+
+VOID
+LbrFreeLbrStatList();
+
+NTSTATUS
+LbrCheck();

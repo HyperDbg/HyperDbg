@@ -97,9 +97,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Inf Include="hypertrace.inf" />
-  </ItemGroup>
-  <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>

@@ -10,19 +10,20 @@
  */
 
 #include "pch.h"
-#include "Tracing.h"
 
 //////////////////////////////////////////////////
 //             Global Definitions               //
 //////////////////////////////////////////////////
 
-ULONGLONG  lbr_capacity = 0;
-LIST_ENTRY lbr_state_head;
-KSPIN_LOCK lbr_state_lock;
+ULONGLONG  LbrCapacity = 0;
+LIST_ENTRY LbrStateHead;
+KSPIN_LOCK LbrStateLock;
 
+//
 // Typical Intel LBR capacities based on CPU model
 // This is a subset; you can expand this as needed
-struct cpu_lbr_map cpu_lbr_maps[] = {
+//
+CPU_LBR_MAP CPU_LBR_MAPS[] = {
     {0x5c, 32},
     {0x5f, 32},
     {0x4e, 32},
@@ -83,16 +84,15 @@ struct cpu_lbr_map cpu_lbr_maps[] = {
 
 // Note: MAX_IRQL_LEN is removed in favor of native KIRQL.
 
-void
-XWriteMsr(
-    ULONG     Msr,
-    ULONGLONG Val)
+VOID
+XWriteMsr(ULONG     Msr,
+          ULONGLONG Val)
 {
     __writemsr(Msr, Val);
 }
 
-void
-LbrGetLbr(struct lbr_state * State)
+VOID
+LbrGetLbr(LBR_STATE * State)
 {
     ULONG     i;
     ULONGLONG DbgCtlMsr;
@@ -102,44 +102,43 @@ LbrGetLbr(struct lbr_state * State)
     DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
     xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
 
-    xacquire_lock(lbr_state_lock, &OldIrql);
+    xacquire_lock(LbrStateLock, &OldIrql);
     xrdmsr(MSR_LBR_SELECT, &State->config.lbr_select);
     xrdmsr(MSR_LBR_TOS, &State->data->lbr_tos);
 
-    for (i = 0; i < (ULONG)lbr_capacity; i++)
+    for (i = 0; i < (ULONG)LbrCapacity; i++)
     {
         xrdmsr(MSR_LBR_NHM_FROM + i, &State->data->entries[i].from);
         xrdmsr(MSR_LBR_NHM_TO + i, &State->data->entries[i].to);
     }
-    xrelease_lock(&lbr_state_lock, &OldIrql);
+    xrelease_lock(&LbrStateLock, &OldIrql);
 }
 
-void
-LbrPutLbr(struct lbr_state * State)
+VOID
+LbrPutLbr(LBR_STATE * State)
 {
     ULONG     i;
     ULONGLONG DbgCtlMsr;
     KIRQL     OldIrql;
 
-    xacquire_lock(&lbr_state_lock, &OldIrql);
+    xacquire_lock(&LbrStateLock, &OldIrql);
     xwrmsr(MSR_LBR_SELECT, State->config.lbr_select);
     xwrmsr(MSR_LBR_TOS, State->data->lbr_tos);
 
-    for (i = 0; i < (ULONG)lbr_capacity; i++)
+    for (i = 0; i < (ULONG)LbrCapacity; i++)
     {
         xwrmsr(MSR_LBR_NHM_FROM + i, State->data->entries[i].from);
         xwrmsr(MSR_LBR_NHM_TO + i, State->data->entries[i].to);
     }
-    xrelease_lock(&lbr_state_lock, &OldIrql);
+    xrelease_lock(&LbrStateLock, &OldIrql);
 
     xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
     DbgCtlMsr |= DEBUGCTLMSR_LBR;
     xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
 }
 
-void
-LbrFlushLbr(
-    VOID)
+VOID
+LbrFlushLbr()
 {
     ULONG     i;
     ULONGLONG DbgCtlMsr;
@@ -147,7 +146,9 @@ LbrFlushLbr(
 
     xlock_core(&OldIrql);
 
+    //
     // Disable LBR
+    //
     xprintdbg("LIBIHT-COM: Flush LBR on cpu core: %d\n", xcoreid());
     xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
     DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
@@ -157,7 +158,7 @@ LbrFlushLbr(
     xwrmsr(MSR_LBR_SELECT, 0);
     xwrmsr(MSR_LBR_TOS, 0);
 
-    for (i = 0; i < lbr_capacity; i++)
+    for (i = 0; i < LbrCapacity; i++)
     {
         xwrmsr(MSR_LBR_NHM_FROM + i, 0);
         xwrmsr(MSR_LBR_NHM_TO + i, 0);
@@ -167,10 +168,9 @@ LbrFlushLbr(
 }
 
 NTSTATUS
-LbrEnableLbr(
-    struct lbr_ioctl_request * Request)
+LbrEnableLbr(LBR_IOCTL_REQUEST * Request)
 {
-    struct lbr_state * State;
+    LBR_STATE * State;
 
     State = LbrFindLbrState(Request->lbr_config.pid);
     if (State)
@@ -201,10 +201,9 @@ LbrEnableLbr(
 }
 
 NTSTATUS
-LbrDisableLbr(
-    struct lbr_ioctl_request * Request)
+LbrDisableLbr(LBR_IOCTL_REQUEST * Request)
 {
-    struct lbr_state * State;
+    LBR_STATE * State;
 
     State = LbrFindLbrState(Request->lbr_config.pid);
     if (State == NULL)
@@ -222,13 +221,12 @@ LbrDisableLbr(
 }
 
 NTSTATUS
-LbrDumpLbr(
-    struct lbr_ioctl_request * Request)
+LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
 {
-    ULONGLONG          i, BytesLeft;
-    struct lbr_state * State;
-    struct lbr_data    ReqBuf;
-    KIRQL              OldIrql;
+    ULONGLONG   i, BytesLeft;
+    LBR_STATE * State;
+    LBR_DATA    ReqBuf;
+    KIRQL       OldIrql;
 
     State = LbrFindLbrState(Request->lbr_config.pid);
     if (State == NULL)
@@ -247,14 +245,14 @@ LbrDumpLbr(
         LbrPutLbr(State);
     }
 
-    xacquire_lock(lbr_state_lock, &OldIrql);
+    xacquire_lock(LbrStateLock, &OldIrql);
 
     // Dump the LBR state to debug logs
     xprintdbg("PROC_PID:             %d\n", State->config.pid);
     xprintdbg("MSR_LBR_SELECT:       0x%llx\n", State->config.lbr_select);
     xprintdbg("MSR_LBR_TOS:          %lld\n", State->data->lbr_tos);
 
-    for (i = 0; i < lbr_capacity; i++)
+    for (i = 0; i < LbrCapacity; i++)
     {
         xprintdbg("MSR_LBR_NHM_FROM[%2d]: 0x%llx\n", (ULONG)i, State->data->entries[i].from);
         xprintdbg("MSR_LBR_NHM_TO  [%2d]: 0x%llx\n", (ULONG)i, State->data->entries[i].to);
@@ -265,11 +263,11 @@ LbrDumpLbr(
     // Dump the LBR data to userspace buffer
     if (Request->buffer)
     {
-        BytesLeft = xcopy_from_user(&ReqBuf, Request->buffer, sizeof(struct lbr_data));
+        BytesLeft = xcopy_from_user(&ReqBuf, Request->buffer, sizeof(LBR_DATA));
         if (BytesLeft)
         {
             xprintdbg("LIBIHT-COM: Copy LBR data from user failed\n");
-            xrelease_lock(lbr_state_lock, &OldIrql);
+            xrelease_lock(LbrStateLock, &OldIrql);
             return STATUS_UNSUCCESSFUL;
         }
 
@@ -278,34 +276,33 @@ LbrDumpLbr(
         {
             BytesLeft = xcopy_to_user(ReqBuf.entries,
                                       State->data->entries,
-                                      lbr_capacity * sizeof(struct lbr_stack_entry));
+                                      LbrCapacity * sizeof(LBR_STACK_ENTRY));
 
             if (BytesLeft)
             {
                 xprintdbg("LIBIHT-COM: Copy LBR data to user failed\n");
-                xrelease_lock(lbr_state_lock, &OldIrql);
+                xrelease_lock(LbrStateLock, &OldIrql);
                 return STATUS_UNSUCCESSFUL;
             }
         }
 
-        BytesLeft = xcopy_to_user(Request->buffer, &ReqBuf, sizeof(struct lbr_data));
+        BytesLeft = xcopy_to_user(Request->buffer, &ReqBuf, sizeof(LBR_DATA));
         if (BytesLeft)
         {
             xprintdbg("LIBIHT-COM: Copy LBR data to user failed\n");
-            xrelease_lock(lbr_state_lock, &OldIrql);
+            xrelease_lock(LbrStateLock, &OldIrql);
             return STATUS_UNSUCCESSFUL;
         }
     }
 
-    xrelease_lock(lbr_state_lock, &OldIrql);
+    xrelease_lock(LbrStateLock, &OldIrql);
     return STATUS_SUCCESS;
 }
 
 NTSTATUS
-LbrConfigLbr(
-    struct lbr_ioctl_request * Request)
+LbrConfigLbr(LBR_IOCTL_REQUEST * Request)
 {
-    struct lbr_state * State;
+    LBR_STATE * State;
 
     State = LbrFindLbrState(Request->lbr_config.pid);
     if (State == NULL)
@@ -329,25 +326,24 @@ LbrConfigLbr(
     return STATUS_SUCCESS;
 }
 
-struct lbr_state *
-LbrCreateLbrState(
-    VOID)
+LBR_STATE *
+LbrCreateLbrState()
 {
-    struct lbr_state *       State;
-    struct lbr_data *        Data;
-    struct lbr_stack_entry * Entries;
+    LBR_STATE *       State;
+    LBR_DATA *        Data;
+    LBR_STACK_ENTRY * Entries;
 
-    State = xmalloc(sizeof(struct lbr_state));
+    State = xmalloc(sizeof(LBR_STATE));
     if (State == NULL)
         return NULL;
 
-    Data = xmalloc(sizeof(struct lbr_data));
+    Data = xmalloc(sizeof(LBR_DATA));
     if (Data == NULL)
     {
         xfree(State);
         return NULL;
     }
-    SIZE_T TotalEntrySize = (SIZE_T)sizeof(struct lbr_stack_entry) * lbr_capacity;
+    SIZE_T TotalEntrySize = (SIZE_T)sizeof(LBR_STACK_ENTRY) * LbrCapacity;
     Entries               = xmalloc(TotalEntrySize);
     if (Entries == NULL)
     {
@@ -356,8 +352,8 @@ LbrCreateLbrState(
         return NULL;
     }
 
-    xmemset(State, sizeof(struct lbr_state));
-    xmemset(Data, sizeof(struct lbr_data));
+    xmemset(State, sizeof(LBR_STATE));
+    xmemset(Data, sizeof(LBR_DATA));
     xmemset(Entries, TotalEntrySize);
 
     State->data   = Data;
@@ -366,19 +362,19 @@ LbrCreateLbrState(
     return State;
 }
 
-struct lbr_state *
+LBR_STATE *
 LbrFindLbrState(ULONG Pid)
 {
-    KIRQL              OldIrql;
-    struct lbr_state * RetState = NULL;
-    PLIST_ENTRY        Link;
+    KIRQL       OldIrql;
+    LBR_STATE * RetState = NULL;
+    PLIST_ENTRY Link;
 
-    xacquire_lock(&lbr_state_lock, &OldIrql);
+    xacquire_lock(&LbrStateLock, &OldIrql);
 
     // Iterating through LIST_ENTRY correctly
-    for (Link = lbr_state_head.Flink; Link != &lbr_state_head; Link = Link->Flink)
+    for (Link = LbrStateHead.Flink; Link != &LbrStateHead; Link = Link->Flink)
     {
-        struct lbr_state * Curr = CONTAINING_RECORD(Link, struct lbr_state, list);
+        LBR_STATE * Curr = CONTAINING_RECORD(Link, LBR_STATE, list);
         if (Pid != 0 && Curr->config.pid == Pid)
         {
             RetState = Curr;
@@ -386,35 +382,33 @@ LbrFindLbrState(ULONG Pid)
         }
     }
 
-    xrelease_lock(&lbr_state_lock, &OldIrql);
+    xrelease_lock(&LbrStateLock, &OldIrql);
     return RetState;
 }
 
-void
-LbrInsertLbrState(
-    struct lbr_state * NewState)
+VOID
+LbrInsertLbrState(LBR_STATE * NewState)
 {
     KIRQL OldIrql;
 
     if (NewState == NULL)
         return;
 
-    xacquire_lock(lbr_state_lock, &OldIrql);
+    xacquire_lock(LbrStateLock, &OldIrql);
     xprintdbg("LIBIHT-COM: Insert LBR state for pid %d\n", NewState->config.pid);
-    xlist_add(NewState->list, lbr_state_head);
-    xrelease_lock(lbr_state_lock, &OldIrql);
+    xlist_add(NewState->list, LbrStateHead);
+    xrelease_lock(LbrStateLock, &OldIrql);
 }
 
-void
-LbrRemoveLbrState(
-    struct lbr_state * OldState)
+VOID
+LbrRemoveLbrState(LBR_STATE * OldState)
 {
     KIRQL OldIrql;
 
     if (OldState == NULL)
         return;
 
-    xacquire_lock(lbr_state_lock, &OldIrql);
+    xacquire_lock(LbrStateLock, &OldIrql);
     xprintdbg("LIBIHT-COM: Remove LBR state for pid %d\n", OldState->config.pid);
 
     xlist_del(OldState->list);
@@ -422,22 +416,22 @@ LbrRemoveLbrState(
     xfree(OldState->data);
     xfree(OldState);
 
-    xrelease_lock(lbr_state_lock, &OldIrql);
+    xrelease_lock(LbrStateLock, &OldIrql);
 }
 
-void
-LbrFreeLbrStatList(VOID)
+VOID
+LbrFreeLbrStatList()
 {
-    KIRQL              OldIrql;
-    struct lbr_state * CurrState;
-    PLIST_ENTRY        CurrLink;
+    KIRQL       OldIrql;
+    LBR_STATE * CurrState;
+    PLIST_ENTRY CurrLink;
 
-    xacquire_lock(&lbr_state_lock, &OldIrql);
+    xacquire_lock(&LbrStateLock, &OldIrql);
 
-    CurrLink = lbr_state_head.Flink;
-    while (CurrLink != &lbr_state_head)
+    CurrLink = LbrStateHead.Flink;
+    while (CurrLink != &LbrStateHead)
     {
-        CurrState = CONTAINING_RECORD(CurrLink, struct lbr_state, list);
+        CurrState = CONTAINING_RECORD(CurrLink, LBR_STATE, list);
         CurrLink  = CurrLink->Flink; // Get next before deleting
 
         xlist_del(CurrState->list);
@@ -446,12 +440,11 @@ LbrFreeLbrStatList(VOID)
         xfree(CurrState);
     }
 
-    xrelease_lock(&lbr_state_lock, &OldIrql);
+    xrelease_lock(&LbrStateLock, &OldIrql);
 }
 
 NTSTATUS
-LbrIoctlHandler(
-    struct xioctl_request * Request)
+LbrIoctlHandler(XIOCTL_REQUEST * Request)
 {
     NTSTATUS Status = STATUS_SUCCESS;
 
@@ -479,12 +472,12 @@ LbrIoctlHandler(
     return Status;
 }
 
-void
-LbrCswitchHandler(
-    ULONG PrevPid,
-    ULONG NextPid)
+VOID
+LbrCswitchHandler(ULONG PrevPid,
+                  ULONG NextPid)
 {
-    struct lbr_state *PrevState, *NextState;
+    LBR_STATE * PrevState;
+    LBR_STATE * NextState;
 
     PrevState = LbrFindLbrState(PrevPid);
     NextState = LbrFindLbrState(NextPid);
@@ -506,13 +499,13 @@ LbrCswitchHandler(
     }
 }
 
-void
+VOID
 LbrNewprocHandler(
     ULONG ParentPid,
     ULONG ChildPid)
 {
-    struct lbr_state *ParentState, *ChildState;
-    KIRQL             OldIrql;
+    LBR_STATE *ParentState, *ChildState;
+    KIRQL      OldIrql;
 
     ParentState = LbrFindLbrState(ParentPid);
     if (ParentState == NULL)
@@ -526,14 +519,14 @@ LbrNewprocHandler(
     if (ChildState == NULL)
         return;
 
-    xacquire_lock(lbr_state_lock, &OldIrql);
+    xacquire_lock(LbrStateLock, &OldIrql);
     ChildState->parent            = ParentState;
     ChildState->config.pid        = ChildPid;
     ChildState->config.lbr_select = ParentState->config.lbr_select;
     xmemcpy(ChildState->data,
             ParentState->data,
-            sizeof(struct lbr_data) + lbr_capacity * sizeof(struct lbr_stack_entry));
-    xrelease_lock(lbr_state_lock, &OldIrql);
+            sizeof(LBR_DATA) + LbrCapacity * sizeof(LBR_STACK_ENTRY));
+    xrelease_lock(LbrStateLock, &OldIrql);
 
     LbrInsertLbrState(ChildState);
 
@@ -542,7 +535,7 @@ LbrNewprocHandler(
 }
 
 NTSTATUS
-LbrCheck(VOID)
+LbrCheck()
 {
     ULONG     a, b, c, d;
     ULONG     Family, Model;
@@ -553,16 +546,16 @@ LbrCheck(VOID)
     Family = ((a >> 8) & 0xF) + ((a >> 20) & 0xFF);
     Model  = ((a >> 4) & 0xF) | ((a >> 12) & 0xF0);
 
-    for (i = 0; i < sizeof(cpu_lbr_maps) / sizeof(cpu_lbr_maps[0]); ++i)
+    for (i = 0; i < sizeof(CPU_LBR_MAPS) / sizeof(CPU_LBR_MAPS[0]); ++i)
     {
-        if (Model == cpu_lbr_maps[i].model)
+        if (Model == CPU_LBR_MAPS[i].model)
         {
-            lbr_capacity = cpu_lbr_maps[i].lbr_capacity;
+            LbrCapacity = CPU_LBR_MAPS[i].lbr_capacity;
             break;
         }
     }
 
-    if (lbr_capacity == 0)
+    if (LbrCapacity == 0)
         return STATUS_NOT_SUPPORTED;
     return STATUS_SUCCESS;
 }
