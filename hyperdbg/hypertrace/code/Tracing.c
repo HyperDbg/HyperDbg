@@ -82,15 +82,12 @@ CPU_LBR_MAP CPU_LBR_MAPS[] = {
     {0x35, 8},
     {0x36, 8}};
 
-// Note: MAX_IRQL_LEN is removed in favor of native KIRQL.
-
-VOID
-XWriteMsr(ULONG     Msr,
-          ULONGLONG Val)
-{
-    __writemsr(Msr, Val);
-}
-
+/**
+ * @brief Read LBR MSRs and store the values in the provided LBR_STATE structure
+ *
+ * @param State
+ * @return VOID
+ */
 VOID
 LbrGetLbr(LBR_STATE * State)
 {
@@ -103,17 +100,23 @@ LbrGetLbr(LBR_STATE * State)
     xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
 
     xacquire_lock(LbrStateLock, &OldIrql);
-    xrdmsr(MSR_LBR_SELECT, &State->config.lbr_select);
-    xrdmsr(MSR_LBR_TOS, &State->data->lbr_tos);
+    xrdmsr(MSR_LBR_SELECT, &State->Config.LbrSelect);
+    xrdmsr(MSR_LBR_TOS, &State->Data->LbrTos);
 
     for (i = 0; i < (ULONG)LbrCapacity; i++)
     {
-        xrdmsr(MSR_LBR_NHM_FROM + i, &State->data->entries[i].from);
-        xrdmsr(MSR_LBR_NHM_TO + i, &State->data->entries[i].to);
+        xrdmsr(MSR_LBR_NHM_FROM + i, &State->Data->Entries[i].From);
+        xrdmsr(MSR_LBR_NHM_TO + i, &State->Data->Entries[i].To);
     }
     xrelease_lock(&LbrStateLock, &OldIrql);
 }
 
+/**
+ * @brief Write LBR MSRs from the provided LBR_STATE structure
+ *
+ * @param State
+ * @return VOID
+ */
 VOID
 LbrPutLbr(LBR_STATE * State)
 {
@@ -122,13 +125,13 @@ LbrPutLbr(LBR_STATE * State)
     KIRQL     OldIrql;
 
     xacquire_lock(&LbrStateLock, &OldIrql);
-    xwrmsr(MSR_LBR_SELECT, State->config.lbr_select);
-    xwrmsr(MSR_LBR_TOS, State->data->lbr_tos);
+    xwrmsr(MSR_LBR_SELECT, State->Config.LbrSelect);
+    xwrmsr(MSR_LBR_TOS, State->Data->LbrTos);
 
     for (i = 0; i < (ULONG)LbrCapacity; i++)
     {
-        xwrmsr(MSR_LBR_NHM_FROM + i, State->data->entries[i].from);
-        xwrmsr(MSR_LBR_NHM_TO + i, State->data->entries[i].to);
+        xwrmsr(MSR_LBR_NHM_FROM + i, State->Data->Entries[i].From);
+        xwrmsr(MSR_LBR_NHM_TO + i, State->Data->Entries[i].To);
     }
     xrelease_lock(&LbrStateLock, &OldIrql);
 
@@ -137,6 +140,11 @@ LbrPutLbr(LBR_STATE * State)
     xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
 }
 
+/**
+ * @brief Flush LBR MSRs by disabling LBR and clearing all LBR entries
+ *
+ * @return VOID
+ */
 VOID
 LbrFlushLbr()
 {
@@ -154,7 +162,9 @@ LbrFlushLbr()
     DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
     xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
 
+    //
     // Flush LBR registers
+    //
     xwrmsr(MSR_LBR_SELECT, 0);
     xwrmsr(MSR_LBR_TOS, 0);
 
@@ -167,16 +177,22 @@ LbrFlushLbr()
     xrelease_core(&OldIrql);
 }
 
+/**
+ * @brief Enable LBR for a specific process and store the configuration in the global LBR state list
+ *
+ * @param Request
+ * @return NTSTATUS
+ */
 NTSTATUS
 LbrEnableLbr(LBR_IOCTL_REQUEST * Request)
 {
     LBR_STATE * State;
 
-    State = LbrFindLbrState(Request->lbr_config.pid);
+    State = LbrFindLbrState(Request->LbrConfig.Pid);
     if (State)
     {
         xprintdbg("LIBIHT-COM: LBR already enabled for pid %d\n",
-                  Request->lbr_config.pid);
+                  Request->LbrConfig.Pid);
         return STATUS_ALREADY_REGISTERED;
     }
 
@@ -187,39 +203,55 @@ LbrEnableLbr(LBR_IOCTL_REQUEST * Request)
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
+    //
     // Setup config fields for LBR state
-    State->parent            = NULL;
-    State->config.pid        = Request->lbr_config.pid ? Request->lbr_config.pid : xgetcurrent_pid();
-    State->config.lbr_select = Request->lbr_config.lbr_select ? Request->lbr_config.lbr_select : LBR_SELECT;
+    //
+    State->Parent           = NULL;
+    State->Config.Pid       = Request->LbrConfig.Pid ? Request->LbrConfig.Pid : xgetcurrent_pid();
+    State->Config.LbrSelect = Request->LbrConfig.LbrSelect ? Request->LbrConfig.LbrSelect : LBR_SELECT;
     LbrInsertLbrState(State);
 
+    //
     // If the requesting process is the current process, trace it right away
-    if (State->config.pid == xgetcurrent_pid())
+    //
+    if (State->Config.Pid == xgetcurrent_pid())
         LbrPutLbr(State);
 
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Disable LBR for a specific process and remove the corresponding LBR state from the global list
+ *
+ * @param Request
+ * @return NTSTATUS
+ */
 NTSTATUS
 LbrDisableLbr(LBR_IOCTL_REQUEST * Request)
 {
     LBR_STATE * State;
 
-    State = LbrFindLbrState(Request->lbr_config.pid);
+    State = LbrFindLbrState(Request->LbrConfig.Pid);
     if (State == NULL)
     {
         xprintdbg("LIBIHT-COM: LBR not enabled for pid %d\n",
-                  Request->lbr_config.pid);
+                  Request->LbrConfig.Pid);
         return STATUS_NOT_FOUND;
     }
 
-    if (State->config.pid == xgetcurrent_pid())
+    if (State->Config.Pid == xgetcurrent_pid())
         LbrGetLbr(State);
 
     LbrRemoveLbrState(State);
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Dump LBR info for a specific process to debug logs and optionally copy the LBR data to user buffer
+ *
+ * @param Request
+ * @return NTSTATUS
+ */
 NTSTATUS
 LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
 {
@@ -228,42 +260,51 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
     LBR_DATA    ReqBuf;
     KIRQL       OldIrql;
 
-    State = LbrFindLbrState(Request->lbr_config.pid);
+    State = LbrFindLbrState(Request->LbrConfig.Pid);
     if (State == NULL)
     {
         xprintdbg("LIBIHT-COM: LBR not enabled for pid %d\n",
-                  Request->lbr_config.pid);
+                  Request->LbrConfig.Pid);
         return STATUS_NOT_FOUND;
     }
 
+    //
     // Examine if the current process is the owner of the LBR state
-    if (State->config.pid == xgetcurrent_pid())
+    //
+    if (State->Config.Pid == xgetcurrent_pid())
     {
         xprintdbg("LIBIHT-COM: Dump LBR for current process\n");
+
+        //
         // Get fresh LBR info
+        //
         LbrGetLbr(State);
         LbrPutLbr(State);
     }
 
     xacquire_lock(LbrStateLock, &OldIrql);
 
+    //
     // Dump the LBR state to debug logs
-    xprintdbg("PROC_PID:             %d\n", State->config.pid);
-    xprintdbg("MSR_LBR_SELECT:       0x%llx\n", State->config.lbr_select);
-    xprintdbg("MSR_LBR_TOS:          %lld\n", State->data->lbr_tos);
+    //
+    xprintdbg("PROC_PID:             %d\n", State->Config.Pid);
+    xprintdbg("MSR_LBR_SELECT:       0x%llx\n", State->Config.LbrSelect);
+    xprintdbg("MSR_LBR_TOS:          %lld\n", State->Data->LbrTos);
 
     for (i = 0; i < LbrCapacity; i++)
     {
-        xprintdbg("MSR_LBR_NHM_FROM[%2d]: 0x%llx\n", (ULONG)i, State->data->entries[i].from);
-        xprintdbg("MSR_LBR_NHM_TO  [%2d]: 0x%llx\n", (ULONG)i, State->data->entries[i].to);
+        xprintdbg("MSR_LBR_NHM_FROM[%2d]: 0x%llx\n", (ULONG)i, State->Data->Entries[i].From);
+        xprintdbg("MSR_LBR_NHM_TO  [%2d]: 0x%llx\n", (ULONG)i, State->Data->Entries[i].To);
     }
 
     xprintdbg("LIBIHT-COM: LBR info for cpuid: %d\n", xcoreid());
 
+    //
     // Dump the LBR data to userspace buffer
-    if (Request->buffer)
+    //
+    if (Request->Buffer)
     {
-        BytesLeft = xcopy_from_user(&ReqBuf, Request->buffer, sizeof(LBR_DATA));
+        BytesLeft = xcopy_from_user(&ReqBuf, Request->Buffer, sizeof(LBR_DATA));
         if (BytesLeft)
         {
             xprintdbg("LIBIHT-COM: Copy LBR data from user failed\n");
@@ -271,11 +312,11 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
             return STATUS_UNSUCCESSFUL;
         }
 
-        ReqBuf.lbr_tos = State->data->lbr_tos;
-        if (ReqBuf.entries)
+        ReqBuf.LbrTos = State->Data->LbrTos;
+        if (ReqBuf.Entries)
         {
-            BytesLeft = xcopy_to_user(ReqBuf.entries,
-                                      State->data->entries,
+            BytesLeft = xcopy_to_user(ReqBuf.Entries,
+                                      State->Data->Entries,
                                       LbrCapacity * sizeof(LBR_STACK_ENTRY));
 
             if (BytesLeft)
@@ -286,7 +327,7 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
             }
         }
 
-        BytesLeft = xcopy_to_user(Request->buffer, &ReqBuf, sizeof(LBR_DATA));
+        BytesLeft = xcopy_to_user(Request->Buffer, &ReqBuf, sizeof(LBR_DATA));
         if (BytesLeft)
         {
             xprintdbg("LIBIHT-COM: Copy LBR data to user failed\n");
@@ -299,33 +340,44 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Update LBR configuration for a specific process and optionally refresh the LBR MSRs if the current process is the owner
+ *
+ * @param Request
+ * @return NTSTATUS
+ */
 NTSTATUS
 LbrConfigLbr(LBR_IOCTL_REQUEST * Request)
 {
     LBR_STATE * State;
 
-    State = LbrFindLbrState(Request->lbr_config.pid);
+    State = LbrFindLbrState(Request->LbrConfig.Pid);
     if (State == NULL)
     {
         xprintdbg("LIBIHT-COM: LBR not enabled for pid %d\n",
-                  Request->lbr_config.pid);
+                  Request->LbrConfig.Pid);
         return STATUS_NOT_FOUND;
     }
 
-    if (State->config.pid == xgetcurrent_pid())
+    if (State->Config.Pid == xgetcurrent_pid())
     {
         LbrGetLbr(State);
-        State->config.lbr_select = Request->lbr_config.lbr_select;
+        State->Config.LbrSelect = Request->LbrConfig.LbrSelect;
         LbrPutLbr(State);
     }
     else
     {
-        State->config.lbr_select = Request->lbr_config.lbr_select;
+        State->Config.LbrSelect = Request->LbrConfig.LbrSelect;
     }
 
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Create a new LBR_STATE structure with allocated memory for LBR data and entries
+ *
+ * @return LBR_STATE*
+ */
 LBR_STATE *
 LbrCreateLbrState()
 {
@@ -356,12 +408,18 @@ LbrCreateLbrState()
     xmemset(Data, sizeof(LBR_DATA));
     xmemset(Entries, TotalEntrySize);
 
-    State->data   = Data;
-    Data->entries = Entries;
+    State->Data   = Data;
+    Data->Entries = Entries;
 
     return State;
 }
 
+/**
+ * @brief Find the LBR_STATE structure for a specific process ID from the global list
+ *
+ * @param Pid
+ * @return LBR_STATE*
+ */
 LBR_STATE *
 LbrFindLbrState(ULONG Pid)
 {
@@ -371,11 +429,13 @@ LbrFindLbrState(ULONG Pid)
 
     xacquire_lock(&LbrStateLock, &OldIrql);
 
+    //
     // Iterating through LIST_ENTRY correctly
+    //
     for (Link = LbrStateHead.Flink; Link != &LbrStateHead; Link = Link->Flink)
     {
-        LBR_STATE * Curr = CONTAINING_RECORD(Link, LBR_STATE, list);
-        if (Pid != 0 && Curr->config.pid == Pid)
+        LBR_STATE * Curr = CONTAINING_RECORD(Link, LBR_STATE, List);
+        if (Pid != 0 && Curr->Config.Pid == Pid)
         {
             RetState = Curr;
             break;
@@ -386,6 +446,12 @@ LbrFindLbrState(ULONG Pid)
     return RetState;
 }
 
+/**
+ * @brief Insert a new LBR_STATE structure into the global list with proper locking
+ *
+ * @param NewState
+ * @return VOID
+ */
 VOID
 LbrInsertLbrState(LBR_STATE * NewState)
 {
@@ -395,11 +461,17 @@ LbrInsertLbrState(LBR_STATE * NewState)
         return;
 
     xacquire_lock(LbrStateLock, &OldIrql);
-    xprintdbg("LIBIHT-COM: Insert LBR state for pid %d\n", NewState->config.pid);
-    xlist_add(NewState->list, LbrStateHead);
+    xprintdbg("LIBIHT-COM: Insert LBR state for pid %d\n", NewState->Config.Pid);
+    xlist_add(NewState->List, LbrStateHead);
     xrelease_lock(LbrStateLock, &OldIrql);
 }
 
+/**
+ * @brief Remove an existing LBR_STATE structure from the global list and free its associated memory with proper locking
+ *
+ * @param OldState
+ * @return VOID
+ */
 VOID
 LbrRemoveLbrState(LBR_STATE * OldState)
 {
@@ -409,16 +481,21 @@ LbrRemoveLbrState(LBR_STATE * OldState)
         return;
 
     xacquire_lock(LbrStateLock, &OldIrql);
-    xprintdbg("LIBIHT-COM: Remove LBR state for pid %d\n", OldState->config.pid);
+    xprintdbg("LIBIHT-COM: Remove LBR state for pid %d\n", OldState->Config.Pid);
 
-    xlist_del(OldState->list);
-    xfree(OldState->data->entries);
-    xfree(OldState->data);
+    xlist_del(OldState->List);
+    xfree(OldState->Data->Entries);
+    xfree(OldState->Data);
     xfree(OldState);
 
     xrelease_lock(LbrStateLock, &OldIrql);
 }
 
+/**
+ * @brief Free all LBR_STATE structures in the global list and their associated memory with proper locking
+ *
+ * @return VOID
+ */
 VOID
 LbrFreeLbrStatList()
 {
@@ -431,37 +508,43 @@ LbrFreeLbrStatList()
     CurrLink = LbrStateHead.Flink;
     while (CurrLink != &LbrStateHead)
     {
-        CurrState = CONTAINING_RECORD(CurrLink, LBR_STATE, list);
+        CurrState = CONTAINING_RECORD(CurrLink, LBR_STATE, List);
         CurrLink  = CurrLink->Flink; // Get next before deleting
 
-        xlist_del(CurrState->list);
-        xfree(CurrState->data->entries);
-        xfree(CurrState->data);
+        xlist_del(CurrState->List);
+        xfree(CurrState->Data->Entries);
+        xfree(CurrState->Data);
         xfree(CurrState);
     }
 
     xrelease_lock(&LbrStateLock, &OldIrql);
 }
 
+/**
+ * @brief Handle IOCTL requests for LBR operations by dispatching to the appropriate function based on the command
+ *
+ * @param Request
+ * @return NTSTATUS
+ */
 NTSTATUS
 LbrIoctlHandler(XIOCTL_REQUEST * Request)
 {
     NTSTATUS Status = STATUS_SUCCESS;
 
-    xprintdbg("LIBIHT-COM: LBR ioctl command %d.\n", Request->cmd);
-    switch (Request->cmd)
+    xprintdbg("LIBIHT-COM: LBR ioctl command %d.\n", Request->Cmd);
+    switch (Request->Cmd)
     {
     case LIBIHT_IOCTL_ENABLE_LBR:
-        Status = LbrEnableLbr(&Request->body.lbr);
+        Status = LbrEnableLbr(&Request->Body.Lbr);
         break;
     case LIBIHT_IOCTL_DISABLE_LBR:
-        Status = LbrDisableLbr(&Request->body.lbr);
+        Status = LbrDisableLbr(&Request->Body.Lbr);
         break;
     case LIBIHT_IOCTL_DUMP_LBR:
-        Status = LbrDumpLbr(&Request->body.lbr);
+        Status = LbrDumpLbr(&Request->Body.Lbr);
         break;
     case LIBIHT_IOCTL_CONFIG_LBR:
-        Status = LbrConfigLbr(&Request->body.lbr);
+        Status = LbrConfigLbr(&Request->Body.Lbr);
         break;
     default:
         xprintdbg("LIBIHT-COM: Invalid LBR ioctl command\n");
@@ -472,6 +555,13 @@ LbrIoctlHandler(XIOCTL_REQUEST * Request)
     return Status;
 }
 
+/**
+ * @brief Handle context switch events by saving the LBR state of the previous process and restoring the LBR state of the next process if they are being traced
+ *
+ * @param PrevPid
+ * @param NextPid
+ * @return VOID
+ */
 VOID
 LbrCswitchHandler(ULONG PrevPid,
                   ULONG NextPid)
@@ -485,7 +575,7 @@ LbrCswitchHandler(ULONG PrevPid,
     if (PrevState)
     {
         xprintdbg("LIBIHT-COM: LBR context switch from pid %d on cpu core %d\n",
-                  PrevState->config.pid,
+                  PrevState->Config.Pid,
                   xcoreid());
         LbrGetLbr(PrevState);
     }
@@ -493,12 +583,19 @@ LbrCswitchHandler(ULONG PrevPid,
     if (NextState)
     {
         xprintdbg("LIBIHT-COM: LBR context switch to pid %d on cpu core %d\n",
-                  NextState->config.pid,
+                  NextState->Config.Pid,
                   xcoreid());
         LbrPutLbr(NextState);
     }
 }
 
+/**
+ * @brief Handle new process creation events by inheriting the LBR state from the parent process if it is being traced
+ *
+ * @param ParentPid
+ * @param ChildPid
+ * @return VOID
+ */
 VOID
 LbrNewprocHandler(
     ULONG ParentPid,
@@ -520,11 +617,11 @@ LbrNewprocHandler(
         return;
 
     xacquire_lock(LbrStateLock, &OldIrql);
-    ChildState->parent            = ParentState;
-    ChildState->config.pid        = ChildPid;
-    ChildState->config.lbr_select = ParentState->config.lbr_select;
-    xmemcpy(ChildState->data,
-            ParentState->data,
+    ChildState->Parent           = ParentState;
+    ChildState->Config.Pid       = ChildPid;
+    ChildState->Config.LbrSelect = ParentState->Config.LbrSelect;
+    xmemcpy(ChildState->Data,
+            ParentState->Data,
             sizeof(LBR_DATA) + LbrCapacity * sizeof(LBR_STACK_ENTRY));
     xrelease_lock(LbrStateLock, &OldIrql);
 
@@ -534,6 +631,11 @@ LbrNewprocHandler(
         LbrPutLbr(ChildState);
 }
 
+/**
+ * @brief Check if the current CPU supports LBR by examining the CPU family and model and looking up the corresponding LBR capacity
+ *
+ * @return NTSTATUS
+ */
 NTSTATUS
 LbrCheck()
 {
@@ -548,14 +650,17 @@ LbrCheck()
 
     for (i = 0; i < sizeof(CPU_LBR_MAPS) / sizeof(CPU_LBR_MAPS[0]); ++i)
     {
-        if (Model == CPU_LBR_MAPS[i].model)
+        if (Model == CPU_LBR_MAPS[i].Model)
         {
-            LbrCapacity = CPU_LBR_MAPS[i].lbr_capacity;
+            LbrCapacity = CPU_LBR_MAPS[i].LbrCapacity;
             break;
         }
     }
 
     if (LbrCapacity == 0)
+    {
         return STATUS_NOT_SUPPORTED;
+    }
+
     return STATUS_SUCCESS;
 }

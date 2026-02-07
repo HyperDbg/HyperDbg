@@ -58,6 +58,13 @@ NewUnknownToken()
     return Token;
 }
 
+/**
+ * @brief Allocates a new token with given type and value
+ *
+ * @param Type
+ * @param Value
+ * @return Token
+ */
 PSCRIPT_ENGINE_TOKEN
 NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
 {

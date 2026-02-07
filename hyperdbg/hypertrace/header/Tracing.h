@@ -26,48 +26,48 @@
 
 typedef struct _LBR_STACK_ENTRY
 {
-    ULONGLONG from;
-    ULONGLONG to;
+    ULONGLONG From;
+    ULONGLONG To;
 
 } LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
 
 typedef struct _LBR_DATA
 {
-    ULONGLONG         lbr_tos;
-    LBR_STACK_ENTRY * entries;
+    ULONGLONG         LbrTos;
+    LBR_STACK_ENTRY * Entries;
 
 } LBR_DATA, *PLBR_DATA;
 
 typedef struct _LBR_CONFIG
 {
-    ULONG     pid;
-    ULONGLONG lbr_select;
+    ULONG     Pid;
+    ULONGLONG LbrSelect;
 
 } LBR_CONFIG, *PLBR_CONFIG;
 
 typedef struct _LBR_STATE
 {
-    LBR_CONFIG config;
-    LBR_DATA * data;
-    PVOID     parent;
-    LIST_ENTRY list;
+    LBR_CONFIG Config;
+    LBR_DATA * Data;
+    PVOID      Parent;
+    LIST_ENTRY List;
 
 } LBR_STATE, *PLBR_STATE;
 
 typedef struct _LBR_IOCTL_REQUEST
 {
-    LBR_CONFIG lbr_config;
-    LBR_DATA * buffer;
+    LBR_CONFIG LbrConfig;
+    LBR_DATA * Buffer;
 
 } LBR_IOCTL_REQUEST, *PLBR_IOCTL_REQUEST;
 
 typedef struct _XIOCTL_REQUEST
 {
-    ULONG cmd;
+    ULONG Cmd;
     union
     {
-        LBR_IOCTL_REQUEST lbr;
-    } body;
+        LBR_IOCTL_REQUEST Lbr;
+    } Body;
 
 } XIOCTL_REQUEST, *PXIOCTL_REQUEST;
 
@@ -122,14 +122,10 @@ typedef struct _XIOCTL_REQUEST
 //                Global Variables              //
 //////////////////////////////////////////////////
 
-extern ULONGLONG  lbr_capacity;
-extern LIST_ENTRY lbr_state_head;
-extern KSPIN_LOCK lbr_state_lock; // Standardized to KSPIN_LOCK
-
 typedef struct _CPU_LBR_MAP
 {
-    ULONG model;
-    ULONG lbr_capacity;
+    ULONG Model;
+    ULONG LbrCapacity;
 } CPU_LBR_MAP, *PCPU_LBR_MAP;
 
 extern CPU_LBR_MAP CPU_LBR_MAPS[];
