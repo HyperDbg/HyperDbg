@@ -40,5 +40,7 @@ HyperTraceInit(HYPERTRACE_CALLBACKS * HypertraceCallbacks)
     //
     RtlCopyMemory(&g_Callbacks, HypertraceCallbacks, sizeof(HYPERTRACE_CALLBACKS));
 
+    LogInfo("HyperTrace module initialized successfully with provided callbacks.\n");
+
     return TRUE;
 }

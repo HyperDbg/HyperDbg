@@ -23,7 +23,7 @@
 //
 // Initialize the hypertrace module with the provided callbacks
 //
-BOOLEAN
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceInit(HYPERTRACE_CALLBACKS * HypertraceCallbacks);
 
 //
