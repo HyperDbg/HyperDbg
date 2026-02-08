@@ -38,13 +38,36 @@
 #define HYPERDBG_KERNEL_MODE
 #define HYPERDBG_HYPERTRACE
 
+//
+// Unload function (to be called when the driver is unloaded)
+//
 #include "UnloadDll.h"
+
+//
+// SDK headers
+//
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/modules/HyperLog.h"
-#include "SDK/imports/kernel/HyperDbgHyperLogImports.h"
+
+//
+// Configuration
+//
+#include "config/Configuration.h"
+
+//
+// Hyperlog headers
+//
+#include "components/interface/HyperLogCallback.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
 
+//
+// Spinlock headers
+//
 #include "components/spinlock/header/Spinlock.h"
+
+//
+// Hypertrace Callbacks
+//
+#include "SDK/modules/HyperTrace.h"
 
 //
 // Definition of tracing types and structures

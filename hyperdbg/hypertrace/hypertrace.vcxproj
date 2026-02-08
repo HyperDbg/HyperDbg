@@ -100,12 +100,14 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="..\include\platform\kernel\code\Mem.c" />
     <ClCompile Include="code\Tracing.c" />
     <ClCompile Include="code\UnloadDll.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\Mem.h" />

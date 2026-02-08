@@ -9,7 +9,7 @@
 # HyperDbg Debugger
 
 <a href="https://hyperdbg.org/"><img align="right" width="150" height="150" src="https://github.com/HyperDbg/graphics/raw/master/Art%20Board/HyperDbg-Cat.Circle.Compressed.png" alt="HyperDbg Debugger"></a></br>
-**HyperDbg Debugger** is a free (as in free beer and freedom), open-source, community-driven, hypervisor-assisted, user-mode, and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing, and reversing.
+**HyperDbg Debugger** is a free (as in free beer), open-source, community-driven, hypervisor-assisted, user-mode, and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing, and reversing.
 
 You can follow **HyperDbg** on **[Twitter](https://twitter.com/HyperDbg)** or **[Mastodon](https://infosec.exchange/@hyperdbg)** to get notified about new releases, or join any of the HyperDbg groups, where you can ask developers and open-source reversing enthusiasts for help setting up and using HyperDbg.
 

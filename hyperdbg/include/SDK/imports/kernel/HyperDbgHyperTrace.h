@@ -21,6 +21,12 @@
 //////////////////////////////////////////////////
 
 //
+// Initialize the hypertrace module with the provided callbacks
+//
+BOOLEAN
+HyperTraceInit(HYPERTRACE_CALLBACKS * HypertraceCallbacks);
+
+//
 // Check if LBR is supported and initialize LBR state list and lock
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN

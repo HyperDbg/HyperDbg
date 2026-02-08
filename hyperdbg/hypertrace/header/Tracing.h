@@ -11,6 +11,16 @@
 
 #pragma once
 
+//////////////////////////////////////////////////
+//			    	   Globals	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief List of callbacks
+ *
+ */
+HYPERTRACE_CALLBACKS g_Callbacks;
+
 // Intel MSR Constants
 #define MSR_IA32_DEBUGCTLMSR 0x000001D9
 #define DEBUGCTLMSR_LBR      (1ULL << 0)
@@ -81,15 +91,14 @@ typedef struct _XIOCTL_REQUEST
 //             Platform Wrappers                //
 //////////////////////////////////////////////////
 
-#define xmalloc(sz)            PlatformMemAllocateZeroedNonPagedPool(sz)
-#define xfree(p)               PlatformMemFreePool(p)
-#define xmemset(ptr, sz)       RtlZeroMemory(ptr, sz)
-#define xmemcpy                RtlCopyMemory
-#define xrdmsr(msr, pval)      (*(pval) = __readmsr(msr))
-#define xwrmsr(msr, val)       __writemsr(msr, val)
-#define xprintdbg(format, ...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, format, __VA_ARGS__)
-#define xcoreid()              KeGetCurrentProcessorNumber()
-#define xgetcurrent_pid()      (ULONG)(ULONG_PTR) PsGetCurrentProcessId()
+#define xmalloc(sz)       PlatformMemAllocateZeroedNonPagedPool(sz)
+#define xfree(p)          PlatformMemFreePool(p)
+#define xmemset(ptr, sz)  RtlZeroMemory(ptr, sz)
+#define xmemcpy           RtlCopyMemory
+#define xrdmsr(msr, pval) (*(pval) = __readmsr(msr))
+#define xwrmsr(msr, val)  __writemsr(msr, val)
+#define xcoreid()         KeGetCurrentProcessorNumber()
+#define xgetcurrent_pid() (ULONG)(ULONG_PTR) PsGetCurrentProcessId()
 
 // List Handling
 #define xlist_next(ptr)        (ptr)->Flink
