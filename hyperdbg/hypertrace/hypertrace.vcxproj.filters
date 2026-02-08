@@ -38,6 +38,9 @@
     <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
       <Filter>code\interface</Filter>
     </ClCompile>
+    <ClCompile Include="code\Lbr.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Tracing.h">
@@ -60,6 +63,9 @@
     </ClInclude>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
       <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Lbr.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

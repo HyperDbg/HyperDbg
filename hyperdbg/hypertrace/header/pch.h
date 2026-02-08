@@ -73,6 +73,7 @@
 // Definition of tracing types and structures
 //
 #include "Tracing.h"
+#include "Lbr.h"
 
 //
 // Platform independent headers
