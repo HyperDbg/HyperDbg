@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0.0] - 2026-XX-XX
+New release of the HyperDbg Debugger. All credit for this release goes to [@xmaple555](https://github.com/xmaple555).
+
+### Added
+- Script engine now supports writing libraries using the '#include' keyword thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/scripting-language/casting-and-inclusion))([link](https://github.com/HyperDbg/HyperDbg/issues/557))([link](https://github.com/HyperDbg/HyperDbg/pull/561))
+- Initial codes for the hypertrace project by using Intel Last Branch Record (LBR) and Branch Trace Store (BTS) thanks to [@harimishal1](https://github.com/harimishal1) ([link](https://github.com/HyperDbg/HyperDbg/tree/master/hyperdbg/hypertrace))
+
+### Changed
+- Fix bugs for interpreting 'db_pa, 'dd_pa', 'eb_pa', and 'ed_pa' keywords in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))([link](https://github.com/HyperDbg/HyperDbg/pull/507))
+- Fix variable types in the script engine ([link](https://github.com/HyperDbg/HyperDbg/commit/43b0245fa11b5c73ce4cd21d8b8787b86a05f89d))
+- Fix and update array index for boolean expressions in the script engine ([link](https://github.com/HyperDbg/HyperDbg/commit/ba2cec3c12c3ff45ddc0004051884983ff62a0b3))
+
 ## [0.17.0.0] - 2025-11-10
 New release of the HyperDbg Debugger. All credit for this release goes to [@xmaple555](https://github.com/xmaple555).
 

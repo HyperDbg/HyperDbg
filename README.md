@@ -150,6 +150,7 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * Triggering and Counting System Management Mode (SMM) Interrupts (SMIs) [<a href="https://docs.hyperdbg.org/commands/extension-commands/smi" target="_blank">link</a>]
 * Attaching to the User-mode Process and Preventing Execution [<a href="https://docs.hyperdbg.org/commands/meta-commands/.attach" target="_blank">link</a>]
 * Intercepting Execution of XSETBV Instructions [<a href="https://docs.hyperdbg.org/commands/extension-commands/xsetbv" target="_blank">link</a>]
+* Writing Library Script Files [<a href="https://docs.hyperdbg.org/commands/scripting-language/casting-and-inclusion" target="_blank">link</a>]
 
 ## How does it work?
 
