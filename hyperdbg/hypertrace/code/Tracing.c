@@ -181,9 +181,9 @@ LbrFlushLbr()
  * @brief Enable LBR for a specific process and store the configuration in the global LBR state list
  *
  * @param Request
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 LbrEnableLbr(LBR_IOCTL_REQUEST * Request)
 {
     LBR_STATE * State;
@@ -193,14 +193,14 @@ LbrEnableLbr(LBR_IOCTL_REQUEST * Request)
     {
         xprintdbg("LIBIHT-COM: LBR already enabled for pid %d\n",
                   Request->LbrConfig.Pid);
-        return STATUS_ALREADY_REGISTERED;
+        return FALSE;
     }
 
     State = LbrCreateLbrState();
     if (State == NULL)
     {
         xprintdbg("LIBIHT-COM: Create LBR state failed\n");
-        return STATUS_INSUFFICIENT_RESOURCES;
+        return FALSE;
     }
 
     //
@@ -217,16 +217,16 @@ LbrEnableLbr(LBR_IOCTL_REQUEST * Request)
     if (State->Config.Pid == xgetcurrent_pid())
         LbrPutLbr(State);
 
-    return STATUS_SUCCESS;
+    return TRUE;
 }
 
 /**
  * @brief Disable LBR for a specific process and remove the corresponding LBR state from the global list
  *
  * @param Request
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 LbrDisableLbr(LBR_IOCTL_REQUEST * Request)
 {
     LBR_STATE * State;
@@ -236,23 +236,26 @@ LbrDisableLbr(LBR_IOCTL_REQUEST * Request)
     {
         xprintdbg("LIBIHT-COM: LBR not enabled for pid %d\n",
                   Request->LbrConfig.Pid);
-        return STATUS_NOT_FOUND;
+        return FALSE;
     }
 
     if (State->Config.Pid == xgetcurrent_pid())
+    {
         LbrGetLbr(State);
+    }
 
     LbrRemoveLbrState(State);
-    return STATUS_SUCCESS;
+
+    return TRUE;
 }
 
 /**
  * @brief Dump LBR info for a specific process to debug logs and optionally copy the LBR data to user buffer
  *
  * @param Request
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
 {
     ULONGLONG   i, BytesLeft;
@@ -261,11 +264,12 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
     KIRQL       OldIrql;
 
     State = LbrFindLbrState(Request->LbrConfig.Pid);
+
     if (State == NULL)
     {
         xprintdbg("LIBIHT-COM: LBR not enabled for pid %d\n",
                   Request->LbrConfig.Pid);
-        return STATUS_NOT_FOUND;
+        return FALSE;
     }
 
     //
@@ -309,7 +313,7 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
         {
             xprintdbg("LIBIHT-COM: Copy LBR data from user failed\n");
             xrelease_lock(LbrStateLock, &OldIrql);
-            return STATUS_UNSUCCESSFUL;
+            return FALSE;
         }
 
         ReqBuf.LbrTos = State->Data->LbrTos;
@@ -323,7 +327,7 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
             {
                 xprintdbg("LIBIHT-COM: Copy LBR data to user failed\n");
                 xrelease_lock(LbrStateLock, &OldIrql);
-                return STATUS_UNSUCCESSFUL;
+                return FALSE;
             }
         }
 
@@ -332,31 +336,32 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
         {
             xprintdbg("LIBIHT-COM: Copy LBR data to user failed\n");
             xrelease_lock(LbrStateLock, &OldIrql);
-            return STATUS_UNSUCCESSFUL;
+            return FALSE;
         }
     }
 
     xrelease_lock(LbrStateLock, &OldIrql);
-    return STATUS_SUCCESS;
+    return TRUE;
 }
 
 /**
  * @brief Update LBR configuration for a specific process and optionally refresh the LBR MSRs if the current process is the owner
  *
  * @param Request
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 LbrConfigLbr(LBR_IOCTL_REQUEST * Request)
 {
     LBR_STATE * State;
 
     State = LbrFindLbrState(Request->LbrConfig.Pid);
+
     if (State == NULL)
     {
         xprintdbg("LIBIHT-COM: LBR not enabled for pid %d\n",
                   Request->LbrConfig.Pid);
-        return STATUS_NOT_FOUND;
+        return FALSE;
     }
 
     if (State->Config.Pid == xgetcurrent_pid())
@@ -370,7 +375,7 @@ LbrConfigLbr(LBR_IOCTL_REQUEST * Request)
         State->Config.LbrSelect = Request->LbrConfig.LbrSelect;
     }
 
-    return STATUS_SUCCESS;
+    return TRUE;
 }
 
 /**
@@ -524,12 +529,12 @@ LbrFreeLbrStatList()
  * @brief Handle IOCTL requests for LBR operations by dispatching to the appropriate function based on the command
  *
  * @param Request
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 LbrIoctlHandler(XIOCTL_REQUEST * Request)
 {
-    NTSTATUS Status = STATUS_SUCCESS;
+    BOOLEAN Status = TRUE;
 
     xprintdbg("LIBIHT-COM: LBR ioctl command %d.\n", Request->Cmd);
     switch (Request->Cmd)
@@ -548,7 +553,7 @@ LbrIoctlHandler(XIOCTL_REQUEST * Request)
         break;
     default:
         xprintdbg("LIBIHT-COM: Invalid LBR ioctl command\n");
-        Status = STATUS_INVALID_DEVICE_REQUEST;
+        Status = FALSE;
         break;
     }
 
@@ -634,9 +639,9 @@ LbrNewprocHandler(
 /**
  * @brief Check if the current CPU supports LBR by examining the CPU family and model and looking up the corresponding LBR capacity
  *
- * @return NTSTATUS
+ * @return BOOLEAN
  */
-NTSTATUS
+BOOLEAN
 LbrCheck()
 {
     ULONG     a, b, c, d;
@@ -659,8 +664,8 @@ LbrCheck()
 
     if (LbrCapacity == 0)
     {
-        return STATUS_NOT_SUPPORTED;
+        return FALSE;
     }
 
-    return STATUS_SUCCESS;
+    return TRUE;
 }

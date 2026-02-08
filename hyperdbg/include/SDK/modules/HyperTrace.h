@@ -1,8 +1,8 @@
 /**
- * @file HyperEvade.h
+ * @file HyperTrace.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief HyperDbg's SDK for hyperevade project
- * @details This file contains definitions of HyperEvade routines
+ * @brief HyperDbg's SDK for hypertrace project
+ * @details This file contains definitions of HyperTrace routines
  * @version 0.14
  * @date 2025-06-07
  *
@@ -72,37 +72,15 @@ typedef BOOLEAN (*MEMORY_MAPPER_WRITE_MEMORY_SAFE_ON_TARGET_PROCESS)(UINT64 Dest
  */
 typedef PCHAR (*COMMON_GET_PROCESS_NAME_FROM_PROCESS_CONTROL_BLOCK)(PVOID Eprocess);
 
-/**
- * @brief A function that sets the trap flag after a syscall
- *
- */
-typedef BOOLEAN (*SYSCALL_CALLBACK_SET_TRAP_FLAG_AFTER_SYSCALL)(GUEST_REGS *                      Regs,
-                                                                UINT32                            ProcessId,
-                                                                UINT32                            ThreadId,
-                                                                UINT64                            Context,
-                                                                SYSCALL_CALLBACK_CONTEXT_PARAMS * Params);
-
-/**
- * @brief A function that handles the trap flag
- *
- */
-typedef VOID (*HV_HANDLE_TRAPFLAG)();
-
-/**
- * @brief A function that injects a general protection (#GP)
- *
- */
-typedef VOID (*EVENT_INJECT_GENERAL_PROTECTION)();
-
 //////////////////////////////////////////////////
 //			   Callback Structure               //
 //////////////////////////////////////////////////
 
 /**
- * @brief Prototype of each function needed by hyperevade module
+ * @brief Prototype of each function needed by hypertrace module
  *
  */
-typedef struct _HYPEREVADE_CALLBACKS
+typedef struct _HYPERTRACE_CALLBACKS
 {
     //
     // *** Log (Hyperlog) callbacks ***
@@ -113,7 +91,7 @@ typedef struct _HYPEREVADE_CALLBACKS
     LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL           LogCallbackCheckIfBufferIsFull;
 
     //
-    // *** HYPEREVADE callbacks ***
+    // *** HYPERTRACE callbacks ***
     //
 
     //
@@ -128,15 +106,4 @@ typedef struct _HYPEREVADE_CALLBACKS
     //
     COMMON_GET_PROCESS_NAME_FROM_PROCESS_CONTROL_BLOCK CommonGetProcessNameFromProcessControlBlock;
 
-    //
-    // System call callbacks
-    //
-    SYSCALL_CALLBACK_SET_TRAP_FLAG_AFTER_SYSCALL SyscallCallbackSetTrapFlagAfterSyscall;
-
-    //
-    // VMX callbacks
-    //
-    HV_HANDLE_TRAPFLAG              HvHandleTrapFlag;
-    EVENT_INJECT_GENERAL_PROTECTION EventInjectGeneralProtection;
-
-} HYPEREVADE_CALLBACKS, *PHYPEREVADE_CALLBACKS;
+} HYPERTRACE_CALLBACKS, *PHYPERTRACE_CALLBACKS;

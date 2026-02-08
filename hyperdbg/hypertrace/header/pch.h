@@ -36,16 +36,18 @@
 // Scope definitions
 //
 #define HYPERDBG_KERNEL_MODE
-#define HYPERDBG_HYPER_LOG
+#define HYPERDBG_HYPERTRACE
 
 #include "UnloadDll.h"
 #include "SDK/HyperDbgSdk.h"
 #include "SDK/modules/HyperLog.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogImports.h"
+#include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
+
 #include "components/spinlock/header/Spinlock.h"
 
 //
-//
+// Definition of tracing types and structures
 //
 #include "Tracing.h"
 
@@ -53,3 +55,8 @@
 // Platform independent headers
 //
 #include "platform/kernel/header/Mem.h"
+
+//
+// Export functions
+//
+#include "SDK/imports/kernel/HyperDbgHyperTrace.h"

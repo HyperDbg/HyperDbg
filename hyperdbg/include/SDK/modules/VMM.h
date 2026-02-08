@@ -2,7 +2,7 @@
  * @file VMM.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief HyperDbg's SDK for VMM project
- * @details This file contains definitions of HyperLog routines
+ * @details This file contains definitions of VMM routines
  * @version 0.2
  * @date 2023-01-15
  *

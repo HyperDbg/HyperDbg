@@ -155,6 +155,12 @@
 #include "../script-eval/header/ScriptEngineHeader.h"
 
 //
+// Tracing (hypertrace) headers
+//
+#include "SDK/modules/HyperTrace.h"
+#include "SDK/imports/kernel/HyperDbgHyperTrace.h"
+
+//
 // Global variables
 //
 #include "globals/Global.h"

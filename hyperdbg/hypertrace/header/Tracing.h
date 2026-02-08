@@ -154,6 +154,3 @@ LbrRemoveLbrState(LBR_STATE * OldState);
 
 VOID
 LbrFreeLbrStatList();
-
-NTSTATUS
-LbrCheck();
