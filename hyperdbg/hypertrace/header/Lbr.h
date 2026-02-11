@@ -15,7 +15,6 @@
 //			    	   Globals	    			//
 //////////////////////////////////////////////////
 
-
 // Intel MSR Constants
 #define MSR_IA32_DEBUGCTLMSR 0x000001D9
 #define DEBUGCTLMSR_LBR      (1ULL << 0)
@@ -158,3 +157,19 @@ LbrRemoveLbrState(LBR_STATE * OldState);
 
 VOID
 LbrFreeLbrStatList();
+
+VOID
+LbrInitialize();
+
+BOOLEAN
+LbrEnableLbr(LBR_IOCTL_REQUEST * Request);
+
+BOOLEAN
+LbrDisableLbr(LBR_IOCTL_REQUEST * Request);
+
+BOOLEAN
+LbrDumpLbr(LBR_IOCTL_REQUEST * Request);
+
+extern ULONGLONG  LbrCapacity;
+extern LIST_ENTRY LbrStateHead;
+extern KSPIN_LOCK LbrStateLock;

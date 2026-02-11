@@ -10,7 +10,7 @@
  */
 
 #include "pch.h"
-
+#include "Lbr.h"
 /**
  * @brief Hide debugger on transparent-mode (activate transparent-mode)
  *
@@ -18,6 +18,48 @@
  *
  * @return BOOLEAN
  */
+
+VOID
+PerformLbrTraceAfterEnable()
+{
+    LBR_IOCTL_REQUEST Request;
+    RtlZeroMemory(&Request, sizeof(LBR_IOCTL_REQUEST));
+    LbrInitialize();
+
+    // Check if LBR is supported
+    // This populates LbrCapacity based on the CPU Model
+    if (!LbrCheck())
+    {
+        LogInfo("LBR is not supported on this CPU model.\n");
+        return;
+    }
+    LogInfo("LBR Support detected. Capacity: %llu entries.\n", LbrCapacity);
+
+    // Enable LBR
+    // We set Pid to 0 to target the current process
+    Request.LbrConfig.Pid       = 0;
+    Request.LbrConfig.LbrSelect = 0; // Uses default LBR_SELECT defined in your headers
+
+    if (LbrEnableLbr(&Request))
+    {
+        LogInfo("LBR successfully enabled for current process.\n");
+
+        // LbrDumpLbr prints directly to LogInfo inside Lbr.c
+        LogInfo("Dumping LBR Buffer:\n");
+        LbrDumpLbr(&Request);
+
+        // This cleans up the LBR_STATE and stops the tracing
+        if (LbrDisableLbr(&Request))
+        {
+            LogInfo("LBR successfully disabled.\n");
+        }
+    }
+    else
+    {
+        LogInfo("Failed to enable LBR.\n");
+    }
+}
+
 BOOLEAN
 HyperTraceInit(HYPERTRACE_CALLBACKS * HypertraceCallbacks)
 {
@@ -41,6 +83,7 @@ HyperTraceInit(HYPERTRACE_CALLBACKS * HypertraceCallbacks)
     RtlCopyMemory(&g_Callbacks, HypertraceCallbacks, sizeof(HYPERTRACE_CALLBACKS));
 
     LogInfo("HyperTrace module initialized successfully with provided callbacks.\n");
+    PerformLbrTraceAfterEnable();
 
     return TRUE;
 }
