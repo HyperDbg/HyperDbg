@@ -83,6 +83,19 @@ CPU_LBR_MAP CPU_LBR_MAPS[] = {
     {0x36, 8}};
 
 /**
+ * @brief Initialize LBR state list and spinlock
+ *
+ * @param State
+ * @return VOID
+ */
+VOID
+LbrInitialize()
+{
+    InitializeListHead(&LbrStateHead);
+    KeInitializeSpinLock(&LbrStateLock);
+}
+
+/**
  * @brief Read LBR MSRs and store the values in the provided LBR_STATE structure
  *
  * @param State
@@ -99,7 +112,7 @@ LbrGetLbr(LBR_STATE * State)
     DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
     xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
 
-    xacquire_lock(LbrStateLock, &OldIrql);
+    xacquire_lock(&LbrStateLock, &OldIrql);
     xrdmsr(MSR_LBR_SELECT, &State->Config.LbrSelect);
     xrdmsr(MSR_LBR_TOS, &State->Data->LbrTos);
 
@@ -286,7 +299,7 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
         LbrPutLbr(State);
     }
 
-    xacquire_lock(LbrStateLock, &OldIrql);
+    xacquire_lock(&LbrStateLock, &OldIrql);
 
     //
     // Dump the LBR state to debug logs
@@ -465,7 +478,7 @@ LbrInsertLbrState(LBR_STATE * NewState)
     if (NewState == NULL)
         return;
 
-    xacquire_lock(LbrStateLock, &OldIrql);
+    xacquire_lock(&LbrStateLock, &OldIrql);
     LogInfo("LIBIHT-COM: Insert LBR state for pid %d\n", NewState->Config.Pid);
     xlist_add(NewState->List, LbrStateHead);
     xrelease_lock(LbrStateLock, &OldIrql);
@@ -485,7 +498,7 @@ LbrRemoveLbrState(LBR_STATE * OldState)
     if (OldState == NULL)
         return;
 
-    xacquire_lock(LbrStateLock, &OldIrql);
+    xacquire_lock(&LbrStateLock, &OldIrql);
     LogInfo("LIBIHT-COM: Remove LBR state for pid %d\n", OldState->Config.Pid);
 
     xlist_del(OldState->List);
@@ -621,7 +634,7 @@ LbrNewprocHandler(
     if (ChildState == NULL)
         return;
 
-    xacquire_lock(LbrStateLock, &OldIrql);
+    xacquire_lock(&LbrStateLock, &OldIrql);
     ChildState->Parent           = ParentState;
     ChildState->Config.Pid       = ChildPid;
     ChildState->Config.LbrSelect = ParentState->Config.LbrSelect;
