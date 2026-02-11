@@ -122,7 +122,7 @@ LoaderInitVmmAndDebugger()
                 //
                 // Initialize hypertrace module
                 //
-
+                /*
                 if (HyperTraceInit(&HyperTraceCallbacks))
                 {
                     LogDebugInfo("HyperDbg's hypertrace loaded successfully");
@@ -134,6 +134,7 @@ LoaderInitVmmAndDebugger()
                     //
                     LogDebugInfo("Err, HyperDbg's hypertrace was not loaded");
                 }
+                */
 
                 return TRUE;
             }
