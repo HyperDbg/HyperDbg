@@ -5,11 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.18.0.0] - 2026-XX-XX
-New release of the HyperDbg Debugger. All credit for this release goes to [@xmaple555](https://github.com/xmaple555).
+New release of the HyperDbg Debugger.
 
 ### Added
 - Script engine now supports writing libraries using the '#include' keyword thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/scripting-language/casting-and-inclusion))([link](https://github.com/HyperDbg/HyperDbg/issues/557))([link](https://github.com/HyperDbg/HyperDbg/pull/561))
 - Initial codes for the hypertrace project by using Intel Last Branch Record (LBR) and Branch Trace Store (BTS) thanks to [@harimishal1](https://github.com/harimishal1) ([link](https://github.com/HyperDbg/HyperDbg/tree/master/hyperdbg/hypertrace))
+- The hypertrace project is now linked to the hyperkd
 
 ### Changed
 - Fix bugs for interpreting 'db_pa, 'dd_pa', 'eb_pa', and 'ed_pa' keywords in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))([link](https://github.com/HyperDbg/HyperDbg/pull/507))
