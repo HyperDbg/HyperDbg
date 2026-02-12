@@ -13,10 +13,12 @@
  */
 
 /**
- * @file paltform_mem.c
+ * @file PlatformMem.c
  * @brief Implementation of cross APIs for different platforms for memory allocation
  */
+#ifdef _WIN32
 #include "pch.h"
+#endif
 #include "../header/PlatformMem.h"
 
 
