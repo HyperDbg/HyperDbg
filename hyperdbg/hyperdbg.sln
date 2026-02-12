@@ -147,13 +147,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{D0E5A2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{6498728B-D9B0-4CAB-A9E3-ACE5BC371010}"
 	ProjectSection(SolutionItems) = preProject
-		include\platform\kernel\code\Mem.c = include\platform\kernel\code\Mem.c
+		include\platform\kernel\code\PlatformMem.c = include\platform\kernel\code\PlatformMem.c
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AA41FFF1-A730-433E-8D26-13DA5B653825}"
 	ProjectSection(SolutionItems) = preProject
 		include\platform\kernel\header\Environment.h = include\platform\kernel\header\Environment.h
-		include\platform\kernel\header\Mem.h = include\platform\kernel\header\Mem.h
+		include\platform\kernel\header\PlatformMem.h = include\platform\kernel\header\PlatformMem.h
+		include\platform\kernel\header\PlatformModuleInfo.h = include\platform\kernel\header\PlatformModuleInfo.h
+		include\platform\kernel\header\PlatformTypes.h = include\platform\kernel\header\PlatformTypes.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{4BF590C3-1032-4DD2-BF87-BB9E5781977C}"

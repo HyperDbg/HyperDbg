@@ -60,7 +60,7 @@
 //
 // Platform independent headers
 //
-#include "platform/kernel/header/Mem.h"
+#include "platform/kernel/header/PlatformMem.h"
 
 //
 // VMM Callbacks

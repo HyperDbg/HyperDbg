@@ -16,7 +16,8 @@
  * @file paltform_mem.c
  * @brief Implementation of cross APIs for different platforms for memory allocation
  */
-#include "../header/platform_mem.h"
+#include "pch.h"
+#include "../header/PlatformMem.h"
 
 
 /////////////////////////////////////////////////
@@ -38,7 +39,12 @@ PlatformAllocateMemory(
 )
 {
 #ifdef _WIN32
-    PLAT_PTR Result = ExAllocatePoolWithTag(NonPagedPool, Size, POOLTAG);
+        PLAT_PTR Result = ExAllocatePool2(
+        POOL_FLAG_NON_PAGED, // non-paged pool
+        Size,
+        POOLTAG
+    );
+
 
     if (Result != NULL)
         RtlSecureZeroMemory(Result, Size);
@@ -102,7 +108,7 @@ PlatformWriteMemory(
 #else
     memcpy(Address, Buffer, Size);
 #endif
-    return PLAT_SUCCES
+    return PLAT_SUCCESS;
 }
 
 /**
@@ -168,7 +174,11 @@ PLAT_PTR
 PlatformMemAllocateNonPagedPool(PLAT_SIZE NumberOfBytes)
 {
 #ifdef _WIN32
-    return ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
+    return ExAllocatePool2(
+        POOL_FLAG_NON_PAGED,
+        NumberOfBytes,
+        POOLTAG
+    );
 #else
     // Linux kernel memory is non-paged by default (except vmalloc)
     return kmalloc(NumberOfBytes, GFP_KERNEL);
@@ -187,7 +197,11 @@ PlatformMemAllocateNonPagedPoolWithQuota(PLAT_SIZE NumberOfBytes)
 #ifdef _WIN32
     // POOL_FLAG_USE_QUOTA is used with ExAllocatePool2
     // Note: Ensure your WDK supports ExAllocatePool2, otherwise use ExAllocatePoolWithQuotaTag
-    return ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA, NumberOfBytes, POOLTAG);
+    return ExAllocatePool2(
+        POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA,
+        NumberOfBytes,
+        POOLTAG
+    );
 #else
     // Quotas are not explicitly managed in simple Linux kernel allocations like this
     return kmalloc(NumberOfBytes, GFP_KERNEL);
@@ -203,7 +217,11 @@ PLAT_PTR
 PlatformMemAllocateZeroedNonPagedPool(PLAT_SIZE NumberOfBytes)
 {
 #ifdef _WIN32
-    PLAT_PTR Result = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
+    PLAT_PTR Result = ExAllocatePool2(
+        POOL_FLAG_NON_PAGED,
+        NumberOfBytes,
+        POOLTAG
+    );
     if (Result != NULL)
         RtlSecureZeroMemory(Result, NumberOfBytes);
     return Result;

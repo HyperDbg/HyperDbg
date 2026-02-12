@@ -12,7 +12,7 @@
 
 #include <linux/module.h>
 #include <linux/init.h>
-#include "../header/platform_mem.h"
+#include "../header/PlatformMem.h"
 
 /**
  * @brief Global pointer to the allocated test buffer.

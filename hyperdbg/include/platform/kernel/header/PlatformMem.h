@@ -12,7 +12,7 @@
  *
  */
 #pragma once
-#include "platform_types.h"
+#include "PlatformTypes.h"
 
 //////////////////////////////////////////////////
 //                 Functions                     //
