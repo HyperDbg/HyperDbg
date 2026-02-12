@@ -1,4 +1,4 @@
-// platform_module_info.h
+// PlatformModuleInfo.h
 
 #ifndef MODULE_INFO_H
 #define MODULE_INFO_H

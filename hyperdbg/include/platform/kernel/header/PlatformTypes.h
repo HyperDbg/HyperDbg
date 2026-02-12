@@ -1,5 +1,5 @@
 /**
- * @file platform_mem.h
+ * @file PlatformMem.h
  * @author Alireza Moradi (Alish)
  * @brief Cross platform types definitions
  *
