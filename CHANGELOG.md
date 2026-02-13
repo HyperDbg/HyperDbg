@@ -11,6 +11,7 @@ New release of the HyperDbg Debugger.
 - Script engine now supports writing libraries using the '#include' keyword thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/scripting-language/casting-and-inclusion))([link](https://github.com/HyperDbg/HyperDbg/issues/557))([link](https://github.com/HyperDbg/HyperDbg/pull/561))
 - Initial codes for the hypertrace project by using Intel Last Branch Record (LBR) and Branch Trace Store (BTS) thanks to [@harimishal1](https://github.com/harimishal1) ([link](https://github.com/HyperDbg/HyperDbg/tree/master/hyperdbg/hypertrace))
 - The hypertrace project is now linked to the hyperkd
+- Initial efforts to port HyperDbg to Linux have started thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://github.com/HyperDbg/HyperDbg/pull/563))
 
 ### Changed
 - Fix bugs for interpreting 'db_pa, 'dd_pa', 'eb_pa', and 'ed_pa' keywords in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#keywords))([link](https://github.com/HyperDbg/HyperDbg/pull/507))

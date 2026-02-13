@@ -1,5 +1,5 @@
 /**
- * @file mock_module.c
+ * @file mock.c
  * @author Alireza moradi (alish014)
  * @brief Mock Linux kernel module for testing cross-platform memory APIs.
  * @details This file demonstrates the usage of the unified Platform* memory
