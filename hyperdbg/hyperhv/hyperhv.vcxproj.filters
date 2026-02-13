@@ -299,7 +299,7 @@
     <ClCompile Include="code\interface\DirectVmcall.c">
       <Filter>code\interface</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\platform\kernel\code\Mem.c">
+    <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
     <ClCompile Include="code\memory\Segmentation.c">
@@ -577,7 +577,7 @@
     <ClInclude Include="..\include\platform\kernel\header\Environment.h">
       <Filter>header\platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\platform\kernel\header\Mem.h">
+    <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="header\memory\Segmentation.h">

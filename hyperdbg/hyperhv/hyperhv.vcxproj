@@ -132,7 +132,7 @@
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
-    <ClCompile Include="..\include\platform\kernel\code\Mem.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\common\Bitwise.c" />
@@ -238,7 +238,7 @@
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
     <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
-    <ClInclude Include="..\include\platform\kernel\header\Mem.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\assembly\InlineAsm.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />
     <ClInclude Include="header\broadcast\DpcRoutines.h" />

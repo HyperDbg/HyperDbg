@@ -261,7 +261,7 @@
     <ClCompile Include="code\debugger\meta-events\MetaDispatch.c">
       <Filter>code\debugger\meta-events</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\platform\kernel\code\Mem.c">
+    <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
     <ClCompile Include="code\common\Synchronization.c">
@@ -398,7 +398,7 @@
     <ClInclude Include="..\include\platform\kernel\header\Environment.h">
       <Filter>header\platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\platform\kernel\header\Mem.h">
+    <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="header\common\Synchronization.h">

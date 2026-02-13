@@ -6,7 +6,7 @@ set(SourceFiles
     "code/UnloadDll.c"
     "../include/components/spinlock/header/Spinlock.h"
     "../include/platform/kernel/header/Environment.h"
-    "../include/platform/kernel/header/Mem.h"
+    "../include/platform/kernel/header/PlatformMem.h"
     "header/Logging.h"
     "header/pch.h"
     "header/UnloadDll.h"
