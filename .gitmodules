@@ -10,3 +10,6 @@
 [submodule "hyperdbg/dependencies/ia32-doc"]
 	path = hyperdbg/dependencies/ia32-doc
 	url = https://github.com/HyperDbg/ia32-doc.git
+[submodule "hyperdbg/dependencies/zydis"]
+	path = hyperdbg/dependencies/zydis
+	url = https://github.com/HyperDbg/zydis.git
