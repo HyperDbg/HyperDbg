@@ -14,7 +14,7 @@
 
 #ifdef _WIN32
     #include <ntddk.h>
-
+    #include "pch.h"
     // Define a Pool Tag for memory allocation (Required by ExAllocatePoolWithTag)
     #ifndef POOLTAG
     #define POOLTAG 'gmEM'
