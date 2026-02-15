@@ -13,15 +13,15 @@ Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discu
 - Troubleshooting problems with running on Hyper-V's nested virtualization.
 - Troubleshooting problems with running on VirtualBox's nested virtualization.
 - Supporting KDNET (sending data over the network).
-- Enhancing HyperDbg's [Transparent Mode](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/operation-modes#transparent-mode), especially for anti-hypervisor methods.
+- Enhancing HyperDbg's [Transparent Mode](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/operation-modes#transparent-mode). These features should be added as an extension to the [HyperEvade](https://www.vusec.net/projects/hyperevade/) project (e.g., by bypassing [al-khaser](https://github.com/LordNoteworthy/al-khaser) and similar anti-debugging and anti-hypervisor projects).
 - Enhancing and adding more features to the ['.pe'](https://docs.hyperdbg.org/commands/meta-commands/.pe) command.
 - Adding HyperDbg to the system startup using UEFI.
-- Adding routines to activate and use Last Branch Record (LBR) and Branch Trace Store (BTS).
+- Adding routines to activate and use Last Branch Record (LBR) and Branch Trace Store (BTS) | (In progress).
 - Creating a QT-based GUI.
 - Creating a SoftICE-style GUI.
 - Supporting nested-virtualization on HyperDbg itself.
 - Protecting HyperDbg code and memory from modification using VT-x capabilities.
-- Adding support for the Intel Processor Trace (PT).
+- Adding support for the Intel Processor Trace (PT) and event command for detecting coverage.
 - Creating a wrapper that automatically interprets the [HyperDbg SDK](https://github.com/HyperDbg/HyperDbg/tree/master/hyperdbg/include/SDK) to GO, RUST, C#, Python, etc.
 - Creating syntax highlighting for dslang for different IDEs (VSCode, VIM, etc.).
 - Building HyperDbg using LLVM clang.
@@ -33,8 +33,6 @@ Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discu
 - Working on live memory migration and adding support for kernel-mode time travel debugging.
 - Integrating the [z3 project](https://github.com/Z3Prover/z3) into HyperDbg and adding commands based on the z3 solver.
 - Adding the [Bochs emulator](https://github.com/bochs-emu/Bochs) to HyperDbg.
-- ~~Creating commands to inspect and read details of PCIe devices.~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/pcitree" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/pcicam" target="_blank">link</a>]
-- ~~Mitigating the anti-hypervisor method described [here](https://howtohypervise.blogspot.com/2019/01/a-common-missight-in-most-hypervisors.html).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/497)]
 - Creating different examples of how to use the SDK (using different programming languages).
 - Debugging and fixing bugs related to HyperDbg's physical serial communication.
 - Reading symbol information from modules in memory (currently, HyperDbg opens a file which continues the debugger).
@@ -42,13 +40,13 @@ Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discu
 - Reading the list of modules for the '[lm](https://docs.hyperdbg.org/commands/debugging-commands/lm)' command directly from kernel-mode.
 - Detecting and fixing anti-hypervisor methods described [here](https://github.com/Ahora57/MAJESTY-technologies).
 - Investigating why the symbols parser (DIA SDK) could not read symbols of the 'kernel32!*'.
-- ~~Fixing the problem with [XSETBV instruction freezing](https://github.com/HyperDbg/HyperDbg/issues/429).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/491)]
-- Adding an event function that detects coverage.
-- Bypassing [al-khaser](https://github.com/LordNoteworthy/al-khaser).
 - Creating the 'alias' command that converts or registers scripts as a command, for example: "alias !list .script list.dbg" (discussion needed).
 - Adding support for [Hardware Performance Counters (HPC)](https://en.wikipedia.org/wiki/Hardware_performance_counter).
-
 - Any other interesting tasks you might find!
+
+- ~~Creating commands to inspect and read details of PCIe devices.~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/pcitree" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/pcicam" target="_blank">link</a>]
+- ~~Mitigating the anti-hypervisor method described [here](https://howtohypervise.blogspot.com/2019/01/a-common-missight-in-most-hypervisors.html).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/497)]
+- ~~Fixing the problem with [XSETBV instruction freezing](https://github.com/HyperDbg/HyperDbg/issues/429).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/491)]
 
 This list will be updated frequently.
 

@@ -2,7 +2,7 @@
  * @file HyperEvade.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief HyperDbg's SDK for hyperevade project
- * @details This file contains definitions of HyperLog routines
+ * @details This file contains definitions of HyperEvade routines
  * @version 0.14
  * @date 2025-06-07
  *

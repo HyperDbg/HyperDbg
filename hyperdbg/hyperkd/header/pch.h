@@ -84,7 +84,7 @@
 //
 // Platform independent headers
 //
-#include "platform/kernel/header/Mem.h"
+#include "platform/kernel/header/PlatformMem.h"
 
 //
 // Optimization algorithms
@@ -153,6 +153,12 @@
 // Script engine headers
 //
 #include "../script-eval/header/ScriptEngineHeader.h"
+
+//
+// Tracing (hypertrace) headers
+//
+#include "SDK/modules/HyperTrace.h"
+#include "SDK/imports/kernel/HyperDbgHyperTrace.h"
 
 //
 // Global variables

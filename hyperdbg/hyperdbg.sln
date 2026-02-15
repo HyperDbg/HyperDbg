@@ -87,6 +87,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "imports", "imports", "{B3D9
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperkd", "hyperkd\hyperkd.vcxproj", "{AFDD7028-1ED9-442E-8A3D-01CFA3AA1CAA}"
 	ProjectSection(ProjectDependencies) = postProject
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D} = {9FA45E25-DAEB-4C2D-806C-7908A180195D}
 		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D} = {AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}
 		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
 	EndProjectSection
@@ -97,6 +98,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{13E4
 	ProjectSection(SolutionItems) = preProject
 		include\SDK\modules\HyperEvade.h = include\SDK\modules\HyperEvade.h
 		include\SDK\Modules\HyperLog.h = include\SDK\Modules\HyperLog.h
+		include\SDK\modules\HyperTrace.h = include\SDK\modules\HyperTrace.h
 		include\SDK\Modules\VMM.h = include\SDK\Modules\VMM.h
 	EndProjectSection
 EndProject
@@ -145,13 +147,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{D0E5A2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{6498728B-D9B0-4CAB-A9E3-ACE5BC371010}"
 	ProjectSection(SolutionItems) = preProject
-		include\platform\kernel\code\Mem.c = include\platform\kernel\code\Mem.c
+		include\platform\kernel\code\PlatformMem.c = include\platform\kernel\code\PlatformMem.c
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AA41FFF1-A730-433E-8D26-13DA5B653825}"
 	ProjectSection(SolutionItems) = preProject
 		include\platform\kernel\header\Environment.h = include\platform\kernel\header\Environment.h
-		include\platform\kernel\header\Mem.h = include\platform\kernel\header\Mem.h
+		include\platform\kernel\header\PlatformMem.h = include\platform\kernel\header\PlatformMem.h
+		include\platform\kernel\header\PlatformModuleInfo.h = include\platform\kernel\header\PlatformModuleInfo.h
+		include\platform\kernel\header\PlatformTypes.h = include\platform\kernel\header\PlatformTypes.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{4BF590C3-1032-4DD2-BF87-BB9E5781977C}"
@@ -173,6 +177,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{947577
 		include\SDK\imports\kernel\HyperDbgHyperEvade.h = include\SDK\imports\kernel\HyperDbgHyperEvade.h
 		include\SDK\Imports\Kernel\HyperDbgHyperLogImports.h = include\SDK\Imports\Kernel\HyperDbgHyperLogImports.h
 		include\SDK\Imports\Kernel\HyperDbgHyperLogIntrinsics.h = include\SDK\Imports\Kernel\HyperDbgHyperLogIntrinsics.h
+		include\SDK\imports\kernel\HyperDbgHyperTrace.h = include\SDK\imports\kernel\HyperDbgHyperTrace.h
 		include\SDK\Imports\Kernel\HyperDbgVmmImports.h = include\SDK\Imports\Kernel\HyperDbgVmmImports.h
 	EndProjectSection
 EndProject
@@ -214,6 +219,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg_app", "..\examples
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperevade", "hyperevade\hyperevade.vcxproj", "{B226530A-14B1-40AC-B82E-D9057400E7EE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D} = {AFDE69E9-EE3D-470E-8407-C1F0D98F9E3D}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hyper-v", "hyper-v", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
@@ -225,6 +233,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{035508
 		include\config\Configuration.h = include\config\Configuration.h
 		include\config\Definition.h = include\config\Definition.h
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hypertrace", "hypertrace\hypertrace.vcxproj", "{9FA45E25-DAEB-4C2D-806C-7908A180195D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -279,6 +289,10 @@ Global
 		{B226530A-14B1-40AC-B82E-D9057400E7EE}.debug|x64.Build.0 = debug|x64
 		{B226530A-14B1-40AC-B82E-D9057400E7EE}.release|x64.ActiveCfg = release|x64
 		{B226530A-14B1-40AC-B82E-D9057400E7EE}.release|x64.Build.0 = release|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.debug|x64.ActiveCfg = debug|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.debug|x64.Build.0 = debug|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.release|x64.ActiveCfg = release|x64
+		{9FA45E25-DAEB-4C2D-806C-7908A180195D}.release|x64.Build.0 = release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

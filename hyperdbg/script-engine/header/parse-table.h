@@ -1,8 +1,8 @@
 #pragma once
 #ifndef PARSE_TABLE_H
 #define PARSE_TABLE_H
-#define RULES_COUNT 271
-#define TERMINAL_COUNT 121
+#define RULES_COUNT 272
+#define TERMINAL_COUNT 122
 #define NONETERMINAL_COUNT 63
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 15

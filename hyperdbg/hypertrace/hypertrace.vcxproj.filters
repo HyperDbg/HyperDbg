@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="code">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{1ab177b4-9e6c-460e-834a-8fced04b42a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\platform">
+      <UniqueIdentifier>{21f0281e-fc2a-4e13-97ac-e4b35a05a31e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\interface">
+      <UniqueIdentifier>{a78ce9ac-3c19-4f57-889a-3c5ec3234cb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\interface">
+      <UniqueIdentifier>{50dcf65c-eea2-4bf3-b57e-d6689999b39d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="code\Tracing.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\UnloadDll.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
+      <Filter>code\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="code\Lbr.c">
+      <Filter>code</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="header\Tracing.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\pch.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\UnloadDll.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\Environment.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Lbr.h">
+      <Filter>header</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
