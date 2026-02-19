@@ -315,15 +315,12 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request)
 
     ULONG CurrentIdx;
 
-    LogInfo("--- LBR Chronological Trace (Oldest -> Newest) ---\n");
+    LogInfo("LBR Chronological Trace\n");
 
-    // The oldest entry is TOS + 1 (wrapped around the capacity)
-    // We loop 'LbrCapacity' times to cover the whole stack
     for (ULONG i = 1; i <= LbrCapacity; i++)
     {
         CurrentIdx = (ULONG)(State->Data->LbrTos + i) % (ULONG)LbrCapacity;
 
-        // Skip empty entries
         if (State->Data->Entries[CurrentIdx].From == 0)
             continue;
 
