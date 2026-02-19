@@ -130,30 +130,6 @@ LbrGetLbr(LBR_STATE * State)
  * @param State
  * @return VOID
  */
-/*
-VOID
-LbrPutLbr(LBR_STATE * State)
-{
-    ULONG     i;
-    ULONGLONG DbgCtlMsr;
-    KIRQL     OldIrql;
-
-    xacquire_lock(&LbrStateLock, &OldIrql);
-    xwrmsr(MSR_LBR_SELECT, State->Config.LbrSelect);
-    xwrmsr(MSR_LBR_TOS, State->Data->LbrTos);
-
-    for (i = 0; i < (ULONG)LbrCapacity; i++)
-    {
-        xwrmsr(MSR_LBR_NHM_FROM + i, State->Data->Entries[i].From);
-        xwrmsr(MSR_LBR_NHM_TO + i, State->Data->Entries[i].To);
-    }
-    xrelease_lock(&LbrStateLock, &OldIrql);
-
-    xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
-    DbgCtlMsr |= DEBUGCTLMSR_LBR;
-    xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
-}
-*/
 
 VOID
 LbrPutLbr(LBR_STATE * State)
