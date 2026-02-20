@@ -132,6 +132,13 @@ typedef struct _VMM_EPT_PAGE_TABLE
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML2_ENTRY PML2[VMM_EPT_PML3E_COUNT][VMM_EPT_PML2E_COUNT];
 
+    /**
+     * @brief Tracks dynamic 2MB->4KB splits for this EPT table.
+     * @details Each item stores a direct VA to the split PML1 page and the
+     * corresponding PML2 entry it services.
+     */
+    LIST_ENTRY DynamicSplitList;
+
 } VMM_EPT_PAGE_TABLE, *PVMM_EPT_PAGE_TABLE;
 
 //////////////////////////////////////////////////

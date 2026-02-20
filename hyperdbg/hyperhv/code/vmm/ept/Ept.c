@@ -13,11 +13,11 @@
  */
 #include "pch.h"
 
-/**
- * @brief Check whether EPT features are present or not
- *
- * @return BOOLEAN Shows whether EPT is supported in this machine or not
- */
+ /**
+  * @brief Check whether EPT features are present or not
+  *
+  * @return BOOLEAN Shows whether EPT is supported in this machine or not
+  */
 BOOLEAN
 EptCheckFeatures(VOID)
 {
@@ -196,7 +196,7 @@ EptBuildMtrrMap(VOID)
     //  address ranges from C0000H to FFFFFH. This range is divided into sixty-four 4-KByte sub-ranges, 8 ranges per
     //  register.
     //
-    if (MTRRCap.FixedRangeSupported && MTRRDefType.FixedRangeMtrrEnable)
+     if (MTRRCap.FixedRangeSupported && MTRRDefType.FixedRangeMtrrEnable)
     {
         const UINT32               K64Base  = 0x0;
         const UINT32               K64Size  = 0x10000;
@@ -294,6 +294,28 @@ EptBuildMtrrMap(VOID)
 }
 
 /**
+ * @brief Resolve the split PML1 VA that belongs to a given PML2 entry
+ *
+ * @param EptPageTable The EPT page table
+ * @param TargetEntry The target PML2 entry
+ * @return PEPT_PML1_ENTRY Returns base VA of PML1 page, or NULL if not tracked
+ */
+_Must_inspect_result_
+static PEPT_PML1_ENTRY
+EptGetSplitPml1VaByPml2Entry(_In_ PVMM_EPT_PAGE_TABLE EptPageTable, _In_ PEPT_PML2_ENTRY TargetEntry)
+{
+    LIST_FOR_EACH_LINK(EptPageTable->DynamicSplitList, VMM_EPT_DYNAMIC_SPLIT, DynamicSplitList, CurrentSplit)
+    {
+        if (CurrentSplit->u.Entry == TargetEntry)
+        {
+            return &CurrentSplit->PML1[0];
+        }
+    }
+
+    return NULL;
+}
+
+/**
  * @brief Get the PML1 entry for this physical address if the page is split
  *
  * @param EptPageTable The EPT Page Table
@@ -306,7 +328,6 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
     SIZE_T            Directory, DirectoryPointer, PML4Entry;
     PEPT_PML2_ENTRY   PML2;
     PEPT_PML1_ENTRY   PML1;
-    PEPT_PML2_POINTER PML2Pointer;
 
     Directory        = ADDRMASK_EPT_PML2_INDEX(PhysicalAddress);
     DirectoryPointer = ADDRMASK_EPT_PML3_INDEX(PhysicalAddress);
@@ -331,15 +352,9 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
     }
 
     //
-    // Conversion to get the right PageFrameNumber.
-    // These pointers occupy the same place in the table and are directly convertible.
+    // Resolve the split PML1 VA that was recorded during EptSplitLargePage.
     //
-    PML2Pointer = (PEPT_PML2_POINTER)PML2;
-
-    //
-    // If it is, translate to the PML1 pointer
-    //
-    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress(PML2Pointer->PageFrameNumber * PAGE_SIZE);
+    PML1 = EptGetSplitPml1VaByPml2Entry(EptPageTable, PML2);
 
     if (!PML1)
     {
@@ -370,7 +385,6 @@ EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, 
     SIZE_T            Directory, DirectoryPointer, PML4Entry;
     PEPT_PML2_ENTRY   PML2;
     PEPT_PML1_ENTRY   PML1;
-    PEPT_PML2_POINTER PML2Pointer;
 
     Directory        = ADDRMASK_EPT_PML2_INDEX(PhysicalAddress);
     DirectoryPointer = ADDRMASK_EPT_PML3_INDEX(PhysicalAddress);
@@ -396,15 +410,9 @@ EptGetPml1OrPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress, 
     }
 
     //
-    // Conversion to get the right PageFrameNumber.
-    // These pointers occupy the same place in the table and are directly convertible.
+    // Resolve the split PML1 VA that was recorded during EptSplitLargePage.
     //
-    PML2Pointer = (PEPT_PML2_POINTER)PML2;
-
-    //
-    // If it is, translate to the PML1 pointer
-    //
-    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress(PML2Pointer->PageFrameNumber * PAGE_SIZE);
+    PML1 = EptGetSplitPml1VaByPml2Entry(EptPageTable, PML2);
 
     if (!PML1)
     {
@@ -460,8 +468,8 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
-                  BOOLEAN             UsePreAllocatedBuffer,
-                  SIZE_T              PhysicalAddress)
+    BOOLEAN             UsePreAllocatedBuffer,
+    SIZE_T              PhysicalAddress)
 {
     PVMM_EPT_DYNAMIC_SPLIT NewSplit;
     EPT_PML1_ENTRY         EntryTemplate;
@@ -585,6 +593,12 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     RtlCopyMemory(TargetEntry, &NewPointer, sizeof(NewPointer));
 
+    //
+    // Track the split so we can directly resolve PML1 VA from PML2 entry
+    // without any PA->VA reverse translation.
+    //
+    InsertHeadList(&EptPageTable->DynamicSplitList, &(NewSplit->DynamicSplitList));
+
     return TRUE;
 }
 
@@ -607,9 +621,9 @@ EptIsValidForLargePage(SIZE_T PageFrameNumber)
         CurrentMemoryRange = &g_EptState->MemoryRanges[CurrentMtrrRange];
 
         if ((StartAddressOfPage <= CurrentMemoryRange->PhysicalEndAddress &&
-             EndAddressOfPage > CurrentMemoryRange->PhysicalEndAddress) ||
+            EndAddressOfPage > CurrentMemoryRange->PhysicalEndAddress) ||
             (StartAddressOfPage < CurrentMemoryRange->PhysicalBaseAddress &&
-             EndAddressOfPage >= CurrentMemoryRange->PhysicalBaseAddress))
+                EndAddressOfPage >= CurrentMemoryRange->PhysicalBaseAddress))
         {
             return FALSE;
         }
@@ -683,6 +697,11 @@ EptAllocateAndCreateIdentityPageTable(VOID)
         LogError("Err, failed to allocate memory for PageTable");
         return NULL;
     }
+
+    //
+    // Keep track of dynamic 2MB->4KB split metadata for this EPT table.
+    //
+    InitializeListHead(&PageTable->DynamicSplitList);
 
     //
     // Create the template for the first entry in the PML4
@@ -774,8 +793,8 @@ EptAllocateAndCreateIdentityPageTable(VOID)
             // The first 512GB is used for the main system memory and the rest is reserved for MMIO
             //
             PageTable->PML3_RSVD[i][j].PageFrameNumber = (SIZE_512_GB +                           // First 512GB is used for system memory
-                                                          (i * SIZE_512_GB) + (j * SIZE_1_GB)) >> // MMIO ranges
-                                                         30;                                      // Convert to page frame number
+                (i * SIZE_512_GB) + (j * SIZE_1_GB)) >> // MMIO ranges
+                30;                                      // Convert to page frame number
         }
     }
 
@@ -918,8 +937,8 @@ EptLogicalProcessorInitialize(VOID)
 _Use_decl_annotations_
 BOOLEAN
 EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
-                      VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
-                      UINT64                               GuestPhysicalAddr)
+    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
+    UINT64                               GuestPhysicalAddr)
 {
     PVOID   TargetPage;
     UINT64  CurrentRip;
@@ -955,12 +974,12 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
             if (GuestPhysicalAddr >= HookedEntry->StartOfTargetPhysicalAddress && GuestPhysicalAddr <= HookedEntry->EndOfTargetPhysicalAddress)
             {
                 ResultOfHandlingHook = EptHookHandleHookedPage(VCpu,
-                                                               HookedEntry,
-                                                               ViolationQualification,
-                                                               GuestPhysicalAddr,
-                                                               &HookedEntry->LastContextState,
-                                                               &IgnoreReadOrWriteOrExec,
-                                                               &IsExecViolation);
+                    HookedEntry,
+                    ViolationQualification,
+                    GuestPhysicalAddr,
+                    &HookedEntry->LastContextState,
+                    &IgnoreReadOrWriteOrExec,
+                    &IsExecViolation);
             }
             else
             {
@@ -989,9 +1008,9 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
                     // Restore to its original entry for one instruction
                     //
                     EptSetPML1AndInvalidateTLB(VCpu,
-                                               TargetPage,
-                                               HookedEntry->OriginalEntry,
-                                               InveptSingleContext);
+                        TargetPage,
+                        HookedEntry->OriginalEntry,
+                        InveptSingleContext);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -1128,7 +1147,7 @@ EptHandleMisconfiguration(VOID)
     LogInfo("EPT Misconfiguration!");
 
     LogError("Err, a field in the EPT paging structure was invalid, faulting guest address : 0x%llx",
-             GuestPhysicalAddr);
+        GuestPhysicalAddr);
 
     //
     // We can't continue now.
@@ -1149,9 +1168,9 @@ EptHandleMisconfiguration(VOID)
 _Use_decl_annotations_
 VOID
 EptSetPML1AndInvalidateTLB(VIRTUAL_MACHINE_STATE * VCpu,
-                           PEPT_PML1_ENTRY         EntryAddress,
-                           EPT_PML1_ENTRY          EntryValue,
-                           INVEPT_TYPE             InvalidationType)
+    PEPT_PML1_ENTRY         EntryAddress,
+    EPT_PML1_ENTRY          EntryValue,
+    INVEPT_TYPE             InvalidationType)
 {
     //
     // set the value
@@ -1229,9 +1248,9 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
                     // Restore to its original entry for one instruction
                     //
                     EptSetPML1AndInvalidateTLB(VCpu,
-                                               TargetPage,
-                                               HookedEntry->OriginalEntry,
-                                               InveptSingleContext);
+                        TargetPage,
+                        HookedEntry->OriginalEntry,
+                        InveptSingleContext);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
