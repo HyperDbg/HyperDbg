@@ -22,7 +22,7 @@
 #define MSR_LBR_TOS          0x000001C9
 #define MSR_LBR_NHM_FROM     0x00000680
 #define MSR_LBR_NHM_TO       0x000006C0
-#define LBR_SELECT           0x0
+#define LBR_SELECT           0x00000000
 
 //////////////////////////////////////////////////
 //                  Structures                  //

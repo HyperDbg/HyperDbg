@@ -24,40 +24,44 @@ PerformLbrTraceAfterEnable()
 {
     LBR_IOCTL_REQUEST Request;
     RtlZeroMemory(&Request, sizeof(LBR_IOCTL_REQUEST));
+
+    KAFFINITY Affinity = 1;
+    KeSetSystemAffinityThread(Affinity);
+
     LbrInitialize();
 
-    // Check if LBR is supported
-    // This populates LbrCapacity based on the CPU Model
     if (!LbrCheck())
-    {
-        LogInfo("LBR is not supported on this CPU model.\n");
         return;
-    }
-    LogInfo("LBR Support detected. Capacity: %llu entries.\n", LbrCapacity);
 
-    // Enable LBR
-    // We set Pid to 0 to target the current process
     Request.LbrConfig.Pid       = 0;
-    Request.LbrConfig.LbrSelect = 0; // Uses default LBR_SELECT defined in your headers
+    Request.LbrConfig.LbrSelect = LBR_SELECT;
 
     if (LbrEnableLbr(&Request))
     {
-        LogInfo("LBR successfully enabled for current process.\n");
+        for (volatile int i = 0; i < 50; i++)
+        {
+            if (i % 2)
+            {
+                int a = i * 2;
+                a += 5;
+            }
+            else
+            {
+                __nop();
+                __nop();
+            }
+        }
+        LBR_STATE * State = LbrFindLbrState(0);
+        if (State)
+            LbrGetLbr(State);
 
-        // LbrDumpLbr prints directly to LogInfo inside Lbr.c
-        LogInfo("Dumping LBR Buffer:\n");
+        LogInfo("Dumping LBR Buffer...\n");
         LbrDumpLbr(&Request);
 
-        // This cleans up the LBR_STATE and stops the tracing
-        if (LbrDisableLbr(&Request))
-        {
-            LogInfo("LBR successfully disabled.\n");
-        }
+        LbrDisableLbr(&Request);
     }
-    else
-    {
-        LogInfo("Failed to enable LBR.\n");
-    }
+
+    KeRevertToUserAffinityThread();
 }
 
 BOOLEAN
