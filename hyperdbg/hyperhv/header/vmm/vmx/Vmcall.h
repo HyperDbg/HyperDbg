@@ -321,6 +321,18 @@
  */
 #define VMCALL_WRITE_PHYSICAL_MEMORY 0x00000031
 
+/**
+ * @brief VMCALL to get IA32_DEBUGCTL on VMCS
+ *
+ */
+#define VMCALL_GET_VMCS_DEBUGCTL 0x00000032
+
+/**
+ * @brief VMCALL to set IA32_DEBUGCTL on VMCS
+ *
+ */
+#define VMCALL_SET_VMCS_DEBUGCTL 0x00000033
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

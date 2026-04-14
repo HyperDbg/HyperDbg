@@ -534,6 +534,33 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
 
         break;
     }
+    case VMCALL_GET_VMCS_DEBUGCTL:
+    {
+        //
+        // Perform getting DEBUGCTL from VMCS
+        //
+        if (HvGetDebugctl((UINT64)OptionalParam1, (UINT64)OptionalParam2, (SIZE_T)OptionalParam3))
+        {
+            VmcallStatus = STATUS_SUCCESS;
+        }
+        else
+        {
+            VmcallStatus = STATUS_UNSUCCESSFUL;
+        }
+
+        break;
+    }
+    case VMCALL_SET_VMCS_DEBUGCTL:
+    {
+        //
+        // Perform setting DEBUGCTL from VMCS
+        //
+        HvGetAndStoreDebugctl((UINT64 *)OptionalParam1);
+
+        VmcallStatus = STATUS_SUCCESS;
+
+        break;
+    }
     default:
     {
         LogError("Err, unsupported VMCALL");

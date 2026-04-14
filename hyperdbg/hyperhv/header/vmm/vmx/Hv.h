@@ -456,6 +456,9 @@ HvSetPendingDebugExceptions(UINT64 Value);
 UINT64
 HvGetDebugctl();
 
+VOID
+HvGetAndStoreDebugctl(UINT64 * StoreDebugctl);
+
 /**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value The new state

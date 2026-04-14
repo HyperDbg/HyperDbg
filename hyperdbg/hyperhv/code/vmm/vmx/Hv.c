@@ -1504,6 +1504,28 @@ HvGetDebugctl()
 }
 
 /**
+ * @brief Get and store the guest state of IA32_DEBUGCTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @return VOID
+ */
+VOID
+HvGetAndStoreDebugctl(UINT64 * StoreDebugctl)
+{
+    UINT64 DebugctlValue;
+
+    //
+    // Read DEBUGCTL from VMCS
+    //
+    DebugctlValue = HvGetDebugctl();
+
+    //
+    // Store the DEBUGCTL
+    //
+    *StoreDebugctl = DebugctlValue;
+}
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value The new state
  *

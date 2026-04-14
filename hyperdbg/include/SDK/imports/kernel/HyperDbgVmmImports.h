@@ -105,6 +105,9 @@ IMPORT_EXPORT_VMM VOID
 VmFuncSetDebugctl(UINT64 Value);
 
 IMPORT_EXPORT_VMM VOID
+VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value);
+
+IMPORT_EXPORT_VMM VOID
 VmFuncSetTriggerEventForVmcalls(BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
@@ -186,6 +189,9 @@ VmFuncGetRip();
 
 IMPORT_EXPORT_VMM UINT64
 VmFuncGetDebugctl();
+
+IMPORT_EXPORT_VMM UINT64
+VmFuncGetDebugctlVmcallOnTargetCore();
 
 IMPORT_EXPORT_VMM UINT64
 VmFuncGetInterruptibilityState();

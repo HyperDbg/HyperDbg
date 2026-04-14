@@ -115,6 +115,7 @@
 #include "vmm/ept/Invept.h"
 #include "vmm/vmx/Vmcall.h"
 #include "interface/DirectVmcall.h"
+#include "vmm/vmx/CrossVmcalls.h"
 #include "vmm/vmx/Hv.h"
 #include "vmm/vmx/MsrHandlers.h"
 #include "vmm/vmx/ProtectedHv.h"

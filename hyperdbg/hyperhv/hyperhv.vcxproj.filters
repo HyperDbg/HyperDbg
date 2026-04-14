@@ -326,6 +326,9 @@
     <ClCompile Include="code\processor\Smm.c">
       <Filter>code\processor</Filter>
     </ClCompile>
+    <ClCompile Include="code\vmm\vmx\CrossVmcalls.c">
+      <Filter>code\vmm\vmx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -603,6 +606,9 @@
     </ClInclude>
     <ClInclude Include="header\processor\Smm.h">
       <Filter>header\processor</Filter>
+    </ClInclude>
+    <ClInclude Include="header\vmm\vmx\CrossVmcalls.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

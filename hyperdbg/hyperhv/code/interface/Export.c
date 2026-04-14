@@ -401,6 +401,18 @@ VmFuncGetDebugctl()
 }
 
 /**
+ * @brief Get the guest state of IA32_DEBUGCTL on the target core from VMCS
+ * using VMCALL
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetDebugctlVmcallOnTargetCore()
+{
+    return CrossVmcallGetDebugctlVmcallOnTargetCore();
+}
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value
  *
@@ -410,6 +422,19 @@ VOID
 VmFuncSetDebugctl(UINT64 Value)
 {
     HvSetDebugctl(Value);
+}
+
+/**
+ * @brief Set the guest state of IA32_DEBUGCTL on the target core from VMCS
+ * using VMCALL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value)
+{
+    CrossVmcallSetDebugctlVmcallOnTargetCore(Value);
 }
 
 /**
