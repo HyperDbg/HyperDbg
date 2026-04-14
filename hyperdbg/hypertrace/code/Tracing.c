@@ -23,14 +23,15 @@ BOOLEAN g_HyperTraceCallbacksInitialized = FALSE;
 BOOLEAN g_LastBranchRecordEnabled = FALSE;
 
 /**
- * @brief Hide debugger on transparent-mode (activate transparent-mode)
+ * @brief Example of performing LBR trace
  *
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 VOID
-HyperTraceExamplePerformLbrTraceAfterEnable(BOOLEAN ApplyFromVmxRootMode)
+HyperTraceExamplePerformLbrTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     LBR_IOCTL_REQUEST Request = {0};
 
@@ -47,7 +48,7 @@ HyperTraceExamplePerformLbrTraceAfterEnable(BOOLEAN ApplyFromVmxRootMode)
     Request.LbrConfig.Pid       = 0;
     Request.LbrConfig.LbrSelect = LBR_SELECT;
 
-    if (LbrStartLbr(&Request, ApplyFromVmxRootMode))
+    if (LbrStartLbr(&Request, ApplyFromVmxRootMode, ApplyByVmcall))
     {
         for (volatile int i = 0; i < 50; i++)
         {
@@ -67,13 +68,13 @@ HyperTraceExamplePerformLbrTraceAfterEnable(BOOLEAN ApplyFromVmxRootMode)
 
         if (State)
         {
-            LbrGetLbr(State, ApplyFromVmxRootMode);
+            LbrGetLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
         }
 
         LogInfo("Dumping LBR Buffer...\n");
 
-        LbrDumpLbr(&Request, ApplyFromVmxRootMode);
-        LbrStopLbr(&Request, ApplyFromVmxRootMode);
+        LbrDumpLbr(&Request, ApplyFromVmxRootMode, ApplyByVmcall);
+        LbrStopLbr(&Request, ApplyFromVmxRootMode, ApplyByVmcall);
     }
 
     KeRevertToUserAffinityThread();
@@ -82,28 +83,30 @@ HyperTraceExamplePerformLbrTraceAfterEnable(BOOLEAN ApplyFromVmxRootMode)
 /**
  * @brief Start LBR tracing for HyperTrace
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode)
+HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     LBR_IOCTL_REQUEST Request = {0};
 
     Request.LbrConfig.Pid       = 0;
     Request.LbrConfig.LbrSelect = LBR_SELECT;
 
-    return LbrStartLbr(&Request, ApplyFromVmxRootMode);
+    return LbrStartLbr(&Request, ApplyFromVmxRootMode, ApplyByVmcall);
 }
 
 /**
  * @brief Stop LBR tracing for HyperTrace
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode)
+HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     LBR_IOCTL_REQUEST Request = {0};
 
@@ -114,13 +117,13 @@ HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode)
 
     if (State)
     {
-        LbrGetLbr(State, ApplyFromVmxRootMode);
+        LbrGetLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
     }
 
     LogInfo("Dumping LBR Buffer...\n");
-    LbrDumpLbr(&Request, ApplyFromVmxRootMode);
+    LbrDumpLbr(&Request, ApplyFromVmxRootMode, ApplyByVmcall);
 
-    return LbrStopLbr(&Request, ApplyFromVmxRootMode);
+    return LbrStopLbr(&Request, ApplyFromVmxRootMode, ApplyByVmcall);
 }
 
 /**

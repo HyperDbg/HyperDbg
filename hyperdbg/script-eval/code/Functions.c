@@ -2027,7 +2027,10 @@ ScriptEngineFunctionLbrStart()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    HyperTraceStartLbr(VmFuncVmxGetCurrentExecutionMode());
+    //
+    // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
+    //
+    HyperTraceStartLbr(VmFuncVmxGetCurrentExecutionMode(), TRUE);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -2045,6 +2048,11 @@ ScriptEngineFunctionLbrStop()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    HyperTraceStopLbr(VmFuncVmxGetCurrentExecutionMode());
+
+    //
+    // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
+    //
+    HyperTraceStopLbr(VmFuncVmxGetCurrentExecutionMode(), TRUE);
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

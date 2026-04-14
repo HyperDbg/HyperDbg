@@ -137,10 +137,10 @@ extern CPU_LBR_MAP CPU_LBR_MAPS[];
 //////////////////////////////////////////////////
 
 VOID
-LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode);
+LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 VOID
-LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode);
+LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 LBR_STATE *
 LbrCreateLbrState();
@@ -164,13 +164,13 @@ VOID
 LbrInitialize();
 
 BOOLEAN
-LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode);
+LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 BOOLEAN
-LbrStopLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode);
+LbrStopLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 BOOLEAN
-LbrDumpLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode);
+LbrDumpLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 extern ULONGLONG  LbrCapacity;
 extern LIST_ENTRY LbrStateHead;

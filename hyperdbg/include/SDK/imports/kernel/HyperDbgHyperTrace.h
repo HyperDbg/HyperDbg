@@ -44,7 +44,7 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * LbrOperationRequest,
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode);
+HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode);
+HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);

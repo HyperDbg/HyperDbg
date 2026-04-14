@@ -99,11 +99,12 @@ LbrInitialize()
  *
  * @param State
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return VOID
  */
 VOID
-LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode)
+LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     ULONG     i;
     ULONGLONG DbgCtlMsr;
@@ -111,11 +112,25 @@ LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode)
 
     if (ApplyFromVmxRootMode)
     {
-        DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+        if (ApplyByVmcall)
+        {
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
+        }
+        else
+        {
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+        }
 
         DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
 
-        g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+        if (ApplyByVmcall)
+        {
+            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
+        }
+        else
+        {
+            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+        }
     }
     else
     {
@@ -141,11 +156,12 @@ LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode)
  *
  * @param State
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return VOID
  */
 VOID
-LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode)
+LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     ULONGLONG DbgCtlMsr;
     KIRQL     OldIrql;
@@ -167,12 +183,26 @@ LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode)
 
     if (ApplyFromVmxRootMode)
     {
-        DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+        if (ApplyByVmcall)
+        {
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
+        }
+        else
+        {
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+        }
 
         DbgCtlMsr |= DEBUGCTLMSR_LBR; // Bit 0 = 1
         DbgCtlMsr &= ~(1ULL << 11);   // Bit 11 = 0
 
-        g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+        if (ApplyByVmcall)
+        {
+            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
+        }
+        else
+        {
+            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+        }
     }
     else
     {
@@ -229,11 +259,12 @@ LbrFlushLbr()
  *
  * @param Request
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
+LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     LBR_STATE * State;
 
@@ -271,7 +302,7 @@ LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
     //
     if (State->Config.Pid == xgetcurrent_pid())
     {
-        LbrPutLbr(State, ApplyFromVmxRootMode);
+        LbrPutLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
     }
 
     return TRUE;
@@ -282,11 +313,12 @@ LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
  *
  * @param Request
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrStopLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
+LbrStopLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     LBR_STATE * State;
 
@@ -300,7 +332,7 @@ LbrStopLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
 
     if (State->Config.Pid == xgetcurrent_pid())
     {
-        LbrGetLbr(State, ApplyFromVmxRootMode);
+        LbrGetLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
     }
 
     LbrRemoveLbrState(State);
@@ -313,14 +345,16 @@ LbrStopLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
  *
  * @param Request
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 
 BOOLEAN
-LbrDumpLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
+LbrDumpLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
+    UNREFERENCED_PARAMETER(ApplyByVmcall);
 
     LBR_STATE * State = LbrFindLbrState(Request->LbrConfig.Pid);
     if (State == NULL)
@@ -350,11 +384,12 @@ LbrDumpLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
  *
  * @param Request
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrConfigLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
+LbrConfigLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     LBR_STATE * State;
 
@@ -369,9 +404,9 @@ LbrConfigLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
 
     if (State->Config.Pid == xgetcurrent_pid())
     {
-        LbrGetLbr(State, ApplyFromVmxRootMode);
+        LbrGetLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
         State->Config.LbrSelect = Request->LbrConfig.LbrSelect;
-        LbrPutLbr(State, ApplyFromVmxRootMode);
+        LbrPutLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
     }
     else
     {
@@ -531,11 +566,12 @@ LbrFreeLbrStatList()
  *
  * @param Request
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrIoctlHandler(XIOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
+LbrIoctlHandler(XIOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     BOOLEAN Status = TRUE;
 
@@ -543,16 +579,16 @@ LbrIoctlHandler(XIOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
     switch (Request->Cmd)
     {
     case LIBIHT_IOCTL_ENABLE_LBR:
-        Status = LbrStartLbr(&Request->Body.Lbr, ApplyFromVmxRootMode);
+        Status = LbrStartLbr(&Request->Body.Lbr, ApplyFromVmxRootMode, ApplyByVmcall);
         break;
     case LIBIHT_IOCTL_DISABLE_LBR:
-        Status = LbrStopLbr(&Request->Body.Lbr, ApplyFromVmxRootMode);
+        Status = LbrStopLbr(&Request->Body.Lbr, ApplyFromVmxRootMode, ApplyByVmcall);
         break;
     case LIBIHT_IOCTL_DUMP_LBR:
-        Status = LbrDumpLbr(&Request->Body.Lbr, ApplyFromVmxRootMode);
+        Status = LbrDumpLbr(&Request->Body.Lbr, ApplyFromVmxRootMode, ApplyByVmcall);
         break;
     case LIBIHT_IOCTL_CONFIG_LBR:
-        Status = LbrConfigLbr(&Request->Body.Lbr, ApplyFromVmxRootMode);
+        Status = LbrConfigLbr(&Request->Body.Lbr, ApplyFromVmxRootMode, ApplyByVmcall);
         break;
     default:
         LogInfo("LIBIHT-COM: Invalid LBR ioctl command\n");
@@ -569,13 +605,15 @@ LbrIoctlHandler(XIOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode)
  * @param PrevPid
  * @param NextPid
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return VOID
  */
 VOID
 LbrCswitchHandler(ULONG   PrevPid,
                   ULONG   NextPid,
-                  BOOLEAN ApplyFromVmxRootMode)
+                  BOOLEAN ApplyFromVmxRootMode,
+                  BOOLEAN ApplyByVmcall)
 {
     LBR_STATE * PrevState;
     LBR_STATE * NextState;
@@ -588,7 +626,7 @@ LbrCswitchHandler(ULONG   PrevPid,
         LogInfo("LIBIHT-COM: LBR context switch from pid %d on cpu core %d\n",
                 PrevState->Config.Pid,
                 xcoreid());
-        LbrGetLbr(PrevState, ApplyFromVmxRootMode);
+        LbrGetLbr(PrevState, ApplyFromVmxRootMode, ApplyByVmcall);
     }
 
     if (NextState)
@@ -596,7 +634,7 @@ LbrCswitchHandler(ULONG   PrevPid,
         LogInfo("LIBIHT-COM: LBR context switch to pid %d on cpu core %d\n",
                 NextState->Config.Pid,
                 xcoreid());
-        LbrPutLbr(NextState, ApplyFromVmxRootMode);
+        LbrPutLbr(NextState, ApplyFromVmxRootMode, ApplyByVmcall);
     }
 }
 
@@ -606,6 +644,7 @@ LbrCswitchHandler(ULONG   PrevPid,
  * @param ParentPid
  * @param ChildPid
  * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
  *
  * @return VOID
  */
@@ -613,7 +652,8 @@ VOID
 LbrNewProcHandler(
     ULONG   ParentPid,
     ULONG   ChildPid,
-    BOOLEAN ApplyFromVmxRootMode)
+    BOOLEAN ApplyFromVmxRootMode,
+    BOOLEAN ApplyByVmcall)
 {
     LBR_STATE *ParentState, *ChildState;
     KIRQL      OldIrql;
@@ -643,7 +683,7 @@ LbrNewProcHandler(
 
     if (ChildPid == xgetcurrent_pid())
     {
-        LbrPutLbr(ChildState, ApplyFromVmxRootMode);
+        LbrPutLbr(ChildState, ApplyFromVmxRootMode, ApplyByVmcall);
     }
 }
 
