@@ -390,6 +390,29 @@ VmFuncSetRip(UINT64 Rip)
 }
 
 /**
+ * @brief Get the guest state of IA32_DEBUGCTL
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetDebugctl()
+{
+    return HvGetDebugctl();
+}
+
+/**
+ * @brief Set the guest state of IA32_DEBUGCTL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetDebugctl(UINT64 Value)
+{
+    HvSetDebugctl(Value);
+}
+
+/**
  * @brief Read guest's interruptibility state
  *
  * @return UINT64

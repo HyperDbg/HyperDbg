@@ -49,6 +49,17 @@ typedef BOOLEAN (*LOG_CALLBACK_SEND_BUFFER)(_In_ UINT32                         
 typedef BOOLEAN (*LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL)(BOOLEAN Priority);
 
 /**
+ * @brief A function that sets the guest state of IA32_DEBUGCTL
+ */
+typedef UINT64 (*VM_FUNC_GET_DEBUGCTL)();
+
+/**
+ * @brief A function that gets the guest state of IA32_DEBUGCTL
+ *
+ */
+typedef VOID (*VM_FUNC_SET_DEBUGCTL)(UINT64 Value);
+
+/**
  * @brief A function that checks the validity and safety of the target address
  *
  */
@@ -89,6 +100,12 @@ typedef struct _HYPERTRACE_CALLBACKS
     LOG_CALLBACK_SEND_MESSAGE_TO_QUEUE             LogCallbackSendMessageToQueue;
     LOG_CALLBACK_SEND_BUFFER                       LogCallbackSendBuffer;
     LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL           LogCallbackCheckIfBufferIsFull;
+
+    //
+    // *** Hypervisor (Hyperhv) callbacks ***
+    //
+    VM_FUNC_GET_DEBUGCTL VmFuncGetDebugctl;
+    VM_FUNC_SET_DEBUGCTL VmFuncSetDebugctl;
 
     //
     // *** HYPERTRACE callbacks ***

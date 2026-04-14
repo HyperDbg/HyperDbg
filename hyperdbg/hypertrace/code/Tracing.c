@@ -25,12 +25,12 @@ BOOLEAN g_LastBranchRecordEnabled = FALSE;
 /**
  * @brief Hide debugger on transparent-mode (activate transparent-mode)
  *
- * @param HypertraceCallbacks
+ * @param ApplyFromVmxRootMode
  *
  * @return BOOLEAN
  */
 VOID
-PerformLbrTraceAfterEnable()
+HyperTraceExamplePerformLbrTraceAfterEnable(BOOLEAN ApplyFromVmxRootMode)
 {
     LBR_IOCTL_REQUEST Request = {0};
 
@@ -47,7 +47,7 @@ PerformLbrTraceAfterEnable()
     Request.LbrConfig.Pid       = 0;
     Request.LbrConfig.LbrSelect = LBR_SELECT;
 
-    if (LbrStartLbr(&Request, FALSE)) // Assume this is called from non-VMX root
+    if (LbrStartLbr(&Request, ApplyFromVmxRootMode))
     {
         for (volatile int i = 0; i < 50; i++)
         {
@@ -67,14 +67,13 @@ PerformLbrTraceAfterEnable()
 
         if (State)
         {
-            LbrGetLbr(State, FALSE); // Assume this is called from non-VMX root
+            LbrGetLbr(State, ApplyFromVmxRootMode);
         }
 
         LogInfo("Dumping LBR Buffer...\n");
 
-        LbrDumpLbr(&Request, FALSE); // Assume this is called from non-VMX root
-
-        LbrStopLbr(&Request, FALSE); // Assume this is called from non-VMX root
+        LbrDumpLbr(&Request, ApplyFromVmxRootMode);
+        LbrStopLbr(&Request, ApplyFromVmxRootMode);
     }
 
     KeRevertToUserAffinityThread();
@@ -248,6 +247,7 @@ HyperTraceDisableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRe
 
         return FALSE;
     }
+
     //
     // Disabling LBR
     //

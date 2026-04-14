@@ -111,9 +111,11 @@ LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode)
 
     if (ApplyFromVmxRootMode)
     {
-        __vmx_vmread(VMCS_GUEST_DEBUGCTL, &DbgCtlMsr);
+        DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+
         DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
-        __vmx_vmwrite(VMCS_GUEST_DEBUGCTL, DbgCtlMsr);
+
+        g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
     }
     else
     {
@@ -165,10 +167,12 @@ LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode)
 
     if (ApplyFromVmxRootMode)
     {
-        __vmx_vmread(VMCS_GUEST_DEBUGCTL, &DbgCtlMsr);
+        DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+
         DbgCtlMsr |= DEBUGCTLMSR_LBR; // Bit 0 = 1
         DbgCtlMsr &= ~(1ULL << 11);   // Bit 11 = 0
-        __vmx_vmwrite(VMCS_GUEST_DEBUGCTL, DbgCtlMsr);
+
+        g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
     }
     else
     {

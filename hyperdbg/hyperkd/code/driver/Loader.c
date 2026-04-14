@@ -34,6 +34,12 @@ LoaderInitHyperTrace()
     HyperTraceCallbacks.LogCallbackCheckIfBufferIsFull                 = LogCallbackCheckIfBufferIsFull;
 
     //
+    // Fill the callbacks for using hyperhv in hypertrace
+    //
+    HyperTraceCallbacks.VmFuncGetDebugctl = VmFuncGetDebugctl;
+    HyperTraceCallbacks.VmFuncSetDebugctl = VmFuncSetDebugctl;
+
+    //
     // Memory callbacks
     //
     HyperTraceCallbacks.CheckAccessValidityAndSafety               = CheckAccessValidityAndSafety;
