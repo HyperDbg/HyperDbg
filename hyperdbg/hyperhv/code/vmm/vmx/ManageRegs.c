@@ -50,7 +50,7 @@ GetGuestCs()
 {
     VMX_SEGMENT_SELECTOR Cs;
 
-    __vmx_vmread(VMCS_GUEST_CS_BASE, &Cs.Base);
+    VmxVmread64P(VMCS_GUEST_CS_BASE, &Cs.Base);
     VmxVmread32P(VMCS_GUEST_CS_LIMIT, &Cs.Limit);
     VmxVmread32P(VMCS_GUEST_CS_ACCESS_RIGHTS, &Cs.Attributes.AsUInt);
     VmxVmread16P(VMCS_GUEST_CS_SELECTOR, &Cs.Selector);
@@ -95,7 +95,7 @@ GetGuestSs()
 {
     VMX_SEGMENT_SELECTOR Ss;
 
-    __vmx_vmread(VMCS_GUEST_SS_BASE, &Ss.Base);
+    VmxVmread64P(VMCS_GUEST_SS_BASE, &Ss.Base);
     VmxVmread32P(VMCS_GUEST_SS_LIMIT, &Ss.Limit);
     VmxVmread32P(VMCS_GUEST_SS_ACCESS_RIGHTS, &Ss.Attributes.AsUInt);
     VmxVmread16P(VMCS_GUEST_SS_SELECTOR, &Ss.Selector);
@@ -140,7 +140,7 @@ GetGuestDs()
 {
     VMX_SEGMENT_SELECTOR Ds;
 
-    __vmx_vmread(VMCS_GUEST_DS_BASE, &Ds.Base);
+    VmxVmread64P(VMCS_GUEST_DS_BASE, &Ds.Base);
     VmxVmread32P(VMCS_GUEST_DS_LIMIT, &Ds.Limit);
     VmxVmread32P(VMCS_GUEST_DS_ACCESS_RIGHTS, &Ds.Attributes.AsUInt);
     VmxVmread16P(VMCS_GUEST_DS_SELECTOR, &Ds.Selector);
@@ -185,7 +185,7 @@ GetGuestFs()
 {
     VMX_SEGMENT_SELECTOR Fs;
 
-    __vmx_vmread(VMCS_GUEST_FS_BASE, &Fs.Base);
+    VmxVmread64P(VMCS_GUEST_FS_BASE, &Fs.Base);
     VmxVmread32P(VMCS_GUEST_FS_LIMIT, &Fs.Limit);
     VmxVmread32P(VMCS_GUEST_FS_ACCESS_RIGHTS, &Fs.Attributes.AsUInt);
     VmxVmread16P(VMCS_GUEST_FS_SELECTOR, &Fs.Selector);
@@ -230,7 +230,7 @@ GetGuestGs()
 {
     VMX_SEGMENT_SELECTOR Gs;
 
-    __vmx_vmread(VMCS_GUEST_GS_BASE, &Gs.Base);
+    VmxVmread64P(VMCS_GUEST_GS_BASE, &Gs.Base);
     VmxVmread32P(VMCS_GUEST_GS_LIMIT, &Gs.Limit);
     VmxVmread32P(VMCS_GUEST_GS_ACCESS_RIGHTS, &Gs.Attributes.AsUInt);
     VmxVmread16P(VMCS_GUEST_GS_SELECTOR, &Gs.Selector);
@@ -275,7 +275,7 @@ GetGuestEs()
 {
     VMX_SEGMENT_SELECTOR Es;
 
-    __vmx_vmread(VMCS_GUEST_ES_BASE, &Es.Base);
+    VmxVmread64P(VMCS_GUEST_ES_BASE, &Es.Base);
     VmxVmread32P(VMCS_GUEST_ES_LIMIT, &Es.Limit);
     VmxVmread32P(VMCS_GUEST_ES_ACCESS_RIGHTS, &Es.Attributes.AsUInt);
     VmxVmread16P(VMCS_GUEST_ES_SELECTOR, &Es.Selector);
@@ -305,7 +305,7 @@ GetGuestIdtr()
 {
     UINT64 Idtr;
 
-    __vmx_vmread(VMCS_GUEST_IDTR_BASE, &Idtr);
+    VmxVmread64P(VMCS_GUEST_IDTR_BASE, &Idtr);
 
     return Idtr;
 }
@@ -332,7 +332,7 @@ GetGuestLdtr()
 {
     UINT64 Ldtr;
 
-    __vmx_vmread(VMCS_GUEST_LDTR_BASE, &Ldtr);
+    VmxVmread64P(VMCS_GUEST_LDTR_BASE, &Ldtr);
 
     return Ldtr;
 }
@@ -359,7 +359,7 @@ GetGuestGdtr()
 {
     UINT64 Gdtr;
 
-    __vmx_vmread(VMCS_GUEST_GDTR_BASE, &Gdtr);
+    VmxVmread64P(VMCS_GUEST_GDTR_BASE, &Gdtr);
 
     return Gdtr;
 }
@@ -384,7 +384,7 @@ GetGuestTr()
 {
     UINT64 Tr;
 
-    __vmx_vmread(VMCS_GUEST_TR_BASE, &Tr);
+    VmxVmread64P(VMCS_GUEST_TR_BASE, &Tr);
 
     return Tr;
 }
@@ -409,7 +409,9 @@ UINT64
 GetGuestRFlags()
 {
     UINT64 RFlags;
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &RFlags);
+
+    VmxVmread64P(VMCS_GUEST_RFLAGS, &RFlags);
+
     return RFlags;
 }
 
@@ -447,7 +449,8 @@ GetGuestRIP()
 {
     UINT64 RIP;
 
-    __vmx_vmread(VMCS_GUEST_RIP, &RIP);
+    VmxVmread64P(VMCS_GUEST_RIP, &RIP);
+
     return RIP;
 }
 
@@ -461,7 +464,8 @@ GetGuestCr0()
 {
     UINT64 Cr0;
 
-    __vmx_vmread(VMCS_GUEST_CR0, &Cr0);
+    VmxVmread64P(VMCS_GUEST_CR0, &Cr0);
+
     return Cr0;
 }
 
@@ -489,7 +493,8 @@ GetGuestCr3()
 {
     UINT64 Cr3;
 
-    __vmx_vmread(VMCS_GUEST_CR3, &Cr3);
+    VmxVmread64P(VMCS_GUEST_CR3, &Cr3);
+
     return Cr3;
 }
 
@@ -503,7 +508,8 @@ GetGuestCr4()
 {
     UINT64 Cr4;
 
-    __vmx_vmread(VMCS_GUEST_CR4, &Cr4);
+    VmxVmread64P(VMCS_GUEST_CR4, &Cr4);
+
     return Cr4;
 }
 

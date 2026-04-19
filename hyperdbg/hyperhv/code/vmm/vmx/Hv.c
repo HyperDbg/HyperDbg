@@ -229,19 +229,19 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
 
-            __vmx_vmread(VMCS_GUEST_CR0, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR0, RegPtr);
 
             break;
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
 
-            __vmx_vmread(VMCS_GUEST_CR3, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR3, RegPtr);
 
             break;
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
 
-            __vmx_vmread(VMCS_GUEST_CR4, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR4, RegPtr);
 
             break;
 
@@ -301,8 +301,8 @@ HvResumeToNextInstruction()
     UINT64 CurrentRIP            = NULL64_ZERO;
     size_t ExitInstructionLength = 0;
 
-    __vmx_vmread(VMCS_GUEST_RIP, &CurrentRIP);
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
+    VmxVmread64P(VMCS_GUEST_RIP, &CurrentRIP);
+    VmxVmread64P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
 
     ResumeRIP = CurrentRIP + ExitInstructionLength;
 
@@ -472,20 +472,20 @@ HvRestoreRegisters()
     //
     // Restore FS Base
     //
-    __vmx_vmread(VMCS_GUEST_FS_BASE, &FsBase);
+    VmxVmread64P(VMCS_GUEST_FS_BASE, &FsBase);
     __writemsr(IA32_FS_BASE, FsBase);
 
     //
     // Restore Gs Base
     //
-    __vmx_vmread(VMCS_GUEST_GS_BASE, &GsBase);
+    VmxVmread64P(VMCS_GUEST_GS_BASE, &GsBase);
     __writemsr(IA32_GS_BASE, GsBase);
 
     //
     // Restore GDTR
     //
-    __vmx_vmread(VMCS_GUEST_GDTR_BASE, &GdtrBase);
-    __vmx_vmread(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
+    VmxVmread64P(VMCS_GUEST_GDTR_BASE, &GdtrBase);
+    VmxVmread64P(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
 
     AsmReloadGdtr((void *)GdtrBase, (unsigned long)GdtrLimit);
 
@@ -504,8 +504,8 @@ HvRestoreRegisters()
     //
     // Restore IDTR
     //
-    __vmx_vmread(VMCS_GUEST_IDTR_BASE, &IdtrBase);
-    __vmx_vmread(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
+    VmxVmread64P(VMCS_GUEST_IDTR_BASE, &IdtrBase);
+    VmxVmread64P(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
 
     AsmReloadIdtr((void *)IdtrBase, (unsigned long)IdtrLimit);
 }
@@ -1152,7 +1152,7 @@ HvGetCsSelector()
     //
     UINT64 CsSel = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
+    VmxVmread64P(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
     return CsSel & 0xffff;
 }
@@ -1167,7 +1167,7 @@ HvGetRflags()
 {
     UINT64 Rflags = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+    VmxVmread64P(VMCS_GUEST_RFLAGS, &Rflags);
 
     return Rflags;
 }
@@ -1194,7 +1194,7 @@ HvGetRip()
 {
     UINT64 Rip = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
+    VmxVmread64P(VMCS_GUEST_RIP, &Rip);
 
     return Rip;
 }
@@ -1221,7 +1221,7 @@ HvGetInterruptibilityState()
 {
     UINT64 InterruptibilityState = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+    VmxVmread64P(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 
     return InterruptibilityState;
 }
