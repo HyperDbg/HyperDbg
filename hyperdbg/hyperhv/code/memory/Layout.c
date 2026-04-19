@@ -76,7 +76,7 @@ LayoutGetExactGuestProcessCr3()
 {
     CR3_TYPE GuestCr3 = {0};
 
-    __vmx_vmread(VMCS_GUEST_CR3, &GuestCr3.Flags);
+    VmxVmread64P(VMCS_GUEST_CR3, &GuestCr3.Flags);
 
     return GuestCr3;
 }

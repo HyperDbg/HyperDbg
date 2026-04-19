@@ -158,7 +158,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
     /*
     if (CrExitQualification->Fields.Register == 4)
     {
-        __vmx_vmread(VMCS_GUEST_RSP, &GuestRsp);
+        VmxVmread64P(VMCS_GUEST_RSP, &GuestRsp);
         *RegPtr = GuestRsp;
     }
     */
@@ -229,19 +229,19 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
 
-            __vmx_vmread(VMCS_GUEST_CR0, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR0, RegPtr);
 
             break;
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
 
-            __vmx_vmread(VMCS_GUEST_CR3, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR3, RegPtr);
 
             break;
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
 
-            __vmx_vmread(VMCS_GUEST_CR4, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR4, RegPtr);
 
             break;
 
@@ -301,8 +301,8 @@ HvResumeToNextInstruction()
     UINT64 CurrentRIP            = NULL64_ZERO;
     size_t ExitInstructionLength = 0;
 
-    __vmx_vmread(VMCS_GUEST_RIP, &CurrentRIP);
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
+    VmxVmread64P(VMCS_GUEST_RIP, &CurrentRIP);
+    VmxVmread64P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
 
     ResumeRIP = CurrentRIP + ExitInstructionLength;
 
@@ -472,20 +472,20 @@ HvRestoreRegisters()
     //
     // Restore FS Base
     //
-    __vmx_vmread(VMCS_GUEST_FS_BASE, &FsBase);
+    VmxVmread64P(VMCS_GUEST_FS_BASE, &FsBase);
     __writemsr(IA32_FS_BASE, FsBase);
 
     //
     // Restore Gs Base
     //
-    __vmx_vmread(VMCS_GUEST_GS_BASE, &GsBase);
+    VmxVmread64P(VMCS_GUEST_GS_BASE, &GsBase);
     __writemsr(IA32_GS_BASE, GsBase);
 
     //
     // Restore GDTR
     //
-    __vmx_vmread(VMCS_GUEST_GDTR_BASE, &GdtrBase);
-    __vmx_vmread(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
+    VmxVmread64P(VMCS_GUEST_GDTR_BASE, &GdtrBase);
+    VmxVmread64P(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
 
     AsmReloadGdtr((void *)GdtrBase, (unsigned long)GdtrLimit);
 
@@ -504,8 +504,8 @@ HvRestoreRegisters()
     //
     // Restore IDTR
     //
-    __vmx_vmread(VMCS_GUEST_IDTR_BASE, &IdtrBase);
-    __vmx_vmread(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
+    VmxVmread64P(VMCS_GUEST_IDTR_BASE, &IdtrBase);
+    VmxVmread64P(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
 
     AsmReloadIdtr((void *)IdtrBase, (unsigned long)IdtrLimit);
 }
@@ -1152,7 +1152,7 @@ HvGetCsSelector()
     //
     UINT64 CsSel = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
+    VmxVmread64P(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
     return CsSel & 0xffff;
 }
@@ -1167,7 +1167,7 @@ HvGetRflags()
 {
     UINT64 Rflags = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+    VmxVmread64P(VMCS_GUEST_RFLAGS, &Rflags);
 
     return Rflags;
 }
@@ -1194,7 +1194,7 @@ HvGetRip()
 {
     UINT64 Rip = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
+    VmxVmread64P(VMCS_GUEST_RIP, &Rip);
 
     return Rip;
 }
@@ -1221,7 +1221,7 @@ HvGetInterruptibilityState()
 {
     UINT64 InterruptibilityState = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+    VmxVmread64P(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 
     return InterruptibilityState;
 }
@@ -1507,6 +1507,8 @@ HvGetDebugctl()
  * @brief Get and store the guest state of IA32_DEBUGCTL
  * @details mainly used from the VMCALL handler
  *
+ * @param StoreDebugctl
+ *
  * @return VOID
  */
 VOID
@@ -1536,6 +1538,66 @@ HvSetDebugctl(UINT64 Value)
 {
     VmxVmwrite64(VMCS_GUEST_DEBUGCTL, Value & 0xFFFFFFFF);
     VmxVmwrite64(VMCS_GUEST_DEBUGCTL_HIGH, Value >> 32);
+}
+
+/**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForSaveAndLoadDebugControls()
+{
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
+
+    //
+    // Reading IA32_VMX_BASIC_MSR
+    //
+    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+
+    //
+    // Read 1-settings of save debug controls (exit controls)
+    //
+    UINT32 ExitCtls = HvAdjustControls(
+        IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS);
+
+    //
+    // Read 1-settings of load debug controls (entry controls)
+    //
+    UINT32 EntryCtls = HvAdjustControls(
+        IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS);
+
+    //
+    // Check if entry and exit controls are supported on this system
+    //
+    if (ExitCtls != NULL_ZERO && EntryCtls != NULL_ZERO)
+    {
+        //
+        // Supported
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not supported
+        //
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Set the guest state of DR7
+ * @param Value The new value for DR7
+ *
+ * @return VOID
+ */
+VOID
+HvSetDebugReg7(UINT64 Value)
+{
+    VmxVmwrite64(VMCS_GUEST_DR7, Value);
 }
 
 /**

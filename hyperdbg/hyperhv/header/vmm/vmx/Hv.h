@@ -456,6 +456,14 @@ HvSetPendingDebugExceptions(UINT64 Value);
 UINT64
 HvGetDebugctl();
 
+/**
+ * @brief Get and store the guest state of IA32_DEBUGCTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @param StoreDebugctl
+ *
+ * @return VOID
+ */
 VOID
 HvGetAndStoreDebugctl(UINT64 * StoreDebugctl);
 
@@ -467,6 +475,23 @@ HvGetAndStoreDebugctl(UINT64 * StoreDebugctl);
  */
 VOID
 HvSetDebugctl(UINT64 Value);
+
+/**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForSaveAndLoadDebugControls();
+
+/**
+ * @brief Set the guest state of DR7
+ * @param Value The new value for DR7
+ *
+ * @return VOID
+ */
+VOID
+HvSetDebugReg7(UINT64 Value);
 
 /**
  * @brief Handle the case when the trap flag is set, and

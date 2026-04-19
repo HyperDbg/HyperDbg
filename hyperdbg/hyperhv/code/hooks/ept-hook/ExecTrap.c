@@ -482,7 +482,7 @@ ExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Change EPTP
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, VCpu->EptPointer.AsUInt);
+    VmxVmwrite64(VMCS_CTRL_EPT_POINTER, VCpu->EptPointer.AsUInt);
 
     //
     // It's on normal EPTP

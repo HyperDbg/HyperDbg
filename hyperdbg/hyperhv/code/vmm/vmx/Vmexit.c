@@ -60,12 +60,12 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     // Save the current rip
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &VCpu->LastVmexitRip);
+    VmxVmread64P(VMCS_GUEST_RIP, &VCpu->LastVmexitRip);
 
     //
     // Set the rsp in general purpose registers structure
     //
-    __vmx_vmread(VMCS_GUEST_RSP, &VCpu->Regs->rsp);
+    VmxVmread64P(VMCS_GUEST_RSP, &VCpu->Regs->rsp);
 
     //
     // Read the exit qualification
@@ -108,7 +108,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         // cf=1 indicate vm instructions fail
         //
         // UINT64 Rflags = 0;
-        // __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+        // VmxVmread64P(VMCS_GUEST_RFLAGS, &Rflags);
         // VmxVmwrite64(VMCS_GUEST_RFLAGS, Rflags | 0x1);
 
         //

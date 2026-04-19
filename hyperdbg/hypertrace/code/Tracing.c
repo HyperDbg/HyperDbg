@@ -11,18 +11,6 @@
 #include "pch.h"
 
 /**
- * @brief The flag indicating whether the hypertrace module callbacks is initialized or not
- *
- */
-BOOLEAN g_HyperTraceCallbacksInitialized = FALSE;
-
-/**
- * @brief The flag indicating whether the hypertrace LBR tracing is initialized or not
- *
- */
-BOOLEAN g_LastBranchRecordEnabled = FALSE;
-
-/**
  * @brief Example of performing LBR trace
  *
  * @param ApplyFromVmxRootMode
@@ -137,6 +125,8 @@ HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 BOOLEAN
 HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks)
 {
+    ULONG ProcessorsCount;
+
     //
     // Check if the LBR is supported on this CPU before initializing the hypertrace module,
     //
@@ -165,6 +155,16 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks)
     RtlCopyMemory(&g_Callbacks, HypertraceCallbacks, sizeof(HYPERTRACE_CALLBACKS));
 
     //
+    // Read number of cores
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Initialize the memory for LBR requests on all cores
+    //
+    g_LbrRequestState = PlatformAllocateMemory(sizeof(LBR_IOCTL_REQUEST) * ProcessorsCount);
+
+    //
     // It is initialized, but LBR is disabled at this stage
     //
     g_LastBranchRecordEnabled = FALSE;
@@ -191,6 +191,8 @@ HyperTraceEnableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
 
+    ULONG ProcessorsCount;
+
     //
     // Check if LBR is already enabled or not
     //
@@ -200,6 +202,9 @@ HyperTraceEnableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
         return FALSE;
     }
 
+    //
+    // Check LBR support on CPU
+    //
     if (!LbrCheck())
     {
         HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_NOT_SUPPORTED;
@@ -207,9 +212,34 @@ HyperTraceEnableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
     }
 
     //
+    // Check VMCS support for LBR
+    //
+    if (!g_Callbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls())
+    {
+        HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_DEBUGCTL_NOT_SUPPORTED_ON_VMCS;
+        return FALSE;
+    }
+
+    //
     // Enabling LBR
     //
     LbrInitialize();
+
+    //
+    // Read number of cores
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < ProcessorsCount; i++)
+    {
+        g_LbrRequestState[i].LbrConfig.Pid       = 0;
+        g_LbrRequestState[i].LbrConfig.LbrSelect = LBR_SELECT;
+    }
+
+    //
+    // Broadcast enabling LBR on all cores
+    //
+    BroadcastEnableLbrOnAllCores();
 
     //
     // Set the flag to indicate that LBR tracing is enabled
@@ -252,6 +282,11 @@ HyperTraceDisableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRe
     }
 
     //
+    // Broadcast disabling LBR on all cores
+    //
+    BroadcastDisableLbrOnAllCores();
+
+    //
     // Disabling LBR
     //
     g_LastBranchRecordEnabled = FALSE;
@@ -263,6 +298,54 @@ HyperTraceDisableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRe
     {
         HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     }
+
+    return TRUE;
+}
+
+/**
+ * @brief Show LBR tracing for HyperTrace
+ *
+ * @param HyperTraceOperationRequest
+ * @param ApplyFromVmxRootMode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceShowLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                         BOOLEAN                        ApplyFromVmxRootMode)
+{
+    UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
+
+    LBR_IOCTL_REQUEST * CurrentRequest;
+
+    //
+    // Check if LBR is already disabled or not
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        if (HyperTraceOperationRequest != NULL)
+        {
+            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
+        }
+
+        return FALSE;
+    }
+
+    //
+    // Get the current request (for current core)
+    //
+    CurrentRequest = &g_LbrRequestState[KeGetCurrentProcessorNumberEx(NULL)];
+
+    LBR_STATE * State = LbrFindLbrState(0);
+
+    if (State)
+    {
+        LbrGetLbr(State, TRUE, TRUE);
+    }
+
+    LogInfo("Dumping LBR Buffer...\n");
+
+    LbrDumpLbr(CurrentRequest, TRUE, TRUE);
 
     return TRUE;
 }
@@ -284,6 +367,16 @@ HyperTraceUninit()
     // Set callbacks to not initialized
     //
     g_HyperTraceCallbacksInitialized = FALSE;
+
+    //
+    // UnAllocate the state buffer
+    //
+    PlatformFreeMemory(g_LbrRequestState);
+
+    //
+    // Set LBR request buffer to zero
+    //
+    g_LbrRequestState = NULL64_ZERO;
 }
 
 /**
@@ -317,12 +410,25 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_ENABLE:
 
         LogInfo("HyperTrace: Enabling LBR tracing...\n");
+
         HyperTraceEnableLbrTracing(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE:
+
         LogInfo("HyperTrace: Disabling LBR tracing...\n");
+
+        HyperTraceDisableLbrTracing(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+
+        break;
+
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SHOW:
+
+        LogInfo("HyperTrace: Showing LBR tracing...\n");
+
+        HyperTraceShowLbrTracing(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+
         break;
 
     default:

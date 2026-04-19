@@ -579,7 +579,7 @@ VmxCheckIsOnVmxRoot()
 
     __try
     {
-        if (!__vmx_vmread(VMCS_GUEST_VMCS_LINK_POINTER, &VmcsLink))
+        if (!VmxVmread64P(VMCS_GUEST_VMCS_LINK_POINTER, &VmcsLink))
         {
             if (VmcsLink != 0)
             {
@@ -676,7 +676,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // Read error code firstly
     //
-    __vmx_vmread(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
+    VmxVmread64P(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
 
     LogError("Err, unable to execute VMLAUNCH, status : 0x%llx", ErrorCode);
 
@@ -1039,7 +1039,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 VOID
 VmxVmresume()
 {
-    UINT64 ErrorCode = 0;
+    UINT32 ErrorCode = 0;
 
     __vmx_vmresume();
 
@@ -1047,7 +1047,7 @@ VmxVmresume()
     // if VMRESUME succeed will never be here !
     //
 
-    __vmx_vmread(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
+    VmxVmread32P(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
 
     //
@@ -1139,19 +1139,19 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     //  	process continues to run with its expected address space mappings.
     //
 
-    __vmx_vmread(VMCS_GUEST_CR3, &GuestCr3);
+    VmxVmread64P(VMCS_GUEST_CR3, &GuestCr3);
     __writecr3(GuestCr3);
 
     //
     // Read guest rsp and rip
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &GuestRIP);
-    __vmx_vmread(VMCS_GUEST_RSP, &GuestRSP);
+    VmxVmread64P(VMCS_GUEST_RIP, &GuestRIP);
+    VmxVmread64P(VMCS_GUEST_RSP, &GuestRSP);
 
     //
     // Read instruction length
     //
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
+    VmxVmread64P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
     GuestRIP += ExitInstructionLength;
 
     //

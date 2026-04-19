@@ -22,9 +22,6 @@
     <Filter Include="code\components">
       <UniqueIdentifier>{890885f8-de8f-41df-9202-3ec320d7d816}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\components\registers">
-      <UniqueIdentifier>{228a6a7a-4085-4871-a29b-15ca5576623d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\components\spinlock">
       <UniqueIdentifier>{a66d71db-112c-4826-8181-ba265d339149}</UniqueIdentifier>
     </Filter>
@@ -47,9 +44,6 @@
     </ClCompile>
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c">
       <Filter>code\platform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hyperhv\code\components\registers\DebugRegisters.c">
-      <Filter>code\components\registers</Filter>
     </ClCompile>
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
       <Filter>code\components\spinlock</Filter>

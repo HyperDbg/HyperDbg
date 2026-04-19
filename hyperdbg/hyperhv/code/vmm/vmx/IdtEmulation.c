@@ -309,7 +309,7 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     //
     // Read the page-fault address
     //
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
+    VmxVmread64P(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
 
     // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x | %s%s%s%s",
     //         PageFaultAddress,
@@ -356,7 +356,8 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             UINT64 GuestRip  = NULL64_ZERO;
             BYTE   TargetMem = NULL_ZERO;
 
-            __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+            VmxVmread64P(VMCS_GUEST_RIP, &GuestRip);
+
             MemoryMapperReadMemorySafe(GuestRip, &TargetMem, sizeof(BYTE));
 
             if (!EptCheckAndHandleBreakpoint(VCpu) || TargetMem == 0xcc)

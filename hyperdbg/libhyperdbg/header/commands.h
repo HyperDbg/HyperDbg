@@ -478,7 +478,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_LBR_ATTRIBUTES \
-    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+    NULL
+// DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 //////////////////////////////////////////////////
 //             Command Functions                //

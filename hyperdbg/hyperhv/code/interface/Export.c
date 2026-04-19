@@ -413,6 +413,17 @@ VmFuncGetDebugctlVmcallOnTargetCore()
 }
 
 /**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncCheckCpuSupportForSaveAndLoadDebugControls()
+{
+    return HvCheckCpuSupportForSaveAndLoadDebugControls();
+}
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value
  *
@@ -435,6 +446,18 @@ VOID
 VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value)
 {
     CrossVmcallSetDebugctlVmcallOnTargetCore(Value);
+}
+
+/**
+ * @brief Set the guest state of DR7
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetDebugReg7(UINT64 Value)
+{
+    HvSetDebugReg7(Value);
 }
 
 /**

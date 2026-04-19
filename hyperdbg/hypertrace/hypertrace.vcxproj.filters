@@ -41,6 +41,12 @@
     <ClCompile Include="code\Lbr.c">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="code\Broadcast.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\DpcRoutines.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Tracing.h">
@@ -65,6 +71,18 @@
       <Filter>header\interface</Filter>
     </ClInclude>
     <ClInclude Include="header\Lbr.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Dpc.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Broadcast.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\DpcRoutines.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\GlobalVariables.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

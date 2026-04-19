@@ -43,6 +43,13 @@
 #include "ia32-doc/out/ia32.h"
 
 //
+// DPC and broadcasting function headers
+//
+#include "Dpc.h"
+#include "DpcRoutines.h"
+#include "Broadcast.h"
+
+//
 // Unload function (to be called when the driver is unloaded)
 //
 #include "UnloadDll.h"
@@ -88,3 +95,8 @@
 // Export functions
 //
 #include "SDK/imports/kernel/HyperDbgHyperTrace.h"
+
+//
+// Global variables
+//
+#include "GlobalVariables.h"

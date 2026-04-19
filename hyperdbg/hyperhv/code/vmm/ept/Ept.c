@@ -1102,7 +1102,7 @@ EptHandleEptViolation(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading guest physical address
     //
-    __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
+    VmxVmread64P(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
     if (EptHandlePageHookExit(VCpu, ViolationQualification, GuestPhysicalAddr))
     {
@@ -1142,7 +1142,7 @@ EptHandleMisconfiguration(VOID)
 {
     UINT64 GuestPhysicalAddr = 0;
 
-    __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
+    VmxVmread64P(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
     LogInfo("EPT Misconfiguration!");
 
@@ -1311,7 +1311,7 @@ EptCheckAndHandleBreakpoint(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+    VmxVmread64P(VMCS_GUEST_RIP, &GuestRip);
 
     //
     // Don't increment rip by default
