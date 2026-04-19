@@ -125,7 +125,7 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+    VmxVmread64P(VMCS_GUEST_RIP, &GuestRip);
 
     //
     // Reading instruction length
@@ -135,7 +135,7 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading guest's Rflags
     //
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &GuestRflags);
+    VmxVmread64P(VMCS_GUEST_RFLAGS, &GuestRflags);
 
     //
     // Save the address of the instruction following SYSCALL into RCX and then
@@ -166,7 +166,7 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
         //
         if (UcetMsr.ShStkEn)
         {
-            __vmx_vmread(VMCS_GUEST_SSP, &Ssp);
+            VmxVmread64P(VMCS_GUEST_SSP, &Ssp);
             __writemsr(IA32_PL3_SSP, Ssp);
             __vmx_vmwrite(VMCS_GUEST_SSP, 0);
         }
@@ -273,7 +273,7 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
+    VmxVmread64P(VMCS_GUEST_RIP, &Rip);
 
     if (g_IsUnsafeSyscallOrSysretHandling)
     {

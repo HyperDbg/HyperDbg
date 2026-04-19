@@ -456,6 +456,14 @@ HvSetPendingDebugExceptions(UINT64 Value);
 UINT64
 HvGetDebugctl();
 
+/**
+ * @brief Get and store the guest state of IA32_DEBUGCTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @param StoreDebugctl
+ *
+ * @return VOID
+ */
 VOID
 HvGetAndStoreDebugctl(UINT64 * StoreDebugctl);
 

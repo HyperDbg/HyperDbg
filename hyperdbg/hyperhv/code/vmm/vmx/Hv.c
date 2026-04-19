@@ -158,7 +158,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
     /*
     if (CrExitQualification->Fields.Register == 4)
     {
-        __vmx_vmread(VMCS_GUEST_RSP, &GuestRsp);
+        VmxVmread64P(VMCS_GUEST_RSP, &GuestRsp);
         *RegPtr = GuestRsp;
     }
     */
@@ -1506,6 +1506,8 @@ HvGetDebugctl()
 /**
  * @brief Get and store the guest state of IA32_DEBUGCTL
  * @details mainly used from the VMCALL handler
+ *
+ * @param StoreDebugctl
  *
  * @return VOID
  */
