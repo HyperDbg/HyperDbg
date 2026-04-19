@@ -103,6 +103,8 @@
     <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
+    <ClCompile Include="code\Broadcast.c" />
+    <ClCompile Include="code\DpcRoutines.c" />
     <ClCompile Include="code\Lbr.c" />
     <ClCompile Include="code\Tracing.c" />
     <ClCompile Include="code\UnloadDll.c" />
@@ -112,7 +114,10 @@
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
+    <ClInclude Include="header\Broadcast.h" />
     <ClInclude Include="header\Dpc.h" />
+    <ClInclude Include="header\DpcRoutines.h" />
+    <ClInclude Include="header\GlobalVariables.h" />
     <ClInclude Include="header\Lbr.h" />
     <ClInclude Include="header\Tracing.h" />
     <ClInclude Include="header\pch.h" />
