@@ -36,10 +36,11 @@ LoaderInitHyperTrace()
     //
     // Fill the callbacks for using hyperhv in hypertrace
     //
-    HyperTraceCallbacks.VmFuncGetDebugctl                   = VmFuncGetDebugctl;
-    HyperTraceCallbacks.VmFuncGetDebugctlVmcallOnTargetCore = VmFuncGetDebugctlVmcallOnTargetCore;
-    HyperTraceCallbacks.VmFuncSetDebugctl                   = VmFuncSetDebugctl;
-    HyperTraceCallbacks.VmFuncSetDebugctlVmcallOnTargetCore = VmFuncSetDebugctlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncGetDebugctl                                = VmFuncGetDebugctl;
+    HyperTraceCallbacks.VmFuncGetDebugctlVmcallOnTargetCore              = VmFuncGetDebugctlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetDebugctl                                = VmFuncSetDebugctl;
+    HyperTraceCallbacks.VmFuncSetDebugctlVmcallOnTargetCore              = VmFuncSetDebugctlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls = VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
 
     //
     // Memory callbacks

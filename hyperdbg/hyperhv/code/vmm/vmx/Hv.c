@@ -1541,6 +1541,54 @@ HvSetDebugctl(UINT64 Value)
 }
 
 /**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForSaveAndLoadDebugControls()
+{
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
+
+    //
+    // Reading IA32_VMX_BASIC_MSR
+    //
+    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+
+    //
+    // Read 1-settings of save debug controls (exit controls)
+    //
+    UINT32 ExitCtls = HvAdjustControls(
+        IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS);
+
+    //
+    // Read 1-settings of load debug controls (entry controls)
+    //
+    UINT32 EntryCtls = HvAdjustControls(
+        IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS);
+
+    //
+    // Check if entry and exit controls are supported on this system
+    //
+    if (ExitCtls != NULL_ZERO && EntryCtls != NULL_ZERO)
+    {
+        //
+        // Supported
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not supported
+        //
+        return FALSE;
+    }
+}
+
+/**
  * @brief Set the guest state of DR7
  * @param Value The new value for DR7
  *

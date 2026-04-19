@@ -413,6 +413,17 @@ VmFuncGetDebugctlVmcallOnTargetCore()
 }
 
 /**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncCheckCpuSupportForSaveAndLoadDebugControls()
+{
+    return HvCheckCpuSupportForSaveAndLoadDebugControls();
+}
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value
  *

@@ -477,6 +477,14 @@ VOID
 HvSetDebugctl(UINT64 Value);
 
 /**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForSaveAndLoadDebugControls();
+
+/**
  * @brief Set the guest state of DR7
  * @param Value The new value for DR7
  *

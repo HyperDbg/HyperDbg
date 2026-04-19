@@ -202,9 +202,21 @@ HyperTraceEnableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
         return FALSE;
     }
 
+    //
+    // Check LBR support on CPU
+    //
     if (!LbrCheck())
     {
         HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_NOT_SUPPORTED;
+        return FALSE;
+    }
+
+    //
+    // Check VMCS support for LBR
+    //
+    if (!g_Callbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls())
+    {
+        HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_DEBUGCTL_NOT_SUPPORTED_ON_VMCS;
         return FALSE;
     }
 

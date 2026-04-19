@@ -71,6 +71,12 @@ typedef VOID (*VM_FUNC_SET_DEBUGCTL)(UINT64 Value);
 typedef VOID (*VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE)(UINT64 Value);
 
 /**
+ * @brief A function that checks whether IA32_DEBUGCTL can be used in load and save of exit and entry controls
+ *
+ */
+typedef BOOLEAN (*VM_FUNC_CHECK_CPU_SUPPORT_FOR_SAVE_AND_LOAD_DEBUG_CONTROLS)();
+
+/**
  * @brief A function that checks the validity and safety of the target address
  *
  */
@@ -115,10 +121,11 @@ typedef struct _HYPERTRACE_CALLBACKS
     //
     // *** Hypervisor (Hyperhv) callbacks ***
     //
-    VM_FUNC_GET_DEBUGCTL                       VmFuncGetDebugctl;
-    VM_FUNC_GET_DEBUGCTL_VMCALL_ON_TARGET_CORE VmFuncGetDebugctlVmcallOnTargetCore;
-    VM_FUNC_SET_DEBUGCTL                       VmFuncSetDebugctl;
-    VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE VmFuncSetDebugctlVmcallOnTargetCore;
+    VM_FUNC_GET_DEBUGCTL                                       VmFuncGetDebugctl;
+    VM_FUNC_GET_DEBUGCTL_VMCALL_ON_TARGET_CORE                 VmFuncGetDebugctlVmcallOnTargetCore;
+    VM_FUNC_SET_DEBUGCTL                                       VmFuncSetDebugctl;
+    VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE                 VmFuncSetDebugctlVmcallOnTargetCore;
+    VM_FUNC_CHECK_CPU_SUPPORT_FOR_SAVE_AND_LOAD_DEBUG_CONTROLS VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
 
     //
     // *** HYPERTRACE callbacks ***
