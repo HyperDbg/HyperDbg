@@ -908,13 +908,15 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS,
                  HvAdjustControls(
                      IA32_VMX_EXIT_CTLS_HOST_ADDRESS_SPACE_SIZE_FLAG |
-                         IA32_VMX_EXIT_CTLS_LOAD_IA32_CET_STATE_FLAG,
+                         IA32_VMX_EXIT_CTLS_LOAD_IA32_CET_STATE_FLAG |
+                         IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG,
                      VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
     VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS,
                  HvAdjustControls(
                      IA32_VMX_ENTRY_CTLS_IA32E_MODE_GUEST_FLAG |
-                         IA32_VMX_ENTRY_CTLS_LOAD_CET_STATE_FLAG,
+                         IA32_VMX_ENTRY_CTLS_LOAD_CET_STATE_FLAG |
+                         IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG,
                      VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
     VmxVmwrite64(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);

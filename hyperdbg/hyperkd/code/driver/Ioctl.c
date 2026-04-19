@@ -1286,11 +1286,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Perform the HyperTrace operation
             //
-
-            // HyperTracePerformOperation(HyperTraceOperationRequest, FALSE);
-
-            LogInfo("Start example of LBR tracing:");
-            HyperTraceExamplePerformLbrTrace(TRUE, TRUE);
+            HyperTracePerformOperation(HyperTraceOperationRequest, FALSE);
 
             Irp->IoStatus.Information = SIZEOF_HYPERTRACE_OPERATION_PACKETS;
             Status                    = STATUS_SUCCESS;

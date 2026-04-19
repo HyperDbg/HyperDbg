@@ -43,6 +43,11 @@
 #include "ia32-doc/out/ia32.h"
 
 //
+// DPC headers
+//
+#include "Dpc.h"
+
+//
 // Unload function (to be called when the driver is unloaded)
 //
 #include "UnloadDll.h"

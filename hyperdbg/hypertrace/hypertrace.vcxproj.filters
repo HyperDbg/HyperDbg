@@ -67,5 +67,8 @@
     <ClInclude Include="header\Lbr.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\Dpc.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

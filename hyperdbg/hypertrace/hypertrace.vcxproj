@@ -112,6 +112,7 @@
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
+    <ClInclude Include="header\Dpc.h" />
     <ClInclude Include="header\Lbr.h" />
     <ClInclude Include="header\Tracing.h" />
     <ClInclude Include="header\pch.h" />
