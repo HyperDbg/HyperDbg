@@ -21,7 +21,7 @@
 VOID
 SetGuestCsSel(PVMX_SEGMENT_SELECTOR Cs)
 {
-    __vmx_vmwrite(VMCS_GUEST_CS_SELECTOR, Cs->Selector);
+    VmxVmwrite16(VMCS_GUEST_CS_SELECTOR, Cs->Selector);
 }
 
 /**
@@ -34,10 +34,10 @@ SetGuestCsSel(PVMX_SEGMENT_SELECTOR Cs)
 VOID
 SetGuestCs(PVMX_SEGMENT_SELECTOR Cs)
 {
-    __vmx_vmwrite(VMCS_GUEST_CS_BASE, Cs->Base);
-    __vmx_vmwrite(VMCS_GUEST_CS_LIMIT, Cs->Limit);
-    __vmx_vmwrite(VMCS_GUEST_CS_ACCESS_RIGHTS, Cs->Attributes.AsUInt);
-    __vmx_vmwrite(VMCS_GUEST_CS_SELECTOR, Cs->Selector);
+    VmxVmwrite64(VMCS_GUEST_CS_BASE, Cs->Base);
+    VmxVmwrite32(VMCS_GUEST_CS_LIMIT, Cs->Limit);
+    VmxVmwrite32(VMCS_GUEST_CS_ACCESS_RIGHTS, Cs->Attributes.AsUInt);
+    VmxVmwrite16(VMCS_GUEST_CS_SELECTOR, Cs->Selector);
 }
 
 /**
@@ -67,7 +67,7 @@ GetGuestCs()
 VOID
 SetGuestSsSel(PVMX_SEGMENT_SELECTOR Ss)
 {
-    __vmx_vmwrite(VMCS_GUEST_SS_SELECTOR, Ss->Selector);
+    VmxVmwrite16(VMCS_GUEST_SS_SELECTOR, Ss->Selector);
 }
 
 /**

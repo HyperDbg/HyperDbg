@@ -477,6 +477,15 @@ VOID
 HvSetDebugctl(UINT64 Value);
 
 /**
+ * @brief Set the guest state of DR7
+ * @param Value The new value for DR7
+ *
+ * @return VOID
+ */
+VOID
+HvSetDebugReg7(UINT64 Value);
+
+/**
  * @brief Handle the case when the trap flag is set, and
  * we need to inject the single-step exception right
  * after vm-entry

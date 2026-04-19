@@ -119,12 +119,12 @@ DirtyLoggingEnable(VIRTUAL_MACHINE_STATE * VCpu)
 
     // LogInfo("PML Buffer Address = %llx", PmlPhysAddr);
 
-    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, PmlPhysAddr);
+    VmxVmwrite64(VMCS_CTRL_PML_ADDRESS, PmlPhysAddr);
 
     //
     // Clear the PML index
     //
-    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
+    VmxVmwrite64(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
 
     //
     // If the "enable PML" VM-execution control is 1 and bit 6 of EPT pointer (EPTP)
@@ -160,12 +160,12 @@ DirtyLoggingDisable(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Clear the address
     //
-    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, NULL64_ZERO);
+    VmxVmwrite64(VMCS_CTRL_PML_ADDRESS, NULL64_ZERO);
 
     //
     // Clear the PML index
     //
-    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, 0x0);
+    VmxVmwrite64(VMCS_GUEST_PML_INDEX, 0x0);
 
     //
     // Disable PML Enable bit
@@ -284,7 +284,7 @@ DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // reset PML index
     //
-    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
+    VmxVmwrite64(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
 
     return TRUE;
 }

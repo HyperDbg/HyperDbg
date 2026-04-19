@@ -438,6 +438,18 @@ VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value)
 }
 
 /**
+ * @brief Set the guest state of DR7
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetDebugReg7(UINT64 Value)
+{
+    HvSetDebugReg7(Value);
+}
+
+/**
  * @brief Read guest's interruptibility state
  *
  * @return UINT64

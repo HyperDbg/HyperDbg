@@ -248,7 +248,7 @@ SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
     //
     if (ApplyToVmcs)
     {
-        __vmx_vmwrite(VMCS_GUEST_DR7, Dr7.AsUInt);
+        HvSetDebugReg7(Dr7.AsUInt);
     }
     else
     {
