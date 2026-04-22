@@ -178,6 +178,21 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks)
 }
 
 /**
+ * @brief Query the state of LBR save and load VM exit and entry controls
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId)
+{
+    UNREFERENCED_PARAMETER(CoreId); // Right now there is no core specifc controls for LBR
+
+    return g_LastBranchRecordEnabled;
+}
+
+/**
  * @brief Enable LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest

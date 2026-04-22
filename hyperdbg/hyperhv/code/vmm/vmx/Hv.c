@@ -391,63 +391,27 @@ HvSetRflagTrapFlag(BOOLEAN Set)
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
+ * @param VCpu
  * @param Set Set or unset
  * @return VOID
  */
 VOID
-HvSetLoadDebugControls(BOOLEAN Set)
+HvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    UINT32 VmentryControls = 0;
-
-    //
-    // Read the previous flags
-    //
-    VmxVmread32P(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
-
-    if (Set)
-    {
-        VmentryControls |= IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG;
-    }
-    else
-    {
-        VmentryControls &= ~IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG;
-    }
-
-    //
-    // Set the new value
-    //
-    VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
+    ProtectedHvSetLoadDebugControls(VCpu, Set);
 }
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
+ * @param VCpu
  * @param Set Set or unset
  * @return VOID
  */
 VOID
-HvSetSaveDebugControls(BOOLEAN Set)
+HvSetSaveDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
-    UINT32 VmexitControls = 0;
-
-    //
-    // Read the previous flags
-    //
-    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
-
-    if (Set)
-    {
-        VmexitControls |= IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG;
-    }
-    else
-    {
-        VmexitControls &= ~IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG;
-    }
-
-    //
-    // Set the new value
-    //
-    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
+    ProtectedHvSetSaveDebugControls(VCpu, Set);
 }
 
 /**

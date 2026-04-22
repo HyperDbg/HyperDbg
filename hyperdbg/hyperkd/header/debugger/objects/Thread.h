@@ -38,3 +38,6 @@ ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProc
 
 BOOLEAN
 ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThreadRequest);
+
+BOOLEAN
+ThreadQueryDebugRegisterInterceptionStateByCoreId(UINT32 CoreId);

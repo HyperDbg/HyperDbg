@@ -51,10 +51,10 @@ IMPORT_EXPORT_VMM VOID
 VmFuncUnRegisterMtfBreak(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncSetLoadDebugControls(BOOLEAN Set);
+VmFuncSetLoadDebugControls(UINT32 CoreId, BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncSetSaveDebugControls(BOOLEAN Set);
+VmFuncSetSaveDebugControls(UINT32 CoreId, BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncSetPmcVmexit(BOOLEAN Set);

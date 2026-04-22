@@ -115,25 +115,29 @@ VmFuncSetRflagTrapFlag(BOOLEAN Set)
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
+ * @param CoreId target core id
  * @param Set Set or unset
+ *
  * @return VOID
  */
 VOID
-VmFuncSetLoadDebugControls(BOOLEAN Set)
+VmFuncSetLoadDebugControls(UINT32 CoreId, BOOLEAN Set)
 {
-    HvSetLoadDebugControls(Set);
+    HvSetLoadDebugControls(&g_GuestState[CoreId], Set);
 }
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
+ * @param CoreId target core id
  * @param Set Set or unset
+ *
  * @return VOID
  */
 VOID
-VmFuncSetSaveDebugControls(BOOLEAN Set)
+VmFuncSetSaveDebugControls(UINT32 CoreId, BOOLEAN Set)
 {
-    HvSetSaveDebugControls(Set);
+    HvSetSaveDebugControls(&g_GuestState[CoreId], Set);
 }
 
 /**

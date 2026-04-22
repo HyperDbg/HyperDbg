@@ -527,6 +527,140 @@ ProtectedHvSetMovToCr3Vmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTE
 }
 
 /**
+ * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @param PassOver
+ *
+ * @return VOID
+ */
+VOID
+ProtectedHvSetLoadDebugControlsIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    UINT32 VmentryControls = 0;
+
+    //
+    // The protected checks are only performed if the "Set" is "FALSE",
+    // because if sb wants to set it to "TRUE" then we're no need to
+    // worry about it as it remains enabled
+    //
+    if (Set == FALSE)
+    {
+        //
+        // Check the top-level driver's state
+        //
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_SAVE_AND_LOAD_DEBUG_CONTROLS,
+                                                       NULL,
+                                                       PassOver))
+        {
+            return;
+        }
+    }
+
+    //
+    // Read the previous flags
+    //
+    VmxVmread32P(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
+
+    if (Set)
+    {
+        VmentryControls |= IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG;
+    }
+    else
+    {
+        VmentryControls &= ~IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG;
+    }
+
+    //
+    // Set the new value
+    //
+    VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
+}
+
+/**
+ * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @param PassOver
+ *
+ * @return VOID
+ */
+VOID
+ProtectedHvSetSaveDebugControlsIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    UINT32 VmexitControls = 0;
+
+    //
+    // The protected checks are only performed if the "Set" is "FALSE",
+    // because if sb wants to set it to "TRUE" then we're no need to
+    // worry about it as it remains enabled
+    //
+    if (Set == FALSE)
+    {
+        //
+        // Check the top-level driver's state
+        //
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_SAVE_AND_LOAD_DEBUG_CONTROLS,
+                                                       NULL,
+                                                       PassOver))
+        {
+            return;
+        }
+    }
+
+    //
+    // Read the previous flags
+    //
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
+
+    if (Set)
+    {
+        VmexitControls |= IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG;
+    }
+    else
+    {
+        VmexitControls &= ~IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG;
+    }
+
+    //
+    // Set the new value
+    //
+    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
+}
+
+/**
+ * @brief Set LOAD DEBUG CONTROLS on VM-entry controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+ProtectedHvSetSaveDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+{
+    ProtectedHvSetSaveDebugControlsIntegrityCheck(VCpu, Set, PASSING_OVER_NONE);
+}
+
+/**
+ * @brief Set SAVE DEBUG CONTROLS on VM-exit controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+ProtectedHvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+{
+    ProtectedHvSetLoadDebugControlsIntegrityCheck(VCpu, Set, PASSING_OVER_NONE);
+}
+
+/**
  * @brief Set the RDTSC/P Exiting
  *
  * @param VCpu The virtual processor's state
