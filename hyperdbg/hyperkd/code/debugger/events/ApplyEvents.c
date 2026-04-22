@@ -1274,6 +1274,12 @@ ApplyEventCpuidExecutionEvent(PDEBUGGER_EVENT                   Event,
     // their custom optional parameters
     //
     VmFuncSetTriggerEventForCpuids(TRUE);
+
+    //
+    // Setting an indicator to CPUID EAX index (if any)
+    //
+    Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+    Event->Options.OptionalParam2 = Event->InitOptions.OptionalParam2;
 }
 
 /**
