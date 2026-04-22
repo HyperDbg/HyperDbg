@@ -77,6 +77,18 @@ typedef VOID (*VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE)(UINT64 Value);
 typedef BOOLEAN (*VM_FUNC_CHECK_CPU_SUPPORT_FOR_SAVE_AND_LOAD_DEBUG_CONTROLS)();
 
 /**
+ * @brief A function that sets load debug controls on VM-entry controls
+ *
+ */
+typedef VOID (*VM_FUNC_SET_LOAD_DEBUG_CONTROLS)(UINT32 CoreId, BOOLEAN Set);
+
+/**
+ * @brief A function that sets save debug controls on VM-exit controls
+ *
+ */
+typedef VOID (*VM_FUNC_SET_SAVE_DEBUG_CONTROLS)(UINT32 CoreId, BOOLEAN Set);
+
+/**
  * @brief A function that checks the validity and safety of the target address
  *
  */
@@ -126,6 +138,8 @@ typedef struct _HYPERTRACE_CALLBACKS
     VM_FUNC_SET_DEBUGCTL                                       VmFuncSetDebugctl;
     VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE                 VmFuncSetDebugctlVmcallOnTargetCore;
     VM_FUNC_CHECK_CPU_SUPPORT_FOR_SAVE_AND_LOAD_DEBUG_CONTROLS VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
+    VM_FUNC_SET_LOAD_DEBUG_CONTROLS                            VmFuncSetLoadDebugControls;
+    VM_FUNC_SET_SAVE_DEBUG_CONTROLS                            VmFuncSetSaveDebugControls;
 
     //
     // *** HYPERTRACE callbacks ***

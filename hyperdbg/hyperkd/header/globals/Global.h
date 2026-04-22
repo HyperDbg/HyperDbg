@@ -63,7 +63,7 @@ BOOLEAN g_HandleInUse;
  * @brief Determines whether the clients are allowed to send IOCTL to the drive or not
  *
  */
-BOOLEAN g_AllowIOCTLFromUsermode;
+BOOLEAN g_AllowIoctlFromUsermode;
 
 /**
  * @brief events list (for debugger)

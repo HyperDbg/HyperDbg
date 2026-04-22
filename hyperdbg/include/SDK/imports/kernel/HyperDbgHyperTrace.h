@@ -34,7 +34,7 @@ HyperTraceExamplePerformLbrTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVm
 // Initialize the hypertrace module with the provided callbacks
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks);
+HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks, BOOLEAN InitForHypervisorEnvironment);
 
 //
 // Uninitialize the HyperTrace module

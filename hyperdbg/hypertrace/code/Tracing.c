@@ -1,6 +1,7 @@
 /**
  * @file Tracing.c
  * @author Hari Mishal (harimishal6@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Tracing routines for HyperTrace module
  * @details
  * @version 0.18
@@ -119,11 +120,14 @@ HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
  * @details This only for callback initialization, not for LBR initialization
  *
  * @param HypertraceCallbacks
+ * @param InitForHypervisorEnvironment Whether the initialization is being done for hypervisor environment or not,
+ * it can be used to skip some of the initialization steps if it is not for hypervisor environment and behave differently based on that
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks)
+HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
+                       BOOLEAN                InitForHypervisorEnvironment)
 {
     ULONG ProcessorsCount;
 
@@ -163,6 +167,11 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks)
     // Initialize the memory for LBR requests on all cores
     //
     g_LbrRequestState = PlatformAllocateMemory(sizeof(LBR_IOCTL_REQUEST) * ProcessorsCount);
+
+    //
+    // Set the flag to indicate whether the initialization is being done for hypervisor environment or not
+    //
+    g_InitForHypervisorEnvironment = InitForHypervisorEnvironment;
 
     //
     // It is initialized, but LBR is disabled at this stage
@@ -227,9 +236,9 @@ HyperTraceEnableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
     }
 
     //
-    // Check VMCS support for LBR
+    // Check VMCS support for LBR if the initialization is being done for hypervisor environment
     //
-    if (!g_Callbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls())
+    if (g_InitForHypervisorEnvironment && !g_Callbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls())
     {
         HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_DEBUGCTL_NOT_SUPPORTED_ON_VMCS;
         return FALSE;
