@@ -1500,8 +1500,8 @@ HvGetAndStoreDebugctl(UINT64 * StoreDebugctl)
 VOID
 HvSetDebugctl(UINT64 Value)
 {
-    VmxVmwrite64(VMCS_GUEST_DEBUGCTL, Value & 0xFFFFFFFF);
-    VmxVmwrite64(VMCS_GUEST_DEBUGCTL_HIGH, Value >> 32);
+    VmxVmwrite32(VMCS_GUEST_DEBUGCTL, Value & 0xFFFFFFFF);
+    VmxVmwrite32(VMCS_GUEST_DEBUGCTL_HIGH, Value >> 32);
 }
 
 /**
