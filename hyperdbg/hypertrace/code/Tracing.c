@@ -22,6 +22,52 @@
 VOID
 HyperTraceExamplePerformLbrTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
+    // LBR_IOCTL_REQUEST Request = {0};
+
+    // Request.LbrConfig.Pid       = 0;
+    // Request.LbrConfig.LbrSelect = LBR_SELECT;
+
+    if (LbrStartLbr(NULL, ApplyFromVmxRootMode, ApplyByVmcall))
+    {
+        for (volatile int i = 0; i < 50; i++)
+        {
+            if (i % 2)
+            {
+                int a = i * 2;
+                a += 5;
+            }
+            else
+            {
+                __nop();
+                __nop();
+            }
+        }
+
+        // LBR_STATE * State = LbrFindLbrState(0);
+
+        // if (State)
+        // {
+        LogInfo("Dumping LBR Buffer...\n");
+
+        LbrGetLbr(NULL, ApplyFromVmxRootMode, ApplyByVmcall);
+        // }
+
+        // LbrDumpLbr(&Request, ApplyFromVmxRootMode, ApplyByVmcall);
+        // LbrStopLbr(&Request, ApplyFromVmxRootMode, ApplyByVmcall);
+    }
+}
+
+/**
+ * @brief Example of performing LBR trace 2
+ *
+ * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
+ *
+ * @return BOOLEAN
+ */
+VOID
+HyperTraceExamplePerformLbrTrace2(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+{
     LBR_IOCTL_REQUEST Request = {0};
 
     KAFFINITY Affinity = 1;

@@ -106,9 +106,11 @@ LbrInitialize()
 VOID
 LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
+    UNREFERENCED_PARAMETER(State);
+
     ULONG     i;
     ULONGLONG DbgCtlMsr;
-    KIRQL     OldIrql;
+    // KIRQL     OldIrql;
 
     if (ApplyFromVmxRootMode)
     {
@@ -139,16 +141,20 @@ LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall
         xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
     }
 
-    xacquire_lock(&LbrStateLock, &OldIrql);
-    xrdmsr(MSR_LBR_SELECT, &State->Config.LbrSelect);
-    xrdmsr(MSR_LBR_TOS, &State->Data->LbrTos);
+    // xacquire_lock(&LbrStateLock, &OldIrql);
+    //  xrdmsr(MSR_LBR_SELECT, &State->Config.LbrSelect);
+    // xrdmsr(MSR_LBR_TOS, &State->Data->LbrTos);
 
     for (i = 0; i < (ULONG)LbrCapacity; i++)
     {
-        xrdmsr(MSR_LBR_NHM_FROM + i, &State->Data->Entries[i].From);
-        xrdmsr(MSR_LBR_NHM_TO + i, &State->Data->Entries[i].To);
+        UINT64 FromMsr, ToMsr;
+
+        xrdmsr(MSR_LBR_NHM_FROM + i, &FromMsr);
+        xrdmsr(MSR_LBR_NHM_TO + i, &ToMsr);
+
+        LogInfo("LBR Entry %d: FROM = 0x%llx, TO = 0x%llx\n", i, FromMsr, ToMsr);
     }
-    xrelease_lock(&LbrStateLock, &OldIrql);
+    // xrelease_lock(&LbrStateLock, &OldIrql);
 }
 
 /**
@@ -163,13 +169,15 @@ LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall
 VOID
 LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    ULONGLONG DbgCtlMsr;
-    KIRQL     OldIrql;
+    UNREFERENCED_PARAMETER(State);
 
-    xacquire_lock(&LbrStateLock, &OldIrql);
+    ULONGLONG DbgCtlMsr;
+    // KIRQL     OldIrql;
+
+    // xacquire_lock(&LbrStateLock, &OldIrql);
 
     // Force the selection mask
-    xwrmsr(MSR_LBR_SELECT, State->Config.LbrSelect);
+    xwrmsr(MSR_LBR_SELECT, LBR_SELECT);
 
     // Clear hardware state
     xwrmsr(MSR_LBR_TOS, 0);
@@ -179,7 +187,7 @@ LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall
         xwrmsr(MSR_LBR_NHM_TO + i, 0);
     }
 
-    xrelease_lock(&LbrStateLock, &OldIrql);
+    // xrelease_lock(&LbrStateLock, &OldIrql);
 
     if (ApplyFromVmxRootMode)
     {
@@ -266,7 +274,8 @@ LbrFlushLbr()
 BOOLEAN
 LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    LBR_STATE * State;
+    // LBR_STATE * State;
+    UNREFERENCED_PARAMETER(Request);
 
     if (LbrCapacity == 0)
     {
@@ -274,36 +283,36 @@ LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN A
         return FALSE;
     }
 
-    State = LbrFindLbrState(Request->LbrConfig.Pid);
-    if (State)
-    {
-        LogInfo("LIBIHT-COM: LBR already enabled for pid %d\n",
-                Request->LbrConfig.Pid);
-        return FALSE;
-    }
+    // State = LbrFindLbrState(Request->LbrConfig.Pid);
+    // if (State)
+    // {
+    //     LogInfo("LIBIHT-COM: LBR already enabled for pid %d\n",
+    //             Request->LbrConfig.Pid);
+    //     return FALSE;
+    // }
 
-    State = LbrCreateLbrState();
-    if (State == NULL)
-    {
-        LogInfo("LIBIHT-COM: Create LBR state failed\n");
-        return FALSE;
-    }
+    // State = LbrCreateLbrState();
+    // if (State == NULL)
+    // {
+    //     LogInfo("LIBIHT-COM: Create LBR state failed\n");
+    //     return FALSE;
+    // }
 
     //
     // Setup config fields for LBR state
     //
-    State->Parent           = NULL;
-    State->Config.Pid       = Request->LbrConfig.Pid ? Request->LbrConfig.Pid : xgetcurrent_pid();
-    State->Config.LbrSelect = Request->LbrConfig.LbrSelect ? Request->LbrConfig.LbrSelect : LBR_SELECT;
-    LbrInsertLbrState(State);
+    // State->Parent           = NULL;
+    // State->Config.Pid       = Request->LbrConfig.Pid ? Request->LbrConfig.Pid : xgetcurrent_pid();
+    // State->Config.LbrSelect = Request->LbrConfig.LbrSelect ? Request->LbrConfig.LbrSelect : LBR_SELECT;
+    // LbrInsertLbrState(State);
 
     //
     // If the requesting process is the current process, trace it right away
     //
-    if (State->Config.Pid == xgetcurrent_pid())
-    {
-        LbrPutLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
-    }
+    // if (State->Config.Pid == xgetcurrent_pid())
+    // {
+    LbrPutLbr(NULL, ApplyFromVmxRootMode, ApplyByVmcall);
+    // }
 
     return TRUE;
 }
