@@ -467,8 +467,8 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         // want dr7 and dr0 remove their configuration on vm-exits and also
         // we'll be able to change the dr7 of the guest on VMCS
         //
-        VmFuncSetLoadDebugControls(TRUE);
-        VmFuncSetSaveDebugControls(TRUE);
+        VmFuncSetLoadDebugControls(DbgState->CoreId, TRUE);
+        VmFuncSetSaveDebugControls(DbgState->CoreId, TRUE);
 
         //
         // Intercept #DBs by changing exception bitmap (one core)
@@ -528,8 +528,8 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         // Disable load debug controls and save debug controls because
         // no longer needed
         //
-        VmFuncSetLoadDebugControls(FALSE);
-        VmFuncSetSaveDebugControls(FALSE);
+        VmFuncSetLoadDebugControls(DbgState->CoreId, FALSE);
+        VmFuncSetSaveDebugControls(DbgState->CoreId, FALSE);
 
         //
         // Disable intercepting #DBs
@@ -541,6 +541,23 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         //
         DbgState->ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = (UINT64)NULL;
     }
+}
+
+/**
+ * @brief Query for deubg register interception state
+ * @param CoreId
+ *
+ * @return BOOLEAN whether it's activated or not
+ */
+BOOLEAN
+ThreadQueryDebugRegisterInterceptionStateByCoreId(UINT32 CoreId)
+{
+    BOOLEAN                     Result   = FALSE;
+    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+
+    Result = DbgState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState;
+
+    return Result;
 }
 
 /**

@@ -13,10 +13,12 @@
 /**
  * @brief Initialize the hyper trace module
  *
+ * @param InitForHypervisorEnvironment Whether the initialization is being done for hypervisor environment or not
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitHyperTrace()
+LoaderInitHyperTrace(BOOLEAN InitForHypervisorEnvironment)
 {
     HYPERTRACE_CALLBACKS HyperTraceCallbacks = {0};
 
@@ -41,6 +43,10 @@ LoaderInitHyperTrace()
     HyperTraceCallbacks.VmFuncSetDebugctl                                = VmFuncSetDebugctl;
     HyperTraceCallbacks.VmFuncSetDebugctlVmcallOnTargetCore              = VmFuncSetDebugctlVmcallOnTargetCore;
     HyperTraceCallbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls = VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
+    HyperTraceCallbacks.VmFuncSetLoadDebugControls                       = VmFuncSetLoadDebugControls;
+    HyperTraceCallbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore     = VmFuncSetLoadDebugControlsVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetSaveDebugControls                       = VmFuncSetSaveDebugControls;
+    HyperTraceCallbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore     = VmFuncSetSaveDebugControlsVmcallOnTargetCore;
 
     //
     // Memory callbacks
@@ -57,7 +63,7 @@ LoaderInitHyperTrace()
     //
     // Initialize hypertrace module
     //
-    if (HyperTraceInitCallback(&HyperTraceCallbacks))
+    if (HyperTraceInitCallback(&HyperTraceCallbacks, InitForHypervisorEnvironment))
     {
         LogDebugInfo("HyperDbg's hypertrace loaded successfully");
         return TRUE;
@@ -86,7 +92,7 @@ LoaderInitVmmAndDebugger()
     //
     // Allow to server IOCTL
     //
-    g_AllowIOCTLFromUsermode = TRUE;
+    g_AllowIoctlFromUsermode = TRUE;
 
     //
     // *** Fill the callbacks for the message tracer ***
@@ -175,7 +181,7 @@ LoaderInitVmmAndDebugger()
     //
     // Not loaded
     //
-    g_AllowIOCTLFromUsermode = FALSE;
+    g_AllowIoctlFromUsermode = FALSE;
 
     return FALSE;
 }

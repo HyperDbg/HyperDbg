@@ -115,25 +115,29 @@ VmFuncSetRflagTrapFlag(BOOLEAN Set)
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
+ * @param CoreId target core id
  * @param Set Set or unset
+ *
  * @return VOID
  */
 VOID
-VmFuncSetLoadDebugControls(BOOLEAN Set)
+VmFuncSetLoadDebugControls(UINT32 CoreId, BOOLEAN Set)
 {
-    HvSetLoadDebugControls(Set);
+    HvSetLoadDebugControls(&g_GuestState[CoreId], Set);
 }
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
+ * @param CoreId target core id
  * @param Set Set or unset
+ *
  * @return VOID
  */
 VOID
-VmFuncSetSaveDebugControls(BOOLEAN Set)
+VmFuncSetSaveDebugControls(UINT32 CoreId, BOOLEAN Set)
 {
-    HvSetSaveDebugControls(Set);
+    HvSetSaveDebugControls(&g_GuestState[CoreId], Set);
 }
 
 /**
@@ -446,6 +450,32 @@ VOID
 VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value)
 {
     CrossVmcallSetDebugctlVmcallOnTargetCore(Value);
+}
+
+/**
+ * @brief Set LOAD DEBUG CONTROLS on VM-entry controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetLoadDebugControlsVmcallOnTargetCore(Set);
+}
+
+/**
+ * @brief Set SAVE DEBUG CONTROLS on VM-exit controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetSaveDebugControlsVmcallOnTargetCore(Set);
 }
 
 /**

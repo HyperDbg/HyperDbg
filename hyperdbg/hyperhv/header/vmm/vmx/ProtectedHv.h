@@ -84,3 +84,13 @@ ProtectedHvSetMov2CrExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
 
 VOID
 ProtectedHvSetMov2Cr3Exiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+
+//
+// Save and load state on vm-exit and vm-entry
+//
+
+VOID
+ProtectedHvSetSaveDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+
+VOID
+ProtectedHvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);

@@ -20,7 +20,7 @@ BOOLEAN
 LoaderInitVmmAndDebugger();
 
 BOOLEAN
-LoaderInitHyperTrace();
+LoaderInitHyperTrace(BOOLEAN InitForHypervisorEnvironment);
 
 VOID
 LoaderUninitializeLogTracer();

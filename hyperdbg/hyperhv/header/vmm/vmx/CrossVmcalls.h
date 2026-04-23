@@ -20,3 +20,9 @@ CrossVmcallGetDebugctlVmcallOnTargetCore();
 
 VOID
 CrossVmcallSetDebugctlVmcallOnTargetCore(UINT64 Value);
+
+VOID
+CrossVmcallSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set);
+
+VOID
+CrossVmcallSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set);

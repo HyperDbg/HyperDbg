@@ -118,20 +118,22 @@ HvSetRflagTrapFlag(BOOLEAN Set);
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
+ * @param VCpu
  * @param Set Set or unset
  * @return VOID
  */
 VOID
-HvSetLoadDebugControls(BOOLEAN Set);
+HvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
+ * @param VCpu
  * @param Set Set or unset
  * @return VOID
  */
 VOID
-HvSetSaveDebugControls(BOOLEAN Set);
+HvSetSaveDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
  * @brief Reset GDTR/IDTR and other old when you do vmxoff as the patchguard

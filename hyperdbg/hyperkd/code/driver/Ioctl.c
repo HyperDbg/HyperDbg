@@ -73,7 +73,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     PoolManagerCheckAndPerformAllocationAndDeallocation();
 
-    if (g_AllowIOCTLFromUsermode)
+    if (g_AllowIoctlFromUsermode)
     {
         IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
@@ -128,9 +128,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
 
             //
-            // Dis-allow new IOCTL
+            // Disallow new IOCTL
             //
-            g_AllowIOCTLFromUsermode = FALSE;
+            g_AllowIoctlFromUsermode = FALSE;
 
             //
             // Send an immediate message, and we're no longer get new IRP
