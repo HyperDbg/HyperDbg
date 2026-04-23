@@ -34,52 +34,6 @@ typedef struct _LBR_STACK_ENTRY
 
 } LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
 
-typedef struct _LBR_DATA
-{
-    ULONGLONG         LbrTos;
-    LBR_STACK_ENTRY * Entries;
-
-} LBR_DATA, *PLBR_DATA;
-
-typedef struct _LBR_CONFIG
-{
-    ULONG     Pid;
-    ULONGLONG LbrSelect;
-
-} LBR_CONFIG, *PLBR_CONFIG;
-
-typedef struct _LBR_STATE
-{
-    LBR_CONFIG Config;
-    LBR_DATA * Data;
-    PVOID      Parent;
-    LIST_ENTRY List;
-
-} LBR_STATE, *PLBR_STATE;
-
-typedef struct _LBR_IOCTL_REQUEST
-{
-    LBR_CONFIG LbrConfig;
-    LBR_DATA * Buffer;
-
-} LBR_IOCTL_REQUEST, *PLBR_IOCTL_REQUEST;
-
-typedef struct _XIOCTL_REQUEST
-{
-    ULONG Cmd;
-    union
-    {
-        LBR_IOCTL_REQUEST Lbr;
-    } Body;
-
-} XIOCTL_REQUEST, *PXIOCTL_REQUEST;
-
-// IOCTL Commands
-#define LIBIHT_IOCTL_ENABLE_LBR  0x1
-#define LIBIHT_IOCTL_DISABLE_LBR 0x2
-#define LIBIHT_IOCTL_DUMP_LBR    0x3
-#define LIBIHT_IOCTL_CONFIG_LBR  0x4
-
 //////////////////////////////////////////////////
 //             Platform Wrappers                //
 //////////////////////////////////////////////////
@@ -137,40 +91,22 @@ extern CPU_LBR_MAP CPU_LBR_MAPS[];
 //////////////////////////////////////////////////
 
 VOID
-LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+LbrGetLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 VOID
-LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
-
-LBR_STATE *
-LbrCreateLbrState();
-
-LBR_STATE *
-LbrFindLbrState(ULONG Pid);
+LbrPutLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 BOOLEAN
 LbrCheck();
 
 VOID
-LbrInsertLbrState(LBR_STATE * NewState);
-
-VOID
-LbrRemoveLbrState(LBR_STATE * OldState);
-
-VOID
-LbrFreeLbrStatList();
-
-VOID
 LbrInitialize();
 
 BOOLEAN
-LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 BOOLEAN
-LbrStopLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
-
-BOOLEAN
-LbrDumpLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 extern ULONGLONG  LbrCapacity;
 extern LIST_ENTRY LbrStateHead;

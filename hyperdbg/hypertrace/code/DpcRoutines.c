@@ -23,18 +23,8 @@
 BOOLEAN
 DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    LBR_IOCTL_REQUEST * CurrentRequest;
-    ULONG               CurrentCore;
-
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
-
-    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
-
-    //
-    // Get the current request (for current core)
-    //
-    CurrentRequest = &g_LbrRequestState[CurrentCore];
 
     //
     // Check if the initialization is being done for hypervisor environment or not
@@ -81,23 +71,13 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
 BOOLEAN
 DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    LBR_IOCTL_REQUEST * CurrentRequest;
-    ULONG               CurrentCore;
-
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
-
-    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
-
-    //
-    // Get the current request (for current core)
-    //
-    CurrentRequest = &g_LbrRequestState[CurrentCore];
 
     //
     // Disable LBR on all cores from VMX-root mode by VMCALL
     //
-    LbrStopLbr(CurrentRequest, TRUE, TRUE);
+    LbrStopLbr(TRUE, TRUE);
 
     //
     // Check if the initialization is being done for hypervisor environment or not

@@ -33,9 +33,3 @@ BOOLEAN g_InitForHypervisorEnvironment;
  *
  */
 BOOLEAN g_LastBranchRecordEnabled;
-
-/**
- * @brief Core specific state
- *
- */
-LBR_IOCTL_REQUEST * g_LbrRequestState;

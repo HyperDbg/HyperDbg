@@ -97,20 +97,16 @@ LbrInitialize()
 /**
  * @brief Read LBR MSRs and store the values in the provided LBR_STATE structure
  *
- * @param State
  * @param ApplyFromVmxRootMode
  * @param ApplyByVmcall
  *
  * @return VOID
  */
 VOID
-LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrGetLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    UNREFERENCED_PARAMETER(State);
-
     ULONG     i;
     ULONGLONG DbgCtlMsr;
-    // KIRQL     OldIrql;
 
     if (ApplyFromVmxRootMode)
     {
@@ -141,10 +137,6 @@ LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall
         xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
     }
 
-    // xacquire_lock(&LbrStateLock, &OldIrql);
-    //  xrdmsr(MSR_LBR_SELECT, &State->Config.LbrSelect);
-    // xrdmsr(MSR_LBR_TOS, &State->Data->LbrTos);
-
     for (i = 0; i < (ULONG)LbrCapacity; i++)
     {
         UINT64 FromMsr, ToMsr;
@@ -154,40 +146,35 @@ LbrGetLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall
 
         LogInfo("LBR Entry %d: FROM = 0x%llx, TO = 0x%llx\n", i, FromMsr, ToMsr);
     }
-    // xrelease_lock(&LbrStateLock, &OldIrql);
 }
 
 /**
  * @brief Write LBR MSRs from the provided LBR_STATE structure
  *
- * @param State
  * @param ApplyFromVmxRootMode
  * @param ApplyByVmcall
  *
  * @return VOID
  */
 VOID
-LbrPutLbr(LBR_STATE * State, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrPutLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    UNREFERENCED_PARAMETER(State);
-
     ULONGLONG DbgCtlMsr;
-    // KIRQL     OldIrql;
 
-    // xacquire_lock(&LbrStateLock, &OldIrql);
-
+    //
     // Force the selection mask
+    //
     xwrmsr(MSR_LBR_SELECT, LBR_SELECT);
 
+    //
     // Clear hardware state
+    //
     xwrmsr(MSR_LBR_TOS, 0);
     for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
     {
         xwrmsr(MSR_LBR_NHM_FROM + i, 0);
         xwrmsr(MSR_LBR_NHM_TO + i, 0);
     }
-
-    // xrelease_lock(&LbrStateLock, &OldIrql);
 
     if (ApplyFromVmxRootMode)
     {
@@ -265,54 +252,21 @@ LbrFlushLbr()
 /**
  * @brief Start collecting LBR branches for a specific process and store the configuration in the global LBR state list
  *
- * @param Request
  * @param ApplyFromVmxRootMode
  * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    // LBR_STATE * State;
-    UNREFERENCED_PARAMETER(Request);
-
     if (LbrCapacity == 0)
     {
         LogInfo("LBR: Aborting, CPU model not supported.\n");
         return FALSE;
     }
 
-    // State = LbrFindLbrState(Request->LbrConfig.Pid);
-    // if (State)
-    // {
-    //     LogInfo("LIBIHT-COM: LBR already enabled for pid %d\n",
-    //             Request->LbrConfig.Pid);
-    //     return FALSE;
-    // }
-
-    // State = LbrCreateLbrState();
-    // if (State == NULL)
-    // {
-    //     LogInfo("LIBIHT-COM: Create LBR state failed\n");
-    //     return FALSE;
-    // }
-
-    //
-    // Setup config fields for LBR state
-    //
-    // State->Parent           = NULL;
-    // State->Config.Pid       = Request->LbrConfig.Pid ? Request->LbrConfig.Pid : xgetcurrent_pid();
-    // State->Config.LbrSelect = Request->LbrConfig.LbrSelect ? Request->LbrConfig.LbrSelect : LBR_SELECT;
-    // LbrInsertLbrState(State);
-
-    //
-    // If the requesting process is the current process, trace it right away
-    //
-    // if (State->Config.Pid == xgetcurrent_pid())
-    // {
-    LbrPutLbr(NULL, ApplyFromVmxRootMode, ApplyByVmcall);
-    // }
+    LbrPutLbr(ApplyFromVmxRootMode, ApplyByVmcall);
 
     return TRUE;
 }
@@ -320,380 +274,17 @@ LbrStartLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN A
 /**
  * @brief Stop collecting LBR branches for a specific process and remove the corresponding LBR state from the global list
  *
- * @param Request
  * @param ApplyFromVmxRootMode
  * @param ApplyByVmcall
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrStopLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    LBR_STATE * State;
-
-    State = LbrFindLbrState(Request->LbrConfig.Pid);
-    if (State == NULL)
-    {
-        LogInfo("LIBIHT-COM: LBR not enabled for pid %d\n",
-                Request->LbrConfig.Pid);
-        return FALSE;
-    }
-
-    if (State->Config.Pid == xgetcurrent_pid())
-    {
-        LbrGetLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
-    }
-
-    LbrRemoveLbrState(State);
+    LbrGetLbr(ApplyFromVmxRootMode, ApplyByVmcall);
 
     return TRUE;
-}
-
-/**
- * @brief Dump LBR info for a specific process to debug logs and optionally copy the LBR data to user buffer
- *
- * @param Request
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
- * @return BOOLEAN
- */
-
-BOOLEAN
-LbrDumpLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
-{
-    UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
-    UNREFERENCED_PARAMETER(ApplyByVmcall);
-
-    LBR_STATE * State = LbrFindLbrState(Request->LbrConfig.Pid);
-    if (State == NULL)
-        return FALSE;
-
-    ULONG CurrentIdx;
-
-    LogInfo("LBR Chronological Trace\n");
-
-    for (ULONG i = 1; i <= LbrCapacity; i++)
-    {
-        CurrentIdx = (ULONG)(State->Data->LbrTos + i) % (ULONG)LbrCapacity;
-
-        if (State->Data->Entries[CurrentIdx].From == 0)
-            continue;
-
-        LogInfo("[%2u] FROM: 0x%llx  TO: 0x%llx\n",
-                CurrentIdx,
-                State->Data->Entries[CurrentIdx].From,
-                State->Data->Entries[CurrentIdx].To);
-    }
-    return TRUE;
-}
-
-/**
- * @brief Update LBR configuration for a specific process and optionally refresh the LBR MSRs if the current process is the owner
- *
- * @param Request
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
- * @return BOOLEAN
- */
-BOOLEAN
-LbrConfigLbr(LBR_IOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
-{
-    LBR_STATE * State;
-
-    State = LbrFindLbrState(Request->LbrConfig.Pid);
-
-    if (State == NULL)
-    {
-        LogInfo("LIBIHT-COM: LBR not enabled for pid %d\n",
-                Request->LbrConfig.Pid);
-        return FALSE;
-    }
-
-    if (State->Config.Pid == xgetcurrent_pid())
-    {
-        LbrGetLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
-        State->Config.LbrSelect = Request->LbrConfig.LbrSelect;
-        LbrPutLbr(State, ApplyFromVmxRootMode, ApplyByVmcall);
-    }
-    else
-    {
-        State->Config.LbrSelect = Request->LbrConfig.LbrSelect;
-    }
-
-    return TRUE;
-}
-
-/**
- * @brief Create a new LBR_STATE structure with allocated memory for LBR data and entries
- *
- * @return LBR_STATE*
- */
-LBR_STATE *
-LbrCreateLbrState()
-{
-    LBR_STATE *       State;
-    LBR_DATA *        Data;
-    LBR_STACK_ENTRY * Entries;
-
-    State = xmalloc(sizeof(LBR_STATE));
-    if (State == NULL)
-        return NULL;
-
-    Data = xmalloc(sizeof(LBR_DATA));
-    if (Data == NULL)
-    {
-        xfree(State);
-        return NULL;
-    }
-    SIZE_T TotalEntrySize = (SIZE_T)sizeof(LBR_STACK_ENTRY) * LbrCapacity;
-    Entries               = xmalloc(TotalEntrySize);
-    if (Entries == NULL)
-    {
-        xfree(Data);
-        xfree(State);
-        return NULL;
-    }
-
-    xmemset(State, sizeof(LBR_STATE));
-    xmemset(Data, sizeof(LBR_DATA));
-    xmemset(Entries, TotalEntrySize);
-
-    State->Data   = Data;
-    Data->Entries = Entries;
-
-    return State;
-}
-
-/**
- * @brief Find the LBR_STATE structure for a specific process ID from the global list
- *
- * @param Pid
- * @return LBR_STATE*
- */
-LBR_STATE *
-LbrFindLbrState(ULONG Pid)
-{
-    KIRQL       OldIrql;
-    LBR_STATE * RetState = NULL;
-    PLIST_ENTRY Link;
-
-    ULONG TargetPid = (Pid == 0) ? xgetcurrent_pid() : Pid;
-    xacquire_lock(&LbrStateLock, &OldIrql);
-
-    for (Link = LbrStateHead.Flink; Link != &LbrStateHead; Link = Link->Flink)
-    {
-        LBR_STATE * Curr = CONTAINING_RECORD(Link, LBR_STATE, List);
-        if (Curr->Config.Pid == TargetPid)
-        {
-            RetState = Curr;
-            break;
-        }
-    }
-
-    xrelease_lock(&LbrStateLock, &OldIrql);
-    return RetState;
-}
-
-/**
- * @brief Insert a new LBR_STATE structure into the global list with proper locking
- *
- * @param NewState
- * @return VOID
- */
-VOID
-LbrInsertLbrState(LBR_STATE * NewState)
-{
-    KIRQL OldIrql;
-
-    if (NewState == NULL)
-        return;
-
-    xacquire_lock(&LbrStateLock, &OldIrql);
-    LogInfo("LIBIHT-COM: Insert LBR state for pid %d\n", NewState->Config.Pid);
-    xlist_add(NewState->List, LbrStateHead);
-    xrelease_lock(&LbrStateLock, &OldIrql);
-}
-
-/**
- * @brief Remove an existing LBR_STATE structure from the global list and free its associated memory with proper locking
- *
- * @param OldState
- * @return VOID
- */
-VOID
-LbrRemoveLbrState(LBR_STATE * OldState)
-{
-    KIRQL OldIrql;
-
-    if (OldState == NULL)
-        return;
-
-    xacquire_lock(&LbrStateLock, &OldIrql);
-    LogInfo("LIBIHT-COM: Remove LBR state for pid %d\n", OldState->Config.Pid);
-
-    xlist_del(OldState->List);
-    xfree(OldState->Data->Entries);
-    xfree(OldState->Data);
-    xfree(OldState);
-
-    xrelease_lock(&LbrStateLock, &OldIrql);
-}
-
-/**
- * @brief Free all LBR_STATE structures in the global list and their associated memory with proper locking
- *
- * @return VOID
- */
-VOID
-LbrFreeLbrStatList()
-{
-    KIRQL       OldIrql;
-    LBR_STATE * CurrState;
-    PLIST_ENTRY CurrLink;
-
-    xacquire_lock(&LbrStateLock, &OldIrql);
-
-    CurrLink = LbrStateHead.Flink;
-    while (CurrLink != &LbrStateHead)
-    {
-        CurrState = CONTAINING_RECORD(CurrLink, LBR_STATE, List);
-        CurrLink  = CurrLink->Flink;
-
-        xlist_del(CurrState->List);
-        xfree(CurrState->Data->Entries);
-        xfree(CurrState->Data);
-        xfree(CurrState);
-    }
-
-    xrelease_lock(&LbrStateLock, &OldIrql);
-}
-
-/**
- * @brief Handle IOCTL requests for LBR operations by dispatching to the appropriate function based on the command
- *
- * @param Request
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
- * @return BOOLEAN
- */
-BOOLEAN
-LbrIoctlHandler(XIOCTL_REQUEST * Request, BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
-{
-    BOOLEAN Status = TRUE;
-
-    LogInfo("LIBIHT-COM: LBR ioctl command %d.\n", Request->Cmd);
-    switch (Request->Cmd)
-    {
-    case LIBIHT_IOCTL_ENABLE_LBR:
-        Status = LbrStartLbr(&Request->Body.Lbr, ApplyFromVmxRootMode, ApplyByVmcall);
-        break;
-    case LIBIHT_IOCTL_DISABLE_LBR:
-        Status = LbrStopLbr(&Request->Body.Lbr, ApplyFromVmxRootMode, ApplyByVmcall);
-        break;
-    case LIBIHT_IOCTL_DUMP_LBR:
-        Status = LbrDumpLbr(&Request->Body.Lbr, ApplyFromVmxRootMode, ApplyByVmcall);
-        break;
-    case LIBIHT_IOCTL_CONFIG_LBR:
-        Status = LbrConfigLbr(&Request->Body.Lbr, ApplyFromVmxRootMode, ApplyByVmcall);
-        break;
-    default:
-        LogInfo("LIBIHT-COM: Invalid LBR ioctl command\n");
-        Status = FALSE;
-        break;
-    }
-
-    return Status;
-}
-
-/**
- * @brief Handle context switch events by saving the LBR state of the previous process and restoring the LBR state of the next process if they are being traced
- *
- * @param PrevPid
- * @param NextPid
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
- * @return VOID
- */
-VOID
-LbrCswitchHandler(ULONG   PrevPid,
-                  ULONG   NextPid,
-                  BOOLEAN ApplyFromVmxRootMode,
-                  BOOLEAN ApplyByVmcall)
-{
-    LBR_STATE * PrevState;
-    LBR_STATE * NextState;
-
-    PrevState = LbrFindLbrState(PrevPid);
-    NextState = LbrFindLbrState(NextPid);
-
-    if (PrevState)
-    {
-        LogInfo("LIBIHT-COM: LBR context switch from pid %d on cpu core %d\n",
-                PrevState->Config.Pid,
-                xcoreid());
-        LbrGetLbr(PrevState, ApplyFromVmxRootMode, ApplyByVmcall);
-    }
-
-    if (NextState)
-    {
-        LogInfo("LIBIHT-COM: LBR context switch to pid %d on cpu core %d\n",
-                NextState->Config.Pid,
-                xcoreid());
-        LbrPutLbr(NextState, ApplyFromVmxRootMode, ApplyByVmcall);
-    }
-}
-
-/**
- * @brief Handle new process creation events by inheriting the LBR state from the parent process if it is being traced
- *
- * @param ParentPid
- * @param ChildPid
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
- * @return VOID
- */
-VOID
-LbrNewProcHandler(
-    ULONG   ParentPid,
-    ULONG   ChildPid,
-    BOOLEAN ApplyFromVmxRootMode,
-    BOOLEAN ApplyByVmcall)
-{
-    LBR_STATE *ParentState, *ChildState;
-    KIRQL      OldIrql;
-
-    ParentState = LbrFindLbrState(ParentPid);
-    if (ParentState == NULL)
-        return;
-
-    LogInfo("LIBIHT-COM: LBR new child process pid %d, parent pid %d\n",
-            ChildPid,
-            ParentPid);
-
-    ChildState = LbrCreateLbrState();
-    if (ChildState == NULL)
-        return;
-
-    xacquire_lock(&LbrStateLock, &OldIrql);
-    ChildState->Parent           = ParentState;
-    ChildState->Config.Pid       = ChildPid;
-    ChildState->Config.LbrSelect = ParentState->Config.LbrSelect;
-    xmemcpy(ChildState->Data,
-            ParentState->Data,
-            sizeof(LBR_DATA) + LbrCapacity * sizeof(LBR_STACK_ENTRY));
-    xrelease_lock(&LbrStateLock, &OldIrql);
-
-    LbrInsertLbrState(ChildState);
-
-    if (ChildPid == xgetcurrent_pid())
-    {
-        LbrPutLbr(ChildState, ApplyFromVmxRootMode, ApplyByVmcall);
-    }
 }
 
 /**
