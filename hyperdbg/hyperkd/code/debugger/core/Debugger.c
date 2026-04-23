@@ -274,7 +274,7 @@ DebuggerUninitialize()
     }
 
     //
-    // Unitialize the HyperTrace (if it was initialized)
+    // Uninitialize the HyperTrace (if it was initialized)
     //
     HyperTraceUninit();
 

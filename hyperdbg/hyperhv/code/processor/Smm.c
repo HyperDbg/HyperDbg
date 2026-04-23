@@ -51,7 +51,7 @@ SmmTriggerPowerSmi()
     __outbyte(0xb2, SMI_TRIGGER_POWER_VALUE);
 
     //
-    // Check the respose in port 0xB3
+    // Check the response in port 0xB3
     //
     SmmResponse = __inbyte(0xb2);
 

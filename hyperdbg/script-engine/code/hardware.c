@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief Shows the script capablities of the target debuggee
+ * @brief Shows the script capabilities of the target debuggee
  *
  * @param InstanceInfo
  *
@@ -21,7 +21,7 @@
 VOID
 HardwareScriptInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
 {
-    ShowMessages("\nThis debuggee supports the following operatiors:\n");
+    ShowMessages("\nThis debuggee supports the following operators:\n");
     ShowMessages("\tlocal and global variable assignments: %s (maximum number of var: %d) \n",
                  InstanceInfo->scriptCapabilities.assign_local_global_var ? "supported" : "not supported",
                  InstanceInfo->numberOfSupportedLocalAndGlobalVariables);
@@ -67,7 +67,7 @@ HardwareScriptInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * Ins
 }
 
 /**
- * @brief Check the script capablities with the target script buffer
+ * @brief Check the script capabilities with the target script buffer
  *
  * @param InstanceInfo
  * @param ScriptBuffer
@@ -76,7 +76,7 @@ HardwareScriptInterpreterShowScriptCapabilities(HWDBG_INSTANCE_INFORMATION * Ins
  * @param NumberOfOperands
  * @param NumberOfOperandsImplemented
  *
- * @return BOOLEAN TRUE if the script capablities support the script, otherwise FALSE
+ * @return BOOLEAN TRUE if the script capabilities support the script, otherwise FALSE
  */
 BOOLEAN
 HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_INFORMATION * InstanceInfo,

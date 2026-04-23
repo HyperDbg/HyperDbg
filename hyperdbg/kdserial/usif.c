@@ -21,7 +21,7 @@ Abstract:
 #define USIF_FIFO_STAT       0x00000044 // FIFO status register
 #define USIF_FIFO_STAT_TXFFS 0x00FF0000 // TX filled FIFO stages
 #define USIF_FIFO_STAT_RXFFS 0x000000FF // RX filled FIFO stages
-#define USIF_TXD             0x00040000 // Transmisson data register
+#define USIF_TXD             0x00040000 // Transmission data register
 #define USIF_RXD             0x00080000 // Reception data register
 
 // ------------------------------------------------------------------ Functions

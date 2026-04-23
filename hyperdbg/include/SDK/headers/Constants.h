@@ -76,7 +76,7 @@
 #define BUILD_SEC_CH0 (__TIME__[6])
 #define BUILD_SEC_CH1 (__TIME__[7])
 
-#ifdef __cplusplus // becasue it's not valid in C
+#ifdef __cplusplus // because it's not valid in C
 
 const unsigned char BuildDateTime[] = {
     BUILD_YEAR_CH0,

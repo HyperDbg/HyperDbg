@@ -44,7 +44,7 @@ CommandHwClkHelp()
  * @return BOOLEAN
  */
 BOOLEAN
-CommandHwClkPerfomTest(vector<CommandToken> CommandTokens,
+CommandHwClkPerformTest(vector<CommandToken> CommandTokens,
                        const TCHAR *        InstanceFilePathToRead,
                        const TCHAR *        InstanceFilePathToSave,
                        const TCHAR *        HardwareScriptFilePathToSave,
@@ -68,7 +68,7 @@ CommandHwClkPerfomTest(vector<CommandToken> CommandTokens,
     if (!HwdbgLoadInstanceInfo(InstanceFilePathToRead, InitialBramBufferSize))
     {
         //
-        // No need for freeing memory so reuturn directly
+        // No need for freeing memory so return directly
         //
         return FALSE;
     }
@@ -90,7 +90,7 @@ CommandHwClkPerfomTest(vector<CommandToken> CommandTokens,
             &EventParsingErrorCause))
     {
         //
-        // No need for freeing memory so reuturn directly
+        // No need for freeing memory so return directly
         //
         return FALSE;
     }
@@ -158,7 +158,7 @@ CommandHwClk(vector<CommandToken> CommandTokens, string Command)
         //
         // Perform test with default file path and initial BRAM buffer size
         //
-        CommandHwClkPerfomTest(CommandTokens,
+        CommandHwClkPerformTest(CommandTokens,
                                HWDBG_TEST_READ_INSTANCE_INFO_PATH,
                                HWDBG_TEST_WRITE_INSTANCE_INFO_PATH,
                                HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH,

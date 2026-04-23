@@ -15,7 +15,7 @@
 #include "pch.h"
 
 /**
- * @brief Perfom read I/O APIC
+ * @brief Perform read I/O APIC
  *
  * @param IoApicBaseVa
  * @param Reg
@@ -45,7 +45,7 @@ IoApicRead(volatile IO_APIC_ENT * IoApicBaseVa, UINT32 Reg)
 }
 
 /**
- * @brief Perfom write to I/O APIC
+ * @brief Perform write to I/O APIC
  *
  * @param IoApicBaseVa
  * @param Reg

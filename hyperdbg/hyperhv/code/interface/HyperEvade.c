@@ -101,7 +101,7 @@ BOOLEAN
 TransparentUnhideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
     //
-    // Unitialize the syscall callback mechanism from hypervisor
+    // Uninitialize the syscall callback mechanism from hypervisor
     //
     SyscallCallbackUninitialize();
 

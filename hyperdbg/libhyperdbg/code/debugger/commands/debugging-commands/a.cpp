@@ -94,7 +94,7 @@ ParseUserCmd(const std::string & command)
                     // if yes, asm snippet was provided right after "a" command (2nd index)
                     // i.e. no address were provided to assembling to
                     //
-                    CmdVec.emplace_back(""); // emtpty addres string
+                    CmdVec.emplace_back(""); // empty address string
                 }
                 std::string RawAsm(CmdIt + 1, CloseIt); // remove "{}"
                 CmdVec.emplace_back(RawAsm);
@@ -192,7 +192,7 @@ CommandAssemble(vector<CommandToken> CommandTokens, string Command)
     if (CMD.isEmpty())
     {
         //
-        // Error messeges are already printed
+        // Error messages are already printed
         //
         return;
     }

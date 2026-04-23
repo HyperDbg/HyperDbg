@@ -50,7 +50,7 @@ class InterpreterInstanceInfo(
     val en = Input(Bool()) // chip enable signal
 
     //
-    // Sending singals
+    // Sending signals
     //
     val noNewDataSender = Output(Bool()) // should sender finish sending buffers or not?
     val dataValidOutput = Output(Bool()) // should sender send next buffer or not?

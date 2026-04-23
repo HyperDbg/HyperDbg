@@ -217,7 +217,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         if (!VmxBroadcastHandleNmiCallback((PVOID)IntrTrapFrame, FALSE))
         {
             //
-            // We cannot just use the NMI Window Exiting here becasue
+            // We cannot just use the NMI Window Exiting here because
             // in certain scenarios, VMRESUME with Error 0x7 will happen
             // Which means that the layout of the VMCS is wrong
             //

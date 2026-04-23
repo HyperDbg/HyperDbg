@@ -295,7 +295,7 @@ CommunicationServerShutdownAndCleanupConnection(SOCKET ClientSocket,
 //     }
 //   }
 //
-//   ShowMessages("close conntection\n");
+//   ShowMessages("close connection\n");
 //
 //   //
 //   // Close the connection

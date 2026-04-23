@@ -107,7 +107,7 @@
     0xc000000c
 
 /**
- * @brief error, an invalid address is specified based on anotehr process's cr3
+ * @brief error, an invalid address is specified based on another process's cr3
  * in !e* or e* commands
  *
  */
@@ -552,7 +552,7 @@
 #define DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE 0xc0000054
 
 /**
- * @brief error, the user debugger cannot be initalized
+ * @brief error, the user debugger cannot be initialized
  *
  */
 #define DEBUGGER_ERROR_DEBUGGER_NOT_INITIALIZED 0xc0000055

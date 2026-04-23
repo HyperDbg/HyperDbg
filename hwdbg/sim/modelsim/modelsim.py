@@ -8,7 +8,7 @@ MODELSIM = "/home/sina/intelFPGA/20.1/modelsim_ase/bin"
 # Check modelsim directory
 #
 if not os.path.exists(MODELSIM):
-    print("[x] Error: The path mdoes not exist")
+    print("[x] Error: The path does not exist")
     exit()
 else:
     print("[*] Oh, the modelsim path found :)")
@@ -152,6 +152,6 @@ print(result.stdout.decode())
 #
 # Run the generated WLF file
 #
-print("[*] openning file in vsim: " + latest_vcd_file + ".wlf")
+print("[*] opening file in vsim: " + latest_vcd_file + ".wlf")
 subprocess.run([MODELSIM_VSIM, latest_vcd_file + ".wlf",
                "-do", current_script_path + '/modelsim.tcl'])
