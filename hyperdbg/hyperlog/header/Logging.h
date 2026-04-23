@@ -70,8 +70,8 @@ typedef struct _LOG_BUFFER_INFORMATION
     KSPIN_LOCK BufferLock;                 // SpinLock to protect access to the queue
     KSPIN_LOCK BufferLockForNonImmMessage; // SpinLock to protect access to the queue of non-imm messages
 
-    UINT64 BufferForMultipleNonImmediateMessage; // Start address of the buffer for accumulating non-immadiate messages
-    UINT32 CurrentLengthOfNonImmBuffer;          // the current size of the buffer for accumulating non-immadiate messages
+    UINT64 BufferForMultipleNonImmediateMessage; // Start address of the buffer for accumulating non-immediate messages
+    UINT32 CurrentLengthOfNonImmBuffer;          // the current size of the buffer for accumulating non-immediate messages
 
     //
     // Regular buffers

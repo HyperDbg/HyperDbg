@@ -91,7 +91,7 @@ hyperdbg_load()
     hyperdbg_u_set_text_message_callback(hyperdbg_show_messages);
 
     //
-    // Test intepreter with shared buffer
+    // Test interpreter with shared buffer
     //
     // g_SharedMessageBuffer = hyperdbg_u_set_text_message_callback_using_shared_buffer(hyperdbg_show_messages_shared_buffer);
 

@@ -59,7 +59,7 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
         {
             //
             // The service is already been created
-            // means that, the driver is previosuly installed
+            // means that, the driver is previously installed
             //
             ShowMessages("the service (driver) already exists\n");
 

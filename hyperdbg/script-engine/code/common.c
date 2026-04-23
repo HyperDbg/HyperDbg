@@ -1031,7 +1031,7 @@ IsType16Func(PSCRIPT_ENGINE_TOKEN Operator)
 }
 
 /**
- * @brief Checks whether this Token type is assignemnt operator
+ * @brief Checks whether this Token type is assignment operator
  *
  * @param Operator
  * @return char

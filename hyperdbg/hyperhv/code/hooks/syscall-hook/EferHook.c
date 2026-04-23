@@ -155,7 +155,7 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     VmxVmwrite64(VMCS_GUEST_RFLAGS, GuestRflags);
 
     //
-    // Peform emulation of Intel CET (Shadow stacks)
+    // Perform emulation of Intel CET (Shadow stacks)
     //
     if (g_CompatibilityCheck.CetShadowStackSupport)
     {

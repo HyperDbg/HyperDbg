@@ -255,7 +255,7 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
  *
  * @details Returns an allocated tagged memory pointer which needs to be freed with PlatformMemFreePool()
  *
- * @param virtPtr A pointer to a guest virutal memory address, containing a OBJECT_ATTRIBUTES structure
+ * @param virtPtr A pointer to a guest virtual memory address, containing a OBJECT_ATTRIBUTES structure
  * @return PVOID Pointer to an allocated tagged memory pool, which needs to be freed with PlatformMemFreePool()
  */
 PVOID
@@ -690,7 +690,7 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                                                                    &ContextParams);
 
                 //
-                // Clean-up and return to guest exection
+                // Clean-up and return to guest execution
                 //
                 PlatformMemFreePool(NameBuf);
                 return;
@@ -805,7 +805,7 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
  *          it is possible to still detect that some tampering was done from the user space
  *
  * @param Ptr The pointer to a valid read/writable SYSTEM_MODULE_INFORMATION memory buffer
- * @param VirualAddress A pointer to a user-mode virual address
+ * @param VirualAddress A pointer to a user-mode virtual address
  * @param BufferSize Size of the user-mode buffer
  *
  * @return BOOLEAN
@@ -987,7 +987,7 @@ TransparentHandleProcessInformationQuery(SYSCALL_CALLBACK_CONTEXT_PARAMS * Param
         }
 
         //
-        // If the current entry didnt match any process names, move forward
+        // If the current entry did not match any process names, move forward
         //
         if (!MatchFound)
         {
@@ -1063,7 +1063,7 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
     if (BufSize > BufMaxSize)
     {
         //
-        // NOTE: might need zeroing the memory if the kernel did infact write to the pointer
+        // NOTE: might need zeroing the memory if the kernel did in fact write to the pointer
         //
         return 0;
     }
@@ -1253,7 +1253,7 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
         if (BufSize > Params->OptionalParam3 || BufSize == 0)
         {
             //
-            // NOTE: might need zeroing the memory if the kernel did infact write to the pointer
+            // NOTE: might need zeroing the memory if the kernel did in fact write to the pointer
             //
 
             return 0;

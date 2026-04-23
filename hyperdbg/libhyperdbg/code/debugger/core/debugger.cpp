@@ -1509,7 +1509,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
     else
     {
         //
-        // It's either a local debugger to in vmi-mode remote conntection
+        // It's either a local debugger to in vmi-mode remote connection
         //
 
         AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);

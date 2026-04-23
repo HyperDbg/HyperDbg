@@ -191,7 +191,7 @@ RemoteConnectionListen(PCSTR Port)
     //
     // Indicate that we're not in remote debugger anymore
     //
-    ShowMessages("closing the conntection...\n");
+    ShowMessages("closing the connection...\n");
 
     //
     // Close the connection

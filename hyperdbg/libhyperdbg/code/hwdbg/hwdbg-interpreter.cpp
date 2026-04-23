@@ -347,7 +347,7 @@ HwdbgComputeNumberOfFlipFlopsNeeded(
                                               sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64));
 
     //
-    // size of main operator (/ 2 is becasue Type is not inffered)
+    // size of main operator (/ 2 is because Type is not inferred)
     //
     NumberOfNeededFlipFlopsInTargetDevice += (NumberOfStages * g_HwdbgInstanceInfo.scriptVariableLength * (sizeof(HWDBG_SHORT_SYMBOL) / sizeof(UINT64)) / 2);
 

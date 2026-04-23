@@ -223,7 +223,7 @@ class DebuggerPacketSender(
           wrData := HyperDbgSharedConstants.INDICATOR_OF_HYPERDBG_PACKET.U >> regTransferredIndicatorLength
 
           //
-          // Add to the length transfered
+          // Add to the transferred length
           //
           regTransferredIndicatorLength := regTransferredIndicatorLength + instanceInfo.bramDataWidth.U
 

@@ -30,7 +30,7 @@
 
 /**
  * @brief Initial default buffer size (BRAN Size)
- * @details Number of 4-Byte intergers (256 * 4 Byte * 8 bits = 8-kilobits)
+ * @details Number of 4-Byte integers (256 * 4 Byte * 8 bits = 8-kilobits)
  *
  */
 #define DEFAULT_INITIAL_BRAM_BUFFER_SIZE 256

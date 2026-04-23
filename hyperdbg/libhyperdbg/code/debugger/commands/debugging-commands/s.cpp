@@ -372,7 +372,7 @@ CommandSearchMemory(vector<CommandToken> CommandTokens, string Command)
                 if (!SetValue)
                 {
                     //
-                    // At least on walue is there
+                    // At least one value is there
                     //
                     SetValue = TRUE;
                 }

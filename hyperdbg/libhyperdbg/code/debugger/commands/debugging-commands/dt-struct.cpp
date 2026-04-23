@@ -183,9 +183,9 @@ CommandDtAndStructConvertHyperDbgArgsToPdbex(vector<CommandToken> ExtraArgs,
             else
             {
                 //
-                // none/inline/all expected but didn't see it
+                // none/unnamed/all expected but didn't see it
                 //
-                ShowMessages("err, please insert 'none', 'inline', or 'all' as the argument\n\n");
+                ShowMessages("err, please insert 'none', 'unnamed', or 'all' as the argument\n\n");
                 return FALSE;
             }
 

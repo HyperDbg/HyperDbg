@@ -559,7 +559,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
     {
         //
-        // Check whether the physical addres
+        // Check whether the physical address
         //
         if (!CheckAddressPhysical(EditMemRequest->Address))
         {
@@ -595,7 +595,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     }
 
     //
-    // Set the resutls
+    // Set the results
     //
     EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -676,7 +676,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
     {
         //
-        // Check whether the physical addres
+        // Check whether the physical address
         //
         if (!CheckAddressPhysical(EditMemRequest->Address))
         {
@@ -705,7 +705,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     }
 
     //
-    // Set the resutls
+    // Set the results
     //
     EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     return TRUE;

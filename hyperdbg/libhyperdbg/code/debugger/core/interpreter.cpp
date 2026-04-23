@@ -140,7 +140,7 @@ public:
 
                         std::vector<size_t> PosVec = {CloseBrktPos, NewLineSrtPos, NewLineChrPos};
 
-                        auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occures first
+                        auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occurs first
 
                         if (min != std::string::npos && input[min - 1] != '\\')
                         {
@@ -361,7 +361,7 @@ public:
                 }
             }
 
-            if (((c == ' ' && !InQuotes) || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
+            if (((c == ' ' && !InQuotes) || c == '    ') && !InQuotes && !IdxBracket) // finding separator space char // Tab separator added too
             {
                 if (!current.empty() && current != " ")
                 {
