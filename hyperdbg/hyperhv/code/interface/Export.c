@@ -453,6 +453,32 @@ VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value)
 }
 
 /**
+ * @brief Set LOAD DEBUG CONTROLS on VM-entry controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetLoadDebugControlsVmcallOnTargetCore(Set);
+}
+
+/**
+ * @brief Set SAVE DEBUG CONTROLS on VM-exit controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetSaveDebugControlsVmcallOnTargetCore(Set);
+}
+
+/**
  * @brief Set the guest state of DR7
  * @param Value
  *

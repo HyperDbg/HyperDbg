@@ -111,6 +111,12 @@ IMPORT_EXPORT_VMM VOID
 VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value);
 
 IMPORT_EXPORT_VMM VOID
+VmFuncSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
 VmFuncSetTriggerEventForVmcalls(BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID

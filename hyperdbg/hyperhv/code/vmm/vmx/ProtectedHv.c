@@ -576,7 +576,7 @@ ProtectedHvSetLoadDebugControlsIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu, BOOL
     //
     // Set the new value
     //
-    VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
+    VmxVmwrite32(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
 }
 
 /**
@@ -629,7 +629,7 @@ ProtectedHvSetSaveDebugControlsIntegrityCheck(VIRTUAL_MACHINE_STATE * VCpu, BOOL
     //
     // Set the new value
     //
-    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
+    VmxVmwrite32(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
 }
 
 /**

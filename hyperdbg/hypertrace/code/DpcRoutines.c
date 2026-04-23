@@ -46,14 +46,13 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
         // Perform VMX-root mode specific operations to enable load and save
         // VM-exit and VM-entry controls for IA32_DEBUGCTL for LBR
         //
-        g_Callbacks.VmFuncSetSaveDebugControls(CurrentCore, TRUE);
-        g_Callbacks.VmFuncSetLoadDebugControls(CurrentCore, TRUE);
+        g_Callbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore(TRUE);
+        g_Callbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore(TRUE);
     }
 
     //
     // Enable LBR on all cores from VMX-root mode by VMCALL
     //
-
     // LbrStartLbr(CurrentRequest, TRUE, TRUE);
     HyperTraceExamplePerformLbrTrace(TRUE, TRUE);
 
@@ -105,8 +104,8 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
         // Perform VMX-root mode specific operations to disable load and save
         // VM-exit and VM-entry controls for IA32_DEBUGCTL for LBR
         //
-        g_Callbacks.VmFuncSetSaveDebugControls(CurrentCore, FALSE);
-        g_Callbacks.VmFuncSetLoadDebugControls(CurrentCore, FALSE);
+        g_Callbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore(FALSE);
+        g_Callbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore(FALSE);
     }
 
     //

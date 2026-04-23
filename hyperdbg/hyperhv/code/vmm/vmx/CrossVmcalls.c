@@ -26,8 +26,7 @@ CrossVmcallGetDebugctlVmcallOnTargetCore()
 }
 
 /**
- * @brief Set the guest state of IA32_DEBUGCTL on the target core from VMCS
- * using VMCALL
+ * @brief Set the guest state of IA32_DEBUGCTL on the target core from VMCS using VMCALL
  * @param Value
  *
  * @return VOID
@@ -36,4 +35,44 @@ VOID
 CrossVmcallSetDebugctlVmcallOnTargetCore(UINT64 Value)
 {
     AsmVmxVmcall(VMCALL_SET_VMCS_DEBUGCTL, Value, NULL64_ZERO, NULL64_ZERO);
+}
+
+/**
+ * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+CrossVmcallSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set)
+{
+    if (Set)
+    {
+        AsmVmxVmcall(VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
+    }
+    else
+    {
+        AsmVmxVmcall(VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
+    }
+}
+
+/**
+ * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+CrossVmcallSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set)
+{
+    if (Set)
+    {
+        AsmVmxVmcall(VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
+    }
+    else
+    {
+        AsmVmxVmcall(VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
+    }
 }
