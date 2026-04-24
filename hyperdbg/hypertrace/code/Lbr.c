@@ -14,9 +14,7 @@
 //             Global Definitions               //
 //////////////////////////////////////////////////
 
-ULONGLONG  LbrCapacity = 0;
-LIST_ENTRY LbrStateHead;
-KSPIN_LOCK LbrStateLock;
+ULONGLONG LbrCapacity = 0;
 
 //
 // Typical Intel LBR capacities based on CPU model
@@ -80,19 +78,6 @@ CPU_LBR_MAP CPU_LBR_MAPS[] = {
     {0x27, 8},
     {0x35, 8},
     {0x36, 8}};
-
-/**
- * @brief Initialize LBR state list and spinlock
- *
- * @param State
- * @return VOID
- */
-VOID
-LbrInitialize()
-{
-    InitializeListHead(&LbrStateHead);
-    KeInitializeSpinLock(&LbrStateLock);
-}
 
 /**
  * @brief Read LBR MSRs and store the values in the provided LBR_STATE structure

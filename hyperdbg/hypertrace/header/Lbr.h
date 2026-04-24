@@ -111,9 +111,6 @@ LbrPutLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 BOOLEAN
 LbrCheck();
 
-VOID
-LbrInitialize();
-
 BOOLEAN
 LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 

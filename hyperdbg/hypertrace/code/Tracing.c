@@ -202,11 +202,6 @@ HyperTraceEnableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
     }
 
     //
-    // Enabling LBR
-    //
-    LbrInitialize();
-
-    //
     // Broadcast enabling LBR on all cores
     //
     BroadcastEnableLbrOnAllCores();
