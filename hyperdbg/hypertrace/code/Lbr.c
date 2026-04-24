@@ -105,8 +105,21 @@ LbrInitialize()
 VOID
 LbrGetLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    ULONG     i;
-    ULONGLONG DbgCtlMsr;
+    ULONGLONG         DbgCtlMsr;
+    UINT64            LbrTos;
+    ULONG             CurrentIdx;
+    LBR_STACK_ENTRY * State;
+    UINT32            CurrentCore = 0;
+
+    //
+    // Get the current core id
+    //
+    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+
+    //
+    // Get the current processor LBR stack
+    //
+    State = &g_LbrStateList[CurrentCore];
 
     if (ApplyFromVmxRootMode)
     {
@@ -137,14 +150,33 @@ LbrGetLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
         xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
     }
 
-    for (i = 0; i < (ULONG)LbrCapacity; i++)
+    //
+    // Read the current TOS index to know where the most recent branch is stored
+    //
+    xrdmsr(MSR_LBR_TOS, &LbrTos);
+
+    //
+    // Dump LBR entries into the current core's state structure
+    //
+    for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
     {
-        UINT64 FromMsr, ToMsr;
+        xrdmsr(MSR_LBR_NHM_FROM + i, &State->BranchEntry[i].From);
+        xrdmsr(MSR_LBR_NHM_TO + i, &State->BranchEntry[i].To);
+    }
 
-        xrdmsr(MSR_LBR_NHM_FROM + i, &FromMsr);
-        xrdmsr(MSR_LBR_NHM_TO + i, &ToMsr);
+    LogInfo("LBR Chronological Trace\n");
 
-        LogInfo("LBR Entry %d: FROM = 0x%llx, TO = 0x%llx\n", i, FromMsr, ToMsr);
+    for (ULONG i = 1; i <= LbrCapacity; i++)
+    {
+        CurrentIdx = (ULONG)(LbrTos + i) % (ULONG)LbrCapacity;
+
+        if (State->BranchEntry[CurrentIdx].From == 0)
+            continue;
+
+        LogInfo("[%2u] FROM: 0x%llx  TO: 0x%llx\n",
+                CurrentIdx,
+                State->BranchEntry[CurrentIdx].From,
+                State->BranchEntry[CurrentIdx].To);
     }
 }
 
@@ -229,7 +261,8 @@ LbrFlushLbr()
     //
     // Disable LBR
     //
-    LogInfo("LIBIHT-COM: Flush LBR on cpu core: %d\n", xcoreid());
+    LogInfo("Flush LBR on cpu core: %d\n", xcoreid());
+
     xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
     DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
     xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);

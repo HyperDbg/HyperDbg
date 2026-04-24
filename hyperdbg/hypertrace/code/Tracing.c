@@ -88,6 +88,8 @@ BOOLEAN
 HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
                        BOOLEAN                InitForHypervisorEnvironment)
 {
+    UINT32 ProcessorsCount = 0;
+
     //
     // Check if the LBR is supported on this CPU before initializing the hypertrace module,
     //
@@ -114,6 +116,16 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
     // Save the callbacks
     //
     RtlCopyMemory(&g_Callbacks, HypertraceCallbacks, sizeof(HYPERTRACE_CALLBACKS));
+
+    //
+    // Query the number of processors in the system to initialize the global LBR state list accordingly
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Initialize the global LBR state list to hold LBR states for each core
+    //
+    g_LbrStateList = (LBR_STACK_ENTRY *)xmalloc(sizeof(LBR_STACK_ENTRY) * ProcessorsCount);
 
     //
     // Set the flag to indicate whether the initialization is being done for hypervisor environment or not
@@ -314,6 +326,15 @@ HyperTraceUninit()
     // Set callbacks to not initialized
     //
     g_HyperTraceCallbacksInitialized = FALSE;
+
+    //
+    // Unallocate the global LBR state list if it is allocated
+    //
+    if (g_LbrStateList != NULL)
+    {
+        xfree(g_LbrStateList);
+        g_LbrStateList = NULL;
+    }
 }
 
 /**

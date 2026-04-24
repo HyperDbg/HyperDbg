@@ -11,7 +11,7 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//			    	   Globals	    			//
+//			    	  Constants	    			//
 //////////////////////////////////////////////////
 
 // Intel MSR Constants
@@ -23,14 +23,26 @@
 #define MSR_LBR_NHM_TO       0x000006C0
 #define LBR_SELECT           0x00000000
 
+/**
+ * @brief Maximum LBR capacity that is supported by processors
+ *
+ */
+#define MAXIMUM_LBR_CAPACITY 0x20 // 32 entries, which is the maximum supported by modern Intel CPUs
+
 //////////////////////////////////////////////////
 //                  Structures                  //
 //////////////////////////////////////////////////
 
-typedef struct _LBR_STACK_ENTRY
+typedef struct _LBR_BRANCH_ENTRY
 {
     ULONGLONG From;
     ULONGLONG To;
+
+} LBR_BRANCH_ENTRY, PLBR_BRANCH_ENTRY;
+
+typedef struct _LBR_STACK_ENTRY
+{
+    LBR_BRANCH_ENTRY BranchEntry[MAXIMUM_LBR_CAPACITY];
 
 } LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
 

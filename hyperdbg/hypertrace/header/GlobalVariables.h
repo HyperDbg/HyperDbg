@@ -33,3 +33,9 @@ BOOLEAN g_InitForHypervisorEnvironment;
  *
  */
 BOOLEAN g_LastBranchRecordEnabled;
+
+/**
+ * @brief This will be a dynamically allocated array to hold LBR states for each core
+ *
+ */
+LBR_STACK_ENTRY * g_LbrStateList;
