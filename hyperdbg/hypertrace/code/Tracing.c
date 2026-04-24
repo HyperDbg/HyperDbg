@@ -166,8 +166,8 @@ HyperTraceQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId)
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceEnableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
-                           BOOLEAN                        ApplyFromVmxRootMode)
+HyperTraceEnableLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                    BOOLEAN                        ApplyFromVmxRootMode)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
 
@@ -225,8 +225,8 @@ HyperTraceEnableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceDisableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
-                            BOOLEAN                        ApplyFromVmxRootMode)
+HyperTraceDisableLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                     BOOLEAN                        ApplyFromVmxRootMode)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
 
@@ -265,6 +265,51 @@ HyperTraceDisableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRe
 }
 
 /**
+ * @brief Save LBR tracing for HyperTrace
+ *
+ * @param HyperTraceOperationRequest
+ * @param ApplyFromVmxRootMode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceSaveLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                  BOOLEAN                        ApplyFromVmxRootMode)
+{
+    UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
+
+    //
+    // Check if LBR is already disabled or not
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        if (HyperTraceOperationRequest != NULL)
+        {
+            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
+        }
+
+        return FALSE;
+    }
+
+    LogInfo("Saving LBR Buffer...\n");
+
+    //
+    // Save the LBR state
+    //
+    LbrSaveLbr();
+
+    //
+    // The operation was successful
+    //
+    if (HyperTraceOperationRequest != NULL)
+    {
+        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Dump LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
@@ -273,8 +318,8 @@ HyperTraceDisableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRe
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceDumpLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
-                         BOOLEAN                        ApplyFromVmxRootMode)
+HyperTraceDumpLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                  BOOLEAN                        ApplyFromVmxRootMode)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
 
@@ -294,11 +339,6 @@ HyperTraceDumpLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReque
     LogInfo("Dumping LBR Buffer...\n");
 
     //
-    // Save the LBR state
-    //
-    LbrSaveLbr();
-
-    //
     // This will print the collected LBR branches to the log
     //
     LbrDumpLbr();
@@ -306,7 +346,10 @@ HyperTraceDumpLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReque
     //
     // The operation was successful
     //
-    HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    if (HyperTraceOperationRequest != NULL)
+    {
+        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
 
     return TRUE;
 }
@@ -322,7 +365,7 @@ HyperTraceUninit()
     //
     // Disable LBR tracing if it is still enabled
     //
-    HyperTraceDisableLbrTracing(NULL, FALSE);
+    HyperTraceDisableLbr(NULL, FALSE);
 
     //
     // Set callbacks to not initialized
@@ -371,7 +414,7 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 
         LogInfo("HyperTrace: Enabling LBR tracing...\n");
 
-        HyperTraceEnableLbrTracing(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+        HyperTraceEnableLbr(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 
@@ -379,7 +422,15 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 
         LogInfo("HyperTrace: Disabling LBR tracing...\n");
 
-        HyperTraceDisableLbrTracing(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+        HyperTraceDisableLbr(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+
+        break;
+
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SAVE:
+
+        LogInfo("HyperTrace: Saving LBR tracing...\n");
+
+        HyperTraceSaveLbr(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 
@@ -387,7 +438,7 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 
         LogInfo("HyperTrace: Showing LBR tracing...\n");
 
-        HyperTraceDumpLbrTracing(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+        HyperTraceDumpLbr(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 

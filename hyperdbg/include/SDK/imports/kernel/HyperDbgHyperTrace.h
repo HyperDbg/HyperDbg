@@ -54,10 +54,12 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * LbrOperationRequest,
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+HyperTraceSaveLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                  BOOLEAN                        ApplyFromVmxRootMode);
 
-IMPORT_EXPORT_HYPERTRACE VOID
-HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceDumpLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                  BOOLEAN                        ApplyFromVmxRootMode);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId);
