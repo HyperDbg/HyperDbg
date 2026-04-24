@@ -23,18 +23,8 @@
 BOOLEAN
 DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    LBR_IOCTL_REQUEST * CurrentRequest;
-    ULONG               CurrentCore;
-
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
-
-    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
-
-    //
-    // Get the current request (for current core)
-    //
-    CurrentRequest = &g_LbrRequestState[CurrentCore];
 
     //
     // Check if the initialization is being done for hypervisor environment or not
@@ -53,8 +43,7 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     //
     // Enable LBR on all cores from VMX-root mode by VMCALL
     //
-    // LbrStartLbr(CurrentRequest, TRUE, TRUE);
-    HyperTraceExamplePerformLbrTrace(TRUE, TRUE);
+    LbrStartLbr(TRUE, TRUE);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -81,18 +70,13 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
 BOOLEAN
 DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    LBR_IOCTL_REQUEST * CurrentRequest;
-    ULONG               CurrentCore;
-
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
 
-    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
-
     //
-    // Get the current request (for current core)
+    // Disable LBR on all cores from VMX-root mode by VMCALL
     //
-    CurrentRequest = &g_LbrRequestState[CurrentCore];
+    LbrStopLbr(TRUE, TRUE);
 
     //
     // Check if the initialization is being done for hypervisor environment or not
@@ -107,11 +91,6 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
         g_Callbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore(FALSE);
         g_Callbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore(FALSE);
     }
-
-    //
-    // Disable LBR on all cores from VMX-root mode by VMCALL
-    //
-    LbrStopLbr(CurrentRequest, TRUE, TRUE);
 
     //
     // Wait for all DPCs to synchronize at this point

@@ -736,16 +736,26 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
                                   GuestRegs);
         break;
 
-    case FUNC_LBR_START:
+    case FUNC_LBR_SAVE:
 
-        ScriptEngineFunctionLbrStart();
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
 
+        DesVal = ScriptEngineFunctionLbrSave();
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
         break;
 
-    case FUNC_LBR_STOP:
+    case FUNC_LBR_DUMP:
 
-        ScriptEngineFunctionLbrStop();
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
 
+        DesVal = ScriptEngineFunctionLbrDump();
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
         break;
 
     case FUNC_FLUSH:

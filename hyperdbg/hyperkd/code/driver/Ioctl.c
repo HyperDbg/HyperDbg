@@ -1286,7 +1286,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Perform the HyperTrace operation
             //
-            HyperTracePerformOperation(HyperTraceOperationRequest, FALSE);
+            HyperTracePerformOperation(HyperTraceOperationRequest, TRUE);
 
             Irp->IoStatus.Information = SIZEOF_HYPERTRACE_OPERATION_PACKETS;
             Status                    = STATUS_SUCCESS;

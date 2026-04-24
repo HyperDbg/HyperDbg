@@ -2014,15 +2014,16 @@ ScriptEngineFunctionEventTraceStepIn()
 }
 
 /**
- * @brief Implementation of lbr_start function
+ * @brief Implementation of lbr_save function
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-ScriptEngineFunctionLbrStart()
+BOOLEAN
+ScriptEngineFunctionLbrSave()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, it's not possible to call lbr_start function in the user-mode\n");
+    return FALSE;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -2030,7 +2031,7 @@ ScriptEngineFunctionLbrStart()
     //
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
-    HyperTraceStartLbr(VmFuncVmxGetCurrentExecutionMode(), TRUE);
+    return HyperTraceSaveLbr(NULL, VmFuncVmxGetCurrentExecutionMode());
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -2038,13 +2039,14 @@ ScriptEngineFunctionLbrStart()
 /**
  * @brief Implementation of lbr_stop function
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-ScriptEngineFunctionLbrStop()
+BOOLEAN
+ScriptEngineFunctionLbrDump()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, it's not possible to call lbr_stop function in the user-mode\n");
+    return FALSE;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -2052,7 +2054,7 @@ ScriptEngineFunctionLbrStop()
     //
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
-    HyperTraceStopLbr(VmFuncVmxGetCurrentExecutionMode(), TRUE);
+    return HyperTraceDumpLbr(NULL, VmFuncVmxGetCurrentExecutionMode());
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
