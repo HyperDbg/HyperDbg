@@ -43,6 +43,7 @@ typedef struct _LBR_BRANCH_ENTRY
 typedef struct _LBR_STACK_ENTRY
 {
     LBR_BRANCH_ENTRY BranchEntry[MAXIMUM_LBR_CAPACITY];
+    UINT32           Tos;
 
 } LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
 
@@ -102,20 +103,20 @@ extern CPU_LBR_MAP CPU_LBR_MAPS[];
 //                  Prototypes                  //
 //////////////////////////////////////////////////
 
-VOID
-LbrGetLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
-
-VOID
-LbrPutLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
-
 BOOLEAN
 LbrCheck();
 
 BOOLEAN
 LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
-BOOLEAN
+VOID
 LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+
+VOID
+LbrSaveLbr();
+
+VOID
+LbrDumpLbr();
 
 extern ULONGLONG  LbrCapacity;
 extern LIST_ENTRY LbrStateHead;

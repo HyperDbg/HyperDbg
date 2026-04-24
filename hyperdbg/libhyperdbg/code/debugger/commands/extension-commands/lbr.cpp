@@ -31,7 +31,7 @@ CommandLbrHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : !lbr enable\n");
     ShowMessages("\t\te.g : !lbr disable\n");
-    ShowMessages("\t\te.g : !lbr show\n");
+    ShowMessages("\t\te.g : !lbr dump\n");
 }
 
 /**
@@ -140,9 +140,9 @@ CommandLbr(vector<CommandToken> CommandTokens, string Command)
     {
         LbrRequest.HyperTraceOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE;
     }
-    else if (CompareLowerCaseStrings(CommandTokens.at(1), "show"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "dump"))
     {
-        LbrRequest.HyperTraceOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SHOW;
+        LbrRequest.HyperTraceOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP;
     }
     else
     {
@@ -165,7 +165,7 @@ CommandLbr(vector<CommandToken> CommandTokens, string Command)
         {
             ShowMessages("LBR disabled successfully\n");
         }
-        else if (LbrRequest.HyperTraceOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SHOW)
+        else if (LbrRequest.HyperTraceOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP)
         {
             ShowMessages("LBR branches are shown\n");
         }

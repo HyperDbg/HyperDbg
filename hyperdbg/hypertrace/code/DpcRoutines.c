@@ -43,8 +43,7 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     //
     // Enable LBR on all cores from VMX-root mode by VMCALL
     //
-    // LbrStartLbr(CurrentRequest, TRUE, TRUE);
-    HyperTraceExamplePerformLbrTrace(TRUE, TRUE);
+    LbrStartLbr(TRUE, TRUE);
 
     //
     // Wait for all DPCs to synchronize at this point

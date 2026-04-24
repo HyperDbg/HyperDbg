@@ -80,102 +80,60 @@ CPU_LBR_MAP CPU_LBR_MAPS[] = {
     {0x36, 8}};
 
 /**
- * @brief Read LBR MSRs and store the values in the provided LBR_STATE structure
- *
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
+ * @brief Flush LBR MSRs by disabling LBR and clearing all LBR entries
  *
  * @return VOID
  */
 VOID
-LbrGetLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrFlushLbr()
 {
-    ULONGLONG         DbgCtlMsr;
-    UINT64            LbrTos;
-    ULONG             CurrentIdx;
-    LBR_STACK_ENTRY * State;
-    UINT32            CurrentCore = 0;
+    ULONG     i;
+    ULONGLONG DbgCtlMsr;
+    KIRQL     OldIrql;
+
+    xlock_core(&OldIrql);
 
     //
-    // Get the current core id
+    // Disable LBR
     //
-    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    LogInfo("Flush LBR on cpu core: %d\n", xcoreid());
+
+    xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
+    DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
+    xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
 
     //
-    // Get the current processor LBR stack
+    // Flush LBR registers
     //
-    State = &g_LbrStateList[CurrentCore];
+    xwrmsr(MSR_LBR_SELECT, 0);
+    xwrmsr(MSR_LBR_TOS, 0);
 
-    if (ApplyFromVmxRootMode)
+    for (i = 0; i < LbrCapacity; i++)
     {
-        if (ApplyByVmcall)
-        {
-            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
-        }
-        else
-        {
-            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
-        }
-
-        DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
-
-        if (ApplyByVmcall)
-        {
-            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
-        }
-        else
-        {
-            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
-        }
-    }
-    else
-    {
-        xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
-        DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
-        xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
+        xwrmsr(MSR_LBR_NHM_FROM + i, 0);
+        xwrmsr(MSR_LBR_NHM_TO + i, 0);
     }
 
-    //
-    // Read the current TOS index to know where the most recent branch is stored
-    //
-    xrdmsr(MSR_LBR_TOS, &LbrTos);
-
-    //
-    // Dump LBR entries into the current core's state structure
-    //
-    for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
-    {
-        xrdmsr(MSR_LBR_NHM_FROM + i, &State->BranchEntry[i].From);
-        xrdmsr(MSR_LBR_NHM_TO + i, &State->BranchEntry[i].To);
-    }
-
-    LogInfo("LBR Chronological Trace\n");
-
-    for (ULONG i = 1; i <= LbrCapacity; i++)
-    {
-        CurrentIdx = (ULONG)(LbrTos + i) % (ULONG)LbrCapacity;
-
-        if (State->BranchEntry[CurrentIdx].From == 0)
-            continue;
-
-        LogInfo("[%2u] FROM: 0x%llx  TO: 0x%llx\n",
-                CurrentIdx,
-                State->BranchEntry[CurrentIdx].From,
-                State->BranchEntry[CurrentIdx].To);
-    }
+    xrelease_core(&OldIrql);
 }
 
 /**
- * @brief Write LBR MSRs from the provided LBR_STATE structure
+ * @brief Start collecting LBR branches
  *
  * @param ApplyFromVmxRootMode
  * @param ApplyByVmcall
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-LbrPutLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+BOOLEAN
+LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
+    if (LbrCapacity == 0)
+    {
+        LogInfo("LBR: Aborting, CPU model not supported.\n");
+        return FALSE;
+    }
+
     ULONGLONG DbgCtlMsr;
 
     //
@@ -227,82 +185,132 @@ LbrPutLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
         DbgCtlMsr &= ~(1ULL << 11);   // Bit 11 = 0
         xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
     }
+
+    return TRUE;
 }
 
 /**
- * @brief Flush LBR MSRs by disabling LBR and clearing all LBR entries
+ * @brief Save LBR branches
  *
  * @return VOID
  */
 VOID
-LbrFlushLbr()
+LbrSaveLbr()
 {
-    ULONG     i;
-    ULONGLONG DbgCtlMsr;
-    KIRQL     OldIrql;
-
-    xlock_core(&OldIrql);
+    UINT64            LbrTos;
+    LBR_STACK_ENTRY * State;
+    UINT32            CurrentCore = 0;
 
     //
-    // Disable LBR
+    // Get the current core id
     //
-    LogInfo("Flush LBR on cpu core: %d\n", xcoreid());
-
-    xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
-    DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
-    xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
+    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
 
     //
-    // Flush LBR registers
+    // Get the current processor LBR stack
     //
-    xwrmsr(MSR_LBR_SELECT, 0);
-    xwrmsr(MSR_LBR_TOS, 0);
+    State = &g_LbrStateList[CurrentCore];
 
-    for (i = 0; i < LbrCapacity; i++)
+    //
+    // Read and store the current TOS index to know where the most recent branch is stored
+    //
+    xrdmsr(MSR_LBR_TOS, &LbrTos);
+    State->Tos = (UINT32)LbrTos;
+
+    //
+    // Dump LBR entries into the current core's state structure
+    //
+    for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
     {
-        xwrmsr(MSR_LBR_NHM_FROM + i, 0);
-        xwrmsr(MSR_LBR_NHM_TO + i, 0);
+        xrdmsr(MSR_LBR_NHM_FROM + i, &State->BranchEntry[i].From);
+        xrdmsr(MSR_LBR_NHM_TO + i, &State->BranchEntry[i].To);
     }
-
-    xrelease_core(&OldIrql);
 }
 
 /**
- * @brief Start collecting LBR branches for a specific process and store the configuration in the global LBR state list
+ * @brief Stop collecting LBR branches
  *
  * @param ApplyFromVmxRootMode
  * @param ApplyByVmcall
  *
- * @return BOOLEAN
+ * @return VOID
  */
-BOOLEAN
-LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
-{
-    if (LbrCapacity == 0)
-    {
-        LogInfo("LBR: Aborting, CPU model not supported.\n");
-        return FALSE;
-    }
-
-    LbrPutLbr(ApplyFromVmxRootMode, ApplyByVmcall);
-
-    return TRUE;
-}
-
-/**
- * @brief Stop collecting LBR branches for a specific process and remove the corresponding LBR state from the global list
- *
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
- * @return BOOLEAN
- */
-BOOLEAN
+VOID
 LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    LbrGetLbr(ApplyFromVmxRootMode, ApplyByVmcall);
+    ULONGLONG DbgCtlMsr;
 
-    return TRUE;
+    if (ApplyFromVmxRootMode)
+    {
+        if (ApplyByVmcall)
+        {
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
+        }
+        else
+        {
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+        }
+
+        DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
+
+        if (ApplyByVmcall)
+        {
+            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
+        }
+        else
+        {
+            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+        }
+    }
+    else
+    {
+        xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
+        DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
+        xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
+    }
+
+    //
+    // Save the LBR entries
+    //
+    LbrSaveLbr();
+}
+
+/**
+ * @brief Dump collected LBR branches
+ *
+ * @return VOID
+ */
+VOID
+LbrDumpLbr()
+{
+    ULONG             CurrentIdx;
+    LBR_STACK_ENTRY * State;
+    UINT32            CurrentCore = 0;
+
+    //
+    // Get the current core id
+    //
+    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+
+    //
+    // Get the current processor LBR stack
+    //
+    State = &g_LbrStateList[CurrentCore];
+
+    LogInfo("LBR Chronological Trace\n");
+
+    for (ULONG i = 1; i <= LbrCapacity; i++)
+    {
+        CurrentIdx = (ULONG)(State->Tos + i) % (ULONG)LbrCapacity;
+
+        // if (State->BranchEntry[CurrentIdx].From == 0)
+        //     continue;
+
+        LogInfo("[%2u] FROM: 0x%llx  TO: 0x%llx\n",
+                CurrentIdx,
+                State->BranchEntry[CurrentIdx].From,
+                State->BranchEntry[CurrentIdx].To);
+    }
 }
 
 /**

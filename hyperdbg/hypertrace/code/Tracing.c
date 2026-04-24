@@ -40,7 +40,8 @@ HyperTraceExamplePerformLbrTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVm
 
         LogInfo("Dumping LBR Buffer...\n");
 
-        LbrGetLbr(ApplyFromVmxRootMode, ApplyByVmcall);
+        LbrStopLbr(ApplyFromVmxRootMode, ApplyByVmcall);
+        LbrDumpLbr(); // This will print the collected LBR branches to the log
     }
 }
 
@@ -62,16 +63,12 @@ HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
  * @param ApplyFromVmxRootMode
  * @param ApplyByVmcall
  *
- * @return BOOLEAN
+ * @return VOID
  */
-BOOLEAN
+VOID
 HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    LbrGetLbr(ApplyFromVmxRootMode, ApplyByVmcall);
-
-    LogInfo("Dumping LBR Buffer...\n");
-
-    return LbrStopLbr(ApplyFromVmxRootMode, ApplyByVmcall);
+    LbrStopLbr(ApplyFromVmxRootMode, ApplyByVmcall);
 }
 
 /**
@@ -268,7 +265,7 @@ HyperTraceDisableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRe
 }
 
 /**
- * @brief Show LBR tracing for HyperTrace
+ * @brief Dump LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
  * @param ApplyFromVmxRootMode
@@ -276,7 +273,7 @@ HyperTraceDisableLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRe
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceShowLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+HyperTraceDumpLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
                          BOOLEAN                        ApplyFromVmxRootMode)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
@@ -294,12 +291,22 @@ HyperTraceShowLbrTracing(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReque
         return FALSE;
     }
 
-    //
-    // Get the current request (for current core)
-    //
-    LbrGetLbr(TRUE, TRUE);
-
     LogInfo("Dumping LBR Buffer...\n");
+
+    //
+    // Save the LBR state
+    //
+    LbrSaveLbr();
+
+    //
+    // This will print the collected LBR branches to the log
+    //
+    LbrDumpLbr();
+
+    //
+    // The operation was successful
+    //
+    HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return TRUE;
 }
@@ -376,11 +383,11 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 
         break;
 
-    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SHOW:
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP:
 
         LogInfo("HyperTrace: Showing LBR tracing...\n");
 
-        HyperTraceShowLbrTracing(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+        HyperTraceDumpLbrTracing(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 
