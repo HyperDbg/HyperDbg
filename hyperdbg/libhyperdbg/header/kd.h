@@ -156,7 +156,10 @@ BOOLEAN
 KdSendSmiPacketsToDebuggee(PSMI_OPERATION_PACKETS SmiOperationRequest, UINT32 ExpectedRequestSize);
 
 BOOLEAN
-KdSendHyperTracePacketsToDebuggee(PHYPERTRACE_OPERATION_PACKETS HyperTraceOperationRequest, UINT32 ExpectedRequestSize);
+KdSendHyperTraceLbrPacketsToDebuggee(PHYPERTRACE_LBR_OPERATION_PACKETS HyperTraceLbrOperationRequest, UINT32 ExpectedRequestSize);
+
+BOOLEAN
+KdSendHyperTracePtPacketsToDebuggee(PHYPERTRACE_PT_OPERATION_PACKETS HyperTracePtOperationRequest, UINT32 ExpectedRequestSize);
 
 BOOLEAN
 KdSendQueryIdtPacketsToDebuggee(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtRequest);

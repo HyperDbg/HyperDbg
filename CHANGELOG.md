@@ -26,6 +26,7 @@ New release of the HyperDbg Debugger.
 - Fix the problem of getting the PML1 entry of the target address on Intel Core Ultra processors (#567) ([link](https://github.com/HyperDbg/HyperDbg/issues/567))
 - Fix the '.clang-format' formatting error
 - Restructure of the hypertrace project
+- Add starting structure for supporting Intel Processor Trace (PT)
 
 ## [0.18.0.0] - 2026-02-16
 New release of the HyperDbg Debugger.

@@ -32,24 +32,39 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks, BOOLEAN InitF
 IMPORT_EXPORT_HYPERTRACE VOID
 HyperTraceUnInit();
 
-//
-// Perform operations related to HyperTrace based on the request type and parameters
-//
-IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceLbrPerformOperation(HYPERTRACE_OPERATION_PACKETS * LbrOperationRequest,
-                              BOOLEAN                        ApplyFromVmxRootMode);
-
 //////////////////////////////////////////////////
 //                LBR Functions 	    		//
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceLbrSave(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
-                  BOOLEAN                        ApplyFromVmxRootMode);
+HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest,
+                  BOOLEAN                            ApplyFromVmxRootMode);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceLbrDump(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
-                  BOOLEAN                        ApplyFromVmxRootMode);
+HyperTraceLbrDump(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest,
+                  BOOLEAN                            ApplyFromVmxRootMode);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId);
+
+//
+// Perform operations related to HyperTrace LBR based on the request type and parameters
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationRequest,
+                              BOOLEAN                            ApplyFromVmxRootMode);
+
+//////////////////////////////////////////////////
+//                 PT Functions 	    		//
+//////////////////////////////////////////////////
+
+BOOLEAN
+HyperTracePtDisable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest,
+                    BOOLEAN                           ApplyFromVmxRootMode);
+
+//
+// Perform operations related to HyperTrace PT based on the request type and parameters
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest,
+                             BOOLEAN                           ApplyFromVmxRootMode);

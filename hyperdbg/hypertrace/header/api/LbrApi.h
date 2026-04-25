@@ -18,5 +18,5 @@ VOID
 HyperTraceLbrExamplePerformTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 BOOLEAN
-HyperTraceLbrDisable(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+HyperTraceLbrDisable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest,
                      BOOLEAN                        ApplyFromVmxRootMode);

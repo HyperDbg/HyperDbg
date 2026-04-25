@@ -1265,35 +1265,69 @@ typedef struct _SMI_OPERATION_PACKETS
  */
 
 /**
- * @brief Perform actions related to HyperTrace
+ * @brief Perform actions related to HyperTrace for LBR
  *
  */
-typedef enum _HYPERTRACE_OPERATION_REQUEST_TYPE
+typedef enum _HYPERTRACE_LBR_OPERATION_REQUEST_TYPE
 {
     HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_ENABLE,
     HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE,
     HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SAVE,
     HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP,
 
-} HYPERTRACE_OPERATION_REQUEST_TYPE;
+} HYPERTRACE_LBR_OPERATION_REQUEST_TYPE;
 
 /**
- * @brief The structure of HyperTrace result packet in HyperDbg
+ * @brief The structure of HyperTrace LBR result packet in HyperDbg
  *
  */
-typedef struct _HYPERTRACE_OPERATION_PACKETS
+typedef struct _HYPERTRACE_LBR_OPERATION_PACKETS
 {
-    HYPERTRACE_OPERATION_REQUEST_TYPE HyperTraceOperationType;
-    UINT32                            KernelStatus;
+    HYPERTRACE_LBR_OPERATION_REQUEST_TYPE LbrOperationType;
+    UINT32                                KernelStatus;
 
-} HYPERTRACE_OPERATION_PACKETS, *PHYPERTRACE_OPERATION_PACKETS;
+} HYPERTRACE_LBR_OPERATION_PACKETS, *PHYPERTRACE_LBR_OPERATION_PACKETS;
 
 /**
- * @brief Debugger size of HYPERTRACE_OPERATION_PACKETS
+ * @brief Debugger size of HYPERTRACE_LBR_OPERATION_PACKETS
  *
  */
-#define SIZEOF_HYPERTRACE_OPERATION_PACKETS \
-    sizeof(HYPERTRACE_OPERATION_PACKETS)
+#define SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS \
+    sizeof(HYPERTRACE_LBR_OPERATION_PACKETS)
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Perform actions related to HyperTrace for PT
+ *
+ */
+typedef enum _HYPERTRACE_PT_OPERATION_REQUEST_TYPE
+{
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_ENABLE,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DISABLE,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SAVE,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DUMP,
+
+} HYPERTRACE_PT_OPERATION_REQUEST_TYPE;
+
+/**
+ * @brief The structure of HyperTrace PT result packet in HyperDbg
+ *
+ */
+typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
+{
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE PtOperationType;
+    UINT32                               KernelStatus;
+
+} HYPERTRACE_PT_OPERATION_PACKETS, *PHYPERTRACE_PT_OPERATION_PACKETS;
+
+/**
+ * @brief Debugger size of HYPERTRACE_PT_OPERATION_PACKETS
+ *
+ */
+#define SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS \
+    sizeof(HYPERTRACE_PT_OPERATION_PACKETS)
 
 /* ==============================================================================================
  */

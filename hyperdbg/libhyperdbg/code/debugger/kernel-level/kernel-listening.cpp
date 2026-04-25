@@ -70,7 +70,8 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_SHORT_CIRCUITING_EVENT             ShortCircuitingPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS    PtePacket;
     PSMI_OPERATION_PACKETS                       SmiOperationPacket;
-    PHYPERTRACE_OPERATION_PACKETS                HyperTraceOperationPacket;
+    PHYPERTRACE_LBR_OPERATION_PACKETS            HyperTraceLbrOperationPacket;
+    PHYPERTRACE_PT_OPERATION_PACKETS             HyperTracePtOperationPacket;
     PDEBUGGER_PAGE_IN_REQUEST                    PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS           Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET           ListOrModifyBreakpointPacket;
@@ -1007,24 +1008,45 @@ StartAgain:
 
             break;
 
-        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_OPERATION_REQUESTS:
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_LBR_OPERATION_REQUESTS:
 
-            HyperTraceOperationPacket = (HYPERTRACE_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            HyperTraceLbrOperationPacket = (HYPERTRACE_LBR_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_OPERATION_RESULT, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_OPERATION_RESULT, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller
             //
-            memcpy(CallerAddress, HyperTraceOperationPacket, CallerSize);
+            memcpy(CallerAddress, HyperTraceLbrOperationPacket, CallerSize);
 
             //
-            // Signal the event relating to receiving result of HyperTrace operation
+            // Signal the event relating to receiving result of HyperTrace LBR operation
             //
-            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_OPERATION_RESULT);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_OPERATION_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_PT_OPERATION_REQUESTS:
+
+            HyperTracePtOperationPacket = (HYPERTRACE_PT_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT, &CallerAddress, &CallerSize);
+
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, HyperTracePtOperationPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of HyperTrace PT operation
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT);
 
             break;
 

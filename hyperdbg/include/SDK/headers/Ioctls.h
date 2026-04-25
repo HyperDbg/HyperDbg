@@ -332,8 +332,15 @@
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x826, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
- * @brief ioctl, to perform HyperTrace operations
+ * @brief ioctl, to perform HyperTrace LBR operations
  *
  */
-#define IOCTL_PERFORM_HYPERTRACE_OPERATION \
+#define IOCTL_PERFORM_HYPERTRACE_LBR_OPERATION \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x827, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to perform HyperTrace PT operations
+ *
+ */
+#define IOCTL_PERFORM_HYPERTRACE_PT_OPERATION \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x828, METHOD_BUFFERED, FILE_ANY_ACCESS)

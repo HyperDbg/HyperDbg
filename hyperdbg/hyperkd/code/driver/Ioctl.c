@@ -59,7 +59,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_PAUSE_PACKET_RECEIVED                         DebuggerPauseKernelRequest;
     PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
     PSMI_OPERATION_PACKETS                                  SmiOperationRequest;
-    PHYPERTRACE_OPERATION_PACKETS                           HyperTraceOperationRequest;
+    PHYPERTRACE_LBR_OPERATION_PACKETS                       HyperTraceLbrOperationRequest;
+    PHYPERTRACE_PT_OPERATION_PACKETS                        HyperTracePtOperationRequest;
     PVOID                                                   BufferToStoreThreadsAndProcessesDetails;
     NTSTATUS                                                Status;
     ULONG                                                   InBuffLength;  // Input buffer length
@@ -1255,12 +1256,12 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
-        case IOCTL_PERFORM_HYPERTRACE_OPERATION:
+        case IOCTL_PERFORM_HYPERTRACE_LBR_OPERATION:
 
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_HYPERTRACE_OPERATION_PACKETS ||
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS ||
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
@@ -1281,14 +1282,57 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
-            HyperTraceOperationRequest = (PHYPERTRACE_OPERATION_PACKETS)Irp->AssociatedIrp.SystemBuffer;
+            HyperTraceLbrOperationRequest = (PHYPERTRACE_LBR_OPERATION_PACKETS)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Perform the HyperTrace operation
+            // Perform the HyperTrace LBR operation
             //
-            HyperTraceLbrPerformOperation(HyperTraceOperationRequest, TRUE);
+            HyperTraceLbrPerformOperation(HyperTraceLbrOperationRequest, TRUE);
 
-            Irp->IoStatus.Information = SIZEOF_HYPERTRACE_OPERATION_PACKETS;
+            Irp->IoStatus.Information = SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_PERFORM_HYPERTRACE_PT_OPERATION:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place
+            //
+            HyperTracePtOperationRequest = (PHYPERTRACE_PT_OPERATION_PACKETS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the HyperTrace PT operation
+            //
+            HyperTracePtPerformOperation(HyperTracePtOperationRequest, TRUE);
+
+            Irp->IoStatus.Information = SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS;
             Status                    = STATUS_SUCCESS;
 
             //

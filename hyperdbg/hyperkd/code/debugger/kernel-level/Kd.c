@@ -2186,7 +2186,8 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
     PSMI_OPERATION_PACKETS                              SmiOperationPacket;
-    PHYPERTRACE_OPERATION_PACKETS                       HyperTraceOperationPacket;
+    PHYPERTRACE_LBR_OPERATION_PACKETS                   HyperTraceLbrOperationPacket;
+    PHYPERTRACE_PT_OPERATION_PACKETS                    HyperTracePtOperationPacket;
     PDEBUGGER_APIC_REQUEST                              ApicPacket;
     PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS         IdtEntryPacket;
     PDEBUGGER_PAGE_IN_REQUEST                           PageinPacket;
@@ -2902,22 +2903,41 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 break;
 
-            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_OPERATION:
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_LBR_OPERATION:
 
-                HyperTraceOperationPacket = (HYPERTRACE_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
-
-                //
-                // Perform the HyperTrace operations (it's in vmx-root)
-                //
-                HyperTraceLbrPerformOperation(HyperTraceOperationPacket, TRUE);
+                HyperTraceLbrOperationPacket = (HYPERTRACE_LBR_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Send the result of the HyperTrace back to the debuggee
+                // Perform the HyperTrace LBR operations (it's in vmx-root)
+                //
+                HyperTraceLbrPerformOperation(HyperTraceLbrOperationPacket, TRUE);
+
+                //
+                // Send the result of the HyperTrace LBR back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_OPERATION_REQUESTS,
-                                           (CHAR *)HyperTraceOperationPacket,
-                                           SIZEOF_HYPERTRACE_OPERATION_PACKETS);
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_LBR_OPERATION_REQUESTS,
+                                           (CHAR *)HyperTraceLbrOperationPacket,
+                                           SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS);
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_PT_OPERATION:
+
+                HyperTracePtOperationPacket = (HYPERTRACE_PT_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the HyperTrace PT operations (it's in vmx-root)
+                //
+                HyperTracePtPerformOperation(HyperTracePtOperationPacket, TRUE);
+
+                //
+                // Send the result of the HyperTrace PT back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_PT_OPERATION_REQUESTS,
+                                           (CHAR *)HyperTracePtOperationPacket,
+                                           SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS);
 
                 break;
 

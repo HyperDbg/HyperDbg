@@ -1631,6 +1631,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!lbr"] = {&CommandLbr, &CommandLbrHelp, DEBUGGER_COMMAND_LBR_ATTRIBUTES};
 
+    g_CommandsList["!pt"] = {&CommandPt, &CommandPtHelp, DEBUGGER_COMMAND_PT_ATTRIBUTES};
+
     //
     // hwdbg commands
     //
