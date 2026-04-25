@@ -1,7 +1,7 @@
 /**
  * @file Lbr.c
  * @author Hari Mishal (harimishal6@gmail.com)
- * @brief Message logging and tracing implementation
+ * @brief Last Branch Record (LBR) tracing implementation for HyperTrace module
  * @details Modified from LIBIHT project (Thomasaon Zhao et al) with Windows style updates.
  * @version 0.18
  * @date 2025-12-02
@@ -13,8 +13,6 @@
 //////////////////////////////////////////////////
 //             Global Definitions               //
 //////////////////////////////////////////////////
-
-ULONGLONG LbrCapacity = 0;
 
 //
 // Typical Intel LBR capacities based on CPU model
@@ -89,18 +87,15 @@ LbrFlushLbr()
 {
     ULONG     i;
     ULONGLONG DbgCtlMsr;
-    KIRQL     OldIrql;
-
-    xlock_core(&OldIrql);
 
     //
     // Disable LBR
     //
     LogInfo("Flush LBR on cpu core: %d\n", xcoreid());
 
-    xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
-    DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
-    xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
+    xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
+    DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
+    xwrmsr(IA32_DEBUGCTL, DbgCtlMsr);
 
     //
     // Flush LBR registers
@@ -113,8 +108,6 @@ LbrFlushLbr()
         xwrmsr(MSR_LBR_NHM_FROM + i, 0);
         xwrmsr(MSR_LBR_NHM_TO + i, 0);
     }
-
-    xrelease_core(&OldIrql);
 }
 
 /**
@@ -162,8 +155,8 @@ LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
             DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
         }
 
-        DbgCtlMsr |= DEBUGCTLMSR_LBR; // Bit 0 = 1
-        DbgCtlMsr &= ~(1ULL << 11);   // Bit 11 = 0
+        DbgCtlMsr |= IA32_DEBUGCTL_LBR_FLAG; // Bit 0 = 1
+        DbgCtlMsr &= ~(1ULL << 11);          // Bit 11 = 0
 
         if (ApplyByVmcall)
         {
@@ -180,10 +173,10 @@ LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
         // Enable LBR and CLEAR 'Freeze LBRs on PMI' (Bit 11)
         // If Bit 11 is set, the LBR stops as soon as a single interrupt happens
         //
-        xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
-        DbgCtlMsr |= DEBUGCTLMSR_LBR; // Bit 0 = 1
-        DbgCtlMsr &= ~(1ULL << 11);   // Bit 11 = 0
-        xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
+        xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
+        DbgCtlMsr |= IA32_DEBUGCTL_LBR_FLAG; // Bit 0 = 1
+        DbgCtlMsr &= ~(1ULL << 11);          // Bit 11 = 0
+        xwrmsr(IA32_DEBUGCTL, DbgCtlMsr);
     }
 
     return TRUE;
@@ -251,7 +244,7 @@ LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
             DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
         }
 
-        DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
+        DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
 
         if (ApplyByVmcall)
         {
@@ -264,9 +257,9 @@ LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
     }
     else
     {
-        xrdmsr(MSR_IA32_DEBUGCTLMSR, &DbgCtlMsr);
-        DbgCtlMsr &= ~DEBUGCTLMSR_LBR;
-        xwrmsr(MSR_IA32_DEBUGCTLMSR, DbgCtlMsr);
+        xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
+        DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
+        xwrmsr(IA32_DEBUGCTL, DbgCtlMsr);
     }
 
     //

@@ -1609,7 +1609,7 @@ TerminateQueryDebuggerResourceSaveAndLoadDebugControls(UINT32                   
     //
     // Query the hypertrace project about this controls since there might be using this load and save controls
     //
-    if (HyperTraceQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(CoreId))
+    if (HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(CoreId))
     {
         //
         // We should ignore it since LBR feature of hypertrace is still using it

@@ -43,18 +43,6 @@
 #include "ia32-doc/out/ia32.h"
 
 //
-// DPC and broadcasting function headers
-//
-#include "Dpc.h"
-#include "DpcRoutines.h"
-#include "Broadcast.h"
-
-//
-// Unload function (to be called when the driver is unloaded)
-//
-#include "UnloadDll.h"
-
-//
 // SDK headers
 //
 #include "SDK/HyperDbgSdk.h"
@@ -63,6 +51,23 @@
 // Configuration
 //
 #include "config/Configuration.h"
+
+//
+// Platform independent headers
+//
+#include "platform/kernel/header/PlatformMem.h"
+
+//
+// DPC and broadcasting function headers
+//
+#include "broadcast/Dpc.h"
+#include "broadcast/DpcRoutines.h"
+#include "broadcast/Broadcast.h"
+
+//
+// Unload function (to be called when the driver is unloaded)
+//
+#include "common/UnloadDll.h"
 
 //
 // Hyperlog headers
@@ -81,15 +86,16 @@
 #include "SDK/modules/HyperTrace.h"
 
 //
-// Definition of tracing types and structures
+// Definition of tracing types and structures (Last Branch Record)
 //
-#include "Tracing.h"
-#include "Lbr.h"
+#include "api/LbrApi.h"
+#include "lbr/Lbr.h"
 
 //
-// Platform independent headers
+// Definition of tracing types and structures (Processor Trace)
 //
-#include "platform/kernel/header/PlatformMem.h"
+#include "api/PtApi.h"
+#include "pt/Pt.h"
 
 //
 // Export functions
@@ -99,4 +105,4 @@
 //
 // Global variables
 //
-#include "GlobalVariables.h"
+#include "globals/GlobalVariables.h"

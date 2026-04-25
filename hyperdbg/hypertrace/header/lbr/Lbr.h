@@ -14,14 +14,11 @@
 //			    	  Constants	    			//
 //////////////////////////////////////////////////
 
-// Intel MSR Constants
-#define MSR_IA32_DEBUGCTLMSR 0x000001D9
-#define DEBUGCTLMSR_LBR      (1ULL << 0)
-#define MSR_LBR_SELECT       0x000001C8
-#define MSR_LBR_TOS          0x000001C9
-#define MSR_LBR_NHM_FROM     0x00000680
-#define MSR_LBR_NHM_TO       0x000006C0
-#define LBR_SELECT           0x00000000
+#define MSR_LBR_SELECT   0x000001C8
+#define MSR_LBR_TOS      0x000001C9
+#define MSR_LBR_NHM_FROM 0x00000680
+#define MSR_LBR_NHM_TO   0x000006C0
+#define LBR_SELECT       0x00000000
 
 /**
  * @brief Maximum LBR capacity that is supported by processors
@@ -33,6 +30,10 @@
 //                  Structures                  //
 //////////////////////////////////////////////////
 
+/**
+ * @brief The structure to hold a single LBR entry (from and to addresses)
+ *
+ */
 typedef struct _LBR_BRANCH_ENTRY
 {
     ULONGLONG From;
@@ -40,6 +41,10 @@ typedef struct _LBR_BRANCH_ENTRY
 
 } LBR_BRANCH_ENTRY, PLBR_BRANCH_ENTRY;
 
+/**
+ * @brief The structure to hold the LBR stack for a single processor core, including the branch entries and the TOS index
+ *
+ */
 typedef struct _LBR_STACK_ENTRY
 {
     LBR_BRANCH_ENTRY BranchEntry[MAXIMUM_LBR_CAPACITY];
@@ -60,22 +65,6 @@ typedef struct _LBR_STACK_ENTRY
 #define xcoreid()         KeGetCurrentProcessorNumber()
 #define xgetcurrent_pid() (ULONG)(ULONG_PTR) PsGetCurrentProcessId()
 
-// List Handling
-#define xlist_next(ptr)        (ptr)->Flink
-#define xlist_add(entry, head) InsertTailList(&(head), &(entry))
-#define xlist_del(entry)       RemoveEntryList(&(entry))
-
-// Spinlock & IRQL (Using Windows Native to fix VCR001)
-#define xacquire_lock(Lock, Irql) KeAcquireSpinLock((PKSPIN_LOCK)(Lock), (Irql))
-#define xrelease_lock(Lock, Irql) KeReleaseSpinLock((PKSPIN_LOCK)(Lock), *(Irql))
-
-#define xlock_core(irql)    KeRaiseIrql(DISPATCH_LEVEL, irql)
-#define xrelease_core(irql) KeLowerIrql(*(irql))
-
-// Buffer Copy
-#define xcopy_from_user(dest, src, sz) (RtlCopyMemory(dest, src, sz), 0)
-#define xcopy_to_user(dest, src, sz)   (RtlCopyMemory(dest, src, sz), 0)
-
 // CPUID (Fixed C6001: initialized cpuInfo)
 #define xcpuid(code, a, b, c, d) \
     {                            \
@@ -91,16 +80,30 @@ typedef struct _LBR_STACK_ENTRY
 //                Global Variables              //
 //////////////////////////////////////////////////
 
+/**
+ * @brief The structure to hold the mapping of CPU model to its LBR capacity
+ *
+ */
 typedef struct _CPU_LBR_MAP
 {
     ULONG Model;
     ULONG LbrCapacity;
 } CPU_LBR_MAP, *PCPU_LBR_MAP;
 
+/**
+ * @brief The global variable to hold the mapping of CPU model to its LBR capacity
+ *
+ */
 extern CPU_LBR_MAP CPU_LBR_MAPS[];
 
+/**
+ * @brief The global variable to hold the LBR capacity of the current CPU
+ *
+ */
+ULONGLONG LbrCapacity;
+
 //////////////////////////////////////////////////
-//                  Prototypes                  //
+//                  Functions                   //
 //////////////////////////////////////////////////
 
 BOOLEAN

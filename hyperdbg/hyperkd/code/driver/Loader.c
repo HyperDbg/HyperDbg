@@ -63,7 +63,7 @@ LoaderInitHyperTrace(BOOLEAN InitForHypervisorEnvironment)
     //
     // Initialize hypertrace module
     //
-    if (HyperTraceInitCallback(&HyperTraceCallbacks, InitForHypervisorEnvironment))
+    if (HyperTraceLbrInitCallback(&HyperTraceCallbacks, InitForHypervisorEnvironment))
     {
         LogDebugInfo("HyperDbg's hypertrace loaded successfully");
         return TRUE;

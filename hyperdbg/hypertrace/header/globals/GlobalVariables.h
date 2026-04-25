@@ -17,6 +17,12 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief List of callbacks
+ *
+ */
+HYPERTRACE_CALLBACKS g_Callbacks;
+
+/**
  * @brief The flag indicating whether the hypertrace module callbacks is initialized or not
  *
  */

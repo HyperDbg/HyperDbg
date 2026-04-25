@@ -1,8 +1,8 @@
 /**
- * @file Tracing.h
+ * @file LbrApi.h
  * @author Hari Mishal (harimishal6@gmail.com)
- * @brief Message logging and tracing implementation
- * @details Modified from LIBIHT project (Thomasaon Zhao et al) with Windows style updates.
+ * @brief Header for LBR tracing routines for HyperTrace module (Intel Last Branch Record)
+ * @details
  * @version 0.18
  * @date 2025-12-02
  *
@@ -11,11 +11,8 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//			    	   Globals	    			//
+//			   	   Functions    		    	//
 //////////////////////////////////////////////////
 
-/**
- * @brief List of callbacks
- *
- */
-HYPERTRACE_CALLBACKS g_Callbacks;
+VOID
+HyperTraceLbrExamplePerformTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);

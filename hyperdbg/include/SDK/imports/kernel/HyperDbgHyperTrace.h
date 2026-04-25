@@ -17,16 +17,6 @@
 #endif
 
 //////////////////////////////////////////////////
-//            Example Functions 	    		//
-//////////////////////////////////////////////////
-
-//
-// Used for testing purposes
-//
-IMPORT_EXPORT_HYPERTRACE VOID
-HyperTraceExamplePerformLbrTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
-
-//////////////////////////////////////////////////
 //            HyperTrace Functions 	    		//
 //////////////////////////////////////////////////
 
@@ -34,32 +24,32 @@ HyperTraceExamplePerformLbrTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVm
 // Initialize the hypertrace module with the provided callbacks
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks, BOOLEAN InitForHypervisorEnvironment);
+HyperTraceLbrInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks, BOOLEAN InitForHypervisorEnvironment);
 
 //
 // Uninitialize the HyperTrace module
 //
 IMPORT_EXPORT_HYPERTRACE VOID
-HyperTraceUninit();
+HyperTraceLbrUninit();
 
 //
 // Perform operations related to HyperTrace based on the request type and parameters
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * LbrOperationRequest,
-                           BOOLEAN                        ApplyFromVmxRootMode);
+HyperTraceLbrPerformOperation(HYPERTRACE_OPERATION_PACKETS * LbrOperationRequest,
+                              BOOLEAN                        ApplyFromVmxRootMode);
 
 //////////////////////////////////////////////////
 //                LBR Functions 	    		//
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceSaveLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+HyperTraceLbrSave(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
                   BOOLEAN                        ApplyFromVmxRootMode);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceDumpLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+HyperTraceLbrDump(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
                   BOOLEAN                        ApplyFromVmxRootMode);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId);
+HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId);

@@ -1,8 +1,8 @@
 /**
- * @file Tracing.c
+ * @file LbrApi.c
  * @author Hari Mishal (harimishal6@gmail.com)
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Tracing routines for HyperTrace module
+ * @brief Tracing routines for HyperTrace module (Intel Last Branch Record)
  * @details
  * @version 0.18
  * @date 2025-12-02
@@ -20,7 +20,7 @@
  * @return BOOLEAN
  */
 VOID
-HyperTraceExamplePerformLbrTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+HyperTraceLbrExamplePerformTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     if (LbrStartLbr(ApplyFromVmxRootMode, ApplyByVmcall))
     {
@@ -53,7 +53,7 @@ HyperTraceExamplePerformLbrTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVm
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+HyperTraceLbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     return LbrStartLbr(ApplyFromVmxRootMode, ApplyByVmcall);
 }
@@ -66,7 +66,7 @@ HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
  * @return VOID
  */
 VOID
-HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+HyperTraceLbrStop(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     LbrStopLbr(ApplyFromVmxRootMode, ApplyByVmcall);
 }
@@ -82,8 +82,8 @@ HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
-                       BOOLEAN                InitForHypervisorEnvironment)
+HyperTraceLbrInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
+                          BOOLEAN                InitForHypervisorEnvironment)
 {
     UINT32 ProcessorsCount = 0;
 
@@ -150,7 +150,7 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId)
+HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId)
 {
     UNREFERENCED_PARAMETER(CoreId); // Right now there is no core specifc controls for LBR
 
@@ -166,7 +166,7 @@ HyperTraceQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId)
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceEnableLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+HyperTraceLbrEnable(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
                     BOOLEAN                        ApplyFromVmxRootMode)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
@@ -225,7 +225,7 @@ HyperTraceEnableLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceDisableLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+HyperTraceLbrDisable(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
                      BOOLEAN                        ApplyFromVmxRootMode)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
@@ -273,7 +273,7 @@ HyperTraceDisableLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceSaveLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+HyperTraceLbrSave(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
                   BOOLEAN                        ApplyFromVmxRootMode)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
@@ -318,7 +318,7 @@ HyperTraceSaveLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceDumpLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+HyperTraceLbrDump(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
                   BOOLEAN                        ApplyFromVmxRootMode)
 {
     UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
@@ -360,12 +360,12 @@ HyperTraceDumpLbr(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
  * @return VOID
  */
 VOID
-HyperTraceUninit()
+HyperTraceLbrUninit()
 {
     //
     // Disable LBR tracing if it is still enabled
     //
-    HyperTraceDisableLbr(NULL, FALSE);
+    HyperTraceLbrDisable(NULL, FALSE);
 
     //
     // Set callbacks to not initialized
@@ -391,8 +391,8 @@ HyperTraceUninit()
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
-                           BOOLEAN                        ApplyFromVmxRootMode)
+HyperTraceLbrPerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                              BOOLEAN                        ApplyFromVmxRootMode)
 {
     BOOLEAN Status = TRUE;
 
@@ -414,7 +414,7 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 
         LogInfo("HyperTrace: Enabling LBR tracing...\n");
 
-        HyperTraceEnableLbr(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+        HyperTraceLbrEnable(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 
@@ -422,7 +422,7 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 
         LogInfo("HyperTrace: Disabling LBR tracing...\n");
 
-        HyperTraceDisableLbr(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+        HyperTraceLbrDisable(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 
@@ -430,7 +430,7 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 
         LogInfo("HyperTrace: Saving LBR tracing...\n");
 
-        HyperTraceSaveLbr(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+        HyperTraceLbrSave(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 
@@ -438,7 +438,7 @@ HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationReq
 
         LogInfo("HyperTrace: Showing LBR tracing...\n");
 
-        HyperTraceDumpLbr(HyperTraceOperationRequest, ApplyFromVmxRootMode);
+        HyperTraceLbrDump(HyperTraceOperationRequest, ApplyFromVmxRootMode);
 
         break;
 
