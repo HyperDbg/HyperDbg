@@ -43,7 +43,7 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     //
     // Enable LBR on all cores from VMX-root mode by VMCALL
     //
-    LbrStartLbr(TRUE, TRUE);
+    LbrStart(TRUE, TRUE);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -76,7 +76,7 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
     //
     // Disable LBR on all cores from VMX-root mode by VMCALL
     //
-    LbrStopLbr(TRUE, TRUE);
+    LbrStop(TRUE, TRUE);
 
     //
     // Check if the initialization is being done for hypervisor environment or not

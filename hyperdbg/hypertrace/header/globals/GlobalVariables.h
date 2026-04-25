@@ -41,6 +41,12 @@ BOOLEAN g_InitForHypervisorEnvironment;
 BOOLEAN g_LastBranchRecordEnabled;
 
 /**
+ * @brief The flag indicating whether the hypertrace Processor Trace is initialized or not
+ *
+ */
+BOOLEAN g_ProcessorTraceEnabled;
+
+/**
  * @brief This will be a dynamically allocated array to hold LBR states for each core
  *
  */

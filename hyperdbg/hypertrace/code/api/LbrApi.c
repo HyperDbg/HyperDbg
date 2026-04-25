@@ -22,7 +22,7 @@
 VOID
 HyperTraceLbrExamplePerformTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    if (LbrStartLbr(ApplyFromVmxRootMode, ApplyByVmcall))
+    if (LbrStart(ApplyFromVmxRootMode, ApplyByVmcall))
     {
         for (volatile int i = 0; i < 50; i++)
         {
@@ -40,8 +40,8 @@ HyperTraceLbrExamplePerformTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVm
 
         LogInfo("Dumping LBR Buffer...\n");
 
-        LbrStopLbr(ApplyFromVmxRootMode, ApplyByVmcall);
-        LbrDumpLbr(); // This will print the collected LBR branches to the log
+        LbrStop(ApplyFromVmxRootMode, ApplyByVmcall);
+        LbrDump(); // This will print the collected LBR branches to the log
     }
 }
 
@@ -55,7 +55,7 @@ HyperTraceLbrExamplePerformTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVm
 BOOLEAN
 HyperTraceLbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    return LbrStartLbr(ApplyFromVmxRootMode, ApplyByVmcall);
+    return LbrStart(ApplyFromVmxRootMode, ApplyByVmcall);
 }
 
 /**
@@ -68,78 +68,7 @@ HyperTraceLbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 VOID
 HyperTraceLbrStop(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
-    LbrStopLbr(ApplyFromVmxRootMode, ApplyByVmcall);
-}
-
-/**
- * @brief Initialize the hyper trace module callbacks
- * @details This only for callback initialization, not for LBR initialization
- *
- * @param HypertraceCallbacks
- * @param InitForHypervisorEnvironment Whether the initialization is being done for hypervisor environment or not,
- * it can be used to skip some of the initialization steps if it is not for hypervisor environment and behave differently based on that
- *
- * @return BOOLEAN
- */
-BOOLEAN
-HyperTraceLbrInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
-                          BOOLEAN                InitForHypervisorEnvironment)
-{
-    UINT32 ProcessorsCount = 0;
-
-    //
-    // Check if the LBR is supported on this CPU before initializing the hypertrace module,
-    //
-    if (!LbrCheck())
-    {
-        return FALSE;
-    }
-
-    //
-    // Check if any of the required callbacks are NULL
-    //
-    for (UINT32 i = 0; i < sizeof(HYPERTRACE_CALLBACKS) / sizeof(UINT64); i++)
-    {
-        if (((PVOID *)HypertraceCallbacks)[i] == NULL)
-        {
-            //
-            // The callback has null entry, so we cannot proceed
-            //
-            return FALSE;
-        }
-    }
-
-    //
-    // Save the callbacks
-    //
-    RtlCopyMemory(&g_Callbacks, HypertraceCallbacks, sizeof(HYPERTRACE_CALLBACKS));
-
-    //
-    // Query the number of processors in the system to initialize the global LBR state list accordingly
-    //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Initialize the global LBR state list to hold LBR states for each core
-    //
-    g_LbrStateList = (LBR_STACK_ENTRY *)xmalloc(sizeof(LBR_STACK_ENTRY) * ProcessorsCount);
-
-    //
-    // Set the flag to indicate whether the initialization is being done for hypervisor environment or not
-    //
-    g_InitForHypervisorEnvironment = InitForHypervisorEnvironment;
-
-    //
-    // It is initialized, but LBR is disabled at this stage
-    //
-    g_LastBranchRecordEnabled = FALSE;
-
-    //
-    // Enable callbacks and set the initialized flag
-    //
-    g_HyperTraceCallbacksInitialized = TRUE;
-
-    return TRUE;
+    LbrStop(ApplyFromVmxRootMode, ApplyByVmcall);
 }
 
 /**
@@ -244,14 +173,14 @@ HyperTraceLbrDisable(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
     }
 
     //
-    // Broadcast disabling LBR on all cores
-    //
-    BroadcastDisableLbrOnAllCores();
-
-    //
     // Disabling LBR
     //
     g_LastBranchRecordEnabled = FALSE;
+
+    //
+    // Broadcast disabling LBR on all cores
+    //
+    BroadcastDisableLbrOnAllCores();
 
     //
     // Set successful status
@@ -296,7 +225,7 @@ HyperTraceLbrSave(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
     //
     // Save the LBR state
     //
-    LbrSaveLbr();
+    LbrSave();
 
     //
     // The operation was successful
@@ -341,7 +270,7 @@ HyperTraceLbrDump(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
     //
     // This will print the collected LBR branches to the log
     //
-    LbrDumpLbr();
+    LbrDump();
 
     //
     // The operation was successful
@@ -352,34 +281,6 @@ HyperTraceLbrDump(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
     }
 
     return TRUE;
-}
-
-/**
- * @brief Uninitialize the hyper trace module
- *
- * @return VOID
- */
-VOID
-HyperTraceLbrUninit()
-{
-    //
-    // Disable LBR tracing if it is still enabled
-    //
-    HyperTraceLbrDisable(NULL, FALSE);
-
-    //
-    // Set callbacks to not initialized
-    //
-    g_HyperTraceCallbacksInitialized = FALSE;
-
-    //
-    // Unallocate the global LBR state list if it is allocated
-    //
-    if (g_LbrStateList != NULL)
-    {
-        xfree(g_LbrStateList);
-        g_LbrStateList = NULL;
-    }
 }
 
 /**

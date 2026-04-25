@@ -617,6 +617,24 @@
  */
 #define DEBUGGER_ERROR_DEBUGCTL_NOT_SUPPORTED_ON_VMCS 0xc000005f
 
+/**
+ * @brief error, PT is already enabled
+ *
+ */
+#define DEBUGGER_ERROR_PT_ALREADY_ENABLED 0xc0000060
+
+/**
+ * @brief error, PT is already disabled
+ *
+ */
+#define DEBUGGER_ERROR_PT_ALREADY_DISABLED 0xc0000061
+
+/**
+ * @brief error, PT is not supported by the processor
+ *
+ */
+#define DEBUGGER_ERROR_PT_NOT_SUPPORTED 0xc0000062
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

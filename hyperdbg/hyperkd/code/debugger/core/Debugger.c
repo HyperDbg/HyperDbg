@@ -277,7 +277,7 @@ DebuggerUninitialize()
     //
     // Uninitialize the HyperTrace (if it was initialized)
     //
-    HyperTraceLbrUninit();
+    HyperTraceUnInit();
 
     //
     // Uninitialize kernel debugger

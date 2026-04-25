@@ -104,6 +104,7 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
     <ClCompile Include="code\api\LbrApi.c" />
     <ClCompile Include="code\api\PtApi.c" />
+    <ClCompile Include="code\api\TraceApi.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\common\UnloadDll.c" />
@@ -116,6 +117,7 @@
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\api\LbrApi.h" />
     <ClInclude Include="header\api\PtApi.h" />
+    <ClInclude Include="header\api\TraceApi.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />
     <ClInclude Include="header\broadcast\Dpc.h" />
     <ClInclude Include="header\broadcast\DpcRoutines.h" />

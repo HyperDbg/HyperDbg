@@ -53,30 +53,6 @@ typedef struct _LBR_STACK_ENTRY
 } LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
 
 //////////////////////////////////////////////////
-//             Platform Wrappers                //
-//////////////////////////////////////////////////
-
-#define xmalloc(sz)       PlatformMemAllocateZeroedNonPagedPool(sz)
-#define xfree(p)          PlatformMemFreePool(p)
-#define xmemset(ptr, sz)  RtlZeroMemory(ptr, sz)
-#define xmemcpy           RtlCopyMemory
-#define xrdmsr(msr, pval) (*(pval) = __readmsr(msr))
-#define xwrmsr(msr, val)  __writemsr(msr, val)
-#define xcoreid()         KeGetCurrentProcessorNumber()
-#define xgetcurrent_pid() (ULONG)(ULONG_PTR) PsGetCurrentProcessId()
-
-// CPUID (Fixed C6001: initialized cpuInfo)
-#define xcpuid(code, a, b, c, d) \
-    {                            \
-        int cpuInfo[4] = {0};    \
-        __cpuid(cpuInfo, code);  \
-        *a = cpuInfo[0];         \
-        *b = cpuInfo[1];         \
-        *c = cpuInfo[2];         \
-        *d = cpuInfo[3];         \
-    }
-
-//////////////////////////////////////////////////
 //                Global Variables              //
 //////////////////////////////////////////////////
 
@@ -110,16 +86,16 @@ BOOLEAN
 LbrCheck();
 
 BOOLEAN
-LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+LbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 VOID
-LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+LbrStop(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 VOID
-LbrSaveLbr();
+LbrSave();
 
 VOID
-LbrDumpLbr();
+LbrDump();
 
 extern ULONGLONG  LbrCapacity;
 extern LIST_ENTRY LbrStateHead;

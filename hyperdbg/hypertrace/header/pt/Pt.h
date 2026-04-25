@@ -29,3 +29,7 @@
 //////////////////////////////////////////////////
 //                  Functions                   //
 //////////////////////////////////////////////////
+
+BOOLEAN
+HyperTracePtDisable(HYPERTRACE_OPERATION_PACKETS * HyperTraceOperationRequest,
+                    BOOLEAN                        ApplyFromVmxRootMode);

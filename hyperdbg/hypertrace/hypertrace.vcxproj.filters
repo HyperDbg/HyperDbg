@@ -83,6 +83,9 @@
     <ClCompile Include="code\pt\Pt.c">
       <Filter>code\pt</Filter>
     </ClCompile>
+    <ClCompile Include="code\api\TraceApi.c">
+      <Filter>code\api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -122,6 +125,9 @@
       <Filter>header\pt</Filter>
     </ClInclude>
     <ClInclude Include="header\api\PtApi.h">
+      <Filter>header\api</Filter>
+    </ClInclude>
+    <ClInclude Include="header\api\TraceApi.h">
       <Filter>header\api</Filter>
     </ClInclude>
   </ItemGroup>

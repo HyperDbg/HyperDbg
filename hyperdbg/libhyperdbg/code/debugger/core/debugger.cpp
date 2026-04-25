@@ -599,6 +599,21 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_PT_ALREADY_ENABLED:
+        ShowMessages("err, PT is already enabled (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_PT_ALREADY_DISABLED:
+        ShowMessages("err, PT is already disabled (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_PT_NOT_SUPPORTED:
+        ShowMessages("err, PT is not supported on this processor (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

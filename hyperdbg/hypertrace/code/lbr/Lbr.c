@@ -78,12 +78,46 @@ CPU_LBR_MAP CPU_LBR_MAPS[] = {
     {0x36, 8}};
 
 /**
+ * @brief Check if the current CPU supports LBR by examining the CPU family and model and looking up the corresponding LBR capacity
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LbrCheck()
+{
+    ULONG     a, b, c, d;
+    ULONG     Family, Model;
+    ULONGLONG i;
+
+    xcpuid(1, &a, &b, &c, &d);
+
+    Family = ((a >> 8) & 0xF) + ((a >> 20) & 0xFF);
+    Model  = ((a >> 4) & 0xF) | ((a >> 12) & 0xF0);
+
+    for (i = 0; i < sizeof(CPU_LBR_MAPS) / sizeof(CPU_LBR_MAPS[0]); ++i)
+    {
+        if (Model == CPU_LBR_MAPS[i].Model)
+        {
+            LbrCapacity = CPU_LBR_MAPS[i].LbrCapacity;
+            break;
+        }
+    }
+
+    if (LbrCapacity == 0)
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Flush LBR MSRs by disabling LBR and clearing all LBR entries
  *
  * @return VOID
  */
 VOID
-LbrFlushLbr()
+LbrFlush()
 {
     ULONG     i;
     ULONGLONG DbgCtlMsr;
@@ -91,7 +125,7 @@ LbrFlushLbr()
     //
     // Disable LBR
     //
-    LogInfo("Flush LBR on cpu core: %d\n", xcoreid());
+    LogInfo("Flush LBR on cpu core: %d\n", KeGetCurrentProcessorNumberEx(NULL));
 
     xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
     DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
@@ -119,7 +153,7 @@ LbrFlushLbr()
  * @return BOOLEAN
  */
 BOOLEAN
-LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     if (LbrCapacity == 0)
     {
@@ -188,7 +222,7 @@ LbrStartLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
  * @return VOID
  */
 VOID
-LbrSaveLbr()
+LbrSave()
 {
     UINT64            LbrTos;
     LBR_STACK_ENTRY * State;
@@ -229,7 +263,7 @@ LbrSaveLbr()
  * @return VOID
  */
 VOID
-LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrStop(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     ULONGLONG DbgCtlMsr;
 
@@ -265,7 +299,7 @@ LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
     //
     // Save the LBR entries
     //
-    LbrSaveLbr();
+    LbrSave();
 }
 
 /**
@@ -274,7 +308,7 @@ LbrStopLbr(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
  * @return VOID
  */
 VOID
-LbrDumpLbr()
+LbrDump()
 {
     ULONG             CurrentIdx;
     LBR_STACK_ENTRY * State;
@@ -304,38 +338,4 @@ LbrDumpLbr()
                 State->BranchEntry[CurrentIdx].From,
                 State->BranchEntry[CurrentIdx].To);
     }
-}
-
-/**
- * @brief Check if the current CPU supports LBR by examining the CPU family and model and looking up the corresponding LBR capacity
- *
- * @return BOOLEAN
- */
-BOOLEAN
-LbrCheck()
-{
-    ULONG     a, b, c, d;
-    ULONG     Family, Model;
-    ULONGLONG i;
-
-    xcpuid(1, &a, &b, &c, &d);
-
-    Family = ((a >> 8) & 0xF) + ((a >> 20) & 0xFF);
-    Model  = ((a >> 4) & 0xF) | ((a >> 12) & 0xF0);
-
-    for (i = 0; i < sizeof(CPU_LBR_MAPS) / sizeof(CPU_LBR_MAPS[0]); ++i)
-    {
-        if (Model == CPU_LBR_MAPS[i].Model)
-        {
-            LbrCapacity = CPU_LBR_MAPS[i].LbrCapacity;
-            break;
-        }
-    }
-
-    if (LbrCapacity == 0)
-    {
-        return FALSE;
-    }
-
-    return TRUE;
 }

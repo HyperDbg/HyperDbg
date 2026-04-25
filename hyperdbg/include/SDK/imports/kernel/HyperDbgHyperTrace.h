@@ -24,13 +24,13 @@
 // Initialize the hypertrace module with the provided callbacks
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceLbrInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks, BOOLEAN InitForHypervisorEnvironment);
+HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks, BOOLEAN InitForHypervisorEnvironment);
 
 //
 // Uninitialize the HyperTrace module
 //
 IMPORT_EXPORT_HYPERTRACE VOID
-HyperTraceLbrUninit();
+HyperTraceUnInit();
 
 //
 // Perform operations related to HyperTrace based on the request type and parameters

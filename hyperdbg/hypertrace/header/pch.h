@@ -86,6 +86,11 @@
 #include "SDK/modules/HyperTrace.h"
 
 //
+// Definition of general tracing types
+//
+#include "api/TraceApi.h"
+
+//
 // Definition of tracing types and structures (Last Branch Record)
 //
 #include "api/LbrApi.h"
