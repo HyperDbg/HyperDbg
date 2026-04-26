@@ -19,7 +19,7 @@
 VOID
 HyperTraceLbrExamplePerformTrace()
 {
-    if (LbrStart())
+    if (LbrStart(LBR_SELECT))
     {
         for (volatile int i = 0; i < 50; i++)
         {
@@ -278,6 +278,44 @@ HyperTraceLbrDump(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
 }
 
 /**
+ * @brief Update LBR filter options for HyperTrace
+ *
+ * @param HyperTraceOperationRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrUpdateFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
+{
+    //
+    // Check if LBR is already disabled or not
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        if (HyperTraceOperationRequest != NULL)
+        {
+            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
+        }
+        return FALSE;
+    }
+
+    //
+    // Update the LBR filter options based on the request
+    //
+    BroadcastFilterLbrOptionsOnAllCores((UINT64)HyperTraceOperationRequest->LbrFilterOptions);
+
+    //
+    // The operation was successful
+    //
+    if (HyperTraceOperationRequest != NULL)
+    {
+        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Perform actions related to HyperTrace LBR
  *
  * @param LbrOperationRequest
@@ -340,6 +378,14 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
         LogInfo("HyperTrace: Flushing LBR tracing...\n");
 
         HyperTraceLbrFlush(LbrOperationRequest);
+
+        break;
+
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER:
+
+        LogInfo("HyperTrace: Updating LBR filter options...\n");
+
+        HyperTraceLbrUpdateFilterOptions(LbrOperationRequest);
 
         break;
 

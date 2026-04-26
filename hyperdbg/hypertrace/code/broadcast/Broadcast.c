@@ -52,3 +52,17 @@ BroadcastFlushLbrOnAllCores()
     //
     KeGenericCallDpc(DpcRoutineFlushLbr, NULL);
 }
+
+/**
+ * @brief Routines to filter LBR option on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastFilterLbrOptionsOnAllCores(UINT64 LbrFilterOptions)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineFilterLbrOptions, (PVOID)(UINT_PTR)LbrFilterOptions);
+}

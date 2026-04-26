@@ -187,10 +187,12 @@ LbrFlush()
 /**
  * @brief Start collecting LBR branches
  *
+ * @param FilterOptions A bitmask of filter options to apply to the LBR branches (e.g., filtering by branch type, privilege level, etc.)
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrStart()
+LbrStart(UINT64 FilterOptions)
 {
     BOOLEAN IsOnVmxRootMode;
 
@@ -205,7 +207,7 @@ LbrStart()
     //
     // Force the selection mask
     //
-    xwrmsr(MSR_LBR_SELECT, LBR_SELECT);
+    xwrmsr(MSR_LBR_SELECT, FilterOptions); // Default to capture all branch types; this can be modified to apply filters as needed
 
     //
     // Clear hardware state
@@ -366,6 +368,28 @@ LbrStop()
     // Save the LBR entries
     //
     LbrSave();
+}
+
+/**
+ * @brief Filter LBR branches based on the provided options
+ * @param FilterOptions A bitmask of filter options to apply to the LBR branches
+ *
+ * @return VOID
+ */
+VOID
+LbrFilter(UINT64 FilterOptions)
+{
+    LogInfo("Updating LBR filter options: 0x%llx\n", FilterOptions);
+
+    //
+    // First, we flush the LBR to clear out any existing entries that may not meet the new filter criteria
+    //
+    LbrFlush();
+
+    //
+    // Then we apply the new filter options and re-enable LBR with the updated filter settings
+    //
+    LbrStart(FilterOptions);
 }
 
 /**

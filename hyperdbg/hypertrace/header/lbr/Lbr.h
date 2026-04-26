@@ -21,6 +21,45 @@
 #define MSR_LASTBRANCH_INFO_0 0x00000DC0
 #define LBR_SELECT            0x00000000
 
+//
+// This MSR could be used as an alternative to MSR_LBR_SELECT and IA32_DEBUGCTL for enabling and configuring LBR
+// For using that in hypervisor Load Guest IA32_LBR_CTL Entry Control and Clear IA32_LBR_CTL Exit Control should
+// be configured, plus host could control it over Guest IA32_LBR_CTL on VMCS
+//
+#define IA32_LBR_CTL 0x000014CE
+
+/*
+ * Intel LBR_SELECT bits
+ *
+ * Hardware branch filter (not available on all CPUs)
+ */
+#define LBR_KERNEL_BIT     0 /* do not capture at ring0 */
+#define LBR_USER_BIT       1 /* do not capture at ring > 0 */
+#define LBR_JCC_BIT        2 /* do not capture conditional branches */
+#define LBR_REL_CALL_BIT   3 /* do not capture relative calls */
+#define LBR_IND_CALL_BIT   4 /* do not capture indirect calls */
+#define LBR_RETURN_BIT     5 /* do not capture near returns */
+#define LBR_IND_JMP_BIT    6 /* do not capture indirect jumps */
+#define LBR_REL_JMP_BIT    7 /* do not capture relative jumps */
+#define LBR_FAR_BIT        8 /* do not capture far branches */
+#define LBR_CALL_STACK_BIT 9 /* enable call stack: not available on all CPUs */
+
+/*
+ * We mask it out before writing it to
+ * the actual MSR. But it helps the constraint code to understand
+ * that this is a separate configuration.
+ */
+#define LBR_KERNEL     (1 << LBR_KERNEL_BIT)
+#define LBR_USER       (1 << LBR_USER_BIT)
+#define LBR_JCC        (1 << LBR_JCC_BIT)
+#define LBR_REL_CALL   (1 << LBR_REL_CALL_BIT)
+#define LBR_IND_CALL   (1 << LBR_IND_CALL_BIT)
+#define LBR_RETURN     (1 << LBR_RETURN_BIT)
+#define LBR_IND_JMP    (1 << LBR_IND_JMP_BIT)
+#define LBR_REL_JMP    (1 << LBR_REL_JMP_BIT)
+#define LBR_FAR        (1 << LBR_FAR_BIT)
+#define LBR_CALL_STACK (1 << LBR_CALL_STACK_BIT)
+
 /**
  * @brief Maximum LBR capacity that is supported by processors
  *
@@ -28,19 +67,8 @@
 #define MAXIMUM_LBR_CAPACITY 0x20 // 32 entries, which is the maximum supported by modern Intel CPUs
 
 //////////////////////////////////////////////////
-//                  Structures                  //
+//               MSR Structures                 //
 //////////////////////////////////////////////////
-
-/**
- * @brief The structure to hold a single LBR entry (from and to addresses)
- *
- */
-typedef struct _LBR_BRANCH_ENTRY
-{
-    ULONGLONG From;
-    ULONGLONG To;
-
-} LBR_BRANCH_ENTRY, PLBR_BRANCH_ENTRY;
 
 /**
  * MSR_LBR_INFO_x - Last Branch Record Info Register
@@ -79,6 +107,48 @@ typedef union
     UINT64 AsUInt;
 
 } MSR_LBR_INFO, *PMSR_LBR_INFO;
+
+/**
+ * @brief The structure to hold the IA32_LBR_CTL MSR, which is used to enable and configure the LBR feature
+ * @details MSR Address: 0x14CEH (Hex) / 5326 (Dec)
+ */
+typedef union _IA32_LBR_CTL_REGISTER
+{
+    ULONG64 AsUInt;
+
+    struct
+    {
+        ULONG64 LBREn : 1;       // [0]     When set, enables LBR recording
+        ULONG64 OS : 1;          // [1]     When set, allows LBR recording when CPL == 0
+        ULONG64 USR : 1;         // [2]     When set, allows LBR recording when CPL != 0
+        ULONG64 CallStack : 1;   // [3]     When set, records branches in call-stack mode (See Section 7.1.2.4)
+        ULONG64 Reserved0 : 12;  // [15:4]  Reserved (must be zero)
+        ULONG64 JCC : 1;         // [16]    When set, records taken conditional branches (See Section 7.1.2.3)
+        ULONG64 NearRelJmp : 1;  // [17]    When set, records near relative JMPs (See Section 7.1.2.3)
+        ULONG64 NearIndJmp : 1;  // [18]    When set, records near indirect JMPs (See Section 7.1.2.3)
+        ULONG64 NearRelCall : 1; // [19]    When set, records near relative CALLs (See Section 7.1.2.3)
+        ULONG64 NearIndCall : 1; // [20]    When set, records near indirect CALLs (See Section 7.1.2.3)
+        ULONG64 NearRet : 1;     // [21]    When set, records near RETs (See Section 7.1.2.3)
+        ULONG64 OtherBranch : 1; // [22]    When set, records other branches (See Section 7.1.2.3)
+        ULONG64 Reserved1 : 41;  // [63:23] Reserved (must be zero)
+    } Bits;
+
+} IA32_LBR_CTL_REGISTER, *PIA32_LBR_CTL_REGISTER;
+
+//////////////////////////////////////////////////
+//                  Structures                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The structure to hold a single LBR entry (from and to addresses)
+ *
+ */
+typedef struct _LBR_BRANCH_ENTRY
+{
+    ULONGLONG From;
+    ULONGLONG To;
+
+} LBR_BRANCH_ENTRY, PLBR_BRANCH_ENTRY;
 
 /**
  * @brief The structure to hold the LBR stack for a single processor core, including the branch entries and the TOS index
@@ -126,7 +196,10 @@ BOOLEAN
 LbrCheck();
 
 BOOLEAN
-LbrStart();
+LbrStart(UINT64 FilterOptions);
+
+VOID
+LbrFilter(UINT64 FilterOptions);
 
 VOID
 LbrStop();
@@ -139,7 +212,3 @@ LbrSave();
 
 VOID
 LbrDump();
-
-extern ULONGLONG  LbrCapacity;
-extern LIST_ENTRY LbrStateHead;
-extern KSPIN_LOCK LbrStateLock;
