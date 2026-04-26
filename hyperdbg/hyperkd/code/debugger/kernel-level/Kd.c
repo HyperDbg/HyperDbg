@@ -2910,7 +2910,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Perform the HyperTrace LBR operations (it's in vmx-root)
                 //
-                HyperTraceLbrPerformOperation(HyperTraceLbrOperationPacket, TRUE);
+                HyperTraceLbrPerformOperation(HyperTraceLbrOperationPacket);
 
                 //
                 // Send the result of the HyperTrace LBR back to the debuggee
@@ -2929,7 +2929,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 //
                 // Perform the HyperTrace PT operations (it's in vmx-root)
                 //
-                HyperTracePtPerformOperation(HyperTracePtOperationPacket, TRUE);
+                HyperTracePtPerformOperation(HyperTracePtOperationPacket);
 
                 //
                 // Send the result of the HyperTrace PT back to the debuggee

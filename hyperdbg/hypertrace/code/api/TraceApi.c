@@ -15,14 +15,14 @@
  * @details This only for callback initialization, not for LBR, PT, etc. initialization
  *
  * @param HypertraceCallbacks
- * @param InitForHypervisorEnvironment Whether the initialization is being done for hypervisor environment or not,
+ * @param RunningOnHypervisorEnvironment Whether the initialization is being done for hypervisor environment or not,
  * it can be used to skip some of the initialization steps if it is not for hypervisor environment and behave differently based on that
  *
  * @return BOOLEAN
  */
 BOOLEAN
 HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
-                       BOOLEAN                InitForHypervisorEnvironment)
+                       BOOLEAN                RunningOnHypervisorEnvironment)
 {
     UINT32 ProcessorsCount = 0;
 
@@ -58,7 +58,7 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
     //
     // Set the flag to indicate whether the initialization is being done for hypervisor environment or not
     //
-    g_InitForHypervisorEnvironment = InitForHypervisorEnvironment;
+    g_RunningOnHypervisorEnvironment = RunningOnHypervisorEnvironment;
 
     //
     // It is initialized, but LBR is disabled at this stage
@@ -91,7 +91,7 @@ HyperTraceUnInit()
     //
     if (g_LastBranchRecordEnabled)
     {
-        HyperTraceLbrDisable(NULL, FALSE);
+        HyperTraceLbrDisable(NULL);
     }
 
     //
@@ -108,8 +108,13 @@ HyperTraceUnInit()
     //
     if (g_ProcessorTraceEnabled)
     {
-        HyperTracePtDisable(NULL, FALSE);
+        HyperTracePtDisable(NULL);
     }
+
+    //
+    // Reset the environment flag to default value
+    //
+    g_RunningOnHypervisorEnvironment = FALSE;
 
     //
     // Set callbacks to not initialized

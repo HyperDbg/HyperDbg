@@ -32,7 +32,7 @@ BOOLEAN g_HyperTraceCallbacksInitialized;
  * @brief The flag indicating whether the initialization is being done for hypervisor environment or not
  *
  */
-BOOLEAN g_InitForHypervisorEnvironment;
+BOOLEAN g_RunningOnHypervisorEnvironment;
 
 /**
  * @brief The flag indicating whether the hypertrace LBR tracing is initialized or not

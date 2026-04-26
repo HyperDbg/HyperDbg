@@ -2031,7 +2031,7 @@ ScriptEngineFunctionLbrSave()
     //
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
-    return HyperTraceLbrSave(NULL, VmFuncVmxGetCurrentExecutionMode());
+    return HyperTraceLbrSave(NULL);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -2054,7 +2054,7 @@ ScriptEngineFunctionLbrDump()
     //
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
-    return HyperTraceLbrDump(NULL, VmFuncVmxGetCurrentExecutionMode());
+    return HyperTraceLbrDump(NULL);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -2076,7 +2076,7 @@ ScriptEngineFunctionLbrFlush()
     //
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
-    HyperTraceLbrFlush(NULL, VmFuncVmxGetCurrentExecutionMode());
+    HyperTraceLbrFlush(NULL);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

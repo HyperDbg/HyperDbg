@@ -101,6 +101,12 @@ typedef VOID (*VM_FUNC_SET_SAVE_DEBUG_CONTROLS)(UINT32 CoreId, BOOLEAN Set);
 typedef VOID (*VM_FUNC_SET_SAVE_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE)(BOOLEAN Set);
 
 /**
+ * @brief A function that checks whether the current execution mode is VMX-root mode or not
+ *
+ */
+typedef BOOLEAN (*VM_FUNC_VMX_GET_CURRENT_EXECUTION_MODE)();
+
+/**
  * @brief A function that checks the validity and safety of the target address
  *
  */
@@ -145,6 +151,7 @@ typedef struct _HYPERTRACE_CALLBACKS
     //
     // *** Hypervisor (Hyperhv) callbacks ***
     //
+    VM_FUNC_VMX_GET_CURRENT_EXECUTION_MODE                     VmFuncVmxGetCurrentExecutionMode;
     VM_FUNC_GET_DEBUGCTL                                       VmFuncGetDebugctl;
     VM_FUNC_GET_DEBUGCTL_VMCALL_ON_TARGET_CORE                 VmFuncGetDebugctlVmcallOnTargetCore;
     VM_FUNC_SET_DEBUGCTL                                       VmFuncSetDebugctl;

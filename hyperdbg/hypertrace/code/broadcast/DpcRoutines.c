@@ -30,7 +30,7 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     // Check if the initialization is being done for hypervisor environment or not
     // If it is, then we need to perform some additional steps to enable LBR in VMX
     //
-    if (g_InitForHypervisorEnvironment)
+    if (g_RunningOnHypervisorEnvironment)
     {
         //
         // Perform VMX-root mode specific operations to enable load and save
@@ -82,7 +82,7 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
     // Check if the initialization is being done for hypervisor environment or not
     // If it is, then we need to perform some additional steps to enable LBR in VMX
     //
-    if (g_InitForHypervisorEnvironment)
+    if (g_RunningOnHypervisorEnvironment)
     {
         //
         // Perform VMX-root mode specific operations to disable load and save
