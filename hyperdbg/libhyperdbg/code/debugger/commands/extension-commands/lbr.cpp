@@ -33,6 +33,7 @@ CommandLbrHelp()
     ShowMessages("\t\te.g : !lbr disable\n");
     ShowMessages("\t\te.g : !lbr save\n");
     ShowMessages("\t\te.g : !lbr dump\n");
+    ShowMessages("\t\te.g : !lbr flush\n");
 }
 
 /**
@@ -149,6 +150,10 @@ CommandLbr(vector<CommandToken> CommandTokens, string Command)
     {
         LbrRequest.LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP;
     }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "flush"))
+    {
+        LbrRequest.LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH;
+    }
     else
     {
         ShowMessages("incorrect use of the '%s'\n\n",
@@ -177,6 +182,10 @@ CommandLbr(vector<CommandToken> CommandTokens, string Command)
         else if (LbrRequest.LbrOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP)
         {
             ShowMessages("LBR branches are shown\n");
+        }
+        else if (LbrRequest.LbrOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH)
+        {
+            ShowMessages("LBR branches are flush\n");
         }
     }
     else

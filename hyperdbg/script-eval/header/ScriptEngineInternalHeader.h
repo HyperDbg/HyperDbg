@@ -263,6 +263,9 @@ ScriptEngineFunctionEventTraceInstrumentationStep();
 VOID
 ScriptEngineFunctionEventTraceStepIn();
 
+VOID
+ScriptEngineFunctionLbrFlush();
+
 BOOLEAN
 ScriptEngineFunctionLbrSave();
 

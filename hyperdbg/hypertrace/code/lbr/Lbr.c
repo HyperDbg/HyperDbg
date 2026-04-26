@@ -121,15 +121,55 @@ LbrFlush()
 {
     ULONG     i;
     ULONGLONG DbgCtlMsr;
+    BOOLEAN   IsOnVmxRootMode;
 
     //
     // Disable LBR
     //
     LogInfo("Flush LBR on cpu core: %d\n", KeGetCurrentProcessorNumberEx(NULL));
 
-    xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
-    DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
-    xwrmsr(IA32_DEBUGCTL, DbgCtlMsr);
+    if (g_RunningOnHypervisorEnvironment)
+    {
+        IsOnVmxRootMode = g_Callbacks.VmFuncVmxGetCurrentExecutionMode();
+
+        if (IsOnVmxRootMode)
+        {
+            //
+            // It is on VMX-root mode, run it directly to get the IA32_DEBUGCTL MSR value in VMCS
+            //
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+        }
+        else
+        {
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the IA32_DEBUGCTL MSR value on the target core
+            //
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
+        }
+
+        DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
+
+        if (IsOnVmxRootMode)
+        {
+            //
+            // It is on VMX-root mode, run it directly to set the IA32_DEBUGCTL MSR value in VMCS
+            //
+            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+        }
+        else
+        {
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the IA32_DEBUGCTL MSR value on the target core
+            //
+            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
+        }
+    }
+    else
+    {
+        xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
+        DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
+        xwrmsr(IA32_DEBUGCTL, DbgCtlMsr);
+    }
 
     //
     // Flush LBR registers
@@ -147,14 +187,13 @@ LbrFlush()
 /**
  * @brief Start collecting LBR branches
  *
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrStart()
 {
+    BOOLEAN IsOnVmxRootMode;
+
     if (LbrCapacity == 0)
     {
         LogInfo("LBR: Aborting, CPU model not supported.\n");
@@ -178,27 +217,41 @@ LbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
         xwrmsr(MSR_LBR_NHM_TO + i, 0);
     }
 
-    if (ApplyFromVmxRootMode)
+    if (g_RunningOnHypervisorEnvironment)
     {
-        if (ApplyByVmcall)
+        IsOnVmxRootMode = g_Callbacks.VmFuncVmxGetCurrentExecutionMode();
+
+        if (IsOnVmxRootMode)
         {
-            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
+            //
+            // It is on VMX-root mode, run it directly to get the IA32_DEBUGCTL MSR value in VMCS
+            //
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
         }
         else
         {
-            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to get the IA32_DEBUGCTL MSR value on the target core
+            //
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
         }
 
         DbgCtlMsr |= IA32_DEBUGCTL_LBR_FLAG; // Bit 0 = 1
         DbgCtlMsr &= ~(1ULL << 11);          // Bit 11 = 0
 
-        if (ApplyByVmcall)
+        if (IsOnVmxRootMode)
         {
-            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
+            //
+            // It is on VMX-root mode, run it directly to set the IA32_DEBUGCTL MSR value in VMCS
+            //
+            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
         }
         else
         {
-            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the IA32_DEBUGCTL MSR value on the target core
+            //
+            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
         }
     }
     else
@@ -257,36 +310,48 @@ LbrSave()
 /**
  * @brief Stop collecting LBR branches
  *
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
  * @return VOID
  */
 VOID
-LbrStop(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
+LbrStop()
 {
     ULONGLONG DbgCtlMsr;
+    BOOLEAN   IsOnVmxRootMode;
 
-    if (ApplyFromVmxRootMode)
+    if (g_RunningOnHypervisorEnvironment)
     {
-        if (ApplyByVmcall)
+        IsOnVmxRootMode = g_Callbacks.VmFuncVmxGetCurrentExecutionMode();
+
+        if (IsOnVmxRootMode)
         {
-            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
+            //
+            // It is on VMX-root mode, run it directly to get the IA32_DEBUGCTL MSR value in VMCS
+            //
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
         }
         else
         {
-            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to get the IA32_DEBUGCTL MSR value on the target core
+            //
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
         }
 
         DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
 
-        if (ApplyByVmcall)
+        if (IsOnVmxRootMode)
         {
-            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
+            //
+            // It is on VMX-root mode, run it directly to set the IA32_DEBUGCTL MSR value in VMCS
+            //
+            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
         }
         else
         {
-            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the IA32_DEBUGCTL MSR value on the target core
+            //
+            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
         }
     }
     else

@@ -30,7 +30,7 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     // Check if the initialization is being done for hypervisor environment or not
     // If it is, then we need to perform some additional steps to enable LBR in VMX
     //
-    if (g_InitForHypervisorEnvironment)
+    if (g_RunningOnHypervisorEnvironment)
     {
         //
         // Perform VMX-root mode specific operations to enable load and save
@@ -82,7 +82,7 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
     // Check if the initialization is being done for hypervisor environment or not
     // If it is, then we need to perform some additional steps to enable LBR in VMX
     //
-    if (g_InitForHypervisorEnvironment)
+    if (g_RunningOnHypervisorEnvironment)
     {
         //
         // Perform VMX-root mode specific operations to disable load and save
@@ -91,6 +91,39 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
         g_Callbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore(FALSE);
         g_Callbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore(FALSE);
     }
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast flushing LBR
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return BOOLEAN
+ */
+BOOLEAN
+DpcRoutineFlushLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Flush LBR on all cores
+    //
+    LbrFlush(TRUE, TRUE);
 
     //
     // Wait for all DPCs to synchronize at this point

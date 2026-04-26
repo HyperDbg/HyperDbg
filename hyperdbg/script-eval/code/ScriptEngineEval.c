@@ -758,6 +758,12 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
         break;
 
+    case FUNC_LBR_FLUSH:
+
+        ScriptEngineFunctionLbrFlush();
+
+        break;
+
     case FUNC_FLUSH:
 
         ScriptEngineFunctionFlush();

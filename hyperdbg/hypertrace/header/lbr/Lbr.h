@@ -86,10 +86,13 @@ BOOLEAN
 LbrCheck();
 
 BOOLEAN
-LbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+LbrStart();
 
 VOID
-LbrStop(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+LbrStop();
+
+VOID
+LbrFlush();
 
 VOID
 LbrSave();

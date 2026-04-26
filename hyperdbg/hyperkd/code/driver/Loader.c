@@ -13,12 +13,12 @@
 /**
  * @brief Initialize the hyper trace module
  *
- * @param InitForHypervisorEnvironment Whether the initialization is being done for hypervisor environment or not
+ * @param RunningOnHypervisorEnvironment Whether the initialization is being done for hypervisor environment or not
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitHyperTrace(BOOLEAN InitForHypervisorEnvironment)
+LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment)
 {
     HYPERTRACE_CALLBACKS HyperTraceCallbacks = {0};
 
@@ -38,6 +38,7 @@ LoaderInitHyperTrace(BOOLEAN InitForHypervisorEnvironment)
     //
     // Fill the callbacks for using hyperhv in hypertrace
     //
+    HyperTraceCallbacks.VmFuncVmxGetCurrentExecutionMode                 = VmFuncVmxGetCurrentExecutionMode;
     HyperTraceCallbacks.VmFuncGetDebugctl                                = VmFuncGetDebugctl;
     HyperTraceCallbacks.VmFuncGetDebugctlVmcallOnTargetCore              = VmFuncGetDebugctlVmcallOnTargetCore;
     HyperTraceCallbacks.VmFuncSetDebugctl                                = VmFuncSetDebugctl;
@@ -63,7 +64,7 @@ LoaderInitHyperTrace(BOOLEAN InitForHypervisorEnvironment)
     //
     // Initialize hypertrace module
     //
-    if (HyperTraceInitCallback(&HyperTraceCallbacks, InitForHypervisorEnvironment))
+    if (HyperTraceInitCallback(&HyperTraceCallbacks, RunningOnHypervisorEnvironment))
     {
         LogDebugInfo("HyperDbg's hypertrace loaded successfully");
         return TRUE;

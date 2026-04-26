@@ -24,16 +24,12 @@ HyperTracePtExample()
  * @brief Enable PT tracing for HyperTrace
  *
  * @param PtOperationRequest
- * @param ApplyFromVmxRootMode
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest,
-                   BOOLEAN                           ApplyFromVmxRootMode)
+HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest)
 {
-    UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
-
     //
     // Check if PT is already enabled or not
     //
@@ -69,16 +65,12 @@ HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest,
  * @brief Disable PT tracing for HyperTrace
  *
  * @param PtOperationRequest
- * @param ApplyFromVmxRootMode
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTracePtDisable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest,
-                    BOOLEAN                           ApplyFromVmxRootMode)
+HyperTracePtDisable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest)
 {
-    UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
-
     //
     // Check if LBR is already disabled or not
     //
@@ -112,13 +104,11 @@ HyperTracePtDisable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest,
  * @brief Perform actions related to HyperTrace PT
  *
  * @param PtOperationRequest
- * @param ApplyFromVmxRootMode
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest,
-                             BOOLEAN                           ApplyFromVmxRootMode)
+HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest)
 {
     BOOLEAN Status = TRUE;
 
@@ -140,7 +130,7 @@ HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationReques
 
         LogInfo("HyperTrace: Enabling LBR tracing...\n");
 
-        HyperTracePtEnable(PtOperationRequest, ApplyFromVmxRootMode);
+        HyperTracePtEnable(PtOperationRequest);
 
         break;
 
@@ -148,7 +138,7 @@ HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationReques
 
         LogInfo("HyperTrace: Disabling PT tracing...\n");
 
-        HyperTracePtDisable(PtOperationRequest, ApplyFromVmxRootMode);
+        HyperTracePtDisable(PtOperationRequest);
 
         break;
 
