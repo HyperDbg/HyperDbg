@@ -104,3 +104,36 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
 
     return TRUE;
 }
+
+/**
+ * @brief Broadcast flushing LBR
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return BOOLEAN
+ */
+BOOLEAN
+DpcRoutineFlushLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Flush LBR on all cores
+    //
+    LbrFlush(TRUE, TRUE);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+
+    return TRUE;
+}

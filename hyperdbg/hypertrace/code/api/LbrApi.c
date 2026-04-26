@@ -46,32 +46,6 @@ HyperTraceLbrExamplePerformTrace(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVm
 }
 
 /**
- * @brief Start LBR tracing for HyperTrace
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
- * @return BOOLEAN
- */
-BOOLEAN
-HyperTraceLbrStart(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
-{
-    return LbrStart(ApplyFromVmxRootMode, ApplyByVmcall);
-}
-
-/**
- * @brief Stop LBR tracing for HyperTrace
- * @param ApplyFromVmxRootMode
- * @param ApplyByVmcall
- *
- * @return VOID
- */
-VOID
-HyperTraceLbrStop(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
-{
-    LbrStop(ApplyFromVmxRootMode, ApplyByVmcall);
-}
-
-/**
  * @brief Query the state of LBR save and load VM exit and entry controls
  *
  * @param CoreId
@@ -176,6 +150,49 @@ HyperTraceLbrDisable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReque
     // Disabling LBR
     //
     g_LastBranchRecordEnabled = FALSE;
+
+    //
+    // Broadcast disabling LBR on all cores
+    //
+    BroadcastDisableLbrOnAllCores();
+
+    //
+    // Set successful status
+    //
+    if (HyperTraceOperationRequest != NULL)
+    {
+        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Flush LBR tracing for HyperTrace
+ *
+ * @param HyperTraceOperationRequest
+ * @param ApplyFromVmxRootMode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest,
+                   BOOLEAN                            ApplyFromVmxRootMode)
+{
+    UNREFERENCED_PARAMETER(ApplyFromVmxRootMode);
+
+    //
+    // Check if LBR is already disabled or not
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        if (HyperTraceOperationRequest != NULL)
+        {
+            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
+        }
+
+        return FALSE;
+    }
 
     //
     // Broadcast disabling LBR on all cores
@@ -340,6 +357,14 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
         LogInfo("HyperTrace: Showing LBR tracing...\n");
 
         HyperTraceLbrDump(LbrOperationRequest, ApplyFromVmxRootMode);
+
+        break;
+
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH:
+
+        LogInfo("HyperTrace: Flushing LBR tracing...\n");
+
+        HyperTraceLbrFlush(LbrOperationRequest, ApplyFromVmxRootMode);
 
         break;
 

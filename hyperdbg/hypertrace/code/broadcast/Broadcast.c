@@ -38,3 +38,17 @@ BroadcastDisableLbrOnAllCores()
     //
     KeGenericCallDpc(DpcRoutineDisableLbr, NULL);
 }
+
+/**
+ * @brief Routines to flush LBR on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastFlushLbrOnAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineFlushLbr, NULL);
+}

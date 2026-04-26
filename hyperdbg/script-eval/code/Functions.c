@@ -2022,7 +2022,7 @@ BOOLEAN
 ScriptEngineFunctionLbrSave()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("err, it's not possible to call lbr_start function in the user-mode\n");
+    ShowMessages("err, it's not possible to call lbr_save function in the user-mode\n");
     return FALSE;
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -2037,7 +2037,7 @@ ScriptEngineFunctionLbrSave()
 }
 
 /**
- * @brief Implementation of lbr_stop function
+ * @brief Implementation of lbr_dump function
  *
  * @return BOOLEAN
  */
@@ -2045,7 +2045,7 @@ BOOLEAN
 ScriptEngineFunctionLbrDump()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("err, it's not possible to call lbr_stop function in the user-mode\n");
+    ShowMessages("err, it's not possible to call lbr_dump function in the user-mode\n");
     return FALSE;
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -2055,6 +2055,28 @@ ScriptEngineFunctionLbrDump()
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
     return HyperTraceLbrDump(NULL, VmFuncVmxGetCurrentExecutionMode());
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of lbr_flush function
+ *
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionLbrFlush()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call lbr_flush function in the user-mode\n");
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
+    //
+    HyperTraceLbrFlush(NULL, VmFuncVmxGetCurrentExecutionMode());
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

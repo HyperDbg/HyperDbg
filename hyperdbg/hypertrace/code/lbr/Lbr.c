@@ -114,10 +114,13 @@ LbrCheck()
 /**
  * @brief Flush LBR MSRs by disabling LBR and clearing all LBR entries
  *
+ * @param ApplyFromVmxRootMode
+ * @param ApplyByVmcall
+ *
  * @return VOID
  */
 VOID
-LbrFlush()
+LbrFlush(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall)
 {
     ULONG     i;
     ULONGLONG DbgCtlMsr;
@@ -127,9 +130,34 @@ LbrFlush()
     //
     LogInfo("Flush LBR on cpu core: %d\n", KeGetCurrentProcessorNumberEx(NULL));
 
-    xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
-    DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
-    xwrmsr(IA32_DEBUGCTL, DbgCtlMsr);
+    if (ApplyFromVmxRootMode)
+    {
+        if (ApplyByVmcall)
+        {
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctlVmcallOnTargetCore();
+        }
+        else
+        {
+            DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+        }
+
+        DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
+
+        if (ApplyByVmcall)
+        {
+            g_Callbacks.VmFuncSetDebugctlVmcallOnTargetCore(DbgCtlMsr);
+        }
+        else
+        {
+            g_Callbacks.VmFuncSetDebugctl(DbgCtlMsr);
+        }
+    }
+    else
+    {
+        xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
+        DbgCtlMsr &= ~IA32_DEBUGCTL_LBR_FLAG;
+        xwrmsr(IA32_DEBUGCTL, DbgCtlMsr);
+    }
 
     //
     // Flush LBR registers

@@ -92,6 +92,9 @@ VOID
 LbrStop(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
 
 VOID
+LbrFlush(BOOLEAN ApplyFromVmxRootMode, BOOLEAN ApplyByVmcall);
+
+VOID
 LbrSave();
 
 VOID

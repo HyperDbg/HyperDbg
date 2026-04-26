@@ -21,3 +21,6 @@ BroadcastEnableLbrOnAllCores();
 
 VOID
 BroadcastDisableLbrOnAllCores();
+
+VOID
+BroadcastFlushLbrOnAllCores();
