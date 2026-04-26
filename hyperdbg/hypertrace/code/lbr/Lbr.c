@@ -304,6 +304,7 @@ LbrSave()
     {
         xrdmsr(MSR_LBR_NHM_FROM + i, &State->BranchEntry[i].From);
         xrdmsr(MSR_LBR_NHM_TO + i, &State->BranchEntry[i].To);
+        xrdmsr(MSR_LASTBRANCH_INFO_0 + i, &State->LastBranchInfo[i].AsUInt);
     }
 }
 
@@ -389,18 +390,20 @@ LbrDump()
     //
     State = &g_LbrStateList[CurrentCore];
 
-    LogInfo("LBR Chronological Trace\n");
+    LogInfo("LBR Chronological Trace");
 
     for (ULONG i = 1; i <= LbrCapacity; i++)
     {
         CurrentIdx = (ULONG)(State->Tos + i) % (ULONG)LbrCapacity;
 
-        // if (State->BranchEntry[CurrentIdx].From == 0)
-        //     continue;
+        if (State->BranchEntry[CurrentIdx].From == 0)
+            continue;
 
-        LogInfo("[%2u] FROM: 0x%llx  TO: 0x%llx\n",
-                CurrentIdx,
-                State->BranchEntry[CurrentIdx].From,
-                State->BranchEntry[CurrentIdx].To);
+        Log("[%2u] Branch Mispredicted: %s, Cycle Count (Decimal): %03d - From: %016llx  To: %016llx\n",
+            CurrentIdx,
+            State->LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
+            State->LastBranchInfo[CurrentIdx].CycleCount,
+            State->BranchEntry[CurrentIdx].From,
+            State->BranchEntry[CurrentIdx].To);
     }
 }

@@ -14,11 +14,12 @@
 //			    	  Constants	    			//
 //////////////////////////////////////////////////
 
-#define MSR_LBR_SELECT   0x000001C8
-#define MSR_LBR_TOS      0x000001C9
-#define MSR_LBR_NHM_FROM 0x00000680
-#define MSR_LBR_NHM_TO   0x000006C0
-#define LBR_SELECT       0x00000000
+#define MSR_LBR_SELECT        0x000001C8
+#define MSR_LBR_TOS           0x000001C9
+#define MSR_LBR_NHM_FROM      0x00000680
+#define MSR_LBR_NHM_TO        0x000006C0
+#define MSR_LASTBRANCH_INFO_0 0x00000DC0
+#define LBR_SELECT            0x00000000
 
 /**
  * @brief Maximum LBR capacity that is supported by processors
@@ -42,12 +43,51 @@ typedef struct _LBR_BRANCH_ENTRY
 } LBR_BRANCH_ENTRY, PLBR_BRANCH_ENTRY;
 
 /**
+ * MSR_LBR_INFO_x - Last Branch Record Info Register
+ *
+ */
+typedef union
+{
+    struct
+    {
+        /** Bits 15:0 - Elapsed core clocks since last update to the LBR stack (saturating) */
+        UINT64 CycleCount : 16;
+
+        /** Bits 60:16 - Reserved (R/W) */
+        UINT64 Reserved : 45;
+
+        /**
+         * Bit 61 - TSX Abort indicator.
+         * When set:
+         *   LBR_FROM = EIP at the time of the TSX Abort
+         *   LBR_TO   = EIP of the start of HLE region OR EIP of the RTM Abort Handler
+         */
+        UINT64 TsxAbort : 1;
+
+        /** Bit 62 - When set, indicates the entry occurred in a TSX region */
+        UINT64 InTsx : 1;
+
+        /**
+         * Bit 63 - Branch misprediction flag.
+         * When set, the target of the branch was mispredicted and/or the
+         * direction (taken/non-taken) was mispredicted.
+         * When clear, the target branch was predicted.
+         */
+        UINT64 Mispred : 1;
+    };
+
+    UINT64 AsUInt;
+
+} MSR_LBR_INFO, *PMSR_LBR_INFO;
+
+/**
  * @brief The structure to hold the LBR stack for a single processor core, including the branch entries and the TOS index
  *
  */
 typedef struct _LBR_STACK_ENTRY
 {
     LBR_BRANCH_ENTRY BranchEntry[MAXIMUM_LBR_CAPACITY];
+    MSR_LBR_INFO     LastBranchInfo[MAXIMUM_LBR_CAPACITY];
     UINT32           Tos;
 
 } LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
