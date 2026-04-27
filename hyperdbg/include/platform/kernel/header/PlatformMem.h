@@ -20,66 +20,54 @@
 
 PLAT_STATUS
 PlatformReadMemory(
-    PVOID     Process,
-    PVOID     Address,
-    PVOID     Buffer,
-    PLAT_SIZE Size);
+    PVOID  Process,
+    PVOID  Address,
+    PVOID  Buffer,
+    SIZE_T Size);
 
 PLAT_STATUS
 PlatformWriteMemory(
-    PVOID     Process,
-    PVOID     Address,
-    PVOID     Buffer,
-    PLAT_SIZE Size);
+    PVOID  Process,
+    PVOID  Address,
+    PVOID  Buffer,
+    SIZE_T Size);
 
 PVOID
-PlatformAllocMemory(
-    PLAT_SIZE Size);
+PlatformAllocMemory(SIZE_T Size);
 
 VOID
-PlatformFreeMemory(
-    PVOID Memory);
+PlatformFreeMemory(PVOID Memory);
 
 PVOID
-PlatformMemAllocateContiguousZeroedMemory(
-    PLAT_SIZE NumberOfBytes);
+PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes);
 
 PVOID
-PlatformMemAllocateNonPagedPool(
-    PLAT_SIZE NumberOfBytes);
+PlatformMemAllocateNonPagedPool(SIZE_T NumberOfBytes);
 
 PVOID
-PlatformMemAllocateNonPagedPoolWithQuota(
-    PLAT_SIZE NumberOfBytes);
+PlatformMemAllocateNonPagedPoolWithQuota(SIZE_T NumberOfBytes);
 
 PVOID
-PlatformMemAllocateZeroedNonPagedPool(
-    PLAT_SIZE NumberOfBytes);
+PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
 
 PVOID
-PlatformMemFreePool(
-    PVOID BufferAddress);
+PlatformMemFreePool(PVOID BufferAddress);
 
 //////////////////////////////////////////////////
 //    Backward-compatible / legacy functions    //
 //////////////////////////////////////////////////
 
 PVOID
-PlatformMemAllocateContiguousZeroedMemory(
-    PLAT_SIZE NumberOfBytes);
+PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes);
 
 PVOID
-PlatformMemAllocateNonPagedPool(
-    PLAT_SIZE NumberOfBytes);
+PlatformMemAllocateNonPagedPool(SIZE_T NumberOfBytes);
 
 PVOID
-PlatformMemAllocateNonPagedPoolWithQuota(
-    PLAT_SIZE NumberOfBytes);
+PlatformMemAllocateNonPagedPoolWithQuota(SIZE_T NumberOfBytes);
 
 PVOID
-PlatformMemAllocateZeroedNonPagedPool(
-    PLAT_SIZE NumberOfBytes);
+PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
 
 PVOID
-PlatformMemFreePool(
-    PVOID BufferAddress);
+PlatformMemFreePool(PVOID BufferAddress);

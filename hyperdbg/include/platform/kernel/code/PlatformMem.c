@@ -11,8 +11,10 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
+// #ifdef _WIN32
 #include "pch.h"
+// #endif
+
 #include "../header/PlatformMem.h"
 
 /////////////////////////////////////////////////
@@ -29,7 +31,7 @@
  */
 PVOID
 PlatformAllocateMemory(
-    PLAT_SIZE Size)
+    SIZE_T Size)
 {
 #ifdef _WIN32
     PVOID Result = ExAllocatePool2(
@@ -86,10 +88,10 @@ PlatformFreeMemory(
  */
 PLAT_STATUS
 PlatformWriteMemory(
-    PVOID     Process,
-    PVOID     Address, // Destination
-    PVOID     Buffer,  // Source
-    PLAT_SIZE Size)
+    PVOID  Process,
+    PVOID  Address, // Destination
+    PVOID  Buffer,  // Source
+    SIZE_T Size)
 {
     // Process argument currently unused (local copy)
     (void)Process;
@@ -113,9 +115,9 @@ PlatformWriteMemory(
  */
 VOID
 PlatformSetMemory(
-    PVOID     Destination,
-    int       Value,
-    PLAT_SIZE Size)
+    PVOID  Destination,
+    int    Value,
+    SIZE_T Size)
 {
     if (!Destination)
         return;
@@ -140,7 +142,7 @@ PlatformSetMemory(
  * @return PVOID Pointer to memory or NULL.
  */
 PVOID
-PlatformMemAllocateContiguousZeroedMemory(PLAT_SIZE NumberOfBytes)
+PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes)
 {
 #ifdef _WIN32
     PVOID            Result          = NULL;
@@ -164,7 +166,7 @@ PlatformMemAllocateContiguousZeroedMemory(PLAT_SIZE NumberOfBytes)
  * @return PVOID Pointer to memory.
  */
 PVOID
-PlatformMemAllocateNonPagedPool(PLAT_SIZE NumberOfBytes)
+PlatformMemAllocateNonPagedPool(SIZE_T NumberOfBytes)
 {
 #ifdef _WIN32
     return ExAllocatePool2(
@@ -183,7 +185,7 @@ PlatformMemAllocateNonPagedPool(PLAT_SIZE NumberOfBytes)
  * @return PVOID Pointer to memory.
  */
 PVOID
-PlatformMemAllocateNonPagedPoolWithQuota(PLAT_SIZE NumberOfBytes)
+PlatformMemAllocateNonPagedPoolWithQuota(SIZE_T NumberOfBytes)
 {
 #ifdef _WIN32
     // POOL_FLAG_USE_QUOTA is used with ExAllocatePool2
@@ -204,7 +206,7 @@ PlatformMemAllocateNonPagedPoolWithQuota(PLAT_SIZE NumberOfBytes)
  * @return PVOID Pointer to memory.
  */
 PVOID
-PlatformMemAllocateZeroedNonPagedPool(PLAT_SIZE NumberOfBytes)
+PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
 {
 #ifdef _WIN32
     PVOID Result = ExAllocatePool2(

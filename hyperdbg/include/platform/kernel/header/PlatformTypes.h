@@ -23,37 +23,15 @@
 typedef PVOID     PLAT_PTR;
 typedef ULONG     PLAT_U32;
 typedef ULONGLONG PLAT_U64;
-typedef SIZE_T    PLAT_SIZE;
+typedef SIZE_T    SIZE_T;
 typedef NTSTATUS  PLAT_STATUS;
 
 #    define PLAT_SUCCESS STATUS_SUCCESS
 #    define PLAT_FAIL    STATUS_UNSUCCESSFUL
 
 #else // Linux Kernel
-#    include <linux/kernel.h>
-#    include <linux/slab.h>
-#    include <linux/string.h>
-#    include <linux/types.h>
+#    include "../../general/header/GeneralTypes.h"
 
-typedef void   VOID;
-typedef void * PVOID;
-typedef u32    UINT32;
-typedef u32    PLAT_U32;
-typedef u64    UINT64;
-typedef size_t PLAT_SIZE;
-typedef long   PLAT_STATUS;
-
-// typedef signed char      INT8, *PINT8;
-// typedef signed short     INT16, *PINT16;
-// typedef signed int       INT32, *PINT32;
-// typedef signed __int64   INT64, *PINT64;
-// typedef unsigned char    UINT8, *PUINT8;
-// typedef unsigned short   UINT16, *PUINT16;
-// typedef unsigned int     UINT32, *PUINT32;
-// typedef unsigned __int64 UINT64, *PUINT64;
-
-#    define PLAT_SUCCESS 0
-#    define PLAT_FAIL    -1
 #endif
 
 //////////////////////////////////////////////////
@@ -61,13 +39,13 @@ typedef long   PLAT_STATUS;
 //////////////////////////////////////////////////
 
 PVOID
-PlatformAllocateMemory(PLAT_SIZE Size);
+PlatformAllocateMemory(SIZE_T Size);
 
 VOID
 PlatformFreeMemory(PVOID Memory);
 
 PLAT_STATUS
-PlatformWriteMemory(PVOID Process, PVOID Address, PVOID Buffer, PLAT_SIZE Size);
+PlatformWriteMemory(PVOID Process, PVOID Address, PVOID Buffer, SIZE_T Size);
 
 VOID
-PlatformSetMemory(PVOID Destination, int Value, PLAT_SIZE Size);
+PlatformSetMemory(PVOID Destination, int Value, SIZE_T Size);

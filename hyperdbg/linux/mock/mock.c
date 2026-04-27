@@ -9,23 +9,20 @@
  *
  * @copyright This project is released under the GNU Public License v3.
  */
-
-#include <linux/module.h>
-#include <linux/init.h>
-#include "../../include/platform/kernel/header/PlatformMem.h"
+#include "pch.h"
 
 /**
  * @brief Global pointer to the allocated test buffer.
  * @details Stores the address returned by PlatformAllocateMemory so it can be
  *          freed when the module unloads.
  */
-static PLAT_PTR g_AllocatedBuffer = NULL;
+static PVOID g_AllocatedBuffer = NULL;
 
 /**
  * @brief Size of the buffer to allocate during tests.
  * @note Default size is 4096 bytes (1 page).
  */
-static PLAT_SIZE g_BufferSize = 4096;
+static SIZE_T g_BufferSize = 4096;
 
 /**
  * @brief Module initialization entry point.
@@ -40,7 +37,8 @@ static PLAT_SIZE g_BufferSize = 4096;
  *         - 0: Initialization successful.
  *         - -ENOMEM: Memory allocation failed.
  */
-static int __init mock_init(void)
+static int __init
+mock_init(void)
 {
     char source_data[] = "This is a test string from Linux kernel module";
 
@@ -55,7 +53,7 @@ static int __init mock_init(void)
     // We pass NULL for 'Process' as the current implementation targets local kernel memory.
     PlatformWriteMemory(NULL, g_AllocatedBuffer, source_data, sizeof(source_data));
 
-    printk(KERN_INFO "Copied data: %s\n", (char*)g_AllocatedBuffer);
+    printk(KERN_INFO "Copied data: %s\n", (char *)g_AllocatedBuffer);
 
     // 3. Zeroing (Set Memory)
     PlatformSetMemory(g_AllocatedBuffer, 0, g_BufferSize);
@@ -73,12 +71,14 @@ static int __init mock_init(void)
  *
  * @return void
  */
-static void __exit mock_exit(void)
+static void __exit
+mock_exit(void)
 {
     printk(KERN_INFO "Mock module unloading\n");
 
     // 4. Freeing
-    if (g_AllocatedBuffer) {
+    if (g_AllocatedBuffer)
+    {
         PlatformFreeMemory(g_AllocatedBuffer);
         g_AllocatedBuffer = NULL; // Good practice to nullify after free
     }
