@@ -333,6 +333,12 @@
  */
 #define VMCALL_SET_VMCS_DEBUGCTL 0x00000033
 
+/**
+ * @brief VMCALL to set MSR_LBR_SELECT using WRMSR
+ *
+ */
+#define VMCALL_SET_MSR_LBR_SELECT 0x00000034
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

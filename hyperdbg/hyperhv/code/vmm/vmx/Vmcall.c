@@ -555,6 +555,15 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
 
         break;
     }
+    case VMCALL_SET_MSR_LBR_SELECT:
+    {
+        //
+        // Perform setting MSR_LBR_SELECT
+        //
+        HvSetLbrSelect(OptionalParam1);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Err, unsupported VMCALL");

@@ -172,9 +172,43 @@ LbrFlush()
     }
 
     //
-    // Flush LBR registers
+    // *** Flush LBR registers ***
     //
-    xwrmsr(MSR_LBR_SELECT, 0);
+
+    //
+    // Set LBR filter (MSR_LBR_SELECT) to 0 to capture all branch types (reset)
+    //
+    if (g_RunningOnHypervisorEnvironment)
+    {
+        IsOnVmxRootMode = g_Callbacks.VmFuncVmxGetCurrentExecutionMode();
+
+        //
+        // If we don't set it on VMX-root mode, the LBR MSRs won't work based on our tests
+        // even though it is just MSR (and not a VMCS field)
+        //
+        if (IsOnVmxRootMode)
+        {
+            //
+            // It is on VMX-root mode, run it directly to set the MSR_LBR_SELECT MSR value
+            //
+            g_Callbacks.VmFuncSetLbrSelect(0);
+        }
+        else
+        {
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the MSR_LBR_SELECT MSR value on the target core
+            //
+            g_Callbacks.VmFuncSetLbrSelectVmcallOnTargetCore(0);
+        }
+    }
+    else
+    {
+        xwrmsr(MSR_LBR_SELECT, 0);
+    }
+
+    //
+    // Clear TOS and all LBR entries
+    //
     xwrmsr(MSR_LBR_TOS, 0);
 
     for (i = 0; i < LbrCapacity; i++)
@@ -194,7 +228,8 @@ LbrFlush()
 BOOLEAN
 LbrStart(UINT64 FilterOptions)
 {
-    BOOLEAN IsOnVmxRootMode;
+    BOOLEAN   IsOnVmxRootMode;
+    ULONGLONG DbgCtlMsr;
 
     if (LbrCapacity == 0)
     {
@@ -202,17 +237,42 @@ LbrStart(UINT64 FilterOptions)
         return FALSE;
     }
 
-    ULONGLONG DbgCtlMsr;
+    //
+    // Set LBR filter (MSR_LBR_SELECT) to selection mask
+    //
+    if (g_RunningOnHypervisorEnvironment)
+    {
+        IsOnVmxRootMode = g_Callbacks.VmFuncVmxGetCurrentExecutionMode();
 
-    //
-    // Force the selection mask
-    //
-    xwrmsr(MSR_LBR_SELECT, FilterOptions); // Default to capture all branch types; this can be modified to apply filters as needed
+        //
+        // If we don't set it on VMX-root mode, the LBR MSRs won't work based on our tests
+        // even though it is just MSR (and not a VMCS field)
+        //
+        if (IsOnVmxRootMode)
+        {
+            //
+            // It is on VMX-root mode, run it directly to set the MSR_LBR_SELECT MSR value
+            //
+            g_Callbacks.VmFuncSetLbrSelect(FilterOptions);
+        }
+        else
+        {
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the MSR_LBR_SELECT MSR value on the target core
+            //
+            g_Callbacks.VmFuncSetLbrSelectVmcallOnTargetCore(FilterOptions);
+        }
+    }
+    else
+    {
+        xwrmsr(MSR_LBR_SELECT, FilterOptions);
+    }
 
     //
     // Clear hardware state
     //
     xwrmsr(MSR_LBR_TOS, 0);
+
     for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
     {
         xwrmsr(MSR_LBR_NHM_FROM + i, 0);

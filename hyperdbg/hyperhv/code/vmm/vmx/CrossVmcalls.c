@@ -38,6 +38,18 @@ CrossVmcallSetDebugctlVmcallOnTargetCore(UINT64 Value)
 }
 
 /**
+ * @brief Set the guest state of MSR_LBR_SELECT on the target core from VMCS using VMCALL
+ * @param FilterOptions
+ *
+ * @return VOID
+ */
+VOID
+CrossVmcallSetLbrSelectVmcallOnTargetCore(UINT64 FilterOptions)
+{
+    AsmVmxVmcall(VMCALL_SET_MSR_LBR_SELECT, FilterOptions, NULL64_ZERO, NULL64_ZERO);
+}
+
+/**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls on the target core from VMCS using VMCALL
  *
  * @param Set Set or unset

@@ -22,6 +22,9 @@ VOID
 CrossVmcallSetDebugctlVmcallOnTargetCore(UINT64 Value);
 
 VOID
+CrossVmcallSetLbrSelectVmcallOnTargetCore(UINT64 FilterOptions);
+
+VOID
 CrossVmcallSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set);
 
 VOID
