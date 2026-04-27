@@ -42,17 +42,20 @@ hyperdbg/
 
 ---  
 ## Build the Module
-```bash  
-cd hyperdbg/linux/mock```  
+```bash
+cd hyperdbg/linux/mock
+```
+
 then build module:  
-```bash  
+```bash
 make  
-```  
+```
+
 If successful, this will generate:
 
 ```bash  
 HyperDbg.ko  
-```  
+```
 ---  
 # Load the Module
 

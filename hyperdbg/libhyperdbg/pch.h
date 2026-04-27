@@ -72,7 +72,6 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include <tlhelp32.h>
 #include <shlwapi.h>
 #include <VersionHelpers.h>
-#include <tchar.h>
 #include <psapi.h>
 #include <time.h>
 #include <conio.h>
