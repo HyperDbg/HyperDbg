@@ -159,7 +159,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AA41FF
 		include\platform\kernel\header\pch.h = include\platform\kernel\header\pch.h
 		include\platform\kernel\header\PlatformMem.h = include\platform\kernel\header\PlatformMem.h
 		include\platform\kernel\header\PlatformModuleInfo.h = include\platform\kernel\header\PlatformModuleInfo.h
-		include\platform\kernel\header\PlatformTypes.h = include\platform\kernel\header\PlatformTypes.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{4BF590C3-1032-4DD2-BF87-BB9E5781977C}"

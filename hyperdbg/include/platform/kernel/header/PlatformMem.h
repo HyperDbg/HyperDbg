@@ -12,7 +12,8 @@
  *
  */
 #pragma once
-#include "PlatformTypes.h"
+
+#include "../../general/header/GeneralTypes.h"
 
 //////////////////////////////////////////////////
 //                 Functions                    //

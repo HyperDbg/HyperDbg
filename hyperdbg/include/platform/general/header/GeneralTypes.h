@@ -17,6 +17,8 @@
 
 #ifdef _WIN32
 
+typedef NTSTATUS PLAT_STATUS;
+
 #    define PLAT_SUCCESS STATUS_SUCCESS
 #    define PLAT_FAIL    STATUS_UNSUCCESSFUL
 
