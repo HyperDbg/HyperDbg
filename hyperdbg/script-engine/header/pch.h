@@ -19,7 +19,7 @@
 //
 // Environment headers
 //
-#include "platform/user/header/Environment.h"
+#include "platform/general/header/Environment.h"
 
 //
 // Exclude rarely-used stuff from Windows headers

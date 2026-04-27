@@ -32,9 +32,6 @@
     <ClInclude Include="header\type.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\platform\user\header\Environment.h">
-      <Filter>header\platform</Filter>
-    </ClInclude>
     <ClInclude Include="header\hardware.h">
       <Filter>header</Filter>
     </ClInclude>

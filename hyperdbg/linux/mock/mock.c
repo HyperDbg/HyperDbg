@@ -51,7 +51,7 @@ mock_init(void)
 
     // 2. Copying (Write Memory)
     // We pass NULL for 'Process' as the current implementation targets local kernel memory.
-    PlatformWriteMemory(NULL, g_AllocatedBuffer, source_data, sizeof(source_data));
+    PlatformWriteMemory(g_AllocatedBuffer, source_data, sizeof(source_data));
 
     printk(KERN_INFO "Copied data: %s\n", (char *)g_AllocatedBuffer);
 

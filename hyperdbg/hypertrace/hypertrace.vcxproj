@@ -113,7 +113,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\api\LbrApi.h" />
     <ClInclude Include="header\api\PtApi.h" />

@@ -238,7 +238,6 @@
     <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h" />
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\assembly\InlineAsm.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />

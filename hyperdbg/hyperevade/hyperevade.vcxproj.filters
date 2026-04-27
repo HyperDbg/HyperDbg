@@ -77,9 +77,6 @@
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h">
-      <Filter>header\platform</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
       <Filter>header\platform</Filter>
     </ClInclude>

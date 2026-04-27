@@ -18,9 +18,9 @@
 //
 // Environment headers
 //
-#include "platform/kernel/header/Environment.h"
+#include "platform/general/header/Environment.h"
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
 
 //
 // Windows defined functions
@@ -29,7 +29,7 @@
 #    include <ntstrsafe.h>
 #    include <Windef.h>
 
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
 
 //
 // Scope definitions

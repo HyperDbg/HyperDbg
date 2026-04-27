@@ -114,7 +114,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\SyscallFootprints.h" />
     <ClInclude Include="header\Transparency.h" />

@@ -13,43 +13,28 @@
  */
 #pragma once
 
-#include "../../general/header/GeneralTypes.h"
+#if defined(__linux__)
+#    include "../../general/header/GeneralTypes.h"
+#endif // defined(__linux__)
 
 //////////////////////////////////////////////////
 //                 Functions                    //
 //////////////////////////////////////////////////
 
-PVOID
-PlatformAllocateMemory(SIZE_T Size);
-
 VOID
 PlatformFreeMemory(PVOID Memory);
 
-PLAT_STATUS
-PlatformWriteMemory(PVOID Process, PVOID Address, PVOID Buffer, SIZE_T Size);
+VOID
+PlatformWriteMemory(PVOID Address, PVOID Buffer, SIZE_T Size);
 
 VOID
 PlatformSetMemory(PVOID Destination, int Value, SIZE_T Size);
 
-PLAT_STATUS
-PlatformReadMemory(
-    PVOID  Process,
-    PVOID  Address,
-    PVOID  Buffer,
-    SIZE_T Size);
-
-PLAT_STATUS
-PlatformWriteMemory(
-    PVOID  Process,
-    PVOID  Address,
-    PVOID  Buffer,
-    SIZE_T Size);
-
-PVOID
-PlatformAllocMemory(SIZE_T Size);
-
 VOID
 PlatformFreeMemory(PVOID Memory);
+
+PVOID
+PlatformAllocateMemory(SIZE_T Size);
 
 PVOID
 PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes);
@@ -65,10 +50,6 @@ PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
 
 PVOID
 PlatformMemFreePool(PVOID BufferAddress);
-
-//////////////////////////////////////////////////
-//    Backward-compatible / legacy functions    //
-//////////////////////////////////////////////////
 
 PVOID
 PlatformMemAllocateContiguousZeroedMemory(SIZE_T NumberOfBytes);

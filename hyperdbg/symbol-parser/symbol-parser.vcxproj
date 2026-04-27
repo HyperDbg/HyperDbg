@@ -108,7 +108,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\platform\user\header\Environment.h" />
     <ClInclude Include="header\common-utils.h" />
     <ClInclude Include="header\symbol-parser.h" />
     <ClInclude Include="pch.h" />

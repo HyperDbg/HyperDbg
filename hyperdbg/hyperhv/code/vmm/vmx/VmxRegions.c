@@ -30,13 +30,13 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64                  AlignedVmxonRegion;
     UINT64                  AlignedVmxonRegionPhysicalAddr;
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
     //
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
         KeRaiseIrqlToDpcLevel();
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
 
     //
     // Allocating a 4-KByte Contiguous Memory region
@@ -109,13 +109,13 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64                  AlignedVmcsRegion;
     UINT64                  AlignedVmcsRegionPhysicalAddr;
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
     //
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
         KeRaiseIrqlToDpcLevel();
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
 
     //
     // Allocating a 4-KByte Contiguous Memory region

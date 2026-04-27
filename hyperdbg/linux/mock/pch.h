@@ -20,7 +20,11 @@
 // General Linux driver headers
 //
 #include <linux/module.h>
-// #include <linux/init.h>
+
+//
+// Environment headers
+//
+#include "../../include/platform/general/header/Environment.h"
 
 //
 // General type headers
@@ -30,5 +34,4 @@
 //
 // Platform headers
 //
-#include "../../include/platform/general/header/GeneralTypes.h"
 #include "../../include/platform/kernel/header/PlatformMem.h"

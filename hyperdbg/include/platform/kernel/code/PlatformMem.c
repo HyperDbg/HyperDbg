@@ -13,7 +13,9 @@
  */
 #include "pch.h"
 
-#include "../header/PlatformMem.h"
+#if defined(__linux__)
+#    include "../header/PlatformMem.h"
+#endif // defined(__linux__)
 
 /////////////////////////////////////////////////
 /// ...  New Unified API ...
@@ -82,27 +84,19 @@ PlatformFreeMemory(
  * @param Address Destination address.
  * @param Buffer Source buffer.
  * @param Size Number of bytes to copy.
- * @return PLAT_STATUS PLAT_SUCCESS or PLAT_FAIL.
+ * @return VOID
  */
-PLAT_STATUS
+VOID
 PlatformWriteMemory(
-    PVOID  Process,
     PVOID  Address, // Destination
     PVOID  Buffer,  // Source
     SIZE_T Size)
 {
-    // Process argument currently unused (local copy)
-    (void)Process;
-
-    if (!Address || !Buffer)
-        return PLAT_FAIL;
-
 #ifdef _WIN32
     RtlCopyMemory(Address, Buffer, Size);
 #else
     memcpy(Address, Buffer, Size);
 #endif
-    return PLAT_SUCCESS;
 }
 
 /**

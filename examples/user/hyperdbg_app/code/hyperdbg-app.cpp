@@ -78,7 +78,7 @@ hyperdbg_load()
     }
     else
     {
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
         printf("vmx operation is not supported by your processor "
             "(if you are using an Intel processor, it might be because VBS is not disabled!)\n");
 #endif        

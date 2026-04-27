@@ -15,19 +15,11 @@
 //                    Types                     //
 //////////////////////////////////////////////////
 
-#ifdef _WIN32
+#ifdef _WIN32 // Windows
 
-typedef NTSTATUS PLAT_STATUS;
+#elif defined(__linux__) // Linux
 
-#    define PLAT_SUCCESS STATUS_SUCCESS
-#    define PLAT_FAIL    STATUS_UNSUCCESSFUL
-
-#else // Linux
-
-#    include <linux/kernel.h>
 #    include <linux/slab.h>
-#    include <linux/string.h>
-#    include <linux/types.h>
 
 typedef long PLAT_STATUS;
 

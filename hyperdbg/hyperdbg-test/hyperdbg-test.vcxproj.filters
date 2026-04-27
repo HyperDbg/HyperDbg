@@ -52,9 +52,6 @@
     <ClInclude Include="header\routines.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\platform\user\header\Environment.h">
-      <Filter>header\platform</Filter>
-    </ClInclude>
     <ClInclude Include="header\testcases.h">
       <Filter>header</Filter>
     </ClInclude>

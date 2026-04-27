@@ -21,7 +21,7 @@ using namespace std;
 //
 // Environment headers
 //
-#include "platform/user/header/Environment.h"
+#include "platform/general/header/Environment.h"
 
 #include <Windows.h>
 #include <string>

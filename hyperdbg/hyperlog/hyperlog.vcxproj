@@ -110,7 +110,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\Logging.h" />
     <ClInclude Include="header\pch.h" />

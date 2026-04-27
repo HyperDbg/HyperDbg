@@ -395,9 +395,6 @@
     <ClInclude Include="header\debugger\meta-events\MetaDispatch.h">
       <Filter>header\debugger\meta-events</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h">
-      <Filter>header\platform</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
       <Filter>header\platform</Filter>
     </ClInclude>

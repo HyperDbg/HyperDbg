@@ -14,7 +14,7 @@
 //
 // Environment headers
 //
-#include "platform/user/header/Environment.h"
+#include "platform/general/header/Environment.h"
 
 //
 // Windows SDK headers
@@ -182,7 +182,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 // Libraries
 //
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
 
 #    pragma comment(lib, "ntdll.lib")
 
@@ -207,4 +207,4 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #    pragma comment(lib, "Psapi.lib")
 #    pragma comment(lib, "Kernel32.lib")
 
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
