@@ -12,11 +12,6 @@
  *
  */
 
-/**
- * @file PlatformMem.c
- * @brief Implementation of cross APIs for different platforms for memory allocation
- */
-
 #include "pch.h"
 #include "../header/PlatformMem.h"
 
@@ -24,27 +19,23 @@
 /// ...  New Unified API ...
 /////////////////////////////////////////////////
 
-
 /**
  * @brief Allocates a block of memory in the kernel pool.
  * @details On Windows: Allocates from NonPagedPool and zeroes it.
  *          On Linux: Uses kzalloc (GFP_KERNEL) which zeroes memory.
  *
  * @param Size The number of bytes to allocate.
- * @return PLAT_PTR Pointer to the allocated memory, or NULL on failure.
+ * @return PVOID Pointer to the allocated memory, or NULL on failure.
  */
-PLAT_PTR
+PVOID
 PlatformAllocateMemory(
-    PLAT_SIZE Size
-)
+    PLAT_SIZE Size)
 {
 #ifdef _WIN32
-        PLAT_PTR Result = ExAllocatePool2(
+    PVOID Result = ExAllocatePool2(
         POOL_FLAG_NON_PAGED, // non-paged pool
         Size,
-        POOLTAG
-    );
-
+        POOLTAG);
 
     if (Result != NULL)
         RtlSecureZeroMemory(Result, Size);
@@ -52,11 +43,14 @@ PlatformAllocateMemory(
     return Result;
 #else
     // Linux Kernel: kzalloc allocates zeroed memory
-    PLAT_PTR ptr = kzalloc(Size, GFP_KERNEL);
+    PVOID ptr = kzalloc(Size, GFP_KERNEL);
 
-    if (ptr) {
+    if (ptr)
+    {
         printk(KERN_INFO "MemAllocKernel: Allocated %zu bytes at %px\n", Size, ptr);
-    } else {
+    }
+    else
+    {
         printk(KERN_ERR "MemAllocKernel: failed to allocate %zu bytes\n", Size);
     }
 
@@ -68,12 +62,12 @@ PlatformAllocateMemory(
  * @brief Frees a previously allocated memory block.
  * @param Memory Pointer to the memory block. Handles NULL safely.
  */
-void
+VOID
 PlatformFreeMemory(
-    PLAT_PTR Memory
-)
+    PVOID Memory)
 {
-    if (!Memory) return;
+    if (!Memory)
+        return;
 
 #ifdef _WIN32
     ExFreePoolWithTag(Memory, POOLTAG);
@@ -92,16 +86,16 @@ PlatformFreeMemory(
  */
 PLAT_STATUS
 PlatformWriteMemory(
-    PLAT_PTR Process,
-    PLAT_PTR Address,  // Destination
-    PLAT_PTR Buffer,   // Source
-    PLAT_SIZE Size
-)
+    PVOID     Process,
+    PVOID     Address, // Destination
+    PVOID     Buffer,  // Source
+    PLAT_SIZE Size)
 {
     // Process argument currently unused (local copy)
     (void)Process;
 
-    if (!Address || !Buffer) return PLAT_FAIL;
+    if (!Address || !Buffer)
+        return PLAT_FAIL;
 
 #ifdef _WIN32
     RtlCopyMemory(Address, Buffer, Size);
@@ -117,14 +111,14 @@ PlatformWriteMemory(
  * @param Value Value to set.
  * @param Size Number of bytes.
  */
-void
+VOID
 PlatformSetMemory(
-    PLAT_PTR Destination,
-    int Value,
-    PLAT_SIZE Size
-)
+    PVOID     Destination,
+    int       Value,
+    PLAT_SIZE Size)
 {
-    if (!Destination) return;
+    if (!Destination)
+        return;
 
 #ifdef _WIN32
     RtlFillMemory(Destination, Size, Value);
@@ -132,7 +126,6 @@ PlatformSetMemory(
     memset(Destination, Value, Size);
 #endif
 }
-
 
 /////////////////////////////////////////////////
 /// ...  Backward Compatibility / Specific APIs ...
@@ -144,15 +137,15 @@ PlatformSetMemory(
  *          On Linux: Uses kmalloc (which is usually physically contiguous) or dma_alloc_coherent.
  *                    For simplicity in this driver, we map to kzalloc.
  * @param NumberOfBytes Size in bytes.
- * @return PLAT_PTR Pointer to memory or NULL.
+ * @return PVOID Pointer to memory or NULL.
  */
-PLAT_PTR
+PVOID
 PlatformMemAllocateContiguousZeroedMemory(PLAT_SIZE NumberOfBytes)
 {
 #ifdef _WIN32
-    PLAT_PTR            Result          = NULL;
-    PHYSICAL_ADDRESS    MaxPhysicalAddr = {0};
-    MaxPhysicalAddr.QuadPart            = MAXULONG64;
+    PVOID            Result          = NULL;
+    PHYSICAL_ADDRESS MaxPhysicalAddr = {0};
+    MaxPhysicalAddr.QuadPart         = MAXULONG64;
 
     Result = MmAllocateContiguousMemory(NumberOfBytes, MaxPhysicalAddr);
     if (Result != NULL)
@@ -168,30 +161,28 @@ PlatformMemAllocateContiguousZeroedMemory(PLAT_SIZE NumberOfBytes)
 /**
  * @brief Allocates non-paged pool memory.
  * @param NumberOfBytes Size in bytes.
- * @return PLAT_PTR Pointer to memory.
+ * @return PVOID Pointer to memory.
  */
-PLAT_PTR
+PVOID
 PlatformMemAllocateNonPagedPool(PLAT_SIZE NumberOfBytes)
 {
 #ifdef _WIN32
     return ExAllocatePool2(
         POOL_FLAG_NON_PAGED,
         NumberOfBytes,
-        POOLTAG
-    );
+        POOLTAG);
 #else
     // Linux kernel memory is non-paged by default (except vmalloc)
     return kmalloc(NumberOfBytes, GFP_KERNEL);
 #endif
 }
 
-
 /**
  * @brief Allocates non-paged pool memory with quota charging.
  * @param NumberOfBytes Size in bytes.
- * @return PLAT_PTR Pointer to memory.
+ * @return PVOID Pointer to memory.
  */
-PLAT_PTR
+PVOID
 PlatformMemAllocateNonPagedPoolWithQuota(PLAT_SIZE NumberOfBytes)
 {
 #ifdef _WIN32
@@ -200,8 +191,7 @@ PlatformMemAllocateNonPagedPoolWithQuota(PLAT_SIZE NumberOfBytes)
     return ExAllocatePool2(
         POOL_FLAG_NON_PAGED | POOL_FLAG_USE_QUOTA,
         NumberOfBytes,
-        POOLTAG
-    );
+        POOLTAG);
 #else
     // Quotas are not explicitly managed in simple Linux kernel allocations like this
     return kmalloc(NumberOfBytes, GFP_KERNEL);
@@ -211,17 +201,16 @@ PlatformMemAllocateNonPagedPoolWithQuota(PLAT_SIZE NumberOfBytes)
 /**
  * @brief Allocates zeroed non-paged pool memory.
  * @param NumberOfBytes Size in bytes.
- * @return PLAT_PTR Pointer to memory.
+ * @return PVOID Pointer to memory.
  */
-PLAT_PTR
+PVOID
 PlatformMemAllocateZeroedNonPagedPool(PLAT_SIZE NumberOfBytes)
 {
 #ifdef _WIN32
-    PLAT_PTR Result = ExAllocatePool2(
+    PVOID Result = ExAllocatePool2(
         POOL_FLAG_NON_PAGED,
         NumberOfBytes,
-        POOLTAG
-    );
+        POOLTAG);
     if (Result != NULL)
         RtlSecureZeroMemory(Result, NumberOfBytes);
     return Result;
@@ -230,16 +219,16 @@ PlatformMemAllocateZeroedNonPagedPool(PLAT_SIZE NumberOfBytes)
 #endif
 }
 
-
 /**
  * @brief Frees a memory pool.
  * @param BufferAddress Pointer to the memory to free.
- * @return PLAT_PTR (Void pointer in original API, usually ignored).
+ * @return PVOID (Void pointer in original API, usually ignored).
  */
-PLAT_PTR
-PlatformMemFreePool(PLAT_PTR BufferAddress)
+PVOID
+PlatformMemFreePool(PVOID BufferAddress)
 {
-    if (!BufferAddress) return NULL;
+    if (!BufferAddress)
+        return NULL;
 
 #ifdef _WIN32
     ExFreePoolWithTag(BufferAddress, POOLTAG);

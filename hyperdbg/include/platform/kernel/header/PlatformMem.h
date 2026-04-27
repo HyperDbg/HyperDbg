@@ -15,85 +15,71 @@
 #include "PlatformTypes.h"
 
 //////////////////////////////////////////////////
-//                 Functions                     //
+//                 Functions                    //
 //////////////////////////////////////////////////
 
-PLAT_STATUS PlatformReadMemory(
-    PLAT_PTR  Process,
-    PLAT_PTR  Address,
-    PLAT_PTR  Buffer,
-    PLAT_SIZE Size
-);
+PLAT_STATUS
+PlatformReadMemory(
+    PVOID     Process,
+    PVOID     Address,
+    PVOID     Buffer,
+    PLAT_SIZE Size);
 
-PLAT_STATUS PlatformWriteMemory(
-    PLAT_PTR  Process,
-    PLAT_PTR  Address,
-    PLAT_PTR  Buffer,
-    PLAT_SIZE Size
-);
+PLAT_STATUS
+PlatformWriteMemory(
+    PVOID     Process,
+    PVOID     Address,
+    PVOID     Buffer,
+    PLAT_SIZE Size);
 
-PLAT_PTR PlatformAllocMemory(
-    PLAT_SIZE Size
-);
+PVOID
+PlatformAllocMemory(
+    PLAT_SIZE Size);
 
-void PlatformFreeMemory(
-    PLAT_PTR Memory
-);
+VOID
+PlatformFreeMemory(
+    PVOID Memory);
 
-
-
-PLAT_PTR
+PVOID
 PlatformMemAllocateContiguousZeroedMemory(
-    PLAT_SIZE  NumberOfBytes
-);
+    PLAT_SIZE NumberOfBytes);
 
-
-
-PLAT_PTR
+PVOID
 PlatformMemAllocateNonPagedPool(
-    PLAT_SIZE NumberOfBytes
-);
+    PLAT_SIZE NumberOfBytes);
 
-
-
-PLAT_PTR
+PVOID
 PlatformMemAllocateNonPagedPoolWithQuota(
-    PLAT_SIZE NumberOfBytes
-);
+    PLAT_SIZE NumberOfBytes);
 
-
-PLAT_PTR
+PVOID
 PlatformMemAllocateZeroedNonPagedPool(
-    PLAT_SIZE NumberOfBytes
-);
+    PLAT_SIZE NumberOfBytes);
 
-
-PLAT_PTR
+PVOID
 PlatformMemFreePool(
-    PLAT_PTR BufferAddress
-);
-
+    PVOID BufferAddress);
 
 //////////////////////////////////////////////////
 //    Backward-compatible / legacy functions    //
 //////////////////////////////////////////////////
 
-PLAT_PTR PlatformMemAllocateContiguousZeroedMemory(
-    PLAT_SIZE NumberOfBytes
-);
+PVOID
+PlatformMemAllocateContiguousZeroedMemory(
+    PLAT_SIZE NumberOfBytes);
 
-PLAT_PTR PlatformMemAllocateNonPagedPool(
-    PLAT_SIZE NumberOfBytes
-);
+PVOID
+PlatformMemAllocateNonPagedPool(
+    PLAT_SIZE NumberOfBytes);
 
-PLAT_PTR PlatformMemAllocateNonPagedPoolWithQuota(
-    PLAT_SIZE NumberOfBytes
-);
+PVOID
+PlatformMemAllocateNonPagedPoolWithQuota(
+    PLAT_SIZE NumberOfBytes);
 
-PLAT_PTR PlatformMemAllocateZeroedNonPagedPool(
-    PLAT_SIZE NumberOfBytes
-);
+PVOID
+PlatformMemAllocateZeroedNonPagedPool(
+    PLAT_SIZE NumberOfBytes);
 
-PLAT_PTR PlatformMemFreePool(
-    PLAT_PTR BufferAddress
-);
+PVOID
+PlatformMemFreePool(
+    PVOID BufferAddress);
