@@ -1,5 +1,5 @@
 /**
- * @file PlatformMem.h
+ * @file PlatformTypes.h
  * @author Alireza Moradi (Alish)
  * @brief Cross platform types definitions
  *
@@ -37,15 +37,3 @@ typedef NTSTATUS  PLAT_STATUS;
 //////////////////////////////////////////////////
 //               Prototypes                     //
 //////////////////////////////////////////////////
-
-PVOID
-PlatformAllocateMemory(SIZE_T Size);
-
-VOID
-PlatformFreeMemory(PVOID Memory);
-
-PLAT_STATUS
-PlatformWriteMemory(PVOID Process, PVOID Address, PVOID Buffer, SIZE_T Size);
-
-VOID
-PlatformSetMemory(PVOID Destination, int Value, SIZE_T Size);

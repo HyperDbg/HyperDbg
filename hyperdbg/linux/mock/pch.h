@@ -30,5 +30,5 @@
 //
 // Platform headers
 //
-#include "../../include/platform/kernel/header/PlatformTypes.h"
+#include "../../include/platform/general/header/GeneralTypes.h"
 #include "../../include/platform/kernel/header/PlatformMem.h"

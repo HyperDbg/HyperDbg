@@ -11,9 +11,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-// #ifdef _WIN32
 #include "pch.h"
-// #endif
 
 #include "../header/PlatformMem.h"
 

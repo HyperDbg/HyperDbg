@@ -18,6 +18,18 @@
 //                 Functions                    //
 //////////////////////////////////////////////////
 
+PVOID
+PlatformAllocateMemory(SIZE_T Size);
+
+VOID
+PlatformFreeMemory(PVOID Memory);
+
+PLAT_STATUS
+PlatformWriteMemory(PVOID Process, PVOID Address, PVOID Buffer, SIZE_T Size);
+
+VOID
+PlatformSetMemory(PVOID Destination, int Value, SIZE_T Size);
+
 PLAT_STATUS
 PlatformReadMemory(
     PVOID  Process,
