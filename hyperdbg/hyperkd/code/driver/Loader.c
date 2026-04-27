@@ -48,6 +48,8 @@ LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment)
     HyperTraceCallbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore     = VmFuncSetLoadDebugControlsVmcallOnTargetCore;
     HyperTraceCallbacks.VmFuncSetSaveDebugControls                       = VmFuncSetSaveDebugControls;
     HyperTraceCallbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore     = VmFuncSetSaveDebugControlsVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetLbrSelect                               = VmFuncSetLbrSelect;
+    HyperTraceCallbacks.VmFuncSetLbrSelectVmcallOnTargetCore             = VmFuncSetLbrSelectVmcallOnTargetCore;
 
     //
     // Memory callbacks

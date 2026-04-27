@@ -17,6 +17,11 @@
 #include "SDK/headers/Pcie.h"
 
 //
+// Last Branch Records
+//
+#include "SDK/headers/LbrDefinitions.h"
+
+//
 // Asserts
 //
 #include "SDK/headers/Assertions.h"

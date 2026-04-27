@@ -71,6 +71,18 @@ typedef VOID (*VM_FUNC_SET_DEBUGCTL)(UINT64 Value);
 typedef VOID (*VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE)(UINT64 Value);
 
 /**
+ * @brief A function that set MSR_LBR_SELECT
+ *
+ */
+typedef VOID (*VM_FUNC_SET_LBR_SELECT)(UINT64 FilterOptions);
+
+/**
+ * @brief A function that set MSR_LBR_SELECT on the target core using VMCALL
+ *
+ */
+typedef VOID (*VM_FUNC_SET_LBR_SELECT_VMCALL_ON_TARGET_CORE)(UINT64 FilterOptions);
+
+/**
  * @brief A function that checks whether IA32_DEBUGCTL can be used in load and save of exit and entry controls
  *
  */
@@ -161,6 +173,8 @@ typedef struct _HYPERTRACE_CALLBACKS
     VM_FUNC_SET_LOAD_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE      VmFuncSetLoadDebugControlsVmcallOnTargetCore;
     VM_FUNC_SET_SAVE_DEBUG_CONTROLS                            VmFuncSetSaveDebugControls;
     VM_FUNC_SET_SAVE_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE      VmFuncSetSaveDebugControlsVmcallOnTargetCore;
+    VM_FUNC_SET_LBR_SELECT                                     VmFuncSetLbrSelect;
+    VM_FUNC_SET_LBR_SELECT_VMCALL_ON_TARGET_CORE               VmFuncSetLbrSelectVmcallOnTargetCore;
 
     //
     // *** HYPERTRACE callbacks ***

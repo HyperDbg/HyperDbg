@@ -172,9 +172,43 @@ LbrFlush()
     }
 
     //
-    // Flush LBR registers
+    // *** Flush LBR registers ***
     //
-    xwrmsr(MSR_LBR_SELECT, 0);
+
+    //
+    // Set LBR filter (MSR_LBR_SELECT) to 0 to capture all branch types (reset)
+    //
+    if (g_RunningOnHypervisorEnvironment)
+    {
+        IsOnVmxRootMode = g_Callbacks.VmFuncVmxGetCurrentExecutionMode();
+
+        //
+        // If we don't set it on VMX-root mode, the LBR MSRs won't work based on our tests
+        // even though it is just MSR (and not a VMCS field)
+        //
+        if (IsOnVmxRootMode)
+        {
+            //
+            // It is on VMX-root mode, run it directly to set the MSR_LBR_SELECT MSR value
+            //
+            g_Callbacks.VmFuncSetLbrSelect(0);
+        }
+        else
+        {
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the MSR_LBR_SELECT MSR value on the target core
+            //
+            g_Callbacks.VmFuncSetLbrSelectVmcallOnTargetCore(0);
+        }
+    }
+    else
+    {
+        xwrmsr(MSR_LBR_SELECT, 0);
+    }
+
+    //
+    // Clear TOS and all LBR entries
+    //
     xwrmsr(MSR_LBR_TOS, 0);
 
     for (i = 0; i < LbrCapacity; i++)
@@ -187,12 +221,15 @@ LbrFlush()
 /**
  * @brief Start collecting LBR branches
  *
+ * @param FilterOptions A bitmask of filter options to apply to the LBR branches (e.g., filtering by branch type, privilege level, etc.)
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrStart()
+LbrStart(UINT64 FilterOptions)
 {
-    BOOLEAN IsOnVmxRootMode;
+    BOOLEAN   IsOnVmxRootMode;
+    ULONGLONG DbgCtlMsr;
 
     if (LbrCapacity == 0)
     {
@@ -200,17 +237,42 @@ LbrStart()
         return FALSE;
     }
 
-    ULONGLONG DbgCtlMsr;
+    //
+    // Set LBR filter (MSR_LBR_SELECT) to selection mask
+    //
+    if (g_RunningOnHypervisorEnvironment)
+    {
+        IsOnVmxRootMode = g_Callbacks.VmFuncVmxGetCurrentExecutionMode();
 
-    //
-    // Force the selection mask
-    //
-    xwrmsr(MSR_LBR_SELECT, LBR_SELECT);
+        //
+        // If we don't set it on VMX-root mode, the LBR MSRs won't work based on our tests
+        // even though it is just MSR (and not a VMCS field)
+        //
+        if (IsOnVmxRootMode)
+        {
+            //
+            // It is on VMX-root mode, run it directly to set the MSR_LBR_SELECT MSR value
+            //
+            g_Callbacks.VmFuncSetLbrSelect(FilterOptions);
+        }
+        else
+        {
+            //
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the MSR_LBR_SELECT MSR value on the target core
+            //
+            g_Callbacks.VmFuncSetLbrSelectVmcallOnTargetCore(FilterOptions);
+        }
+    }
+    else
+    {
+        xwrmsr(MSR_LBR_SELECT, FilterOptions);
+    }
 
     //
     // Clear hardware state
     //
     xwrmsr(MSR_LBR_TOS, 0);
+
     for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
     {
         xwrmsr(MSR_LBR_NHM_FROM + i, 0);
@@ -304,6 +366,7 @@ LbrSave()
     {
         xrdmsr(MSR_LBR_NHM_FROM + i, &State->BranchEntry[i].From);
         xrdmsr(MSR_LBR_NHM_TO + i, &State->BranchEntry[i].To);
+        xrdmsr(MSR_LASTBRANCH_INFO_0 + i, &State->LastBranchInfo[i].AsUInt);
     }
 }
 
@@ -368,6 +431,28 @@ LbrStop()
 }
 
 /**
+ * @brief Filter LBR branches based on the provided options
+ * @param FilterOptions A bitmask of filter options to apply to the LBR branches
+ *
+ * @return VOID
+ */
+VOID
+LbrFilter(UINT64 FilterOptions)
+{
+    LogInfo("Updating LBR filter options: 0x%llx\n", FilterOptions);
+
+    //
+    // First, we flush the LBR to clear out any existing entries that may not meet the new filter criteria
+    //
+    LbrFlush();
+
+    //
+    // Then we apply the new filter options and re-enable LBR with the updated filter settings
+    //
+    LbrStart(FilterOptions);
+}
+
+/**
  * @brief Dump collected LBR branches
  *
  * @return VOID
@@ -389,18 +474,20 @@ LbrDump()
     //
     State = &g_LbrStateList[CurrentCore];
 
-    LogInfo("LBR Chronological Trace\n");
+    LogInfo("LBR Chronological Trace");
 
     for (ULONG i = 1; i <= LbrCapacity; i++)
     {
         CurrentIdx = (ULONG)(State->Tos + i) % (ULONG)LbrCapacity;
 
-        // if (State->BranchEntry[CurrentIdx].From == 0)
-        //     continue;
+        if (State->BranchEntry[CurrentIdx].From == 0)
+            continue;
 
-        LogInfo("[%2u] FROM: 0x%llx  TO: 0x%llx\n",
-                CurrentIdx,
-                State->BranchEntry[CurrentIdx].From,
-                State->BranchEntry[CurrentIdx].To);
+        Log("[%2u] Branch Mispredicted: %s, Cycle Count (Decimal): %03d - From: %016llx  To: %016llx\n",
+            CurrentIdx,
+            State->LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
+            State->LastBranchInfo[CurrentIdx].CycleCount,
+            State->BranchEntry[CurrentIdx].From,
+            State->BranchEntry[CurrentIdx].To);
     }
 }

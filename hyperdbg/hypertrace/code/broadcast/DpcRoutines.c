@@ -42,8 +42,9 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
 
     //
     // Enable LBR on all cores from VMX-root mode by VMCALL
+    // By default, all filter options are disabled, which means all branch types will be captured
     //
-    LbrStart(TRUE, TRUE);
+    LbrStart(LBR_SELECT);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -76,7 +77,7 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
     //
     // Disable LBR on all cores from VMX-root mode by VMCALL
     //
-    LbrStop(TRUE, TRUE);
+    LbrStop();
 
     //
     // Check if the initialization is being done for hypervisor environment or not
@@ -123,7 +124,39 @@ DpcRoutineFlushLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVO
     //
     // Flush LBR on all cores
     //
-    LbrFlush(TRUE, TRUE);
+    LbrFlush();
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast updating LBR filter options
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return BOOLEAN
+ */
+BOOLEAN
+DpcRoutineFilterLbrOptions(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+
+    //
+    // Flush LBR on all cores
+    //
+    LbrFilter((UINT64)DeferredContext);
 
     //
     // Wait for all DPCs to synchronize at this point

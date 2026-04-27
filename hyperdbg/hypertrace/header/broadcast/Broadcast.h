@@ -24,3 +24,6 @@ BroadcastDisableLbrOnAllCores();
 
 VOID
 BroadcastFlushLbrOnAllCores();
+
+VOID
+BroadcastFilterLbrOptionsOnAllCores(UINT64 LbrFilterOptions);
