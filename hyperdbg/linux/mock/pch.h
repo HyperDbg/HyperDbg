@@ -22,21 +22,16 @@
 #include <linux/module.h>
 
 //
+// Platform headers
+//
+#include "../../include/SDK/HyperDbgSdk.h"
+
+//
 // Environment headers
 //
 #include "../../include/platform/general/header/Environment.h"
 
 //
-// General type headers
-//
-#include "../../include/platform/general/header/GeneralTypes.h"
-
-//
 // Platform headers
 //
 #include "../../include/platform/kernel/header/PlatformMem.h"
-
-//
-// Platform headers
-//
-#include "../../include/SDK/HyperDbgSdk.h"

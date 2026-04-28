@@ -14,7 +14,8 @@
 #pragma once
 
 #if defined(__linux__)
-#    include "../../general/header/GeneralTypes.h"
+// #    include "../../general/header/GeneralTypes.h"
+#    include "../../../../include/SDK/HyperDbgSdk.h"
 #endif // defined(__linux__)
 
 //////////////////////////////////////////////////

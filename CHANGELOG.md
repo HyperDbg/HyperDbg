@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
-- Hypertrace now enables/disables VM-entry/VM-exit controls for Load and Save IA32_DEBUGCTL MSR
+- HyperTrace now enables/disables VM-entry/VM-exit controls for Load and Save IA32_DEBUGCTL MSR
+- HyperDbg SDK now compiles on Linux (GCC)
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))

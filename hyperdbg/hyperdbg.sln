@@ -243,7 +243,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{9E1A2FAF-696A-4CA7-8C2E-F6B80107A143}"
 	ProjectSection(SolutionItems) = preProject
 		include\platform\general\header\Environment.h = include\platform\general\header\Environment.h
-		include\platform\general\header\GeneralTypes.h = include\platform\general\header\GeneralTypes.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "linux", "linux", "{63D4BB7A-C404-4A35-A302-20034DD8BA77}"

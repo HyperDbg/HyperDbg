@@ -74,7 +74,6 @@
 //
 // Platform independent headers
 //
-#include "platform/general/header/GeneralTypes.h"
 #include "platform/kernel/header/PlatformMem.h"
 
 //
