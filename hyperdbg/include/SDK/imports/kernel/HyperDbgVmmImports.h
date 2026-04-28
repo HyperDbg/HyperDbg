@@ -221,7 +221,7 @@ IMPORT_EXPORT_VMM UINT32
 VmFuncVmxCompatibleStrlen(const CHAR * s);
 
 IMPORT_EXPORT_VMM UINT32
-VmFuncVmxCompatibleWcslen(const wchar_t * s);
+VmFuncVmxCompatibleWcslen(const WCHAR * s);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncVmxCompatibleMicroSleep(UINT64 us);
@@ -251,10 +251,10 @@ IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleStrncmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Num);
 
 IMPORT_EXPORT_VMM INT32
-VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
+VmFuncVmxCompatibleWcscmp(const WCHAR * Address1, const WCHAR * Address2);
 
 IMPORT_EXPORT_VMM INT32
-VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, SIZE_T Num);
+VmFuncVmxCompatibleWcsncmp(const WCHAR * Address1, const WCHAR * Address2, SIZE_T Num);
 
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);

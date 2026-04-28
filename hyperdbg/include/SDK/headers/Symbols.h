@@ -39,7 +39,7 @@ typedef struct _USERMODE_LOADED_MODULE_SYMBOLS
 {
     UINT64  BaseAddress;
     UINT64  Entrypoint;
-    wchar_t FilePath[MAX_PATH];
+    WCHAR   FilePath[MAX_PATH];
 
 } USERMODE_LOADED_MODULE_SYMBOLS, *PUSERMODE_LOADED_MODULE_SYMBOLS;
 

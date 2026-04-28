@@ -62,11 +62,10 @@ typedef unsigned __int64 UINT64, *PUINT64;
 
 typedef unsigned __int64 ULONG64, *PULONG64;
 typedef unsigned __int64 DWORD64, *PDWORD64;
-typedef wchar_t          WCHAR;
+
+typedef wchar_t WCHAR;
 
 #elif defined(__linux__) // Linux
-
-#    include <linux/slab.h>
 
 typedef void VOID;
 
@@ -78,13 +77,15 @@ typedef unsigned long long UINT64, *PUINT64;
 typedef unsigned long long ULONG64, *PULONG64;
 typedef unsigned long long DWORD64, *PDWORD64;
 
-typedef UINT16  wchar_t;
-typedef wchar_t WCHAR;
+//
+// To be fixed later, linux wchar_t is 4 bytes, but windows wchar_t is 2 bytes
+//
+// typedef UINT16  wchar_t;
+typedef UINT16 WCHAR;
+// typedef wchar_t WCHAR;
 
 typedef PVOID    HANDLE;
 typedef HANDLE * PHANDLE;
-
-typedef long long time_t;
 
 #endif
 

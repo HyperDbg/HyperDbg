@@ -2133,11 +2133,6 @@ InterpretGeneralEventAndActionsFields(
     TempEvent->EventType = EventType;
 
     //
-    // Get the current time
-    //
-    TempEvent->CreationTime = time(0);
-
-    //
     // Set buffer string command
     //
     TempEvent->CommandStringBuffer = BufferOfCommandString;

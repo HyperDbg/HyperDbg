@@ -359,8 +359,6 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
     CommandsEventList; // Linked-list of commands list (used for tracing purpose
                        // in user mode)
 
-    time_t CreationTime; // Date of creating this event
-
     UINT32 CoreId; // determines the core index to apply this event to, if it's
                    // 0xffffffff means that we have to apply it to all cores
 

@@ -248,12 +248,22 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "linux", "linux", "{63D4BB7A-C404-4A35-A302-20034DD8BA77}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mock", "mock", "{770B65D6-5307-478C-A9EB-3E4A64B67225}"
-	ProjectSection(SolutionItems) = preProject
-		linux\mock\mock.c = linux\mock\mock.c
-		linux\mock\pch.h = linux\mock\pch.h
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{848FE945-4F37-4B5B-98C8-F22CA3AA7184}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user", "user", "{D3722A82-0A54-4172-A0C1-1EA6500E9F1E}"
+	ProjectSection(SolutionItems) = preProject
+		linux\mock\user\Makefile = linux\mock\user\Makefile
+		linux\mock\user\mock.c = linux\mock\user\mock.c
+		linux\mock\user\pch.h = linux\mock\user\pch.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{09E02C0A-6A6C-408A-8136-C787FDC58A5F}"
+	ProjectSection(SolutionItems) = preProject
+		linux\mock\kernel\Makefile = linux\mock\kernel\Makefile
+		linux\mock\kernel\mock.c = linux\mock\kernel\mock.c
+		linux\mock\kernel\pch.h = linux\mock\kernel\pch.h
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -352,6 +362,8 @@ Global
 		{9E1A2FAF-696A-4CA7-8C2E-F6B80107A143} = {17652C16-00A0-40D4-A227-697E595DE053}
 		{770B65D6-5307-478C-A9EB-3E4A64B67225} = {63D4BB7A-C404-4A35-A302-20034DD8BA77}
 		{848FE945-4F37-4B5B-98C8-F22CA3AA7184} = {17652C16-00A0-40D4-A227-697E595DE053}
+		{D3722A82-0A54-4172-A0C1-1EA6500E9F1E} = {770B65D6-5307-478C-A9EB-3E4A64B67225}
+		{09E02C0A-6A6C-408A-8136-C787FDC58A5F} = {770B65D6-5307-478C-A9EB-3E4A64B67225}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

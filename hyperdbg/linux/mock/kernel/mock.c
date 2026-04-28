@@ -4,7 +4,7 @@
  * @brief Mock Linux kernel module for testing cross-platform memory APIs.
  * @details This file demonstrates the usage of the unified Platform* memory
  *          API (Allocate, Write, Set, Free) within a Linux kernel module environment.
- * @version 0.1
+ * @version 0.18
  * @date 2026-02-05
  *
  * @copyright This project is released under the GNU Public License v3.

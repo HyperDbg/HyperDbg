@@ -745,7 +745,7 @@ VmFuncVmxCompatibleStrlen(const CHAR * s)
  * @return UINT32
  */
 UINT32
-VmFuncVmxCompatibleWcslen(const wchar_t * s)
+VmFuncVmxCompatibleWcslen(const WCHAR * s)
 {
     return VmxCompatibleWcslen(s);
 }
@@ -905,7 +905,7 @@ VmFuncVmxCompatibleStrncmp(const CHAR * Address1, const CHAR * Address2, SIZE_T 
  * @return INT32
  */
 INT32
-VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+VmFuncVmxCompatibleWcscmp(const WCHAR * Address1, const WCHAR * Address2)
 {
     return VmxCompatibleWcscmp(Address1, Address2, NULL_ZERO, FALSE);
 }
@@ -919,7 +919,7 @@ VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
  * @return INT32
  */
 INT32
-VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, SIZE_T Num)
+VmFuncVmxCompatibleWcsncmp(const WCHAR * Address1, const WCHAR * Address2, SIZE_T Num)
 {
     return VmxCompatibleWcscmp(Address1, Address2, Num, TRUE);
 }
