@@ -21,8 +21,6 @@
 
 #    include <linux/slab.h>
 
-typedef long PLAT_STATUS;
-
 typedef void   VOID;
 typedef void * PVOID;
 
@@ -45,8 +43,5 @@ typedef char  CHAR;
 typedef short SHORT;
 typedef long  LONG;
 typedef int   INT;
-
-#    define PLAT_SUCCESS 0
-#    define PLAT_FAIL    -1
 
 #endif

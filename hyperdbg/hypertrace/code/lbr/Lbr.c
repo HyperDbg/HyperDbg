@@ -176,7 +176,7 @@ LbrFlush()
     //
 
     //
-    // Set LBR filter (MSR_LBR_SELECT) to 0 to capture all branch types (reset)
+    // Set LBR filter (MSR_LEGACY_LBR_SELECT) to 0 to capture all branch types (reset)
     //
     if (g_RunningOnHypervisorEnvironment)
     {
@@ -189,21 +189,21 @@ LbrFlush()
         if (IsOnVmxRootMode)
         {
             //
-            // It is on VMX-root mode, run it directly to set the MSR_LBR_SELECT MSR value
+            // It is on VMX-root mode, run it directly to set the MSR_LEGACY_LBR_SELECT MSR value
             //
             g_Callbacks.VmFuncSetLbrSelect(0);
         }
         else
         {
             //
-            // It is not on VMX-root mode, so we need to perform a VMCALL to set the MSR_LBR_SELECT MSR value on the target core
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the MSR_LEGACY_LBR_SELECT MSR value on the target core
             //
             g_Callbacks.VmFuncSetLbrSelectVmcallOnTargetCore(0);
         }
     }
     else
     {
-        xwrmsr(MSR_LBR_SELECT, 0);
+        xwrmsr(MSR_LEGACY_LBR_SELECT, 0);
     }
 
     //
@@ -238,7 +238,7 @@ LbrStart(UINT64 FilterOptions)
     }
 
     //
-    // Set LBR filter (MSR_LBR_SELECT) to selection mask
+    // Set LBR filter (MSR_LEGACY_LBR_SELECT) to selection mask
     //
     if (g_RunningOnHypervisorEnvironment)
     {
@@ -251,21 +251,21 @@ LbrStart(UINT64 FilterOptions)
         if (IsOnVmxRootMode)
         {
             //
-            // It is on VMX-root mode, run it directly to set the MSR_LBR_SELECT MSR value
+            // It is on VMX-root mode, run it directly to set the MSR_LEGACY_LBR_SELECT MSR value
             //
             g_Callbacks.VmFuncSetLbrSelect(FilterOptions);
         }
         else
         {
             //
-            // It is not on VMX-root mode, so we need to perform a VMCALL to set the MSR_LBR_SELECT MSR value on the target core
+            // It is not on VMX-root mode, so we need to perform a VMCALL to set the MSR_LEGACY_LBR_SELECT MSR value on the target core
             //
             g_Callbacks.VmFuncSetLbrSelectVmcallOnTargetCore(FilterOptions);
         }
     }
     else
     {
-        xwrmsr(MSR_LBR_SELECT, FilterOptions);
+        xwrmsr(MSR_LEGACY_LBR_SELECT, FilterOptions);
     }
 
     //

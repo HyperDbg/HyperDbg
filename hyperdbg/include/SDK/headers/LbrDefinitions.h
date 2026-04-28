@@ -18,7 +18,7 @@
 /**
  * @brief MSR address of LBR_SELECT, which is used to configure the LBR filtering options
  */
-#define MSR_LBR_SELECT 0x000001C8
+#define MSR_LEGACY_LBR_SELECT 0x000001C8
 
 /*
  * Intel LBR_SELECT bits

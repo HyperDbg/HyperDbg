@@ -157,7 +157,7 @@ ShowMessages(const char * Fmt, ...)
             else
             {
                 memcpy(g_MessageHandlerSharedBuffer, TempMessage, strlen(TempMessage) + 1);
-                ((SendMessageWWithSharedBufferCallback)g_MessageHandler)();
+                ((SendMessageWithSharedBufferCallback)g_MessageHandler)();
             }
         }
     }

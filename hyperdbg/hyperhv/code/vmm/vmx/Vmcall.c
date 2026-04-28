@@ -558,7 +558,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     case VMCALL_SET_MSR_LBR_SELECT:
     {
         //
-        // Perform setting MSR_LBR_SELECT
+        // Perform setting MSR_LEGACY_LBR_SELECT
         //
         HvSetLbrSelect(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;

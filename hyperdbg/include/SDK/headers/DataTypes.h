@@ -29,6 +29,24 @@ typedef enum _PAGING_LEVEL
 } PAGING_LEVEL;
 
 //////////////////////////////////////////////////
+//                 List Entries      			//
+//////////////////////////////////////////////////
+
+//
+//  Doubly linked list structure.  Can be used as either a list head, or
+//  as link words.
+//
+#if defined(__linux__)
+
+typedef struct _LIST_ENTRY
+{
+    struct _LIST_ENTRY * Flink;
+    struct _LIST_ENTRY * Blink;
+} LIST_ENTRY, *PLIST_ENTRY;
+
+#endif // defined(__linux__)
+
+//////////////////////////////////////////////////
 //                 Pool Manager      			//
 //////////////////////////////////////////////////
 
@@ -126,7 +144,7 @@ typedef int (*SendMessageWithParamCallback)(const char * Text);
  * as a custom ShowMessages function (using shared buffer)
  *
  */
-typedef int (*SendMessageWWithSharedBufferCallback)();
+typedef int (*SendMessageWithSharedBufferCallback)(VOID);
 
 //////////////////////////////////////////////////
 //                Communications                //

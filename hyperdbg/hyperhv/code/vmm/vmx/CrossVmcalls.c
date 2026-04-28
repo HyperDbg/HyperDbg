@@ -38,7 +38,7 @@ CrossVmcallSetDebugctlVmcallOnTargetCore(UINT64 Value)
 }
 
 /**
- * @brief Set the guest state of MSR_LBR_SELECT on the target core from VMCS using VMCALL
+ * @brief Set the guest state of MSR_LEGACY_LBR_SELECT on the target core from VMCS using VMCALL
  * @param FilterOptions
  *
  * @return VOID

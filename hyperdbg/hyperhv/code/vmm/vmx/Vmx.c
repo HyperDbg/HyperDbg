@@ -1203,7 +1203,7 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Now that VMX is OFF, we have to unset vmx-enable bit on cr4
     //
-    __writecr4(__readcr4() & (~X86_CR4_VMXE));
+    __writecr4(__readcr4() & (~REG_CR4_VMXE));
 }
 
 /**

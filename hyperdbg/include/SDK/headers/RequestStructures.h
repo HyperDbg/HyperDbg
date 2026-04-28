@@ -41,8 +41,7 @@ typedef struct _DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS
 } DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS,
     *PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS \
     sizeof(DEBUGGER_VA2PA_AND_PA2VA_COMMANDS)
@@ -61,8 +60,8 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
 
 } DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, *PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
+
 #define SIZEOF_DEBUGGER_PAGE_IN_REQUEST \
     sizeof(DEBUGGER_PAGE_IN_REQUEST)
 
@@ -80,8 +79,7 @@ typedef struct _DEBUGGER_PAGE_IN_REQUEST
 
 } DEBUGGER_PAGE_IN_REQUEST, *PDEBUGGER_PAGE_IN_REQUEST;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief different modes of reconstruct requests
@@ -122,8 +120,7 @@ typedef struct _REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST
 
 } REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST, *PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_DT_COMMAND_OPTIONS \
     sizeof(DEBUGGER_DT_COMMAND_OPTIONS)
@@ -144,8 +141,7 @@ typedef struct _DEBUGGER_DT_COMMAND_OPTIONS
 
 } DEBUGGER_DT_COMMAND_OPTIONS, *PDEBUGGER_DT_COMMAND_OPTIONS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief different types of prealloc requests
@@ -179,8 +175,7 @@ typedef struct _DEBUGGER_PREALLOC_COMMAND
 
 } DEBUGGER_PREALLOC_COMMAND, *PDEBUGGER_PREALLOC_COMMAND;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief different types of preactivate requests
@@ -206,8 +201,7 @@ typedef struct _DEBUGGER_PREACTIVATE_COMMAND
 
 } DEBUGGER_PREACTIVATE_COMMAND, *PDEBUGGER_PREACTIVATE_COMMAND;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_READ_MEMORY sizeof(DEBUGGER_READ_MEMORY)
 
@@ -281,8 +275,7 @@ typedef struct _DEBUGGER_READ_MEMORY
 
 } DEBUGGER_READ_MEMORY, *PDEBUGGER_READ_MEMORY;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS \
     sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS)
@@ -299,8 +292,7 @@ typedef struct _DEBUGGER_FLUSH_LOGGING_BUFFERS
 
 } DEBUGGER_FLUSH_LOGGING_BUFFERS, *PDEBUGGER_FLUSH_LOGGING_BUFFERS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_TEST_QUERY_BUFFER \
     sizeof(DEBUGGER_TEST_QUERY_BUFFER)
@@ -338,8 +330,7 @@ typedef struct _DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER
 
 } DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER, *PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS \
     sizeof(DEBUGGER_PERFORM_KERNEL_TESTS)
@@ -354,8 +345,7 @@ typedef struct _DEBUGGER_PERFORM_KERNEL_TESTS
 
 } DEBUGGER_PERFORM_KERNEL_TESTS, *PDEBUGGER_PERFORM_KERNEL_TESTS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL \
     sizeof(DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL)
@@ -371,8 +361,7 @@ typedef struct _DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL
 } DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL,
     *PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER \
     sizeof(DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)
@@ -395,8 +384,7 @@ typedef struct _DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER
 } DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER,
     *PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER \
     sizeof(DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER)
@@ -417,8 +405,7 @@ typedef struct _DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER
 } DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER,
     *PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR \
     sizeof(DEBUGGER_READ_AND_WRITE_ON_MSR)
@@ -449,8 +436,7 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR
 
 } DEBUGGER_READ_AND_WRITE_ON_MSR, *PDEBUGGER_READ_AND_WRITE_ON_MSR;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_EDIT_MEMORY sizeof(DEBUGGER_EDIT_MEMORY)
 
@@ -491,8 +477,7 @@ typedef struct _DEBUGGER_EDIT_MEMORY
 
 } DEBUGGER_EDIT_MEMORY, *PDEBUGGER_EDIT_MEMORY;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_SEARCH_MEMORY sizeof(DEBUGGER_SEARCH_MEMORY)
 
@@ -536,8 +521,7 @@ typedef struct _DEBUGGER_SEARCH_MEMORY
 
 } DEBUGGER_SEARCH_MEMORY, *PDEBUGGER_SEARCH_MEMORY;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Windows System call values that are intercepted by transparency mode
@@ -600,8 +584,7 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
 } DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE,
     *PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGER_PREPARE_DEBUGGEE sizeof(DEBUGGER_PREPARE_DEBUGGEE)
 
@@ -619,8 +602,7 @@ typedef struct _DEBUGGER_PREPARE_DEBUGGEE
 
 } DEBUGGER_PREPARE_DEBUGGEE, *PDEBUGGER_PREPARE_DEBUGGEE;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief The structure of changing core packet in HyperDbg
@@ -633,8 +615,8 @@ typedef struct _DEBUGGEE_CHANGE_CORE_PACKET
 
 } DEBUGGEE_CHANGE_CORE_PACKET, *PDEBUGGEE_CHANGE_CORE_PACKET;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
+
 #define SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS \
     sizeof(DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS)
 
@@ -678,8 +660,8 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
+
 #define SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS \
     sizeof(DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)
 
@@ -785,8 +767,7 @@ typedef struct _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS
 } DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS,
     *PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief The structure for saving the callstack frame of one parameter
@@ -836,8 +817,8 @@ typedef struct _DEBUGGER_CALLSTACK_REQUEST
 
 } DEBUGGER_CALLSTACK_REQUEST, *PDEBUGGER_CALLSTACK_REQUEST;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
+
 #define SIZEOF_USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS \
     sizeof(USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS)
 
@@ -850,8 +831,7 @@ typedef struct _USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS
 
 } USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS, *PUSERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Used for run the script
@@ -891,8 +871,7 @@ typedef struct _DEBUGGER_EVENT_REQUEST_CUSTOM_CODE
 
 } DEBUGGER_EVENT_REQUEST_CUSTOM_CODE, *PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief User-mode debugging actions
@@ -937,8 +916,7 @@ typedef struct _DEBUGGER_UD_COMMAND_PACKET
 
 } DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Debugger process switch and process details
@@ -970,8 +948,7 @@ typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET
 
 } DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, *PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Debugger size of DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET
@@ -1018,8 +995,7 @@ typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET
 #define SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET \
     sizeof(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET)
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief stepping and tracking types
@@ -1060,7 +1036,7 @@ typedef struct _DEBUGGEE_STEP_PACKET
  */
 #define DEBUGGER_REMOTE_TRACKING_DEFAULT_COUNT_OF_STEPPING 0xffffffff
 
-/* ==============================================================================================
+// ==============================================================================================
 
 /**
  * @brief Perform actions related to APIC
@@ -1194,8 +1170,7 @@ typedef struct _LAPIC_PAGE
     UINT8  Reserved3F4[0x0C]; // valid only for X2APIC
 } LAPIC_PAGE, *PLAPIC_PAGE;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Maximum number of I/O APIC entries
@@ -1228,8 +1203,7 @@ typedef struct _IO_APIC_ENTRY_PACKETS
 static_assert(sizeof(IO_APIC_ENTRY_PACKETS) < PacketChunkSize,
               "err (static_assert), size of PacketChunkSize should be bigger than IO_APIC_ENTRY_PACKETS");
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Perform actions related to SMIs
@@ -1261,8 +1235,7 @@ typedef struct _SMI_OPERATION_PACKETS
 #define SIZEOF_SMI_OPERATION_PACKETS \
     sizeof(SMI_OPERATION_PACKETS)
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Perform actions related to HyperTrace for LBR
@@ -1298,8 +1271,7 @@ typedef struct _HYPERTRACE_LBR_OPERATION_PACKETS
 #define SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS \
     sizeof(HYPERTRACE_LBR_OPERATION_PACKETS)
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Perform actions related to HyperTrace for PT
@@ -1332,8 +1304,7 @@ typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
 #define SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS \
     sizeof(HYPERTRACE_PT_OPERATION_PACKETS)
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Maximum number of IDT entries
@@ -1366,8 +1337,7 @@ typedef struct _INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS
 static_assert(sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS) < PacketChunkSize,
               "err (static_assert), size of PacketChunkSize should be bigger than INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS");
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief The structure of .formats result packet in HyperDbg
@@ -1380,8 +1350,7 @@ typedef struct _DEBUGGEE_FORMATS_PACKET
 
 } DEBUGGEE_FORMATS_PACKET, *PDEBUGGEE_FORMATS_PACKET;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief The structure of .sym reload packet in HyperDbg
@@ -1393,8 +1362,7 @@ typedef struct _DEBUGGEE_SYMBOL_REQUEST_PACKET
 
 } DEBUGGEE_SYMBOL_REQUEST_PACKET, *PDEBUGGEE_SYMBOL_REQUEST_PACKET;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief The structure of bp command packet in HyperDbg
@@ -1445,8 +1413,7 @@ typedef struct _DEBUGGEE_BP_LIST_OR_MODIFY_PACKET
 
 } DEBUGGEE_BP_LIST_OR_MODIFY_PACKET, *PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Whether a jump is taken or not taken
@@ -1462,8 +1429,7 @@ typedef enum _DEBUGGER_CONDITIONAL_JUMP_STATUS
 
 } DEBUGGER_CONDITIONAL_JUMP_STATUS;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief The structure of script packet in HyperDbg
@@ -1483,8 +1449,7 @@ typedef struct _DEBUGGEE_SCRIPT_PACKET
 
 } DEBUGGEE_SCRIPT_PACKET, *PDEBUGGEE_SCRIPT_PACKET;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief The structure of result of search packet in HyperDbg
@@ -1497,8 +1462,7 @@ typedef struct _DEBUGGEE_RESULT_OF_SEARCH_PACKET
 
 } DEBUGGEE_RESULT_OF_SEARCH_PACKET, *PDEBUGGEE_RESULT_OF_SEARCH_PACKET;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Register Descriptor Structure to use in r command.
@@ -1512,8 +1476,7 @@ typedef struct _DEBUGGEE_REGISTER_READ_DESCRIPTION
 
 } DEBUGGEE_REGISTER_READ_DESCRIPTION, *PDEBUGGEE_REGISTER_READ_DESCRIPTION;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 /**
  * @brief Register Descriptor Structure to write on registers.
@@ -1527,8 +1490,7 @@ typedef struct _DEBUGGEE_REGISTER_WRITE_DESCRIPTION
 
 } DEBUGGEE_REGISTER_WRITE_DESCRIPTION, *PDEBUGGEE_REGISTER_WRITE_DESCRIPTION;
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET \
     sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET)
@@ -1552,8 +1514,7 @@ typedef struct _DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET
 static_assert(sizeof(DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET) < PacketChunkSize,
               "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET");
 
-/* ==============================================================================================
- */
+// ==============================================================================================
 
 #define SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET \
     sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET)
@@ -1577,5 +1538,4 @@ typedef struct _DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET
 static_assert(sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET) < PacketChunkSize,
               "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET");
 
-/* ==============================================================================================
- */
+// ==============================================================================================

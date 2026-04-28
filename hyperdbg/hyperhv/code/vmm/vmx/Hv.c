@@ -1507,14 +1507,14 @@ HvSetDebugctl(UINT64 Value)
 /**
  * @brief Set LBR selector
  * @details If VMM is active, this should be done in vmx-root, otherwise, it doesn't work
- * @param FilterOptions The value to write on MSR_LBR_SELECT
+ * @param FilterOptions The value to write on MSR_LEGACY_LBR_SELECT
  *
  * @return VOID
  */
 VOID
 HvSetLbrSelect(UINT64 FilterOptions)
 {
-    __writemsr(MSR_LBR_SELECT, FilterOptions);
+    __writemsr(MSR_LEGACY_LBR_SELECT, FilterOptions);
 }
 
 /**

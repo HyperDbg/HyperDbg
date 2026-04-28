@@ -71,13 +71,13 @@ typedef VOID (*VM_FUNC_SET_DEBUGCTL)(UINT64 Value);
 typedef VOID (*VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE)(UINT64 Value);
 
 /**
- * @brief A function that set MSR_LBR_SELECT
+ * @brief A function that set MSR_LEGACY_LBR_SELECT
  *
  */
 typedef VOID (*VM_FUNC_SET_LBR_SELECT)(UINT64 FilterOptions);
 
 /**
- * @brief A function that set MSR_LBR_SELECT on the target core using VMCALL
+ * @brief A function that set MSR_LEGACY_LBR_SELECT on the target core using VMCALL
  *
  */
 typedef VOID (*VM_FUNC_SET_LBR_SELECT_VMCALL_ON_TARGET_CORE)(UINT64 FilterOptions);

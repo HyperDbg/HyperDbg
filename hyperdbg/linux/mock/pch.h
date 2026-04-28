@@ -35,3 +35,8 @@
 // Platform headers
 //
 #include "../../include/platform/kernel/header/PlatformMem.h"
+
+//
+// Platform headers
+//
+#include "../../include/SDK/HyperDbgSdk.h"
