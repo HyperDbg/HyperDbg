@@ -77,13 +77,106 @@ CPU_LBR_MAP CPU_LBR_MAPS[] = {
     {0x35, 8},
     {0x36, 8}};
 
+#define xcpuidex(code, subleaf, a, b, c, d) \
+    {                                       \
+        int CpuInfo[4] = {0};               \
+        __cpuidex(CpuInfo, code, subleaf);  \
+        *a = CpuInfo[0];                    \
+        *b = CpuInfo[1];                    \
+        *c = CpuInfo[2];                    \
+        *d = CpuInfo[3];                    \
+    }
+
+/**
+ * @brief Check if the current CPU supports architectural LBR
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LbrCheckAndReadArchitecturalLbrDetails()
+{
+    ULONG a, b, c, d;
+
+    CPUID_EAX_07 Edx07 = {0};
+
+    CPUID28_EAX Eax1c = {0};
+    CPUID28_EBX Ebx1c = {0};
+    CPUID28_ECX Ecx1c = {0};
+
+    //
+    // Check for Architectural LBR support
+    //
+    //
+    xcpuidex(CPUID_STRUCTURED_EXTENDED_FEATURE_FLAGS, 0x00, &a, &b, &c, &d);
+
+    Edx07.Edx.AsUInt = d;
+
+    //
+    // CPUID.07H.00H:EDX[19] == 1 means arch LBR is supported
+    //
+    if (Edx07.Edx.AsUInt & (1 << 19))
+    {
+        g_ArchBasedLastBranchRecord = TRUE;
+    }
+    else
+    {
+        //
+        // Architectural LBR is not supported by the CPU
+        //
+        g_ArchBasedLastBranchRecord = FALSE;
+
+        return FALSE;
+    }
+
+    //
+    // Being here means the CPU supports architectural LBR, we can read the LBR capabilities from CPUID 0x1c leaf
+    //
+    xcpuidex(CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION, 0x00, &a, &b, &c, &d);
+
+    //
+    // Assign LBR leafs to sturcture for easier access
+    //
+    Eax1c.AsUInt = a;
+    Ebx1c.AsUInt = b;
+    Ecx1c.AsUInt = c;
+
+    //
+    // Read LBR capacity from CPUID.1CH.00H:EAX[7:0]
+    // Based on Intel SDM: For each bit n set in this field, the IA32_LBR_DEPTH.DEPTH value 8 * (n + 1) is supported
+    //
+    if (Eax1c.LbrDepthMask)
+    {
+        //
+        // Get the highest set bit in LbrDepthMask to determine the maximum supported LBR depth
+        //
+        ULONG HighestSetBit = 0;
+        for (ULONG i = 0; i < 8; i++)
+        {
+            if (Eax1c.LbrDepthMask & (1 << i))
+            {
+                HighestSetBit = i;
+            }
+        }
+        LbrCapacity = 8 * (HighestSetBit + 1);
+    }
+    else
+    {
+        //
+        // If LbrDepthMask is 0, it means the CPU supports architectural LBR but does not specify the depth, we can assume a default value (e.g., 16 or 32) or treat it as unsupported
+        //
+        LbrCapacity = MAXIMUM_LBR_CAPACITY; // Assuming a default capacity of MAXIMUM_LBR_CAPACITY if not specified
+    }
+
+    return TRUE;
+}
+
 /**
  * @brief Check if the current CPU supports LBR by examining the CPU family and model and looking up the corresponding LBR capacity
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LbrCheck()
+LbrCheckAndReadLegacyLbrDetails()
 {
     ULONG     a, b, c, d;
     ULONG     Family, Model;

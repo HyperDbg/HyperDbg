@@ -77,12 +77,18 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
     }
 
     //
-    // Check LBR support on CPU
+    // Check for ARCHITECTURAL LBR support first, if not supported then check for LEGACY LBR support
     //
-    if (!LbrCheck())
+    if (!LbrCheckAndReadArchitecturalLbrDetails())
     {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_NOT_SUPPORTED;
-        return FALSE;
+        //
+        // If the CPU does not support architectural LBR, we can check for legacy LBR support as a fallback
+        //
+        if (!LbrCheckAndReadLegacyLbrDetails())
+        {
+            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_NOT_SUPPORTED;
+            return FALSE;
+        }
     }
 
     //
