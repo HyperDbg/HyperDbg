@@ -18,8 +18,14 @@
 UINT64
 CrossVmcallGetDebugctlVmcallOnTargetCore();
 
+UINT64
+CrossVmcallGetGuestIa32LbrCtlVmcallOnTargetCore();
+
 VOID
 CrossVmcallSetDebugctlVmcallOnTargetCore(UINT64 Value);
+
+VOID
+CrossVmcallSetGuestIa32LbrCtlVmcallOnTargetCore(UINT64 Value);
 
 VOID
 CrossVmcallSetLbrSelectVmcallOnTargetCore(UINT64 FilterOptions);
@@ -28,4 +34,10 @@ VOID
 CrossVmcallSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set);
 
 VOID
+CrossVmcallSetLoadGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set);
+
+VOID
 CrossVmcallSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set);
+
+VOID
+CrossVmcallSetClearGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set);

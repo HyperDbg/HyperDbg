@@ -49,14 +49,24 @@ typedef BOOLEAN (*LOG_CALLBACK_SEND_BUFFER)(_In_ UINT32                         
 typedef BOOLEAN (*LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL)(BOOLEAN Priority);
 
 /**
- * @brief A function that sets the guest state of IA32_DEBUGCTL
+ * @brief A function that gets the guest state of IA32_DEBUGCTL
  */
 typedef UINT64 (*VM_FUNC_GET_DEBUGCTL)();
 
 /**
- * @brief A function that sets the guest state of IA32_DEBUGCTL on the target core using VMCALL
+ * @brief A function that gets the guest state of IA32_DEBUGCTL on the target core using VMCALL
  */
 typedef UINT64 (*VM_FUNC_GET_DEBUGCTL_VMCALL_ON_TARGET_CORE)();
+
+/**
+ * @brief A function that gets the guest state of IA32_LBR_CTL
+ */
+typedef UINT64 (*VM_FUNC_GET_GUEST_IA32_LBR_CTL)();
+
+/**
+ * @brief A function that gets the guest state of IA32_LBR_CTL on the target core using VMCALL
+ */
+typedef UINT64 (*VM_FUNC_GET_GUEST_IA32_LBR_CTL_VMCALL_ON_TARGET_CORE)();
 
 /**
  * @brief A function that gets the guest state of IA32_DEBUGCTL
@@ -69,6 +79,18 @@ typedef VOID (*VM_FUNC_SET_DEBUGCTL)(UINT64 Value);
  *
  */
 typedef VOID (*VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE)(UINT64 Value);
+
+/**
+ * @brief A function that sets guest IA32_LBR_CTL
+ *
+ */
+typedef VOID (*VM_FUNC_SET_GUEST_IA32_LBR_CTL)(UINT64 Value);
+
+/**
+ * @brief A function that sets guest IA32_LBR_CTL on the target core using VMCALL
+ *
+ */
+typedef VOID (*VM_FUNC_SET_GUEST_IA32_LBR_CTL_VMCALL_ON_TARGET_CORE)(UINT64 Value);
 
 /**
  * @brief A function that set MSR_LEGACY_LBR_SELECT
@@ -89,6 +111,12 @@ typedef VOID (*VM_FUNC_SET_LBR_SELECT_VMCALL_ON_TARGET_CORE)(UINT64 FilterOption
 typedef BOOLEAN (*VM_FUNC_CHECK_CPU_SUPPORT_FOR_SAVE_AND_LOAD_DEBUG_CONTROLS)();
 
 /**
+ * @brief A function that checks whether guest IA32_LBR_CTL can be used in load and clear of guest IA32_LBR_CTL controls
+ *
+ */
+typedef BOOLEAN (*VM_FUNC_CHECK_CPU_SUPPORT_FOR_LOAD_AND_CLEAR_GUEST_IA32_LBR_CTL_CONTROLS)();
+
+/**
  * @brief A function that sets load debug controls on VM-entry controls
  *
  */
@@ -101,6 +129,18 @@ typedef VOID (*VM_FUNC_SET_LOAD_DEBUG_CONTROLS)(UINT32 CoreId, BOOLEAN Set);
 typedef VOID (*VM_FUNC_SET_LOAD_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE)(BOOLEAN Set);
 
 /**
+ * @brief A function that sets load guest IA32_LBR_CTL on VM-entry controls
+ *
+ */
+typedef VOID (*VM_FUNC_SET_LOAD_GUEST_IA32_LBR_CTL)(UINT32 CoreId, BOOLEAN Set);
+
+/**
+ * @brief A function that sets load guest IA32_LBR_CTL on VM-entry controls on the target core from VMCS using VMCALL
+ *
+ */
+typedef VOID (*VM_FUNC_SET_LOAD_GUEST_IA32_LBR_CTL_VMCALL_ON_TARGET_CORE)(BOOLEAN Set);
+
+/**
  * @brief A function that sets save debug controls on VM-exit controls
  *
  */
@@ -111,6 +151,18 @@ typedef VOID (*VM_FUNC_SET_SAVE_DEBUG_CONTROLS)(UINT32 CoreId, BOOLEAN Set);
  *
  */
 typedef VOID (*VM_FUNC_SET_SAVE_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE)(BOOLEAN Set);
+
+/**
+ * @brief A function that sets clear guest IA32_LBR_CTL on VM-exit controls
+ *
+ */
+typedef VOID (*VM_FUNC_SET_CLEAR_GUEST_IA32_LBR_CTL)(UINT32 CoreId, BOOLEAN Set);
+
+/**
+ * @brief A function that sets clear guest IA32_LBR_CTL on VM-exit controls on the target core from VMCS using VMCALL
+ *
+ */
+typedef VOID (*VM_FUNC_SET_CLEAR_GUEST_IA32_LBR_CTL_VMCALL_ON_TARGET_CORE)(BOOLEAN Set);
 
 /**
  * @brief A function that checks whether the current execution mode is VMX-root mode or not
@@ -163,33 +215,33 @@ typedef struct _HYPERTRACE_CALLBACKS
     //
     // *** Hypervisor (Hyperhv) callbacks ***
     //
-    VM_FUNC_VMX_GET_CURRENT_EXECUTION_MODE                     VmFuncVmxGetCurrentExecutionMode;
-    VM_FUNC_GET_DEBUGCTL                                       VmFuncGetDebugctl;
-    VM_FUNC_GET_DEBUGCTL_VMCALL_ON_TARGET_CORE                 VmFuncGetDebugctlVmcallOnTargetCore;
-    VM_FUNC_SET_DEBUGCTL                                       VmFuncSetDebugctl;
-    VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE                 VmFuncSetDebugctlVmcallOnTargetCore;
+    VM_FUNC_VMX_GET_CURRENT_EXECUTION_MODE VmFuncVmxGetCurrentExecutionMode;
+
     VM_FUNC_CHECK_CPU_SUPPORT_FOR_SAVE_AND_LOAD_DEBUG_CONTROLS VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
-    VM_FUNC_SET_LOAD_DEBUG_CONTROLS                            VmFuncSetLoadDebugControls;
-    VM_FUNC_SET_LOAD_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE      VmFuncSetLoadDebugControlsVmcallOnTargetCore;
-    VM_FUNC_SET_SAVE_DEBUG_CONTROLS                            VmFuncSetSaveDebugControls;
-    VM_FUNC_SET_SAVE_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE      VmFuncSetSaveDebugControlsVmcallOnTargetCore;
-    VM_FUNC_SET_LBR_SELECT                                     VmFuncSetLbrSelect;
-    VM_FUNC_SET_LBR_SELECT_VMCALL_ON_TARGET_CORE               VmFuncSetLbrSelectVmcallOnTargetCore;
 
-    //
-    // *** HYPERTRACE callbacks ***
-    //
+    VM_FUNC_GET_DEBUGCTL                       VmFuncGetDebugctl;
+    VM_FUNC_GET_DEBUGCTL_VMCALL_ON_TARGET_CORE VmFuncGetDebugctlVmcallOnTargetCore;
+    VM_FUNC_SET_DEBUGCTL                       VmFuncSetDebugctl;
+    VM_FUNC_SET_DEBUGCTL_VMCALL_ON_TARGET_CORE VmFuncSetDebugctlVmcallOnTargetCore;
 
-    //
-    // Memory callbacks
-    //
-    CHECK_ACCESS_VALIDITY_AND_SAFETY                  CheckAccessValidityAndSafety;
-    MEMORY_MAPPER_READ_MEMORY_SAFE_ON_TARGET_PROCESS  MemoryMapperReadMemorySafeOnTargetProcess;
-    MEMORY_MAPPER_WRITE_MEMORY_SAFE_ON_TARGET_PROCESS MemoryMapperWriteMemorySafeOnTargetProcess;
+    VM_FUNC_SET_LOAD_DEBUG_CONTROLS                       VmFuncSetLoadDebugControls;
+    VM_FUNC_SET_LOAD_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE VmFuncSetLoadDebugControlsVmcallOnTargetCore;
+    VM_FUNC_SET_SAVE_DEBUG_CONTROLS                       VmFuncSetSaveDebugControls;
+    VM_FUNC_SET_SAVE_DEBUG_CONTROLS_VMCALL_ON_TARGET_CORE VmFuncSetSaveDebugControlsVmcallOnTargetCore;
 
-    //
-    // Common callbacks
-    //
-    COMMON_GET_PROCESS_NAME_FROM_PROCESS_CONTROL_BLOCK CommonGetProcessNameFromProcessControlBlock;
+    VM_FUNC_SET_LBR_SELECT                       VmFuncSetLbrSelect;
+    VM_FUNC_SET_LBR_SELECT_VMCALL_ON_TARGET_CORE VmFuncSetLbrSelectVmcallOnTargetCore;
+
+    VM_FUNC_CHECK_CPU_SUPPORT_FOR_LOAD_AND_CLEAR_GUEST_IA32_LBR_CTL_CONTROLS VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls;
+
+    VM_FUNC_GET_GUEST_IA32_LBR_CTL                       VmFuncGetGuestIa32LbrCtl;
+    VM_FUNC_GET_GUEST_IA32_LBR_CTL_VMCALL_ON_TARGET_CORE VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore;
+    VM_FUNC_SET_GUEST_IA32_LBR_CTL                       VmFuncSetGuestIa32LbrCtl;
+    VM_FUNC_SET_GUEST_IA32_LBR_CTL_VMCALL_ON_TARGET_CORE VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore;
+
+    VM_FUNC_SET_LOAD_GUEST_IA32_LBR_CTL                        VmFuncSetLoadGuestIa32LbrCtl;
+    VM_FUNC_SET_LOAD_GUEST_IA32_LBR_CTL_VMCALL_ON_TARGET_CORE  VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore;
+    VM_FUNC_SET_CLEAR_GUEST_IA32_LBR_CTL                       VmFuncSetClearGuestIa32LbrCtl;
+    VM_FUNC_SET_CLEAR_GUEST_IA32_LBR_CTL_VMCALL_ON_TARGET_CORE VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore;
 
 } HYPERTRACE_CALLBACKS, *PHYPERTRACE_CALLBACKS;

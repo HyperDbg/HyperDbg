@@ -35,3 +35,13 @@
         *c = CpuInfo[2];         \
         *d = CpuInfo[3];         \
     }
+
+#define xcpuidex(code, subleaf, a, b, c, d) \
+    {                                       \
+        int CpuInfo[4] = {0};               \
+        __cpuidex(CpuInfo, code, subleaf);  \
+        *a = CpuInfo[0];                    \
+        *b = CpuInfo[1];                    \
+        *c = CpuInfo[2];                    \
+        *d = CpuInfo[3];                    \
+    }

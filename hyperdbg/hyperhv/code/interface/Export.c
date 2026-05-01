@@ -127,6 +127,20 @@ VmFuncSetLoadDebugControls(UINT32 CoreId, BOOLEAN Set)
 }
 
 /**
+ * @brief Set LOAD GUEST IA32_LBR_CTL on Vm-entry controls
+ *
+ * @param CoreId target core id
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLoadGuestIa32LbrCtl(UINT32 CoreId, BOOLEAN Set)
+{
+    HvSetLoadGuestIa32LbrCtl(&g_GuestState[CoreId], Set);
+}
+
+/**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
  * @param CoreId target core id
@@ -138,6 +152,20 @@ VOID
 VmFuncSetSaveDebugControls(UINT32 CoreId, BOOLEAN Set)
 {
     HvSetSaveDebugControls(&g_GuestState[CoreId], Set);
+}
+
+/**
+ * @brief Set CLEAR GUEST IA32_LBR_CTL on Vm-exit controls
+ *
+ * @param CoreId target core id
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetClearGuestIa32LbrCtl(UINT32 CoreId, BOOLEAN Set)
+{
+    HvSetClearGuestIa32LbrCtl(&g_GuestState[CoreId], Set);
 }
 
 /**
@@ -417,6 +445,28 @@ VmFuncGetDebugctlVmcallOnTargetCore()
 }
 
 /**
+ * @brief Get the guest state of IA32_LBR_CTL
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetGuestIa32LbrCtl()
+{
+    return HvGetGuestIa32LbrCtl();
+}
+
+/**
+ * @brief Get the guest state of IA32_LBR_CTL on the target core from VMCS
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore()
+{
+    return CrossVmcallGetGuestIa32LbrCtlVmcallOnTargetCore();
+}
+
+/**
  * @brief Check if CPU support save and load debug controls on exit and load entries
  *
  * @return BOOLEAN
@@ -425,6 +475,17 @@ BOOLEAN
 VmFuncCheckCpuSupportForSaveAndLoadDebugControls()
 {
     return HvCheckCpuSupportForSaveAndLoadDebugControls();
+}
+
+/**
+ * @brief Check if CPU support load and clear guest IA32_LBR_CTL controls on VM-entry and VM-exit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls()
+{
+    return HvCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls();
 }
 
 /**
@@ -450,6 +511,31 @@ VOID
 VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value)
 {
     CrossVmcallSetDebugctlVmcallOnTargetCore(Value);
+}
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetGuestIa32LbrCtl(UINT64 Value)
+{
+    HvSetGuestIa32LbrCtl(Value);
+}
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL on the target core from VMCS
+ * using VMCALL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore(UINT64 Value)
+{
+    CrossVmcallSetGuestIa32LbrCtlVmcallOnTargetCore(Value);
 }
 
 /**
@@ -490,6 +576,19 @@ VmFuncSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set)
 }
 
 /**
+ * @brief Set LOAD GUEST IA32_LBR_CTL on VM-entry controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetLoadGuestIa32LbrCtlVmcallOnTargetCore(Set);
+}
+
+/**
  * @brief Set SAVE DEBUG CONTROLS on VM-exit controls on the target core from VMCS using VMCALL
  *
  * @param Set Set or unset
@@ -500,6 +599,19 @@ VOID
 VmFuncSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set)
 {
     CrossVmcallSetSaveDebugControlsVmcallOnTargetCore(Set);
+}
+
+/**
+ * @brief Set CLEAR GUEST IA32_LBR_CTL on VM-exit controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetClearGuestIa32LbrCtlVmcallOnTargetCore(Set);
 }
 
 /**

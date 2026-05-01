@@ -39,29 +39,17 @@ LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment)
     // Fill the callbacks for using hyperhv in hypertrace
     //
     HyperTraceCallbacks.VmFuncVmxGetCurrentExecutionMode                 = VmFuncVmxGetCurrentExecutionMode;
+    HyperTraceCallbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls = VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
     HyperTraceCallbacks.VmFuncGetDebugctl                                = VmFuncGetDebugctl;
     HyperTraceCallbacks.VmFuncGetDebugctlVmcallOnTargetCore              = VmFuncGetDebugctlVmcallOnTargetCore;
     HyperTraceCallbacks.VmFuncSetDebugctl                                = VmFuncSetDebugctl;
     HyperTraceCallbacks.VmFuncSetDebugctlVmcallOnTargetCore              = VmFuncSetDebugctlVmcallOnTargetCore;
-    HyperTraceCallbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls = VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
     HyperTraceCallbacks.VmFuncSetLoadDebugControls                       = VmFuncSetLoadDebugControls;
     HyperTraceCallbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore     = VmFuncSetLoadDebugControlsVmcallOnTargetCore;
     HyperTraceCallbacks.VmFuncSetSaveDebugControls                       = VmFuncSetSaveDebugControls;
     HyperTraceCallbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore     = VmFuncSetSaveDebugControlsVmcallOnTargetCore;
     HyperTraceCallbacks.VmFuncSetLbrSelect                               = VmFuncSetLbrSelect;
     HyperTraceCallbacks.VmFuncSetLbrSelectVmcallOnTargetCore             = VmFuncSetLbrSelectVmcallOnTargetCore;
-
-    //
-    // Memory callbacks
-    //
-    HyperTraceCallbacks.CheckAccessValidityAndSafety               = CheckAccessValidityAndSafety;
-    HyperTraceCallbacks.MemoryMapperReadMemorySafeOnTargetProcess  = MemoryMapperReadMemorySafeOnTargetProcess;
-    HyperTraceCallbacks.MemoryMapperWriteMemorySafeOnTargetProcess = MemoryMapperWriteMemorySafeOnTargetProcess;
-
-    //
-    // Common callbacks
-    //
-    HyperTraceCallbacks.CommonGetProcessNameFromProcessControlBlock = CommonGetProcessNameFromProcessControlBlock;
 
     //
     // Initialize hypertrace module

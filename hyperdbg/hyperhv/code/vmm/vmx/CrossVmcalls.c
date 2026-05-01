@@ -26,6 +26,19 @@ CrossVmcallGetDebugctlVmcallOnTargetCore()
 }
 
 /**
+ * @brief Get the guest state of IA32_LBR_CTL on the target core from VMCS using VMCALL
+ *
+ * @return UINT64
+ */
+UINT64
+CrossVmcallGetGuestIa32LbrCtlVmcallOnTargetCore()
+{
+    UINT64 GuestIa32LbrCtlValue;
+    AsmVmxVmcall(VMCALL_GET_GUEST_IA32_LBR_CTL, (UINT64)&GuestIa32LbrCtlValue, NULL64_ZERO, NULL64_ZERO);
+    return GuestIa32LbrCtlValue;
+}
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL on the target core from VMCS using VMCALL
  * @param Value
  *
@@ -35,6 +48,18 @@ VOID
 CrossVmcallSetDebugctlVmcallOnTargetCore(UINT64 Value)
 {
     AsmVmxVmcall(VMCALL_SET_VMCS_DEBUGCTL, Value, NULL64_ZERO, NULL64_ZERO);
+}
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL on the target core from VMCS using VMCALL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+CrossVmcallSetGuestIa32LbrCtlVmcallOnTargetCore(UINT64 Value)
+{
+    AsmVmxVmcall(VMCALL_SET_GUEST_IA32_LBR_CTL, Value, NULL64_ZERO, NULL64_ZERO);
 }
 
 /**
@@ -70,6 +95,26 @@ CrossVmcallSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set)
 }
 
 /**
+ * @brief Set CLEAR GUEST IA32_LBR_CTL on Vm-entry controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+CrossVmcallSetLoadGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set)
+{
+    if (Set)
+    {
+        AsmVmxVmcall(VMCALL_SET_VM_ENTRY_LOAD_GUEST_IA32_LBR_CTL, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
+    }
+    else
+    {
+        AsmVmxVmcall(VMCALL_UNSET_VM_ENTRY_LOAD_GUEST_IA32_LBR_CTL, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
+    }
+}
+
+/**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls on the target core from VMCS using VMCALL
  *
  * @param Set Set or unset
@@ -86,5 +131,25 @@ CrossVmcallSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set)
     else
     {
         AsmVmxVmcall(VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
+    }
+}
+
+/**
+ * @brief Set CLEAR GUEST IA32_LBR_CTL on Vm-exit controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+CrossVmcallSetClearGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set)
+{
+    if (Set)
+    {
+        AsmVmxVmcall(VMCALL_SET_CLEAR_GUEST_IA32_LBR_CTL, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
+    }
+    else
+    {
+        AsmVmxVmcall(VMCALL_UNSET_CLEAR_GUEST_IA32_LBR_CTL, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
     }
 }

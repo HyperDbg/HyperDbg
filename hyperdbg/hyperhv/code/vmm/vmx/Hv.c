@@ -402,6 +402,40 @@ HvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 }
 
 /**
+ * @brief Set LOAD GUEST IA32_LBR_CTL on Vm-entry controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @return VOID
+ */
+VOID
+HvSetLoadGuestIa32LbrCtl(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+{
+    UNREFERENCED_PARAMETER(VCpu);
+
+    UINT32 VmentryControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    VmxVmread32P(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
+
+    if (Set)
+    {
+        VmentryControls |= IA32_VMX_ENTRY_CTLS_LOAD_IA32_LBR_CTL_FLAG;
+    }
+    else
+    {
+        VmentryControls &= ~IA32_VMX_ENTRY_CTLS_LOAD_IA32_LBR_CTL_FLAG;
+    }
+
+    //
+    // Set the new value
+    //
+    VmxVmwrite32(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
+}
+
+/**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
  * @param VCpu
@@ -412,6 +446,40 @@ VOID
 HvSetSaveDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
     ProtectedHvSetSaveDebugControls(VCpu, Set);
+}
+
+/**
+ * @brief Set SAVE GUEST IA32_LBR_CTL on Vm-exit controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @return VOID
+ */
+VOID
+HvSetClearGuestIa32LbrCtl(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+{
+    UNREFERENCED_PARAMETER(VCpu);
+
+    UINT32 VmexitControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
+
+    if (Set)
+    {
+        VmexitControls |= IA32_VMX_EXIT_CTLS_CLEAR_IA32_LBR_CTL_FLAG;
+    }
+    else
+    {
+        VmexitControls &= ~IA32_VMX_EXIT_CTLS_CLEAR_IA32_LBR_CTL_FLAG;
+    }
+
+    //
+    // Set the new value
+    //
+    VmxVmwrite32(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
 }
 
 /**
@@ -1468,6 +1536,21 @@ HvGetDebugctl()
 }
 
 /**
+ * @brief Get the guest state of IA32_LBR_CTL
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetGuestIa32LbrCtl()
+{
+    UINT64 GuestIa32LbrCtl;
+
+    VmxVmread64P(VMCS_GUEST_LBR_CTL, &GuestIa32LbrCtl);
+
+    return GuestIa32LbrCtl;
+}
+
+/**
  * @brief Get and store the guest state of IA32_DEBUGCTL
  * @details mainly used from the VMCALL handler
  *
@@ -1492,6 +1575,30 @@ HvGetAndStoreDebugctl(UINT64 * StoreDebugctl)
 }
 
 /**
+ * @brief Get and store the guest state of IA32_LBR_CTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @param StoreGuestIa32Lbr
+ *
+ * @return VOID
+ */
+VOID
+HvGetAndStoreGuestIa32LbrCtl(UINT64 * StoreGuestIa32Lbr)
+{
+    UINT64 GuestIa32LbrCtl;
+
+    //
+    // Read IA32_LBR_CTL from VMCS
+    //
+    GuestIa32LbrCtl = HvGetGuestIa32LbrCtl();
+
+    //
+    // Store the IA32_LBR_CTL
+    //
+    *StoreGuestIa32Lbr = GuestIa32LbrCtl;
+}
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value The new state
  *
@@ -1502,6 +1609,18 @@ HvSetDebugctl(UINT64 Value)
 {
     VmxVmwrite32(VMCS_GUEST_DEBUGCTL, Value & 0xFFFFFFFF);
     VmxVmwrite32(VMCS_GUEST_DEBUGCTL_HIGH, Value >> 32);
+}
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL
+ * @param Value The new state
+ *
+ * @return VOID
+ */
+VOID
+HvSetGuestIa32LbrCtl(UINT64 Value)
+{
+    VmxVmwrite64(VMCS_GUEST_LBR_CTL, Value);
 }
 
 /**
@@ -1544,6 +1663,54 @@ HvCheckCpuSupportForSaveAndLoadDebugControls()
     //
     UINT32 EntryCtls = HvAdjustControls(
         IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS);
+
+    //
+    // Check if entry and exit controls are supported on this system
+    //
+    if (ExitCtls != NULL_ZERO && EntryCtls != NULL_ZERO)
+    {
+        //
+        // Supported
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not supported
+        //
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Check if CPU support load and clear guest IA32_LBR_CTL controls on entry and exit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls()
+{
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
+
+    //
+    // Reading IA32_VMX_BASIC_MSR
+    //
+    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+
+    //
+    // Read 1-settings of save debug controls (exit controls)
+    //
+    UINT32 ExitCtls = HvAdjustControls(
+        IA32_VMX_EXIT_CTLS_CLEAR_IA32_LBR_CTL_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS);
+
+    //
+    // Read 1-settings of load debug controls (entry controls)
+    //
+    UINT32 EntryCtls = HvAdjustControls(
+        IA32_VMX_ENTRY_CTLS_LOAD_IA32_LBR_CTL_FLAG,
         VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS);
 
     //
