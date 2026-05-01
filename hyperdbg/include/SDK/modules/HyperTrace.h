@@ -217,6 +217,10 @@ typedef struct _HYPERTRACE_CALLBACKS
     //
     VM_FUNC_VMX_GET_CURRENT_EXECUTION_MODE VmFuncVmxGetCurrentExecutionMode;
 
+    //
+    // *** Legacy LBR callbacks ***
+    //
+
     VM_FUNC_CHECK_CPU_SUPPORT_FOR_SAVE_AND_LOAD_DEBUG_CONTROLS VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
 
     VM_FUNC_GET_DEBUGCTL                       VmFuncGetDebugctl;
@@ -231,6 +235,10 @@ typedef struct _HYPERTRACE_CALLBACKS
 
     VM_FUNC_SET_LBR_SELECT                       VmFuncSetLbrSelect;
     VM_FUNC_SET_LBR_SELECT_VMCALL_ON_TARGET_CORE VmFuncSetLbrSelectVmcallOnTargetCore;
+
+    //
+    // *** Architectural LBR callbacks ***
+    //
 
     VM_FUNC_CHECK_CPU_SUPPORT_FOR_LOAD_AND_CLEAR_GUEST_IA32_LBR_CTL_CONTROLS VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls;
 

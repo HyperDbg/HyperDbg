@@ -594,8 +594,8 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
-    case DEBUGGER_ERROR_DEBUGCTL_NOT_SUPPORTED_ON_VMCS:
-        ShowMessages("err, Debugctl is not supported on VMCS (%x)\n",
+    case DEBUGGER_ERROR_LBR_NOT_SUPPORTED_ON_VMCS:
+        ShowMessages("err, LBR is not supported on VMCS (%x)\n",
                      Error);
         break;
 
