@@ -38,7 +38,7 @@ HyperTraceLbrExamplePerformTrace()
         LogInfo("Dumping LBR Buffer...\n");
 
         LbrStop();
-        LbrPrintAll(); // This will print the collected LBR branches to the log
+        LbrPrint(); // This will print the collected LBR branches to the log
     }
 }
 
@@ -245,14 +245,14 @@ HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
 }
 
 /**
- * @brief Print all LBR tracing for HyperTrace
+ * @brief Print LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceLbrPrintAll(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
+HyperTraceLbrPrint(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
 {
     //
     // Check if LBR is already disabled or not
@@ -266,9 +266,14 @@ HyperTraceLbrPrintAll(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequ
     LogInfo("Dumping LBR Buffer...\n");
 
     //
+    // Save the LBR state
+    //
+    LbrSave();
+
+    //
     // This will print the collected LBR branches to the log
     //
-    LbrPrintAll();
+    LbrPrint();
 
     //
     // The operation was successful

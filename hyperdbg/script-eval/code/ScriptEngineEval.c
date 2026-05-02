@@ -747,13 +747,13 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
         break;
 
-    case FUNC_LBR_PRINT_ALL:
+    case FUNC_LBR_PRINT:
 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionLbrPrintAll();
+        DesVal = ScriptEngineFunctionLbrPrint();
 
         SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
         break;

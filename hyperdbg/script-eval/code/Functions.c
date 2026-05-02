@@ -2042,7 +2042,7 @@ ScriptEngineFunctionLbrSave()
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineFunctionLbrPrintAll()
+ScriptEngineFunctionLbrPrint()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, it's not possible to call lbr_dump function in the user-mode\n");
@@ -2054,7 +2054,7 @@ ScriptEngineFunctionLbrPrintAll()
     //
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
-    return HyperTraceLbrPrintAll(NULL);
+    return HyperTraceLbrPrint(NULL);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

@@ -151,7 +151,7 @@ static const char *const SymbolTypeNames[] = {
 #define FUNC_RDTSC 54
 #define FUNC_RDTSCP 55
 #define FUNC_LBR_SAVE 56
-#define FUNC_LBR_PRINT_ALL 57
+#define FUNC_LBR_PRINT 57
 #define FUNC_SPINLOCK_LOCK_CUSTOM_WAIT 58
 #define FUNC_EVENT_INJECT 59
 #define FUNC_POI 60
@@ -256,7 +256,7 @@ static const char *const FunctionNames[] = {
 "FUNC_RDTSC",
 "FUNC_RDTSCP",
 "FUNC_LBR_SAVE",
-"FUNC_LBR_PRINT_ALL",
+"FUNC_LBR_PRINT",
 "FUNC_SPINLOCK_LOCK_CUSTOM_WAIT",
 "FUNC_EVENT_INJECT",
 "FUNC_POI",

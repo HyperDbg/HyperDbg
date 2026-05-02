@@ -38,7 +38,7 @@
 .ZeroOpFunc1->pause flush event_trace_step event_trace_step_in event_trace_step_out event_trace_instrumentation_step event_trace_instrumentation_step_in
 
 # ZeroOpFunc2 no input and returns a number
-.ZeroOpFunc2->rdtsc rdtscp lbr_save lbr_print_all
+.ZeroOpFunc2->rdtsc rdtscp lbr_save lbr_print
 
 .VarArgFunc1->printf 
 

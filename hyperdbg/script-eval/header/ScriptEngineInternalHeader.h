@@ -267,7 +267,7 @@ BOOLEAN
 ScriptEngineFunctionLbrSave();
 
 BOOLEAN
-ScriptEngineFunctionLbrPrintAll();
+ScriptEngineFunctionLbrPrint();
 
 UINT64
 ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2);

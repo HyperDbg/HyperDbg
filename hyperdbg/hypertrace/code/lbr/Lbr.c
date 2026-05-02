@@ -882,12 +882,12 @@ LbrSave()
 }
 
 /**
- * @brief Print all collected LBR branches
+ * @brief Print collected LBR branches
  *
  * @return VOID
  */
 VOID
-LbrPrintAll()
+LbrPrint()
 {
     ULONG             CurrentIdx;
     LBR_STACK_ENTRY * State;
