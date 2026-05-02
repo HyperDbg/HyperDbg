@@ -229,33 +229,6 @@ typedef enum _MOV_TO_DEBUG_REG
 //				VMX Instructions				//
 //////////////////////////////////////////////////
 
-extern inline UCHAR
-VmxVmread64(size_t Field, UINT64 FieldValue);
-
-extern inline UCHAR
-VmxVmread32(size_t Field, UINT32 FieldValue);
-
-extern inline UCHAR
-VmxVmread16(size_t Field, UINT16 FieldValue);
-
-extern inline UCHAR
-VmxVmread64P(size_t Field, UINT64 * FieldValue);
-
-extern inline UCHAR
-VmxVmread32P(size_t Field, UINT32 * FieldValue);
-
-extern inline UCHAR
-VmxVmread16P(size_t Field, UINT16 * FieldValue);
-
-extern inline UCHAR
-VmxVmwrite64(size_t Field, UINT64 FieldValue);
-
-extern inline UCHAR
-VmxVmwrite32(size_t Field, UINT32 FieldValue);
-
-extern inline UCHAR
-VmxVmwrite16(size_t Field, UINT16 FieldValue);
-
 VOID
 VmxVmptrst();
 
