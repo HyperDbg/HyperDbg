@@ -480,6 +480,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_LBR_ATTRIBUTES \
     NULL
 
+#define DEBUGGER_COMMAND_LBRDUMP_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 #define DEBUGGER_COMMAND_PT_ATTRIBUTES \
     NULL
 
@@ -771,6 +774,9 @@ CommandSmi(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandLbr(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandLbrdump(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandPt(vector<CommandToken> CommandTokens, string Command);

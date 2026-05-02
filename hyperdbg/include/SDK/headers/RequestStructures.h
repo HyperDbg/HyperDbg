@@ -1254,8 +1254,6 @@ typedef enum _HYPERTRACE_LBR_OPERATION_REQUEST_TYPE
 
 } HYPERTRACE_LBR_OPERATION_REQUEST_TYPE;
 
-
-
 /**
  * @brief The structure of HyperTrace LBR result packet in HyperDbg
  *
@@ -1264,9 +1262,6 @@ typedef struct _HYPERTRACE_LBR_OPERATION_PACKETS
 {
     HYPERTRACE_LBR_OPERATION_REQUEST_TYPE LbrOperationType;
     UINT32                                LbrFilterOptions;
-    UINT32                                LbrTargetCore;
-    UINT8                                 LbrTos;
-    UINT8                                 NumberOfSavedEntries;
     UINT32                                KernelStatus;
 
 } HYPERTRACE_LBR_OPERATION_PACKETS, *PHYPERTRACE_LBR_OPERATION_PACKETS;

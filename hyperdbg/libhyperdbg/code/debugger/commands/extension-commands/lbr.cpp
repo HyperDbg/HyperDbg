@@ -25,6 +25,7 @@ VOID
 CommandLbrHelp()
 {
     ShowMessages("!lbr : performs operation for Last Branch Record (LBR).\n");
+    ShowMessages("for dumping LBR entries, you can use the '!lbrdump' command\n");
 
     ShowMessages("syntax : \t!lbr [Function (string)]\n");
     ShowMessages("syntax : \t!lbr [filter FilterOptions (string)]\n");

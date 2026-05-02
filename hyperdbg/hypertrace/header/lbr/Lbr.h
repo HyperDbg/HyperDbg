@@ -174,7 +174,7 @@ typedef struct _LBR_STACK_ENTRY
 {
     LBR_BRANCH_ENTRY BranchEntry[MAXIMUM_LBR_CAPACITY];
     MSR_LBR_INFO     LastBranchInfo[MAXIMUM_LBR_CAPACITY];
-    UINT8           Tos;
+    UINT8            Tos;
 
 } LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
 
@@ -217,9 +217,6 @@ LbrCheckAndReadArchitecturalLbrDetails();
 BOOLEAN
 LbrStart(UINT64 FilterOptions);
 
-BOOLEAN
-LbrQuery(UINT32 CoreId, UINT8 * LbrTos, UINT8 * NumberOfSavedEntries);
-
 VOID
 LbrFilter(UINT64 FilterOptions);
 
@@ -233,4 +230,4 @@ VOID
 LbrSave();
 
 VOID
-LbrDump();
+LbrPrintAll();

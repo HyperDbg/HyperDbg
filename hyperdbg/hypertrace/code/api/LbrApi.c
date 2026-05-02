@@ -38,7 +38,7 @@ HyperTraceLbrExamplePerformTrace()
         LogInfo("Dumping LBR Buffer...\n");
 
         LbrStop();
-        LbrDump(); // This will print the collected LBR branches to the log
+        LbrPrintAll(); // This will print the collected LBR branches to the log
     }
 }
 
@@ -245,14 +245,14 @@ HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
 }
 
 /**
- * @brief Dump LBR tracing for HyperTrace
+ * @brief Print all LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceLbrDump(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
+HyperTraceLbrPrintAll(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
 {
     //
     // Check if LBR is already disabled or not
@@ -268,7 +268,7 @@ HyperTraceLbrDump(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
     //
     // This will print the collected LBR branches to the log
     //
-    LbrDump();
+    LbrPrintAll();
 
     //
     // The operation was successful
@@ -306,50 +306,6 @@ HyperTraceLbrUpdateFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOp
     // The operation was successful
     //
     HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
-
-    return TRUE;
-}
-
-/**
- * @brief Query LBR tracing for HyperTrace
- *
- * @param HyperTraceOperationRequest
- *
- * @return BOOLEAN
- */
-BOOLEAN
-HyperTraceLbrQuery(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
-{
-    //
-    // Check if LBR is already disabled or not
-    //
-    if (!g_LastBranchRecordEnabled)
-    {
-        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
-        return FALSE;
-    }
-
-    LogInfo("Querying LBR Buffer...\n");
-
-    //
-    // Query the LBR state and fill the request structure with the results
-    //
-    if (LbrQuery(HyperTraceOperationRequest->LbrTargetCore,
-                 &HyperTraceOperationRequest->LbrTos,
-                 &HyperTraceOperationRequest->NumberOfSavedEntries))
-    {
-        //
-        // The operation was successful
-        //
-        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
-    }
-    else
-    {
-        //
-        // The operation was NOT successful
-        //
-        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_INVALID_CORE_ID);
-    }
 
     return TRUE;
 }

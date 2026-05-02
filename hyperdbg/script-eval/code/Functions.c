@@ -2054,7 +2054,7 @@ ScriptEngineFunctionLbrPrintAll()
     //
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
-    return HyperTraceLbrDump(NULL);
+    return HyperTraceLbrPrintAll(NULL);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
