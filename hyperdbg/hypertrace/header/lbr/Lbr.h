@@ -14,11 +14,11 @@
 //			    	  Constants	    			//
 //////////////////////////////////////////////////
 
-#define MSR_LBR_TOS           0x000001C9
-#define MSR_LBR_NHM_FROM      0x00000680
-#define MSR_LBR_NHM_TO        0x000006C0
-#define MSR_LASTBRANCH_INFO_0 0x00000DC0
-#define LBR_SELECT            0x00000000
+#define MSR_LBR_TOS               0x000001C9
+#define MSR_LBR_NHM_FROM          0x00000680
+#define MSR_LBR_NHM_TO            0x000006C0
+#define MSR_LASTBRANCH_INFO_0     0x00000DC0
+#define LBR_SELECT_WITHOUT_FILTER 0x00000000
 
 #define CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION 0x1c
 

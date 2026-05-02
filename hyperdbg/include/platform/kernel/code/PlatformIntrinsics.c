@@ -1,5 +1,5 @@
 /**
- * @file Intrinsics.c
+ * @file PlatformIntrinsics.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of cross platform APIs for intrinsic functions
  * @details

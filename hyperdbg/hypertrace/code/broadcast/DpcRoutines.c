@@ -56,7 +56,7 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     // Enable LBR on all cores from VMX-root mode by VMCALL
     // By default, all filter options are disabled, which means all branch types will be captured
     //
-    LbrStart(LBR_SELECT);
+    LbrStart(LBR_SELECT_WITHOUT_FILTER);
 
     //
     // Wait for all DPCs to synchronize at this point

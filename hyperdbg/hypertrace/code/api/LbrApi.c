@@ -19,7 +19,7 @@
 VOID
 HyperTraceLbrExamplePerformTrace()
 {
-    if (LbrStart(LBR_SELECT))
+    if (LbrStart(LBR_SELECT_WITHOUT_FILTER))
     {
         for (volatile int i = 0; i < 50; i++)
         {
@@ -58,6 +58,25 @@ HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId)
 }
 
 /**
+ * @brief Set the kernel status in the HyperTrace operation request structure
+ *
+ * @param HyperTraceOperationRequest
+ * @param Status
+ *
+ * @return VOID
+ */
+VOID
+HyperTraceSetKernelStatus(
+    HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest,
+    UINT32                             Status)
+{
+    if (HyperTraceOperationRequest != NULL)
+    {
+        HyperTraceOperationRequest->KernelStatus = Status;
+    }
+}
+
+/**
  * @brief Enable LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
@@ -72,7 +91,7 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
     //
     if (g_LastBranchRecordEnabled)
     {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_ENABLED;
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_ENABLED);
         return FALSE;
     }
 
@@ -86,7 +105,7 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
         //
         if (!LbrCheckAndReadLegacyLbrDetails())
         {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_NOT_SUPPORTED;
+            HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_NOT_SUPPORTED);
             return FALSE;
         }
     }
@@ -99,7 +118,7 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
         if ((g_ArchBasedLastBranchRecord && !g_Callbacks.VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls()) ||
             (!g_ArchBasedLastBranchRecord && !g_Callbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls()))
         {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_NOT_SUPPORTED_ON_VMCS;
+            HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_NOT_SUPPORTED_ON_VMCS);
             return FALSE;
         }
     }
@@ -117,7 +136,7 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
     //
     // Set successful status
     //
-    HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -137,11 +156,7 @@ HyperTraceLbrDisable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReque
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
-
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
@@ -158,10 +173,7 @@ HyperTraceLbrDisable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReque
     //
     // Set successful status
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -181,11 +193,7 @@ HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
-
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
@@ -197,10 +205,7 @@ HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest
     //
     // Set successful status
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -220,11 +225,7 @@ HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
-
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
@@ -238,10 +239,7 @@ HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
     //
     // The operation was successful
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -261,11 +259,7 @@ HyperTraceLbrDump(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
-
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
@@ -279,10 +273,7 @@ HyperTraceLbrDump(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
     //
     // The operation was successful
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -302,10 +293,7 @@ HyperTraceLbrUpdateFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOp
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
@@ -317,10 +305,7 @@ HyperTraceLbrUpdateFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOp
     //
     // The operation was successful
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
