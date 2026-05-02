@@ -226,19 +226,6 @@ typedef enum _MOV_TO_DEBUG_REG
 } MOV_TO_DEBUG_REG;
 
 //////////////////////////////////////////////////
-//				VMX Instructions				//
-//////////////////////////////////////////////////
-
-VOID
-VmxVmptrst();
-
-VOID
-VmxVmresume();
-
-VOID
-VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu);
-
-//////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 
@@ -254,23 +241,8 @@ VmxPerformVirtualizationOnAllCores();
 BOOLEAN
 VmxTerminate();
 
-VOID
-VmxPerformTermination();
-
-VOID
-VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
-VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
-VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu);
-
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore();
-
-VOID
-VmxFixCr4AndCr0Bits();
 
 BOOLEAN
 VmxLoadVmcs(_In_ VIRTUAL_MACHINE_STATE * VCpu);
@@ -286,6 +258,33 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
 BOOLEAN
 VmxSetupVmcs(_In_ VIRTUAL_MACHINE_STATE * VCpu, _In_ PVOID GuestStack);
+
+VOID
+VmxPerformVmptrst();
+
+VOID
+VmxPerformVmresume();
+
+VOID
+VmxPerformVmxoff(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+VmxPerformTermination();
+
+VOID
+VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+VmxFixCr4AndCr0Bits();
+
+VOID
+VmxCompatibleMicroSleep(UINT64 ns);
 
 UINT64
 VmxReturnStackPointerForVmxoff();
@@ -321,6 +320,3 @@ INT32
 VmxCompatibleMemcmp(const CHAR * Address1,
                     const CHAR * Address2,
                     size_t       Count);
-
-VOID
-VmxCompatibleMicroSleep(UINT64 ns);

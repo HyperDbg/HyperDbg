@@ -329,7 +329,7 @@
     <ClCompile Include="code\vmm\vmx\CrossVmcalls.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c">
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsicsVmx.c">
       <Filter>code\platform</Filter>
     </ClCompile>
   </ItemGroup>
@@ -610,7 +610,7 @@
     <ClInclude Include="header\vmm\vmx\CrossVmcalls.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h">
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsicsVmx.h">
       <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>

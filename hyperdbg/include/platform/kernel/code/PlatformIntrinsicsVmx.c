@@ -1,5 +1,5 @@
 /**
- * @file PlatformIntrinsics.c
+ * @file PlatformIntrinsicsVmx.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of cross platform APIs for intrinsic functions
  * @details
@@ -12,7 +12,10 @@
 #include "pch.h"
 
 #if defined(__linux__)
-#    include "../header/PlatformIntrinsics.h"
+#    include "../header/PlatformIntrinsicsVmx.h"
+#endif // defined(__linux__)
+
+#if defined(__linux__)
 
 /**
  * @brief Linux inline-asm helper for VMREAD
@@ -51,6 +54,77 @@ __linux_vmx_vmwrite(size_t Field, size_t FieldValue)
         : [val] "rm"(FieldValue),
           [field] "r"(Field)
         : "cc");
+    return cf ? 2 : (zf ? 1 : 0);
+}
+
+/**
+ * @brief Linux inline-asm helper for VMPTRST
+ *        Stores the current VMCS pointer into the given physical address
+ */
+static inline VOID
+__linux_vmx_vmptrst(UINT64 * VmcsPhysicalAddress)
+{
+    __asm__ __volatile__(
+        "vmptrst %[addr]"
+        :
+        : [addr] "m"(*VmcsPhysicalAddress)
+        : "memory");
+}
+
+/**
+ * @brief Linux inline-asm helper for VMPTRLD
+ *        Returns 0=success, 1=VMfail valid (ZF), 2=VMfail invalid (CF)
+ */
+static inline UCHAR
+__linux_vmx_vmptrld(UINT64 * VmcsPhysicalAddress)
+{
+    unsigned char cf, zf;
+    __asm__ __volatile__(
+        "vmptrld %[addr] \n\t"
+        "setc    %[cf]   \n\t"
+        "setz    %[zf]   \n\t"
+        : [cf] "=qm"(cf),
+          [zf] "=qm"(zf)
+        : [addr] "m"(*VmcsPhysicalAddress)
+        : "cc", "memory");
+    return cf ? 2 : (zf ? 1 : 0);
+}
+
+/**
+ * @brief Linux inline-asm helper for VMCLEAR
+ *        Returns 0=success, 1=VMfail valid (ZF), 2=VMfail invalid (CF)
+ */
+static inline UCHAR
+__linux_vmx_vmclear(UINT64 * VmcsPhysicalAddress)
+{
+    unsigned char cf, zf;
+    __asm__ __volatile__(
+        "vmclear %[addr] \n\t"
+        "setc    %[cf]   \n\t"
+        "setz    %[zf]   \n\t"
+        : [cf] "=qm"(cf),
+          [zf] "=qm"(zf)
+        : [addr] "m"(*VmcsPhysicalAddress)
+        : "cc", "memory");
+    return cf ? 2 : (zf ? 1 : 0);
+}
+
+/**
+ * @brief Linux inline-asm helper for VMXON
+ *        Returns 0=success, 1=VMfail valid (ZF), 2=VMfail invalid (CF)
+ */
+static inline UCHAR
+__linux_vmx_vmxon(UINT64 * VmxonRegionPhysicalAddress)
+{
+    unsigned char cf, zf;
+    __asm__ __volatile__(
+        "vmxon %[addr] \n\t"
+        "setc  %[cf]   \n\t"
+        "setz  %[zf]   \n\t"
+        : [cf] "=qm"(cf),
+          [zf] "=qm"(zf)
+        : [addr] "m"(*VmxonRegionPhysicalAddress)
+        : "cc", "memory");
     return cf ? 2 : (zf ? 1 : 0);
 }
 
@@ -249,6 +323,133 @@ VmxVmwrite16(size_t Field,
     return __vmx_vmwrite((size_t)Field, (size_t)TargetValue);
 #elif defined(__linux__)
     return __linux_vmx_vmwrite((size_t)Field, (size_t)TargetValue);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief VMX VMPTRST instruction
+ *
+ * @param VmcsPhysicalAddress
+ *
+ * @return VOID
+ */
+inline VOID
+VmxVmptrst(UINT64 * VmcsPhysicalAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    __vmx_vmptrst(VmcsPhysicalAddress);
+#elif defined(__linux__)
+    __linux_vmx_vmptrst(VmcsPhysicalAddress);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief VMX VMRESUME instruction
+ *
+ * @return VOID
+ */
+inline VOID
+VmxVmresume(VOID)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    __vmx_vmresume();
+#elif defined(__linux__)
+    __asm__ __volatile__("vmresume" ::: "cc", "memory");
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief VMX VMXOFF instruction
+ *
+ * @return VOID
+ */
+inline VOID
+VmxVmxoff(VOID)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    __vmx_off();
+#elif defined(__linux__)
+    __asm__ __volatile__("vmxoff" ::: "cc", "memory");
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief VMX VMLAUNCH instruction
+ *
+ * @return VOID
+ */
+inline VOID
+VmxVmlaunch(VOID)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    __vmx_vmlaunch();
+#elif defined(__linux__)
+    __asm__ __volatile__("vmlaunch" ::: "cc", "memory");
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief VMX VMPTRLD instruction
+ *
+ * @param VmcsPhysicalAddress
+ *
+ * @return UCHAR
+ */
+inline UCHAR
+VmxVmptrld(UINT64 * VmcsPhysicalAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return __vmx_vmptrld(VmcsPhysicalAddress);
+#elif defined(__linux__)
+    return __linux_vmx_vmptrld(VmcsPhysicalAddress);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief VMX VMCLEAR instruction
+ *
+ * @param VmcsPhysicalAddress
+ *
+ * @return UCHAR
+ */
+inline UCHAR
+VmxVmclear(UINT64 * VmcsPhysicalAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return __vmx_vmclear(VmcsPhysicalAddress);
+#elif defined(__linux__)
+    return __linux_vmx_vmclear(VmcsPhysicalAddress);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief VMX VMXON instruction
+ *
+ * @param VmxonRegionPhysicalAddress
+ *
+ * @return UCHAR
+ */
+inline UCHAR
+VmxVmxon(UINT64 * VmxonRegionPhysicalAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return __vmx_on(VmxonRegionPhysicalAddress);
+#elif defined(__linux__)
+    return __linux_vmx_vmxon(VmxonRegionPhysicalAddress);
 #else
 #    error "Unsupported platform"
 #endif

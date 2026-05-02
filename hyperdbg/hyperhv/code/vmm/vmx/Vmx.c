@@ -12,20 +12,6 @@
 #include "pch.h"
 
 /**
- * @brief VMX VMREAD instruction (64-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmread64(size_t Field,
-            UINT64 FieldValue)
-{
-    return __vmx_vmread((size_t)Field, (size_t *)FieldValue);
-}
-
-/**
  * @brief Check whether VMX Feature is supported or not
  *
  * @return BOOLEAN Returns true if vmx is supported or false if it's not supported
@@ -530,7 +516,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     VCpu->HasLaunched = TRUE;
 
-    __vmx_vmlaunch();
+    VmxVmlaunch();
 
     //
     // ******** if Vmlaunch succeed will never be here ! ********
@@ -551,7 +537,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // Then Execute Vmxoff
     //
-    __vmx_off();
+    VmxVmxoff();
     LogError("Err, VMXOFF Executed Successfully but it was because of an error");
 
     return FALSE;
@@ -613,11 +599,11 @@ VmxTerminate()
  * @return VOID
  */
 VOID
-VmxVmptrst()
+VmxPerformVmptrst()
 {
     PHYSICAL_ADDRESS VmcsPhysicalAddr;
     VmcsPhysicalAddr.QuadPart = 0;
-    __vmx_vmptrst((unsigned __int64 *)&VmcsPhysicalAddr);
+    VmxVmptrst((UINT64 *)&VmcsPhysicalAddr);
 
     LogDebugInfo("VMPTRST result : %llx", VmcsPhysicalAddr);
 }
@@ -638,7 +624,7 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Clear the state of the VMCS to inactive
     //
-    VmclearStatus = __vmx_vmclear(&VCpu->VmcsRegionPhysicalAddress);
+    VmclearStatus = VmxVmclear(&VCpu->VmcsRegionPhysicalAddress);
 
     LogDebugInfo("VMCS VMCLEAR status : 0x%x", VmclearStatus);
 
@@ -648,7 +634,8 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * VCpu)
         // Otherwise terminate the VMX
         //
         LogDebugInfo("VMCS failed to clear, status : 0x%x", VmclearStatus);
-        __vmx_off();
+        VmxVmxoff();
+
         return FALSE;
     }
     return TRUE;
@@ -667,7 +654,8 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * VCpu)
 {
     int VmptrldStatus;
 
-    VmptrldStatus = __vmx_vmptrld(&VCpu->VmcsRegionPhysicalAddress);
+    VmptrldStatus = VmxVmptrld(&VCpu->VmcsRegionPhysicalAddress);
+
     if (VmptrldStatus)
     {
         LogDebugInfo("VMCS failed to load, status : 0x%x", VmptrldStatus);
@@ -900,23 +888,24 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 }
 
 /**
- * @brief Resume VM using VMRESUME instruction
+ * @brief Resume VM using the VMRESUME instruction
  *
  * @return VOID
  */
 VOID
-VmxVmresume()
+VmxPerformVmresume()
 {
     UINT32 ErrorCode = 0;
 
-    __vmx_vmresume();
+    VmxVmresume();
 
     //
     // if VMRESUME succeed will never be here !
     //
 
     VmxVmread32P(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
-    __vmx_off();
+
+    VmxVmxoff();
 
     //
     // It's such a bad error because we don't where to go !
@@ -989,7 +978,7 @@ VmxVmfunc(UINT32 EptpIndex, UINT32 Function)
  * @return VOID
  */
 VOID
-VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
+VmxPerformVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT64 GuestRSP              = 0; // Save a pointer to guest rsp for times that we want to return to previous guest stateS
     UINT64 GuestRIP              = 0; // Save a pointer to guest rip for times that we want to return to previous guest state
@@ -1056,7 +1045,7 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Execute Vmxoff
     //
-    __vmx_off();
+    VmxVmxoff();
 
     //
     // *** Note: After executing VMXOFF, XMM registers should not be used anymore

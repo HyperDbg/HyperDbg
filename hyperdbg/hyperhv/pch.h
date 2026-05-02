@@ -65,7 +65,7 @@
 //
 // Platform intrinsics headers
 //
-#include "platform/kernel/header/PlatformIntrinsics.h"
+#include "platform/kernel/header/PlatformIntrinsicsVmx.h"
 
 //
 // VMM Callbacks

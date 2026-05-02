@@ -164,7 +164,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_VMXOFF:
     {
-        VmxVmxoff(VCpu);
+        VmxPerformVmxoff(VCpu);
         VmcallStatus = STATUS_SUCCESS;
 
         break;
