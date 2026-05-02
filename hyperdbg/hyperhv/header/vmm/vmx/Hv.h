@@ -126,6 +126,16 @@ VOID
 HvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
+ * @brief Set LOAD GUEST IA32_LBR_CTL on Vm-entry controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @return VOID
+ */
+VOID
+HvSetLoadGuestIa32LbrCtl(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+
+/**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
  * @param VCpu
@@ -134,6 +144,16 @@ HvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
  */
 VOID
 HvSetSaveDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+
+/**
+ * @brief Set SAVE GUEST IA32_LBR_CTL on Vm-exit controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @return VOID
+ */
+VOID
+HvSetClearGuestIa32LbrCtl(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
  * @brief Reset GDTR/IDTR and other old when you do vmxoff as the patchguard
@@ -459,6 +479,14 @@ UINT64
 HvGetDebugctl();
 
 /**
+ * @brief Get the guest state of IA32_LBR_CTL
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetGuestIa32LbrCtl();
+
+/**
  * @brief Get and store the guest state of IA32_DEBUGCTL
  * @details mainly used from the VMCALL handler
  *
@@ -470,6 +498,17 @@ VOID
 HvGetAndStoreDebugctl(UINT64 * StoreDebugctl);
 
 /**
+ * @brief Get and store the guest state of IA32_LBR_CTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @param StoreGuestIa32Lbr
+ *
+ * @return VOID
+ */
+VOID
+HvGetAndStoreGuestIa32LbrCtl(UINT64 * StoreGuestIa32Lbr);
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value The new state
  *
@@ -477,6 +516,15 @@ HvGetAndStoreDebugctl(UINT64 * StoreDebugctl);
  */
 VOID
 HvSetDebugctl(UINT64 Value);
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL
+ * @param Value The new state
+ *
+ * @return VOID
+ */
+VOID
+HvSetGuestIa32LbrCtl(UINT64 Value);
 
 /**
  * @brief Set LBR selector
@@ -495,6 +543,14 @@ HvSetLbrSelect(UINT64 FilterOptions);
  */
 BOOLEAN
 HvCheckCpuSupportForSaveAndLoadDebugControls();
+
+/**
+ * @brief Check if CPU support load and clear guest IA32_LBR_CTL controls on VM-entry and VM-exit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls();
 
 /**
  * @brief Set the guest state of DR7

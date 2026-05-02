@@ -35,3 +35,4 @@
 // Platform headers
 //
 #include "../../../include/platform/kernel/header/PlatformMem.h"
+#include "../../../include/platform/kernel/header/PlatformIntrinsicsVmx.h"

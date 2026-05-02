@@ -9,8 +9,11 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - HyperTrace now enables/disables VM-entry/VM-exit controls for Load and Save IA32_DEBUGCTL MSR
-- Add mock application for compiling SDK for Linux
+- Added Legacy LBR support to the HyperTrace module
+- Added Architectural LBR support to the HyperTrace module
+- Added mock application for compiling SDK for Linux
 - HyperDbg SDK now compiles on Linux (GCC) for both user-mode and kernel-mode
+- VMX instructions are ported to platform-independent files to support Linux
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))

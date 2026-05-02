@@ -2,7 +2,7 @@ PUBLIC AsmVmexitHandler
 PUBLIC AsmVmxoffRestoreXmmRegs
 
 EXTERN VmxVmexitHandler:PROC
-EXTERN VmxVmresume:PROC
+EXTERN VmxPerformVmresume:PROC
 EXTERN VmxReturnStackPointerForVmxoff:PROC
 EXTERN VmxReturnInstructionPointerForVmxoff:PROC
 
@@ -138,7 +138,7 @@ RestoreState:
 
     ; ----------------------------------------------
 
-    jmp VmxVmresume
+    jmp VmxPerformVmresume
     
 AsmVmexitHandler ENDP
 

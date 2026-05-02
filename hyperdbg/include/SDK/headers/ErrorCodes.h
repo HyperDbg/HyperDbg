@@ -612,10 +612,10 @@
 #define DEBUGGER_ERROR_LBR_NOT_SUPPORTED 0xc000005e
 
 /**
- * @brief error, Dubugctl not supported on VMCS
+ * @brief error, LBR not supported on VMCS
  *
  */
-#define DEBUGGER_ERROR_DEBUGCTL_NOT_SUPPORTED_ON_VMCS 0xc000005f
+#define DEBUGGER_ERROR_LBR_NOT_SUPPORTED_ON_VMCS 0xc000005f
 
 /**
  * @brief error, PT is already enabled

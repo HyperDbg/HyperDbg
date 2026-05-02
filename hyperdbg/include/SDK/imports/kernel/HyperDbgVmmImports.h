@@ -54,7 +54,13 @@ IMPORT_EXPORT_VMM VOID
 VmFuncSetLoadDebugControls(UINT32 CoreId, BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
+VmFuncSetLoadGuestIa32LbrCtl(UINT32 CoreId, BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
 VmFuncSetSaveDebugControls(UINT32 CoreId, BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetClearGuestIa32LbrCtl(UINT32 CoreId, BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncSetPmcVmexit(BOOLEAN Set);
@@ -111,6 +117,12 @@ IMPORT_EXPORT_VMM VOID
 VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value);
 
 IMPORT_EXPORT_VMM VOID
+VmFuncSetGuestIa32LbrCtl(UINT64 Value);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore(UINT64 Value);
+
+IMPORT_EXPORT_VMM VOID
 VmFuncSetLbrSelect(UINT64 FilterOptions);
 
 IMPORT_EXPORT_VMM VOID
@@ -120,7 +132,13 @@ IMPORT_EXPORT_VMM VOID
 VmFuncSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
+VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
 VmFuncSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncSetTriggerEventForVmcalls(BOOLEAN Set);
@@ -209,6 +227,12 @@ IMPORT_EXPORT_VMM UINT64
 VmFuncGetDebugctlVmcallOnTargetCore();
 
 IMPORT_EXPORT_VMM UINT64
+VmFuncGetGuestIa32LbrCtl();
+
+IMPORT_EXPORT_VMM UINT64
+VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore();
+
+IMPORT_EXPORT_VMM UINT64
 VmFuncGetInterruptibilityState();
 
 IMPORT_EXPORT_VMM UINT64
@@ -243,6 +267,9 @@ VmFuncQueryModeExecTrap();
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncCheckCpuSupportForSaveAndLoadDebugControls();
+
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls();
 
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);

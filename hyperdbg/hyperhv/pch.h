@@ -63,6 +63,11 @@
 #include "platform/kernel/header/PlatformMem.h"
 
 //
+// Platform intrinsics headers
+//
+#include "platform/kernel/header/PlatformIntrinsicsVmx.h"
+
+//
 // VMM Callbacks
 //
 #include "SDK/modules/VMM.h"

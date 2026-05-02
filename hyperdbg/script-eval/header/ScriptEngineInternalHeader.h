@@ -263,14 +263,11 @@ ScriptEngineFunctionEventTraceInstrumentationStep();
 VOID
 ScriptEngineFunctionEventTraceStepIn();
 
-VOID
-ScriptEngineFunctionLbrFlush();
-
 BOOLEAN
 ScriptEngineFunctionLbrSave();
 
 BOOLEAN
-ScriptEngineFunctionLbrDump();
+ScriptEngineFunctionLbrPrintAll();
 
 UINT64
 ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2);

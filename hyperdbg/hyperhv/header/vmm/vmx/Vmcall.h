@@ -339,6 +339,42 @@
  */
 #define VMCALL_SET_MSR_LBR_SELECT 0x00000034
 
+/**
+ * @brief VMCALL to get the guest state of IA32_LBR_CTL on VMCS
+ *
+ */
+#define VMCALL_GET_GUEST_IA32_LBR_CTL 0x00000035
+
+/**
+ * @brief VMCALL to set the guest state of IA32_LBR_CTL on VMCS
+ *
+ */
+#define VMCALL_SET_GUEST_IA32_LBR_CTL 0x00000036
+
+/**
+ * @brief VMCALL to set LOAD GUEST IA32_LBR_CTL on VM-entry controls
+ *
+ */
+#define VMCALL_SET_VM_ENTRY_LOAD_GUEST_IA32_LBR_CTL 0x00000037
+
+/**
+ * @brief VMCALL to unset LOAD GUEST IA32_LBR_CTL on VM-entry controls
+ *
+ */
+#define VMCALL_UNSET_VM_ENTRY_LOAD_GUEST_IA32_LBR_CTL 0x00000038
+
+/**
+ * @brief VMCALL to set CLEAR GUEST IA32_LBR_CTL on VM-exit controls
+ *
+ */
+#define VMCALL_SET_CLEAR_GUEST_IA32_LBR_CTL 0x00000039
+
+/**
+ * @brief VMCALL to unset CLEAR GUEST IA32_LBR_CTL on VM-exit controls
+ *
+ */
+#define VMCALL_UNSET_CLEAR_GUEST_IA32_LBR_CTL 0x0000003A
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

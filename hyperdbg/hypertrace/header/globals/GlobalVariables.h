@@ -35,6 +35,13 @@ BOOLEAN g_HyperTraceCallbacksInitialized;
 BOOLEAN g_RunningOnHypervisorEnvironment;
 
 /**
+ * @brief The flag indicating whether the architectural LBR is supported by the CPU or not
+ * if false it means the legacy LBR is supported
+ *
+ */
+BOOLEAN g_ArchBasedLastBranchRecord;
+
+/**
  * @brief The flag indicating whether the hypertrace LBR tracing is initialized or not
  *
  */

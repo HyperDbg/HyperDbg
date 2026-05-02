@@ -14,11 +14,13 @@
 //			    	  Constants	    			//
 //////////////////////////////////////////////////
 
-#define MSR_LBR_TOS           0x000001C9
-#define MSR_LBR_NHM_FROM      0x00000680
-#define MSR_LBR_NHM_TO        0x000006C0
-#define MSR_LASTBRANCH_INFO_0 0x00000DC0
-#define LBR_SELECT            0x00000000
+#define MSR_LBR_TOS               0x000001C9
+#define MSR_LBR_NHM_FROM          0x00000680
+#define MSR_LBR_NHM_TO            0x000006C0
+#define MSR_LASTBRANCH_INFO_0     0x00000DC0
+#define LBR_SELECT_WITHOUT_FILTER 0x00000000
+
+#define CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION 0x1c
 
 //
 // This MSR could be used as an alternative to MSR_LBR_SELECT and IA32_DEBUGCTL for enabling and configuring LBR
@@ -26,6 +28,59 @@
 // be configured, plus host could control it over Guest IA32_LBR_CTL on VMCS
 //
 #define IA32_LBR_CTL 0x000014CE
+
+//////////////////////////////////////////////////
+//               CPUID Structures               //
+//////////////////////////////////////////////////
+
+/*
+ * Intel Architectural LBR CPUID detection/enumeration details:
+ */
+
+typedef union _CPUID28_EAX
+{
+    struct
+    {
+        /* Supported LBR depth values */
+        UINT32 LbrDepthMask : 8;
+        UINT32 Reserved : 22;
+        /* Deep C-state Reset */
+        UINT32 LbrDeepCReset : 1;
+        /* IP values contain LIP */
+        UINT32 LbrLip : 1;
+    };
+    UINT32 AsUInt;
+} CPUID28_EAX, *PCPUID28_EAX;
+
+typedef union _CPUID28_EBX
+{
+    struct
+    {
+        /* CPL Filtering Supported */
+        UINT32 LbrCpl : 1;
+        /* Branch Filtering Supported */
+        UINT32 LbrFilter : 1;
+        /* Call-stack Mode Supported */
+        UINT32 LbrCallStack : 1;
+        UINT32 Reserved : 29;
+    };
+    UINT32 AsUInt;
+} CPUID28_EBX, *PCPUID28_EBX;
+
+typedef union _CPUID28_ECX
+{
+    struct
+    {
+        /* Mispredict Bit Supported */
+        UINT32 LbrMispred : 1;
+        /* Timed LBRs Supported */
+        UINT32 LbrTimedLbr : 1;
+        /* Branch Type Field Supported */
+        UINT32 LbrBrType : 1;
+        UINT32 Reserved : 29;
+    };
+    UINT32 AsUInt;
+} CPUID28_ECX, *PCPUID28_ECX;
 
 //////////////////////////////////////////////////
 //               MSR Structures                 //
@@ -119,7 +174,7 @@ typedef struct _LBR_STACK_ENTRY
 {
     LBR_BRANCH_ENTRY BranchEntry[MAXIMUM_LBR_CAPACITY];
     MSR_LBR_INFO     LastBranchInfo[MAXIMUM_LBR_CAPACITY];
-    UINT32           Tos;
+    UINT8            Tos;
 
 } LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
 
@@ -154,7 +209,10 @@ ULONGLONG LbrCapacity;
 //////////////////////////////////////////////////
 
 BOOLEAN
-LbrCheck();
+LbrCheckAndReadLegacyLbrDetails();
+
+BOOLEAN
+LbrCheckAndReadArchitecturalLbrDetails();
 
 BOOLEAN
 LbrStart(UINT64 FilterOptions);
@@ -172,4 +230,4 @@ VOID
 LbrSave();
 
 VOID
-LbrDump();
+LbrPrintAll();

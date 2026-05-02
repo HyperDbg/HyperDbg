@@ -1,0 +1,7 @@
+# Ignore all C source and header files copied into this directory
+*.c
+*.h
+
+# Except the files that permanently live here
+!mock.c
+!pch.h

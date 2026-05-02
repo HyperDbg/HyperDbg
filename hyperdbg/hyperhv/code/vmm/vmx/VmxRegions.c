@@ -74,7 +74,8 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Execute Vmxon instruction
     //
-    VmxonStatus = __vmx_on(&AlignedVmxonRegionPhysicalAddr);
+    VmxonStatus = VmxVmxon(&AlignedVmxonRegionPhysicalAddr);
+
     if (VmxonStatus)
     {
         LogError("Err, executing vmxon instruction failed with status : %d", VmxonStatus);

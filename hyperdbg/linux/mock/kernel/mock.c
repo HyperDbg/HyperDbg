@@ -60,6 +60,14 @@ mock_init(void)
 
     printk(KERN_INFO "Buffer zeroed\n");
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Test codes (should be removed if running this kernel module)
+    //
+
+    VmxVmread64(0, 0); // Just to test the intrinsic wrapper compiles and links correctly
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
     return 0;
 }
 
