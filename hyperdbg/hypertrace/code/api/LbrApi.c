@@ -198,9 +198,9 @@ HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest
     }
 
     //
-    // Broadcast disabling LBR on all cores
+    // Broadcast flushing LBR on all cores
     //
-    BroadcastDisableLbrOnAllCores();
+    BroadcastFlushLbrOnAllCores();
 
     //
     // Set successful status
@@ -311,6 +311,50 @@ HyperTraceLbrUpdateFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOp
 }
 
 /**
+ * @brief Query LBR tracing for HyperTrace
+ *
+ * @param HyperTraceOperationRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrQuery(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
+{
+    //
+    // Check if LBR is already disabled or not
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
+        return FALSE;
+    }
+
+    LogInfo("Querying LBR Buffer...\n");
+
+    //
+    // Query the LBR state and fill the request structure with the results
+    //
+    if (LbrQuery(HyperTraceOperationRequest->LbrTargetCore,
+                 &HyperTraceOperationRequest->LbrTos,
+                 &HyperTraceOperationRequest->NumberOfSavedEntries))
+    {
+        //
+        // The operation was successful
+        //
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
+    }
+    else
+    {
+        //
+        // The operation was NOT successful
+        //
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_INVALID_CORE_ID);
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Perform actions related to HyperTrace LBR
  *
  * @param LbrOperationRequest
@@ -352,22 +396,6 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 
         break;
 
-    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SAVE:
-
-        LogInfo("HyperTrace: Saving LBR tracing...\n");
-
-        HyperTraceLbrSave(LbrOperationRequest);
-
-        break;
-
-    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP:
-
-        LogInfo("HyperTrace: Showing LBR tracing...\n");
-
-        HyperTraceLbrDump(LbrOperationRequest);
-
-        break;
-
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH:
 
         LogInfo("HyperTrace: Flushing LBR tracing...\n");
@@ -381,8 +409,6 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
         LogInfo("HyperTrace: Updating LBR filter options...\n");
 
         HyperTraceLbrUpdateFilterOptions(LbrOperationRequest);
-
-        break;
 
     default:
         Status                            = FALSE;

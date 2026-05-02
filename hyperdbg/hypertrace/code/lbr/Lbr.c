@@ -867,7 +867,7 @@ LbrSave()
     if (!g_ArchBasedLastBranchRecord)
     {
         xrdmsr(MSR_LBR_TOS, &LbrTos);
-        State->Tos = (UINT32)LbrTos;
+        State->Tos = (UINT8)LbrTos;
     }
 
     //
@@ -879,6 +879,70 @@ LbrSave()
         xrdmsr(MSR_LBR_NHM_TO + i, &State->BranchEntry[i].To);
         xrdmsr(MSR_LASTBRANCH_INFO_0 + i, &State->LastBranchInfo[i].AsUInt);
     }
+}
+
+/**
+ * @brief Query LBR branches
+ *
+ * @param CoreId The ID of the core for which to query LBR branches
+ * @param LbrTos Pointer to receive the current TOS index (legacy LBR) or 0 (arch LBR)
+ * @param NumberOfSavedEntries Pointer to receive the number of valid saved LBR entries in the current core's state structure
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LbrQuery(UINT32 CoreId, UINT8 * LbrTos, UINT8 * NumberOfSavedEntries)
+{
+    LBR_STACK_ENTRY * State;
+    UINT8             LocalNumberOfSavedEntries = 0;
+    ULONG             ProcessorsCount           = KeQueryActiveProcessorCount(0);
+
+    //
+    // Check if the provided CoreId is valid
+    //
+    if (CoreId >= ProcessorsCount)
+    {
+        return FALSE;
+    }
+
+    //
+    // Get the target processor LBR stack
+    //
+    State = &g_LbrStateList[CoreId];
+
+    //
+    // Read and store the current TOS index to know where the most recent branch is stored
+    // Note that there is no TOS index in ARCH LBR since everything is in order
+    //
+    if (!g_ArchBasedLastBranchRecord)
+    {
+        *LbrTos = State->Tos;
+    }
+    else
+    {
+        *LbrTos = 0; // For ARCH LBR, we can set TOS to 0 since entries are in order
+    }
+
+    //
+    // Dump LBR entries into the current core's state structure
+    //
+    for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
+    {
+        if (State->BranchEntry[i].From == NULL64_ZERO && State->BranchEntry[i].To == NULL64_ZERO)
+        {
+            LocalNumberOfSavedEntries++;
+        }
+    }
+
+    //
+    // Set the number of valid saved entries
+    //
+    *NumberOfSavedEntries = LocalNumberOfSavedEntries;
+
+    //
+    // Return TRUE to indicate the query was successful
+    //
+    return TRUE;
 }
 
 /**

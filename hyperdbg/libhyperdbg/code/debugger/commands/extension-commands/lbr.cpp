@@ -24,7 +24,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandLbrHelp()
 {
-    ShowMessages("!lbr : enables and disables Last Branch Record (LBR).\n");
+    ShowMessages("!lbr : performs operation for Last Branch Record (LBR).\n");
 
     ShowMessages("syntax : \t!lbr [Function (string)]\n");
     ShowMessages("syntax : \t!lbr [filter FilterOptions (string)]\n");
@@ -32,8 +32,6 @@ CommandLbrHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : !lbr enable\n");
     ShowMessages("\t\te.g : !lbr disable\n");
-    ShowMessages("\t\te.g : !lbr save\n");
-    ShowMessages("\t\te.g : !lbr dump\n");
     ShowMessages("\t\te.g : !lbr flush\n");
 
     ShowMessages("\n");
@@ -131,6 +129,138 @@ HyperDbgPerformLbrOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
 {
     return CommandLbrSendRequest(LbrRequest);
 }
+/**
+ * @brief Parses simple (no-argument) LBR operations: enable, disable, flush
+ *
+ * @param CommandTokens
+ * @param LbrRequest
+ *
+ * @return BOOLEAN TRUE if parsed successfully
+ */
+BOOLEAN
+CommandLbrParseSimpleOperation(vector<CommandToken> CommandTokens, HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
+{
+    if (CommandTokens.size() != 2)
+    {
+        return FALSE;
+    }
+
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "enable"))
+    {
+        LbrRequest->LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_ENABLE;
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "disable"))
+    {
+        LbrRequest->LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE;
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "flush"))
+    {
+        LbrRequest->LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH;
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Parses the LBR filter operation and accumulates filter option flags
+ *
+ * @param CommandTokens
+ * @param LbrRequest
+ *
+ * @return BOOLEAN TRUE if parsed successfully
+ */
+BOOLEAN
+CommandLbrParseFilterOperation(vector<CommandToken> CommandTokens, HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
+{
+    LbrRequest->LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER;
+    LbrRequest->LbrFilterOptions = 0; // no options = capture everything
+
+    for (size_t i = 2; i < CommandTokens.size(); i++)
+    {
+        if (CompareLowerCaseStrings(CommandTokens.at(i), "kernel"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_KERNEL;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "user"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_USER;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "jcc"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_JCC;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "rel_call"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_REL_CALL;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "ind_call"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_IND_CALL;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "return"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_RETURN;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "ind_jmp"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_IND_JMP;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "rel_jmp"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_REL_JMP;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "far"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_FAR;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "call_stack"))
+        {
+            LbrRequest->LbrFilterOptions |= LBR_CALL_STACK;
+        }
+        else
+        {
+            ShowMessages("unknown filter option '%s'\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(i)).c_str());
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Displays the success message appropriate for the completed LBR operation
+ *
+ * @param LbrRequest
+ *
+ * @return VOID
+ */
+VOID
+CommandLbrShowSuccessMessage(const HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
+{
+    switch (LbrRequest->LbrOperationType)
+    {
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_ENABLE:
+        ShowMessages("LBR enabled successfully\n");
+        break;
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE:
+        ShowMessages("LBR disabled successfully\n");
+        break;
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH:
+        ShowMessages("LBR branches are flushed\n");
+        break;
+    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER:
+        ShowMessages("LBR filter options are updated successfully\n");
+        break;
+    default:
+        ShowMessages("unknown LBR operation type\n");
+        break;
+    }
+}
 
 /**
  * @brief !lbr command handler
@@ -143,100 +273,36 @@ HyperDbgPerformLbrOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
 VOID
 CommandLbr(vector<CommandToken> CommandTokens, string Command)
 {
-    HYPERTRACE_LBR_OPERATION_PACKETS LbrRequest = {0};
+    HYPERTRACE_LBR_OPERATION_PACKETS LbrRequest  = {0};
+    BOOLEAN                          ParseResult = FALSE;
 
     if (CommandTokens.size() == 1)
     {
         ShowMessages("incorrect use of the '%s'\n\n",
                      GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
-
         CommandLbrHelp();
         return;
     }
 
     //
-    // Parse the LBR operation type
+    // Dispatch to the appropriate parser based on the subcommand
     //
-    if (CompareLowerCaseStrings(CommandTokens.at(1), "enable") && CommandTokens.size() == 2)
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "enable") ||
+        CompareLowerCaseStrings(CommandTokens.at(1), "disable") ||
+        CompareLowerCaseStrings(CommandTokens.at(1), "flush"))
     {
-        LbrRequest.LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_ENABLE;
-    }
-    else if (CompareLowerCaseStrings(CommandTokens.at(1), "disable") && CommandTokens.size() == 2)
-    {
-        LbrRequest.LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE;
-    }
-    else if (CompareLowerCaseStrings(CommandTokens.at(1), "save") && CommandTokens.size() == 2)
-    {
-        LbrRequest.LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SAVE;
-    }
-    else if (CompareLowerCaseStrings(CommandTokens.at(1), "dump") && CommandTokens.size() == 2)
-    {
-        LbrRequest.LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP;
-    }
-    else if (CompareLowerCaseStrings(CommandTokens.at(1), "flush") && CommandTokens.size() == 2)
-    {
-        LbrRequest.LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH;
+        ParseResult = CommandLbrParseSimpleOperation(CommandTokens, &LbrRequest);
     }
     else if (CompareLowerCaseStrings(CommandTokens.at(1), "filter"))
     {
-        LbrRequest.LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER;
-        LbrRequest.LbrFilterOptions = 0; // filter without any option means capture everything
-
-        //
-        // Parse filter options
-        //
-        for (size_t i = 2; i < CommandTokens.size(); i++)
-        {
-            if (CompareLowerCaseStrings(CommandTokens.at(i), "kernel"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_KERNEL;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "user"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_USER;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "jcc"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_JCC;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "rel_call"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_REL_CALL;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "ind_call"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_IND_CALL;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "return"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_RETURN;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "ind_jmp"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_IND_JMP;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "rel_jmp"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_REL_JMP;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "far"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_FAR;
-            }
-            else if (CompareLowerCaseStrings(CommandTokens.at(i), "call_stack"))
-            {
-                LbrRequest.LbrFilterOptions |= LBR_CALL_STACK;
-            }
-            else
-            {
-                ShowMessages("unknown filter option '%s'\n\n",
-                             GetCaseSensitiveStringFromCommandToken(CommandTokens.at(i)).c_str());
-                CommandLbrHelp();
-                return;
-            }
-        }
+        ParseResult = CommandLbrParseFilterOperation(CommandTokens, &LbrRequest);
     }
     else
+    {
+        ParseResult = FALSE;
+    }
+
+    if (!ParseResult)
     {
         ShowMessages("incorrect use of the '%s'\n\n",
                      GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
@@ -249,38 +315,10 @@ CommandLbr(vector<CommandToken> CommandTokens, string Command)
     //
     if (CommandLbrSendRequest(&LbrRequest))
     {
-        if (LbrRequest.LbrOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_ENABLE)
-        {
-            ShowMessages("LBR enabled successfully\n");
-        }
-        else if (LbrRequest.LbrOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE)
-        {
-            ShowMessages("LBR disabled successfully\n");
-        }
-        else if (LbrRequest.LbrOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SAVE)
-        {
-            ShowMessages("LBR branches are saved\n");
-        }
-        else if (LbrRequest.LbrOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP)
-        {
-            ShowMessages("LBR branches are shown\n");
-        }
-        else if (LbrRequest.LbrOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH)
-        {
-            ShowMessages("LBR branches are flush\n");
-        }
-        else if (LbrRequest.LbrOperationType == HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER)
-        {
-            ShowMessages("LBR filter options are updated successfully\n");
-        }
-        else
-        {
-            ShowMessages("unknown LBR operation type\n");
-        }
+        CommandLbrShowSuccessMessage(&LbrRequest);
     }
     else
     {
         ShowErrorMessage(LbrRequest.KernelStatus);
-        return;
     }
 }
