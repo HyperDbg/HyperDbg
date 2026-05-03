@@ -58,3 +58,9 @@ BOOLEAN g_ProcessorTraceEnabled;
  *
  */
 LBR_STACK_ENTRY * g_LbrStateList;
+
+/**
+ * @brief The global variable to hold the LBR capacity of the current CPU
+ *
+ */
+ULONGLONG g_LbrCapacity;

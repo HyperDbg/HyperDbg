@@ -49,6 +49,12 @@ IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId);
 
 //
+// Perform operations related to HyperTrace LBR dumping
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrPerformDump(HYPERTRACE_LBR_DUMP_PACKETS * LbrDumpRequest);
+
+//
 // Perform operations related to HyperTrace LBR based on the request type and parameters
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN

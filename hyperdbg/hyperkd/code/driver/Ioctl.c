@@ -60,6 +60,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
     PSMI_OPERATION_PACKETS                                  SmiOperationRequest;
     PHYPERTRACE_LBR_OPERATION_PACKETS                       HyperTraceLbrOperationRequest;
+    PHYPERTRACE_LBR_DUMP_PACKETS                            HyperTraceLbrdumpRequest;
     PHYPERTRACE_PT_OPERATION_PACKETS                        HyperTracePtOperationRequest;
     PVOID                                                   BufferToStoreThreadsAndProcessesDetails;
     NTSTATUS                                                Status;
@@ -1290,6 +1291,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             HyperTraceLbrPerformOperation(HyperTraceLbrOperationRequest);
 
             Irp->IoStatus.Information = SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_PERFORM_HYPERTRACE_LBR_DUMP:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the coming buffer are
+            // at the same place
+            //
+            HyperTraceLbrdumpRequest = (PHYPERTRACE_LBR_DUMP_PACKETS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the HyperTrace LBR dump operation
+            //
+            HyperTraceLbrPerformDump(HyperTraceLbrdumpRequest);
+
+            Irp->IoStatus.Information = SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS;
             Status                    = STATUS_SUCCESS;
 
             //

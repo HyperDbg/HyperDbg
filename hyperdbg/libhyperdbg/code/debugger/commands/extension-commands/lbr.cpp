@@ -11,11 +11,6 @@
  */
 #include "pch.h"
 
-//
-// Global Variables
-//
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-
 /**
  * @brief help of the !lbr command
  *
@@ -68,53 +63,36 @@ CommandLbrSendRequest(HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
     BOOL  Status;
     ULONG ReturnedLength;
 
-    if (g_IsSerialConnectedToRemoteDebuggee)
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+
+    //
+    // Send IOCTL
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                          // Handle to device
+        IOCTL_PERFORM_HYPERTRACE_LBR_OPERATION,  // IO Control Code (IOCTL)
+        LbrRequest,                              // Input Buffer to driver.
+        SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS, // Input buffer length
+        LbrRequest,                              // Output Buffer from driver.
+        SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS, // Length of output buffer in bytes.
+        &ReturnedLength,                         // Bytes placed in buffer.
+        NULL                                     // synchronous call
+    );
+
+    if (!Status)
     {
-        //
-        // Send the request over serial kernel debugger
-        //
-        if (!KdSendHyperTraceLbrPacketsToDebuggee(LbrRequest, SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS))
-        {
-            return FALSE;
-        }
-        else
-        {
-            return TRUE;
-        }
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+
+        return FALSE;
+    }
+
+    if (LbrRequest->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        return TRUE;
     }
     else
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
-
-        //
-        // Send IOCTL
-        //
-        Status = DeviceIoControl(
-            g_DeviceHandle,                          // Handle to device
-            IOCTL_PERFORM_HYPERTRACE_LBR_OPERATION,  // IO Control Code (IOCTL)
-            LbrRequest,                              // Input Buffer to driver.
-            SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS, // Input buffer length
-            LbrRequest,                              // Output Buffer from driver.
-            SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS, // Length of output buffer in bytes.
-            &ReturnedLength,                         // Bytes placed in buffer.
-            NULL                                     // synchronous call
-        );
-
-        if (!Status)
-        {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-
-            return FALSE;
-        }
-
-        if (LbrRequest->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-        {
-            return TRUE;
-        }
-        else
-        {
-            return FALSE;
-        }
+        return FALSE;
     }
 }
 

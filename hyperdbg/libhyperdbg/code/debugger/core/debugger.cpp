@@ -580,12 +580,12 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_LBR_ALREADY_ENABLED:
-        ShowMessages("err, LBR is already enabled (%x)\n",
+        ShowMessages("err, LBR is already enabled, you can disable it using the '!lbr' command (%x)\n",
                      Error);
         break;
 
     case DEBUGGER_ERROR_LBR_ALREADY_DISABLED:
-        ShowMessages("err, LBR is already disabled (%x)\n",
+        ShowMessages("err, LBR is already disabled, you can enable it using the '!lbr' command (%x)\n",
                      Error);
         break;
 

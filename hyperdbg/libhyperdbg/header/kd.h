@@ -156,7 +156,7 @@ BOOLEAN
 KdSendSmiPacketsToDebuggee(PSMI_OPERATION_PACKETS SmiOperationRequest, UINT32 ExpectedRequestSize);
 
 BOOLEAN
-KdSendHyperTraceLbrPacketsToDebuggee(PHYPERTRACE_LBR_OPERATION_PACKETS HyperTraceLbrOperationRequest, UINT32 ExpectedRequestSize);
+KdSendHyperTraceLbrdumpPacketsToDebuggee(PHYPERTRACE_LBR_DUMP_PACKETS HyperTraceLbrdumpRequest, UINT32 ExpectedRequestSize);
 
 BOOLEAN
 KdSendHyperTracePtPacketsToDebuggee(PHYPERTRACE_PT_OPERATION_PACKETS HyperTracePtOperationRequest, UINT32 ExpectedRequestSize);

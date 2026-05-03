@@ -257,6 +257,13 @@ IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_perform_smi_operation(SMI_OPERATION_PACKETS * SmiOperation);
 
 //
+// LBR related command
+// Exported functionality of the '!lbrdump' command
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_lbr_dump(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest);
+
+//
 // Transparent mode related command
 // Exported functionality of the '!hide', and '!unhide' commands
 //

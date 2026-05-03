@@ -1056,28 +1056,28 @@ KdSendSmiPacketsToDebuggee(PSMI_OPERATION_PACKETS SmiOperationRequest, UINT32 Ex
 }
 
 /**
- * @brief Send requests for HyperTrace LBR operation packet to the debuggee
+ * @brief Send requests for HyperTrace LBR dump packet to the debuggee
  *
- * @param HyperTraceLbrOperationRequest
+ * @param HyperTraceLbrdumpRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendHyperTraceLbrPacketsToDebuggee(PHYPERTRACE_LBR_OPERATION_PACKETS HyperTraceLbrOperationRequest, UINT32 ExpectedRequestSize)
+KdSendHyperTraceLbrdumpPacketsToDebuggee(PHYPERTRACE_LBR_DUMP_PACKETS HyperTraceLbrdumpRequest, UINT32 ExpectedRequestSize)
 {
     //
     // Set the request data
     //
-    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_OPERATION_RESULT, HyperTraceLbrOperationRequest, ExpectedRequestSize);
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT, HyperTraceLbrdumpRequest, ExpectedRequestSize);
 
     //
     // Send the LBR request packets
     //
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
-            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_LBR_OPERATION,
-            (CHAR *)HyperTraceLbrOperationRequest,
-            SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS))
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_LBR_DUMP,
+            (CHAR *)HyperTraceLbrdumpRequest,
+            SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS))
     {
         return FALSE;
     }
@@ -1085,7 +1085,7 @@ KdSendHyperTraceLbrPacketsToDebuggee(PHYPERTRACE_LBR_OPERATION_PACKETS HyperTrac
     //
     // Wait until the result of actions to HyperTrace LBR is received
     //
-    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_OPERATION_RESULT);
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT);
 
     return TRUE;
 }

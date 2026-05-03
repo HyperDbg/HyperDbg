@@ -748,6 +748,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         break;
 
     case FUNC_LBR_PRINT:
+    case FUNC_LBR_DUMP:
 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));

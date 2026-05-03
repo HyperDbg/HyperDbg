@@ -2186,7 +2186,7 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
     PSMI_OPERATION_PACKETS                              SmiOperationPacket;
-    PHYPERTRACE_LBR_OPERATION_PACKETS                   HyperTraceLbrOperationPacket;
+    PHYPERTRACE_LBR_DUMP_PACKETS                        HyperTraceLbrdumpPacket;
     PHYPERTRACE_PT_OPERATION_PACKETS                    HyperTracePtOperationPacket;
     PDEBUGGER_APIC_REQUEST                              ApicPacket;
     PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS         IdtEntryPacket;
@@ -2903,22 +2903,22 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 break;
 
-            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_LBR_OPERATION:
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_LBR_DUMP:
 
-                HyperTraceLbrOperationPacket = (HYPERTRACE_LBR_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
-
-                //
-                // Perform the HyperTrace LBR operations (it's in vmx-root)
-                //
-                HyperTraceLbrPerformOperation(HyperTraceLbrOperationPacket);
+                HyperTraceLbrdumpPacket = (HYPERTRACE_LBR_DUMP_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Send the result of the HyperTrace LBR back to the debuggee
+                // Perform the HyperTrace LBR dump (it's in vmx-root)
+                //
+                HyperTraceLbrPerformDump(HyperTraceLbrdumpPacket);
+
+                //
+                // Send the result of the HyperTrace LBR dump back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_LBR_OPERATION_REQUESTS,
-                                           (CHAR *)HyperTraceLbrOperationPacket,
-                                           SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS);
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_LBR_DUMP_REQUESTS,
+                                           (CHAR *)HyperTraceLbrdumpPacket,
+                                           SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS);
 
                 break;
 
