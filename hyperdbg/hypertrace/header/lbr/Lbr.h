@@ -87,44 +87,6 @@ typedef union _CPUID28_ECX
 //////////////////////////////////////////////////
 
 /**
- * MSR_LBR_INFO_x - Last Branch Record Info Register
- *
- */
-typedef union
-{
-    struct
-    {
-        /** Bits 15:0 - Elapsed core clocks since last update to the LBR stack (saturating) */
-        UINT64 CycleCount : 16;
-
-        /** Bits 60:16 - Reserved (R/W) */
-        UINT64 Reserved : 45;
-
-        /**
-         * Bit 61 - TSX Abort indicator.
-         * When set:
-         *   LBR_FROM = EIP at the time of the TSX Abort
-         *   LBR_TO   = EIP of the start of HLE region OR EIP of the RTM Abort Handler
-         */
-        UINT64 TsxAbort : 1;
-
-        /** Bit 62 - When set, indicates the entry occurred in a TSX region */
-        UINT64 InTsx : 1;
-
-        /**
-         * Bit 63 - Branch misprediction flag.
-         * When set, the target of the branch was mispredicted and/or the
-         * direction (taken/non-taken) was mispredicted.
-         * When clear, the target branch was predicted.
-         */
-        UINT64 Mispred : 1;
-    };
-
-    UINT64 AsUInt;
-
-} MSR_LBR_INFO, *PMSR_LBR_INFO;
-
-/**
  * @brief The structure to hold the IA32_LBR_CTL MSR, which is used to enable and configure the LBR feature
  * @details MSR Address: 0x14CEH (Hex) / 5326 (Dec)
  */
@@ -152,33 +114,6 @@ typedef union _IA32_LBR_CTL_REGISTER
 } IA32_LBR_CTL_REGISTER, *PIA32_LBR_CTL_REGISTER;
 
 //////////////////////////////////////////////////
-//                  Structures                  //
-//////////////////////////////////////////////////
-
-/**
- * @brief The structure to hold a single LBR entry (from and to addresses)
- *
- */
-typedef struct _LBR_BRANCH_ENTRY
-{
-    ULONGLONG From;
-    ULONGLONG To;
-
-} LBR_BRANCH_ENTRY, PLBR_BRANCH_ENTRY;
-
-/**
- * @brief The structure to hold the LBR stack for a single processor core, including the branch entries and the TOS index
- *
- */
-typedef struct _LBR_STACK_ENTRY
-{
-    LBR_BRANCH_ENTRY BranchEntry[MAXIMUM_LBR_CAPACITY];
-    MSR_LBR_INFO     LastBranchInfo[MAXIMUM_LBR_CAPACITY];
-    UINT8            Tos;
-
-} LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
-
-//////////////////////////////////////////////////
 //                Global Variables              //
 //////////////////////////////////////////////////
 
@@ -197,12 +132,6 @@ typedef struct _CPU_LBR_MAP
  *
  */
 extern CPU_LBR_MAP CPU_LBR_MAPS[];
-
-/**
- * @brief The global variable to hold the LBR capacity of the current CPU
- *
- */
-ULONGLONG LbrCapacity;
 
 //////////////////////////////////////////////////
 //                  Functions                   //

@@ -828,3 +828,16 @@ hyperdbg_u_eval_expression(CHAR * Expr, PBOOLEAN HasError)
 {
     return ScriptEngineEvalSingleExpression(Expr, HasError);
 }
+
+/**
+ * @brief Dump LBR stack
+ *
+ * @param LbrdumpRequest The LBR dump request packet
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_lbr_dump(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
+{
+    return HyperDbgLbrdumpSendRequest(LbrdumpRequest);
+}

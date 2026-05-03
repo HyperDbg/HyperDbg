@@ -198,6 +198,11 @@ HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest
     }
 
     //
+    // Disabling LBR
+    //
+    g_LastBranchRecordEnabled = FALSE;
+
+    //
     // Broadcast flushing LBR on all cores
     //
     BroadcastFlushLbrOnAllCores();
@@ -316,7 +321,86 @@ HyperTraceLbrUpdateFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOp
 }
 
 /**
- * @brief Perform actions related to HyperTrace LBR
+ * @brief Perform actions related to HyperTrace LBR dumping
+ *
+ * @param LbrDumpRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrPerformDump(HYPERTRACE_LBR_DUMP_PACKETS * LbrDumpRequest)
+{
+    ULONG ProcessorsCount;
+
+    //
+    // Check if the hypertrace module is initialized before performing any dump operation
+    //
+    if (!g_HyperTraceCallbacksInitialized)
+    {
+        LbrDumpRequest->KernelStatus = DEBUGGER_ERROR_HYPERTRACE_NOT_INITIALIZED;
+        return FALSE;
+    }
+
+    //
+    // Check if LBR is enabled or not before dumping
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        LbrDumpRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
+        return FALSE;
+    }
+
+    //
+    // Get the number of processors in the system to validate the requested core id for dumping
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Check if core id is valid
+    //
+    if (LbrDumpRequest->CoreId >= ProcessorsCount)
+    {
+        LbrDumpRequest->KernelStatus = DEBUGGER_ERROR_INVALID_CORE_ID;
+        return FALSE;
+    }
+
+    //
+    // Check if next core is valid in the case of dumping all cores
+    //
+    if (LbrDumpRequest->CoreId == ProcessorsCount - 1)
+    {
+        LbrDumpRequest->NextCoreIsValid = FALSE;
+    }
+    else
+    {
+        LbrDumpRequest->NextCoreIsValid = TRUE;
+    }
+
+    //
+    // Set ARCH or LEGACY LBR flag in the dump request structure based on the type of LBR supported by the CPU
+    //
+    LbrDumpRequest->ArchBasedLBR = g_ArchBasedLastBranchRecord;
+
+    //
+    // Set the current LBR capacity in the dump request structure based on the type of LBR supported by the CPU
+    //
+    LbrDumpRequest->CurrentLbrCapacity = (UINT8)g_LbrCapacity;
+
+    //
+    // Copy the LBR stack entries of the requested core into the dump request structure to be sent back to usermode
+    //
+    RtlCopyMemory(&LbrDumpRequest->LbrStack, &g_LbrStateList[LbrDumpRequest->CoreId], sizeof(LBR_STACK_ENTRY));
+
+    //
+    // Set successful status
+    //
+    LbrDumpRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return TRUE;
+}
+
+/**
+ * @brief Perform actions related to HyperTrace LBR operations
  *
  * @param LbrOperationRequest
  *
@@ -343,7 +427,7 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
     {
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_ENABLE:
 
-        LogInfo("HyperTrace: Enabling LBR tracing...\n");
+        // LogInfo("HyperTrace: Enabling LBR tracing...\n");
 
         HyperTraceLbrEnable(LbrOperationRequest);
 
@@ -351,7 +435,7 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE:
 
-        LogInfo("HyperTrace: Disabling LBR tracing...\n");
+        // LogInfo("HyperTrace: Disabling LBR tracing...\n");
 
         HyperTraceLbrDisable(LbrOperationRequest);
 
@@ -359,7 +443,7 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH:
 
-        LogInfo("HyperTrace: Flushing LBR tracing...\n");
+        // LogInfo("HyperTrace: Flushing LBR tracing...\n");
 
         HyperTraceLbrFlush(LbrOperationRequest);
 
@@ -367,7 +451,7 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER:
 
-        LogInfo("HyperTrace: Updating LBR filter options...\n");
+        // LogInfo("HyperTrace: Updating LBR filter options...\n");
 
         HyperTraceLbrUpdateFilterOptions(LbrOperationRequest);
 

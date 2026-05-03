@@ -1,5 +1,18 @@
 #pragma once
 
+//
+// Devices
+//
+#include "SDK/headers/Pcie.h"
+
+//
+// Last Branch Records
+//
+#include "SDK/headers/LbrDefinitions.h"
+
+//
+// General SDK Headers
+//
 #include "SDK/headers/Constants.h"
 #include "SDK/headers/BasicTypes.h"
 #include "SDK/headers/ErrorCodes.h"
@@ -10,16 +23,6 @@
 #include "SDK/headers/RequestStructures.h"
 #include "SDK/headers/Symbols.h"
 #include "SDK/headers/HardwareDebugger.h"
-
-//
-// Devices
-//
-#include "SDK/headers/Pcie.h"
-
-//
-// Last Branch Records
-//
-#include "SDK/headers/LbrDefinitions.h"
 
 //
 // Asserts

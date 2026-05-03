@@ -147,14 +147,14 @@ LbrCheckAndReadArchitecturalLbrDetails()
                 HighestSetBit = i;
             }
         }
-        LbrCapacity = 8 * (HighestSetBit + 1);
+        g_LbrCapacity = 8 * (HighestSetBit + 1);
     }
     else
     {
         //
         // If LbrDepthMask is 0, it means the CPU supports architectural LBR but does not specify the depth, we can assume a default value (e.g., 16 or 32) or treat it as unsupported
         //
-        LbrCapacity = MAXIMUM_LBR_CAPACITY; // Assuming a default capacity of MAXIMUM_LBR_CAPACITY if not specified
+        g_LbrCapacity = MAXIMUM_LBR_CAPACITY; // Assuming a default capacity of MAXIMUM_LBR_CAPACITY if not specified
     }
 
     return TRUE;
@@ -181,12 +181,12 @@ LbrCheckAndReadLegacyLbrDetails()
     {
         if (Model == CPU_LBR_MAPS[i].Model)
         {
-            LbrCapacity = CPU_LBR_MAPS[i].LbrCapacity;
+            g_LbrCapacity = CPU_LBR_MAPS[i].LbrCapacity;
             break;
         }
     }
 
-    if (LbrCapacity == 0)
+    if (g_LbrCapacity == 0)
     {
         return FALSE;
     }
@@ -315,7 +315,7 @@ LbrClearHardwareState()
     //
     // Clearing LBR TO and FROM MSRs
     //
-    for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
+    for (ULONG i = 0; i < (ULONG)g_LbrCapacity; i++)
     {
         xwrmsr(MSR_LBR_NHM_FROM + i, 0);
         xwrmsr(MSR_LBR_NHM_TO + i, 0);
@@ -650,7 +650,7 @@ LbrStart(UINT64 FilterOptions)
     IA32_LBR_CTL_REGISTER Ia32LbrCtl = {0};
     ULONGLONG             DbgCtlMsr  = 0;
 
-    if (LbrCapacity == 0)
+    if (g_LbrCapacity == 0)
     {
         LogInfo("LBR: Aborting, CPU model not supported.\n");
         return FALSE;
@@ -873,7 +873,7 @@ LbrSave()
     //
     // Dump LBR entries into the current core's state structure
     //
-    for (ULONG i = 0; i < (ULONG)LbrCapacity; i++)
+    for (ULONG i = 0; i < (ULONG)g_LbrCapacity; i++)
     {
         xrdmsr(MSR_LBR_NHM_FROM + i, &State->BranchEntry[i].From);
         xrdmsr(MSR_LBR_NHM_TO + i, &State->BranchEntry[i].To);
@@ -903,9 +903,9 @@ LbrPrint()
     //
     State = &g_LbrStateList[CurrentCore];
 
-    LogInfo("LBR Chronological Trace");
+    Log("LBR Chronological Trace on core (decimal): %d\n", CurrentCore);
 
-    for (ULONG i = 1; i <= LbrCapacity; i++)
+    for (ULONG i = 1; i <= g_LbrCapacity; i++)
     {
         if (g_ArchBasedLastBranchRecord)
         {
@@ -916,13 +916,15 @@ LbrPrint()
         }
         else
         {
-            CurrentIdx = (ULONG)(State->Tos + i) % (ULONG)LbrCapacity;
+            CurrentIdx = (ULONG)(State->Tos + i) % (ULONG)g_LbrCapacity;
         }
 
         if (State->BranchEntry[CurrentIdx].From == 0)
+        {
             continue;
+        }
 
-        Log("[%2u] Branch Mispredicted: %s, Cycle Count (Decimal): %03d - From: %016llx  To: %016llx\n",
+        Log("\t [%2u] Branch Mispredicted: %s, Cycle Count (Decimal): %03d - From: %016llx  To: %016llx\n",
             CurrentIdx,
             State->LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
             State->LastBranchInfo[CurrentIdx].CycleCount,

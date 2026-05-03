@@ -1276,6 +1276,36 @@ typedef struct _HYPERTRACE_LBR_OPERATION_PACKETS
 // ==============================================================================================
 
 /**
+ * @brief The structure of HyperTrace LBR dump result packet in HyperDbg
+ *
+ */
+typedef struct _HYPERTRACE_LBR_DUMP_PACKETS
+{
+    UINT32          CoreId;
+    BOOLEAN         NextCoreIsValid; // In the case of dumping all cores, this flag indicates whether the next core number is valid
+    BOOLEAN         ArchBasedLBR;    // Whether the LBR is architecture-based (like Intel CET) or not (like Intel LBR or AMD IBS)
+    LBR_STACK_ENTRY LbrStack;
+    UINT8           CurrentLbrCapacity;
+    UINT32          KernelStatus;
+
+} HYPERTRACE_LBR_DUMP_PACKETS, *PHYPERTRACE_LBR_DUMP_PACKETS;
+
+/**
+ * @brief In the case of dumping all cores, this value is used to specify that all cores should be dumped
+ *
+ */
+#define HYPERTRACE_LBR_DUMP_ALL_CORES 0xffffffff
+
+/**
+ * @brief Debugger size of HYPERTRACE_LBR_DUMP_PACKETS
+ *
+ */
+#define SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS \
+    sizeof(HYPERTRACE_LBR_DUMP_PACKETS)
+
+// ==============================================================================================
+
+/**
  * @brief Perform actions related to HyperTrace for PT
  *
  */
