@@ -574,6 +574,16 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_SET_GUEST_IA32_LBR_CTL:
+    {
+        //
+        // Perform setting guest IA32_LBR_CTL on VMCS
+        //
+        HvSetGuestIa32LbrCtl(OptionalParam1);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     case VMCALL_SET_VM_ENTRY_LOAD_GUEST_IA32_LBR_CTL:
     {
         HvSetLoadGuestIa32LbrCtl(VCpu, TRUE);
@@ -600,7 +610,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     default:
     {
-        LogError("Err, unsupported VMCALL");
+        LogError("Err, unsupported VMCALL (%llx)", VmcallNumber);
         VmcallStatus = STATUS_UNSUCCESSFUL;
         break;
     }
