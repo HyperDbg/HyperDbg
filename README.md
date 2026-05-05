@@ -97,6 +97,33 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 }
 ```
 
+**4. [HyperEvade: Countering Anti-Debugging Techniques and Enhancing Transparency in Nested Virtualization using HyperDbg (DEBT'25)](https://www.jot.fm/contents/issue_2026_01/a8.html)** [[PDF](https://www.jot.fm/issues/issue_2026_01/a8.pdf)]
+
+```
+@article{ruytenberg2026hyperevade,
+  title={HyperEvade: Countering Anti-Debugging Techniques and Enhancing Transparency in Nested Virtualization using HyperDbg},
+  author={Ruytenberg, Bj{\"o}rn and Karvandi, Mohammad Sina},
+  journal={Journal of Object Technology},
+  volume={25},
+  number={1},
+  pages={1--3},
+  year={2026},
+  publisher={Association Internationale pour les Technologies Objets}
+}
+```
+
+**5. [Digital Hole: Bypassing Commercial Audio DRM Solutions with DReaMcatcher (EuroSys'26)](https://dl.acm.org/doi/abs/10.1145/3767295.3803583)** [[PDF](https://dl.acm.org/doi/pdf/10.1145/3767295.3803583)]
+
+```
+@inproceedings{ruytenberg2026digital,
+  title={Digital Hole: Bypassing Commercial Audio DRM Solutions with DReaMcatcher},
+  author={Ruytenberg, Bj{\"o}rn and Karvandi, Mohammad Sina and Bos, Herbert and van der Kouwe, Erik and Slowinska, Asia},
+  booktitle={Proceedings of the 21st European Conference on Computer Systems},
+  pages={484--496},
+  year={2026}
+}
+```
+
 </details>
 
 You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design/) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger, [this article](https://research.hyperdbg.org/vmm/transparency/) about our efforts on vm-exit transparency, [this article](https://research.hyperdbg.org/debugger/chasing-bugs/) about chasing bugs within hypervisors, and [this article](https://research.hyperdbg.org/debugger/gaining-insights/) about new reverse engineering techniques introduced in HyperDbg. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo, and in addition, the **[slides](https://github.com/HyperDbg/slides)** repo provides presentation slides for further reference.
@@ -151,6 +178,7 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * Attaching to the User-mode Process and Preventing Execution [<a href="https://docs.hyperdbg.org/commands/meta-commands/.attach" target="_blank">link</a>]
 * Intercepting Execution of XSETBV Instructions [<a href="https://docs.hyperdbg.org/commands/extension-commands/xsetbv" target="_blank">link</a>]
 * Writing Library Script Files [<a href="https://docs.hyperdbg.org/commands/scripting-language/casting-and-inclusion" target="_blank">link</a>]
+* Tracing Branches using Last Branch Record [<a href="https://docs.hyperdbg.org/commands/extension-commands/lbr" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/lbrdump" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr_print" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr_save" target="_blank">link</a>]
 
 ## How does it work?
 

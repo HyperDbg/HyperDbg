@@ -13,10 +13,11 @@ New release of the HyperDbg Debugger.
 - Added Architectural LBR support to the HyperTrace module
 - Added the '!lbr' command for performing different Last Branch Record (LBR) operations ([link](https://docs.hyperdbg.org/commands/extension-commands/lbr))
 - Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdmp))
-- Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracings/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracings/lbr_print))
+- Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr_print))
 - Added mock application for compiling SDK for Linux
 - HyperDbg SDK now compiles on Linux (GCC) for both user-mode and kernel-mode
 - VMX instructions are ported to platform-independent files to support Linux
+- All CPU-related intrinsic instructions are ported to platform-independent files to support Linux
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
