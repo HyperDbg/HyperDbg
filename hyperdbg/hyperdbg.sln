@@ -163,9 +163,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AA41FF
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{4BF590C3-1032-4DD2-BF87-BB9E5781977C}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\user\code\platform-intrinsics.c = include\platform\user\code\platform-intrinsics.c
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{DBE32379-8D5A-4454-A1B6-ACC407881898}"
 	ProjectSection(SolutionItems) = preProject
+		include\platform\user\header\platform-intrinsics.h = include\platform\user\header\platform-intrinsics.h
 		include\platform\user\header\Windows.h = include\platform\user\header\Windows.h
 	EndProjectSection
 EndProject
