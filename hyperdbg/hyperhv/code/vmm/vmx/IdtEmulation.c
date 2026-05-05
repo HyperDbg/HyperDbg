@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file IdtEmulation.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Handlers of Guest's IDT Emulator
@@ -35,7 +35,7 @@ IdtEmulationQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS I
         //
         // Since it's not in VMX Root, we can directly read the IDTR register
         //
-        __sidt(&IdtrReg);
+        CpuSidt(&IdtrReg);
 
         //
         // Get the IDT base address
@@ -258,7 +258,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         // host page-fault
         //
-        PageFaultCr2 = __readcr2();
+        PageFaultCr2 = CpuReadCr2();
 
         LogInfo("Page-fault received, rip: %llx, rsp: %llx, error: %llx, CR2: %llx",
                 IntrTrapFrame->rip,

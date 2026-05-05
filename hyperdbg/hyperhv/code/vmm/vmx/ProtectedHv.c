@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file ProtectedHv.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief File for protected hypervisor resources
@@ -399,7 +399,7 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
         if (Set)
         {
             VmxVmwrite64(VMCS_CTRL_CR0_GUEST_HOST_MASK, MaskRegister);
-            VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, __readcr0());
+            VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, CpuReadCr0());
         }
         else
         {
@@ -412,7 +412,7 @@ ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegi
         if (Set)
         {
             VmxVmwrite64(VMCS_CTRL_CR4_GUEST_HOST_MASK, MaskRegister);
-            VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, __readcr0());
+            VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, CpuReadCr0());
         }
         else
         {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Transparency.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Try to hide the debugger from anti-debugging and anti-hypervisor methods
@@ -115,7 +115,7 @@ TransparentGetRand()
     UINT64 Tsc;
     UINT32 Rand;
 
-    Tsc  = __rdtsc();
+    Tsc  = CpuReadTsc();
     Rand = Tsc & 0xffff;
 
     return Rand;
@@ -599,7 +599,7 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
 //     //
 //     // Save the current time
 //     //
-//     CurrrentTime = __rdtscp(&Aux);
+//     CurrrentTime = CpuReadTscp(&Aux);
 //
 //     //
 //     // Save time of vm-exit on each logical processor separately

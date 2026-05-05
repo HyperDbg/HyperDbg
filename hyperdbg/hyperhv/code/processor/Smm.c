@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Smm.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Routines for operations related to System Management Mode (SMM)
@@ -25,7 +25,7 @@ SmmReadSmiCount()
     //
     // Read the SMI count from MSR
     //
-    SmiCount = (UINT64)__readmsr(MSR_SMI_COUNT);
+    SmiCount = (UINT64)CpuReadMsr(MSR_SMI_COUNT);
 
     return SmiCount;
 }
@@ -43,17 +43,17 @@ SmmTriggerPowerSmi()
     //
     // check the initial value received from 0xB3 port
     //
-    SmmResponse = __inbyte(0xb2);
+    SmmResponse = CpuIoInByte(0xb2);
 
     //
     // write to 0xB2 port to cause SMI
     //
-    __outbyte(0xb2, SMI_TRIGGER_POWER_VALUE);
+    CpuIoOutByte(0xb2, SMI_TRIGGER_POWER_VALUE);
 
     //
     // Check the response in port 0xB3
     //
-    SmmResponse = __inbyte(0xb2);
+    SmmResponse = CpuIoInByte(0xb2);
 
     if (SmmResponse == SMI_TRIGGER_POWER_VALUE)
     {

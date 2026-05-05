@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Vmx.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief VMX Instructions and VMX Related Functions
@@ -25,7 +25,7 @@ VmxCheckVmxSupport()
     //
     // Gets Processor Info and Feature Bits
     //
-    __cpuid((int *)&Data, 1);
+    CpuCpuId((int *)&Data, 1);
 
     //
     // Check For VMX Bit CPUID.ECX[5]
@@ -38,7 +38,7 @@ VmxCheckVmxSupport()
         return FALSE;
     }
 
-    FeatureControlMsr.AsUInt = __readmsr(IA32_FEATURE_CONTROL);
+    FeatureControlMsr.AsUInt = CpuReadMsr(IA32_FEATURE_CONTROL);
 
     //
     // Commented because of https://stackoverflow.com/questions/34900224/
@@ -55,7 +55,7 @@ VmxCheckVmxSupport()
     // {
     //     FeatureControlMsr.Fields.Lock        = TRUE;
     //     FeatureControlMsr.Fields.EnableVmxon = TRUE;
-    //     __writemsr(IA32_FEATURE_CONTROL, FeatureControlMsr.Flags);
+    //     CpuWriteMsr(IA32_FEATURE_CONTROL, FeatureControlMsr.Flags);
     // }
 
     if (FeatureControlMsr.EnableVmxOutsideSmx == FALSE)
@@ -401,22 +401,22 @@ VmxFixCr4AndCr0Bits()
     //
     // Fix Cr0
     //
-    CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED0);
-    Cr0.AsUInt    = __readcr0();
+    CrFixed.Flags = CpuReadMsr(IA32_VMX_CR0_FIXED0);
+    Cr0.AsUInt    = CpuReadCr0();
     Cr0.AsUInt |= CrFixed.Fields.Low;
-    CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED1);
+    CrFixed.Flags = CpuReadMsr(IA32_VMX_CR0_FIXED1);
     Cr0.AsUInt &= CrFixed.Fields.Low;
-    __writecr0(Cr0.AsUInt);
+    CpuWriteCr0(Cr0.AsUInt);
 
     //
     // Fix Cr4
     //
-    CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED0);
-    Cr4.AsUInt    = __readcr4();
+    CrFixed.Flags = CpuReadMsr(IA32_VMX_CR4_FIXED0);
+    Cr4.AsUInt    = CpuReadCr4();
     Cr4.AsUInt |= CrFixed.Fields.Low;
-    CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED1);
+    CrFixed.Flags = CpuReadMsr(IA32_VMX_CR4_FIXED1);
     Cr4.AsUInt &= CrFixed.Fields.Low;
-    __writecr4(Cr4.AsUInt);
+    CpuWriteCr4(Cr4.AsUInt);
 }
 
 /**
@@ -685,7 +685,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
 
     VmxVmwrite64(VMCS_HOST_ES_SELECTOR, AsmGetEs() & 0xF8);
     VmxVmwrite64(VMCS_HOST_CS_SELECTOR, AsmGetCs() & 0xF8);
@@ -700,8 +700,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     //
     VmxVmwrite64(VMCS_GUEST_VMCS_LINK_POINTER, ~0ULL);
 
-    VmxVmwrite64(VMCS_GUEST_DEBUGCTL, __readmsr(IA32_DEBUGCTL) & 0xFFFFFFFF);
-    VmxVmwrite64(VMCS_GUEST_DEBUGCTL_HIGH, __readmsr(IA32_DEBUGCTL) >> 32);
+    VmxVmwrite64(VMCS_GUEST_DEBUGCTL, CpuReadMsr(IA32_DEBUGCTL) & 0xFFFFFFFF);
+    VmxVmwrite64(VMCS_GUEST_DEBUGCTL_HIGH, CpuReadMsr(IA32_DEBUGCTL) >> 32);
 
     //
     // ******* Time-stamp counter offset *******
@@ -728,8 +728,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     HvFillGuestSelectorData((PVOID)GdtBase, LDTR, AsmGetLdtr());
     HvFillGuestSelectorData((PVOID)GdtBase, TR, AsmGetTr());
 
-    VmxVmwrite64(VMCS_GUEST_FS_BASE, __readmsr(IA32_FS_BASE));
-    VmxVmwrite64(VMCS_GUEST_GS_BASE, __readmsr(IA32_GS_BASE));
+    VmxVmwrite64(VMCS_GUEST_FS_BASE, CpuReadMsr(IA32_FS_BASE));
+    VmxVmwrite64(VMCS_GUEST_GS_BASE, CpuReadMsr(IA32_GS_BASE));
 
     CpuBasedVmExecControls = HvAdjustControls(
         IA32_VMX_PROCBASED_CTLS_USE_IO_BITMAPS_FLAG |
@@ -779,14 +779,14 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, 0);
     VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, 0);
 
-    VmxVmwrite64(VMCS_GUEST_CR0, __readcr0());
-    VmxVmwrite64(VMCS_GUEST_CR3, __readcr3());
-    VmxVmwrite64(VMCS_GUEST_CR4, __readcr4());
+    VmxVmwrite64(VMCS_GUEST_CR0, CpuReadCr0());
+    VmxVmwrite64(VMCS_GUEST_CR3, CpuReadCr3());
+    VmxVmwrite64(VMCS_GUEST_CR4, CpuReadCr4());
 
     VmxVmwrite64(VMCS_GUEST_DR7, 0x400);
 
-    VmxVmwrite64(VMCS_HOST_CR0, __readcr0());
-    VmxVmwrite64(VMCS_HOST_CR4, __readcr4());
+    VmxVmwrite64(VMCS_HOST_CR0, CpuReadCr0());
+    VmxVmwrite64(VMCS_HOST_CR4, CpuReadCr4());
 
     //
     // Because we may be executing in an arbitrary user-mode, process as part
@@ -803,9 +803,9 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 
     VmxVmwrite64(VMCS_GUEST_RFLAGS, AsmGetRflags());
 
-    VmxVmwrite64(VMCS_GUEST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
-    VmxVmwrite64(VMCS_GUEST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
-    VmxVmwrite64(VMCS_GUEST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
+    VmxVmwrite64(VMCS_GUEST_SYSENTER_CS, CpuReadMsr(IA32_SYSENTER_CS));
+    VmxVmwrite64(VMCS_GUEST_SYSENTER_EIP, CpuReadMsr(IA32_SYSENTER_EIP));
+    VmxVmwrite64(VMCS_GUEST_SYSENTER_ESP, CpuReadMsr(IA32_SYSENTER_ESP));
 
 #if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
@@ -823,8 +823,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 
 #endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
-    VmxVmwrite64(VMCS_HOST_FS_BASE, __readmsr(IA32_FS_BASE));
-    VmxVmwrite64(VMCS_HOST_GS_BASE, __readmsr(IA32_GS_BASE));
+    VmxVmwrite64(VMCS_HOST_FS_BASE, CpuReadMsr(IA32_FS_BASE));
+    VmxVmwrite64(VMCS_HOST_GS_BASE, CpuReadMsr(IA32_GS_BASE));
 
 #if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
 
@@ -836,9 +836,9 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 
 #endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
 
-    VmxVmwrite64(VMCS_HOST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
-    VmxVmwrite64(VMCS_HOST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
-    VmxVmwrite64(VMCS_HOST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
+    VmxVmwrite64(VMCS_HOST_SYSENTER_CS, CpuReadMsr(IA32_SYSENTER_CS));
+    VmxVmwrite64(VMCS_HOST_SYSENTER_EIP, CpuReadMsr(IA32_SYSENTER_EIP));
+    VmxVmwrite64(VMCS_HOST_SYSENTER_ESP, CpuReadMsr(IA32_SYSENTER_ESP));
 
     //
     // Set MSR Bitmaps
@@ -997,7 +997,7 @@ VmxPerformVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     //
 
     VmxVmread64P(VMCS_GUEST_CR3, &GuestCr3);
-    __writecr3(GuestCr3);
+    CpuWriteCr3(GuestCr3);
 
     //
     // Read guest rsp and rip
@@ -1060,7 +1060,7 @@ VmxPerformVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Now that VMX is OFF, we have to unset vmx-enable bit on cr4
     //
-    __writecr4(__readcr4() & (~REG_CR4_VMXE));
+    CpuWriteCr4(CpuReadCr4() & (~REG_CR4_VMXE));
 }
 
 /**
@@ -1202,8 +1202,8 @@ VmxCompatibleStrlen(const CHAR * S)
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // First check
@@ -1217,7 +1217,7 @@ VmxCompatibleStrlen(const CHAR * S)
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0;
     }
 
@@ -1238,7 +1238,7 @@ VmxCompatibleStrlen(const CHAR * S)
             //
             // Move back to original cr3
             //
-            __writecr3(OriginalCr3.Flags);
+            CpuWriteCr3(OriginalCr3.Flags);
             return Count;
         }
 
@@ -1253,7 +1253,7 @@ VmxCompatibleStrlen(const CHAR * S)
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0;
             }
         }
@@ -1262,7 +1262,7 @@ VmxCompatibleStrlen(const CHAR * S)
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
 }
 
 /**
@@ -1291,8 +1291,8 @@ VmxCompatibleWcslen(const wchar_t * S)
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
 
@@ -1308,7 +1308,7 @@ VmxCompatibleWcslen(const wchar_t * S)
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0;
     }
 
@@ -1329,7 +1329,7 @@ VmxCompatibleWcslen(const wchar_t * S)
             //
             // Move back to original cr3
             //
-            __writecr3(OriginalCr3.Flags);
+            CpuWriteCr3(OriginalCr3.Flags);
             return Count;
         }
 
@@ -1344,7 +1344,7 @@ VmxCompatibleWcslen(const wchar_t * S)
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0;
             }
         }
@@ -1353,7 +1353,7 @@ VmxCompatibleWcslen(const wchar_t * S)
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
 }
 
 /**
@@ -1413,8 +1413,8 @@ VmxCompatibleStrcmp(const CHAR * Address1,
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // First check
@@ -1428,7 +1428,7 @@ VmxCompatibleStrcmp(const CHAR * Address1,
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0x2;
     }
 
@@ -1479,7 +1479,7 @@ VmxCompatibleStrcmp(const CHAR * Address1,
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1495,7 +1495,7 @@ VmxCompatibleStrcmp(const CHAR * Address1,
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1514,7 +1514,7 @@ VmxCompatibleStrcmp(const CHAR * Address1,
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
     return Result;
 }
 
@@ -1551,8 +1551,8 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // First check
@@ -1566,7 +1566,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0x2;
     }
 
@@ -1617,7 +1617,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1633,7 +1633,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1653,7 +1653,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
     return Result;
 }
 
@@ -1685,8 +1685,8 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // First check
@@ -1700,7 +1700,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0x2;
     }
 
@@ -1730,7 +1730,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1746,7 +1746,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1766,6 +1766,6 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
     return Result;
 }

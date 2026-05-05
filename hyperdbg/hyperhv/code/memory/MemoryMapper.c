@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file MemoryMapper.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file shows the functions to map memory to reserved system ranges
@@ -63,7 +63,7 @@ MemoryMapperGetPteVa(PVOID Va, PAGING_LEVEL Level)
     //
     // Read the current cr3
     //
-    Cr3.Flags = __readcr3();
+    Cr3.Flags = CpuReadCr3();
 
     //
     // Call the wrapper
@@ -287,7 +287,7 @@ MemoryMapperSetExecuteDisableToPteOnTargetProcess(PVOID Va, BOOLEAN Set)
     //
     // Invalidate the TLB
     //
-    __invlpg(Va);
+    CpuInvlpg(Va);
 
     //
     // Restore the original process
@@ -804,7 +804,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
     // because it will be automatically invalidated by the top hypervisor, however,
     // we should use invlpg in physical computers as it won't invalidate it automatically
     //
-    __invlpg(Va);
+    CpuInvlpg(Va);
 
     //
     // Also invalidate it from vpids if we're in vmx root
@@ -888,7 +888,7 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
     //
     // Finally, invalidate the caches for the virtual address.
     //
-    __invlpg(Va);
+    CpuInvlpg(Va);
 
     //
     // Also invalidate it from vpids if we're in vmx root
@@ -1180,8 +1180,8 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // Read target memory
@@ -1191,7 +1191,7 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
 
     return Result;
 }
@@ -1225,8 +1225,8 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // Write target memory
@@ -1236,7 +1236,7 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
 
     return Result;
 }
@@ -1720,7 +1720,7 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     // because it will be automatically invalidated by the top hypervisor, however,
     // we should use invlpg in physical computers as it won't invalidate it automatically
     //
-    __invlpg(TargetProcessVirtualAddress);
+    CpuInvlpg(TargetProcessVirtualAddress);
 
     //
     // Restore the original process

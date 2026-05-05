@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Kd.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
@@ -947,7 +947,7 @@ KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile
     {
         for (unsigned i = 0; i < wait; ++i)
         {
-            _mm_pause();
+            CpuPause();
         }
 
         //

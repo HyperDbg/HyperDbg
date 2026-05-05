@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file DpcRoutines.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief All the dpc routines which relates to executing on a single core
@@ -138,7 +138,7 @@ DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
     //
     // write on MSR
     //
-    __writemsr(CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
+    CpuWriteMsr((ULONG)CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
 
     //
     // As this function is designed for a single,
@@ -170,7 +170,7 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
     //
     // read on MSR
     //
-    CurrentDebuggingState->MsrState.Value = __readmsr(CurrentDebuggingState->MsrState.Msr);
+    CurrentDebuggingState->MsrState.Value = CpuReadMsr((ULONG)CurrentDebuggingState->MsrState.Msr);
 
     //
     // As this function is designed for a single,
@@ -200,7 +200,7 @@ DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgu
     //
     // write on MSR
     //
-    __writemsr(CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
+    CpuWriteMsr((ULONG)CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -234,7 +234,7 @@ DpcRoutineReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgum
     //
     // read msr
     //
-    CurrentDebuggingState->MsrState.Value = __readmsr(CurrentDebuggingState->MsrState.Msr);
+    CurrentDebuggingState->MsrState.Value = CpuReadMsr((ULONG)CurrentDebuggingState->MsrState.Msr);
 
     //
     // Wait for all DPCs to synchronize at this point
