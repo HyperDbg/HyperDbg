@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file MsrHandlers.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Handle for MSR-related tasks in VMX-root
@@ -134,7 +134,7 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Msr is valid
             //
-            Msr.Flags = __readmsr(TargetMsr);
+            Msr.Flags = CpuReadMsr(TargetMsr);
 
             //
             // Check if it's EFER MSR then we show a false SCE state
@@ -278,7 +278,7 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Perform the WRMSR
             //
-            __writemsr((unsigned long)GuestRegs->rcx, Msr.Flags);
+            CpuWriteMsr((unsigned long)GuestRegs->rcx, Msr.Flags);
 
             break;
         }

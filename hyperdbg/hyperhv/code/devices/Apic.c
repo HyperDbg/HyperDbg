@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Apic.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Routines for Advanced Programmable Interrupt Controller (APIC)
@@ -149,7 +149,7 @@ XApicIcrWrite(UINT32 Low, UINT32 High)
 VOID
 X2ApicIcrWrite(UINT32 Low, UINT32 High)
 {
-    __writemsr(X2_MSR_BASE + TO_X2(ICROffset), ((UINT64)High << 32) | Low);
+    CpuWriteMsr(X2_MSR_BASE + TO_X2(ICROffset), ((UINT64)High << 32) | Low);
 }
 
 /**
@@ -161,7 +161,7 @@ X2ApicIcrWrite(UINT32 Low, UINT32 High)
 UINT64
 X2ApicRead(UINT32 Offset)
 {
-    return __readmsr(X2_MSR_BASE + TO_X2(Offset));
+    return CpuReadMsr(X2_MSR_BASE + TO_X2(Offset));
 }
 
 /**
@@ -369,7 +369,7 @@ ApicInitialize()
     PHYSICAL_ADDRESS PaApicBase;
     PHYSICAL_ADDRESS PaIoApicBase;
 
-    ApicBaseMSR = __readmsr(IA32_APIC_BASE);
+    ApicBaseMSR = CpuReadMsr(IA32_APIC_BASE);
 
     if (!(ApicBaseMSR & (1 << 11)))
     {

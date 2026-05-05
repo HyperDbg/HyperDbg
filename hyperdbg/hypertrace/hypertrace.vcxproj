@@ -101,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
     <ClCompile Include="code\api\LbrApi.c" />
     <ClCompile Include="code\api\PtApi.c" />
@@ -113,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\api\LbrApi.h" />
     <ClInclude Include="header\api\PtApi.h" />

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Events.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Functions relating to Exception Bitmap and Event (Interrupt and Exception) Injection
@@ -128,7 +128,7 @@ EventInjectPageFaultWithoutErrorCode(UINT64 PageFaultAddress)
     //
     // Write the page-fault address
     //
-    __writecr2(PageFaultAddress);
+    CpuWriteCr2(PageFaultAddress);
 
     //
     // Make the error code
@@ -201,7 +201,7 @@ EventInjectPageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     //
     // Cr2 is used as the page-fault address
     //
-    __writecr2(PageFaultAddress);
+    CpuWriteCr2(PageFaultAddress);
 
     HvSuppressRipIncrement(VCpu);
 

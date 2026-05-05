@@ -39,124 +39,76 @@ typedef enum _IO_OP_ENCODING
 //        I/O Instructions Functions            //
 //////////////////////////////////////////////////
 
-unsigned char
-__inbyte(unsigned short);
-#pragma intrinsic(__inbyte)
-
 inline UINT8
 IoInByte(UINT16 port)
 {
-    return __inbyte(port);
+    return CpuIoInByte(port);
 }
-
-unsigned short
-__inword(unsigned short);
-#pragma intrinsic(__inword)
 
 inline UINT16
 IoInWord(UINT16 port)
 {
-    return __inword(port);
+    return CpuIoInWord(port);
 }
-
-unsigned long
-__indword(unsigned short);
-#pragma intrinsic(__indword)
 
 inline UINT32
 IoInDword(UINT16 port)
 {
-    return __indword(port);
+    return CpuIoInDword(port);
 }
-
-void
-__inbytestring(unsigned short, unsigned char *, unsigned long);
-#pragma intrinsic(__inbytestring)
 
 inline void
 IoInByteString(UINT16 port, UINT8 * data, UINT32 size)
 {
-    __inbytestring(port, data, size);
+    CpuIoInByteString(port, data, size);
 }
-
-void
-__inwordstring(unsigned short, unsigned short *, unsigned long);
-#pragma intrinsic(__inwordstring)
 
 inline void
 IoInWordString(UINT16 port, UINT16 * data, UINT32 size)
 {
-    __inwordstring(port, data, size);
+    CpuIoInWordString(port, data, size);
 }
-
-void
-__indwordstring(unsigned short, unsigned long *, unsigned long);
-#pragma intrinsic(__indwordstring)
 
 inline void
 IoInDwordString(UINT16 port, UINT32 * data, UINT32 size)
 {
-    __indwordstring(port, (unsigned long *)data, size);
+    CpuIoInDwordString(port, data, size);
 }
-
-void
-__outbyte(unsigned short, unsigned char);
-#pragma intrinsic(__outbyte)
 
 inline void
 IoOutByte(UINT16 port, UINT8 value)
 {
-    __outbyte(port, value);
+    CpuIoOutByte(port, value);
 }
-
-void
-__outword(unsigned short, unsigned short);
-#pragma intrinsic(__outword)
 
 inline void
 IoOutWord(UINT16 port, UINT16 value)
 {
-    __outword(port, value);
+    CpuIoOutWord(port, value);
 }
-
-void
-__outdword(unsigned short, unsigned long);
-#pragma intrinsic(__outdword)
 
 inline void
 IoOutDword(UINT16 port, UINT32 value)
 {
-    __outdword(port, value);
+    CpuIoOutDword(port, value);
 }
-
-void
-__outbytestring(unsigned short, unsigned char *, unsigned long);
-#pragma intrinsic(__outbytestring)
 
 inline void
 IoOutByteString(UINT16 port, UINT8 * data, UINT32 count)
 {
-    __outbytestring(port, data, count);
+    CpuIoOutByteString(port, data, count);
 }
-
-void
-__outwordstring(unsigned short, unsigned short *, unsigned long);
-#pragma intrinsic(__outwordstring)
 
 inline void
 IoOutWordString(UINT16 port, UINT16 * data, UINT32 count)
 {
-    __outwordstring(port, data, count);
+    CpuIoOutWordString(port, data, count);
 }
-
-void
-__outdwordstring(unsigned short, unsigned long *, unsigned long);
-#pragma intrinsic(__outdwordstring)
 
 inline void
 IoOutDwordString(UINT16 port, UINT32 * data, UINT32 count)
 {
-    __outdwordstring(port, (unsigned long *)data, count);
+    CpuIoOutDwordString(port, data, count);
 }
 
 //////////////////////////////////////////////////

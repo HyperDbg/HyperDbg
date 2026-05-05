@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Conversion.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Functions for address checks
@@ -192,8 +192,8 @@ CheckAccessValidityAndSafetyWrapper(UINT64 TargetAddress, UINT32 Size, UINT32 Pr
     //
     // Move to new cr3
     //
-    OriginalCr3 = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3 = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // We'll only check address with TSX if the address is a kernel-mode
@@ -301,7 +301,7 @@ RestoreCr3:
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3);
+    CpuWriteCr3(OriginalCr3);
 
 Return:
     return Result;

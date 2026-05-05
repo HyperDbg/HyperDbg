@@ -61,6 +61,7 @@
 // Platform independent headers
 //
 #include "platform/kernel/header/PlatformMem.h"
+#include "platform/kernel/header/PlatformIntrinsics.h"
 
 //
 // Platform intrinsics headers
