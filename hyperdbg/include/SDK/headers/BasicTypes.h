@@ -63,6 +63,9 @@ typedef unsigned __int64 UINT64, *PUINT64;
 typedef unsigned __int64 ULONG64, *PULONG64;
 typedef unsigned __int64 DWORD64, *PDWORD64;
 
+typedef unsigned __int64 ULONG_PTR, *PULONG_PTR;
+typedef unsigned __int64 ULONGLONG;
+
 typedef wchar_t WCHAR;
 
 #elif defined(__linux__) // Linux
@@ -76,6 +79,9 @@ typedef unsigned long long UINT64, *PUINT64;
 
 typedef unsigned long long ULONG64, *PULONG64;
 typedef unsigned long long DWORD64, *PDWORD64;
+
+typedef unsigned long long ULONGLONG;
+typedef unsigned long long ULONG_PTR, *PULONG_PTR;
 
 //
 // To be fixed later, linux wchar_t is 4 bytes, but windows wchar_t is 2 bytes

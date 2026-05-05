@@ -12,6 +12,12 @@
 #ifndef PCH_H
 #define PCH_H
 
+//
+// Scope definitions
+//
+#define HYPERDBG_USER_MODE
+#define HYPERDBG_LINUX
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,5 +28,10 @@
 // SDK headers
 //
 #include "../../../include/SDK/HyperDbgSdk.h"
+
+//
+// Platform headers
+//
+#include "../../../include/platform/user/header/platform-intrinsics.h"
 
 #endif // PCH_H

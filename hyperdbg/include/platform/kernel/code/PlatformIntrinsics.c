@@ -30,7 +30,9 @@ CpuReadCr0(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr0();
 #elif defined(__linux__)
-    ULONG_PTR __val; __asm__ __volatile__("mov %%cr0, %0" : "=r"(__val)); return __val;
+    ULONG_PTR __val;
+    __asm__ __volatile__("mov %%cr0, %0" : "=r"(__val));
+    return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -64,7 +66,9 @@ CpuReadCr2(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr2();
 #elif defined(__linux__)
-    ULONG_PTR __val; __asm__ __volatile__("mov %%cr2, %0" : "=r"(__val)); return __val;
+    ULONG_PTR __val;
+    __asm__ __volatile__("mov %%cr2, %0" : "=r"(__val));
+    return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -98,7 +102,9 @@ CpuReadCr3(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr3();
 #elif defined(__linux__)
-    ULONG_PTR __val; __asm__ __volatile__("mov %%cr3, %0" : "=r"(__val)); return __val;
+    ULONG_PTR __val;
+    __asm__ __volatile__("mov %%cr3, %0" : "=r"(__val));
+    return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -132,7 +138,9 @@ CpuReadCr4(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr4();
 #elif defined(__linux__)
-    ULONG_PTR __val; __asm__ __volatile__("mov %%cr4, %0" : "=r"(__val)); return __val;
+    ULONG_PTR __val;
+    __asm__ __volatile__("mov %%cr4, %0" : "=r"(__val));
+    return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -166,7 +174,9 @@ CpuReadCr8(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr8();
 #elif defined(__linux__)
-    ULONG_PTR __val; __asm__ __volatile__("mov %%cr8, %0" : "=r"(__val)); return __val;
+    ULONG_PTR __val;
+    __asm__ __volatile__("mov %%cr8, %0" : "=r"(__val));
+    return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -205,7 +215,9 @@ CpuReadMsr(ULONG MsrAddress)
 #if defined(_WIN32) || defined(_WIN64)
     return __readmsr(MsrAddress);
 #elif defined(__linux__)
-    UINT32 __lo, __hi; __asm__ __volatile__("rdmsr" : "=a"(__lo), "=d"(__hi) : "c"(MsrAddress)); return ((UINT64)__hi << 32) | __lo;
+    UINT32 __lo, __hi;
+    __asm__ __volatile__("rdmsr" : "=a"(__lo), "=d"(__hi) : "c"(MsrAddress));
+    return ((UINT64)__hi << 32) | __lo;
 #else
 #    error "Unsupported platform"
 #endif
@@ -285,7 +297,9 @@ CpuReadTsc(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __rdtsc();
 #elif defined(__linux__)
-    UINT32 __lo, __hi; __asm__ __volatile__("rdtsc" : "=a"(__lo), "=d"(__hi)); return ((UINT64)__hi << 32) | __lo;
+    UINT32 __lo, __hi;
+    __asm__ __volatile__("rdtsc" : "=a"(__lo), "=d"(__hi));
+    return ((UINT64)__hi << 32) | __lo;
 #else
 #    error "Unsupported platform"
 #endif
@@ -303,7 +317,9 @@ CpuReadTscp(UINT32 * Aux)
 #if defined(_WIN32) || defined(_WIN64)
     return __rdtscp(Aux);
 #elif defined(__linux__)
-    UINT32 __lo, __hi; __asm__ __volatile__("rdtscp" : "=a"(__lo), "=d"(__hi), "=c"(*Aux)); return ((UINT64)__hi << 32) | __lo;
+    UINT32 __lo, __hi;
+    __asm__ __volatile__("rdtscp" : "=a"(__lo), "=d"(__hi), "=c"(*Aux));
+    return ((UINT64)__hi << 32) | __lo;
 #else
 #    error "Unsupported platform"
 #endif
@@ -391,7 +407,10 @@ CpuBitScanForward64(ULONG * Index, UINT64 Mask)
 #if defined(_WIN32) || defined(_WIN64)
     return (UCHAR)_BitScanForward64((unsigned long *)Index, Mask);
 #elif defined(__linux__)
-    if (!Mask) return 0; *Index = (ULONG)__builtin_ctzll(Mask); return 1;
+    if (!Mask)
+        return 0;
+    *Index = (ULONG)__builtin_ctzll(Mask);
+    return 1;
 #else
 #    error "Unsupported platform"
 #endif
@@ -443,7 +462,9 @@ CpuSegmentLimit(UINT32 Selector)
 #if defined(_WIN32) || defined(_WIN64)
     return __segmentlimit(Selector);
 #elif defined(__linux__)
-    ULONG __limit; __asm__ __volatile__("lsl %1, %0" : "=r"(__limit) : "r"(Selector)); return __limit;
+    ULONG __limit;
+    __asm__ __volatile__("lsl %1, %0" : "=r"(__limit) : "r"(Selector));
+    return __limit;
 #else
 #    error "Unsupported platform"
 #endif
@@ -465,7 +486,9 @@ CpuIoInByte(UINT16 Port)
 #if defined(_WIN32) || defined(_WIN64)
     return __inbyte(Port);
 #elif defined(__linux__)
-    UINT8 __val; __asm__ __volatile__("inb %1, %0" : "=a"(__val) : "Nd"(Port)); return __val;
+    UINT8 __val;
+    __asm__ __volatile__("inb %1, %0" : "=a"(__val) : "Nd"(Port));
+    return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -483,7 +506,9 @@ CpuIoInWord(UINT16 Port)
 #if defined(_WIN32) || defined(_WIN64)
     return __inword(Port);
 #elif defined(__linux__)
-    UINT16 __val; __asm__ __volatile__("inw %1, %0" : "=a"(__val) : "Nd"(Port)); return __val;
+    UINT16 __val;
+    __asm__ __volatile__("inw %1, %0" : "=a"(__val) : "Nd"(Port));
+    return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -501,7 +526,9 @@ CpuIoInDword(UINT16 Port)
 #if defined(_WIN32) || defined(_WIN64)
     return __indword(Port);
 #elif defined(__linux__)
-    UINT32 __val; __asm__ __volatile__("inl %1, %0" : "=a"(__val) : "Nd"(Port)); return __val;
+    UINT32 __val;
+    __asm__ __volatile__("inl %1, %0" : "=a"(__val) : "Nd"(Port));
+    return __val;
 #else
 #    error "Unsupported platform"
 #endif
