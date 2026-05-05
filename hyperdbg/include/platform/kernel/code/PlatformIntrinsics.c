@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file PlatformIntrinsics.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of cross platform APIs for intrinsic functions (x86 instructions)
@@ -30,7 +30,7 @@ CpuReadCr0(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr0();
 #elif defined(__linux__)
-#    error "Not implemented"
+    ULONG_PTR __val; __asm__ __volatile__("mov %%cr0, %0" : "=r"(__val)); return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -47,7 +47,7 @@ CpuWriteCr0(ULONG_PTR Cr0Value)
 #if defined(_WIN32) || defined(_WIN64)
     __writecr0(Cr0Value);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("mov %0, %%cr0" : : "r"(Cr0Value) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -64,7 +64,7 @@ CpuReadCr2(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr2();
 #elif defined(__linux__)
-#    error "Not implemented"
+    ULONG_PTR __val; __asm__ __volatile__("mov %%cr2, %0" : "=r"(__val)); return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -81,7 +81,7 @@ CpuWriteCr2(ULONG_PTR Cr2Value)
 #if defined(_WIN32) || defined(_WIN64)
     __writecr2(Cr2Value);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("mov %0, %%cr2" : : "r"(Cr2Value) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -98,7 +98,7 @@ CpuReadCr3(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr3();
 #elif defined(__linux__)
-#    error "Not implemented"
+    ULONG_PTR __val; __asm__ __volatile__("mov %%cr3, %0" : "=r"(__val)); return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -115,7 +115,7 @@ CpuWriteCr3(ULONG_PTR Cr3Value)
 #if defined(_WIN32) || defined(_WIN64)
     __writecr3(Cr3Value);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("mov %0, %%cr3" : : "r"(Cr3Value) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -132,7 +132,7 @@ CpuReadCr4(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr4();
 #elif defined(__linux__)
-#    error "Not implemented"
+    ULONG_PTR __val; __asm__ __volatile__("mov %%cr4, %0" : "=r"(__val)); return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -149,7 +149,7 @@ CpuWriteCr4(ULONG_PTR Cr4Value)
 #if defined(_WIN32) || defined(_WIN64)
     __writecr4(Cr4Value);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("mov %0, %%cr4" : : "r"(Cr4Value) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -166,7 +166,7 @@ CpuReadCr8(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __readcr8();
 #elif defined(__linux__)
-#    error "Not implemented"
+    ULONG_PTR __val; __asm__ __volatile__("mov %%cr8, %0" : "=r"(__val)); return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -183,7 +183,7 @@ CpuWriteCr8(ULONG_PTR Cr8Value)
 #if defined(_WIN32) || defined(_WIN64)
     __writecr8(Cr8Value);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("mov %0, %%cr8" : : "r"(Cr8Value) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -205,7 +205,7 @@ CpuReadMsr(ULONG MsrAddress)
 #if defined(_WIN32) || defined(_WIN64)
     return __readmsr(MsrAddress);
 #elif defined(__linux__)
-#    error "Not implemented"
+    UINT32 __lo, __hi; __asm__ __volatile__("rdmsr" : "=a"(__lo), "=d"(__hi) : "c"(MsrAddress)); return ((UINT64)__hi << 32) | __lo;
 #else
 #    error "Unsupported platform"
 #endif
@@ -223,7 +223,7 @@ CpuWriteMsr(ULONG MsrAddress, UINT64 MsrValue)
 #if defined(_WIN32) || defined(_WIN64)
     __writemsr(MsrAddress, MsrValue);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("wrmsr" : : "c"(MsrAddress), "a"((UINT32)MsrValue), "d"((UINT32)(MsrValue >> 32)));
 #else
 #    error "Unsupported platform"
 #endif
@@ -245,7 +245,7 @@ CpuCpuId(INT32 * CpuInfo, INT32 FunctionId)
 #if defined(_WIN32) || defined(_WIN64)
     __cpuid(CpuInfo, FunctionId);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("cpuid" : "=a"(CpuInfo[0]), "=b"(CpuInfo[1]), "=c"(CpuInfo[2]), "=d"(CpuInfo[3]) : "a"(FunctionId), "c"(0));
 #else
 #    error "Unsupported platform"
 #endif
@@ -264,7 +264,7 @@ CpuCpuIdEx(INT32 * CpuInfo, INT32 FunctionId, INT32 SubFunctionId)
 #if defined(_WIN32) || defined(_WIN64)
     __cpuidex(CpuInfo, FunctionId, SubFunctionId);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("cpuid" : "=a"(CpuInfo[0]), "=b"(CpuInfo[1]), "=c"(CpuInfo[2]), "=d"(CpuInfo[3]) : "a"(FunctionId), "c"(SubFunctionId));
 #else
 #    error "Unsupported platform"
 #endif
@@ -285,7 +285,7 @@ CpuReadTsc(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __rdtsc();
 #elif defined(__linux__)
-#    error "Not implemented"
+    UINT32 __lo, __hi; __asm__ __volatile__("rdtsc" : "=a"(__lo), "=d"(__hi)); return ((UINT64)__hi << 32) | __lo;
 #else
 #    error "Unsupported platform"
 #endif
@@ -303,7 +303,7 @@ CpuReadTscp(UINT32 * Aux)
 #if defined(_WIN32) || defined(_WIN64)
     return __rdtscp(Aux);
 #elif defined(__linux__)
-#    error "Not implemented"
+    UINT32 __lo, __hi; __asm__ __volatile__("rdtscp" : "=a"(__lo), "=d"(__hi), "=c"(*Aux)); return ((UINT64)__hi << 32) | __lo;
 #else
 #    error "Unsupported platform"
 #endif
@@ -324,7 +324,7 @@ CpuSidt(VOID * Idtr)
 #if defined(_WIN32) || defined(_WIN64)
     __sidt(Idtr);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("sidt %0" : "=m"(*(char *)Idtr) : : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -345,7 +345,7 @@ CpuInvlpg(VOID * Address)
 #if defined(_WIN32) || defined(_WIN64)
     __invlpg(Address);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("invlpg (%0)" : : "r"(Address) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -368,7 +368,7 @@ CpuStosQ(UINT64 * Destination, UINT64 Value, SIZE_T Count)
 #if defined(_WIN32) || defined(_WIN64)
     __stosq((unsigned __int64 *)Destination, Value, Count);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("rep stosq" : "+D"(Destination), "+c"(Count) : "a"(Value) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -391,7 +391,7 @@ CpuBitScanForward64(ULONG * Index, UINT64 Mask)
 #if defined(_WIN32) || defined(_WIN64)
     return (UCHAR)_BitScanForward64((unsigned long *)Index, Mask);
 #elif defined(__linux__)
-#    error "Not implemented"
+    if (!Mask) return 0; *Index = (ULONG)__builtin_ctzll(Mask); return 1;
 #else
 #    error "Unsupported platform"
 #endif
@@ -410,7 +410,7 @@ CpuNop(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     __nop();
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("nop");
 #else
 #    error "Unsupported platform"
 #endif
@@ -425,7 +425,7 @@ CpuPause(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     _mm_pause();
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("pause");
 #else
 #    error "Unsupported platform"
 #endif
@@ -443,7 +443,7 @@ CpuSegmentLimit(UINT32 Selector)
 #if defined(_WIN32) || defined(_WIN64)
     return __segmentlimit(Selector);
 #elif defined(__linux__)
-#    error "Not implemented"
+    ULONG __limit; __asm__ __volatile__("lsl %1, %0" : "=r"(__limit) : "r"(Selector)); return __limit;
 #else
 #    error "Unsupported platform"
 #endif
@@ -465,7 +465,7 @@ CpuIoInByte(UINT16 Port)
 #if defined(_WIN32) || defined(_WIN64)
     return __inbyte(Port);
 #elif defined(__linux__)
-#    error "Not implemented"
+    UINT8 __val; __asm__ __volatile__("inb %1, %0" : "=a"(__val) : "Nd"(Port)); return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -483,7 +483,7 @@ CpuIoInWord(UINT16 Port)
 #if defined(_WIN32) || defined(_WIN64)
     return __inword(Port);
 #elif defined(__linux__)
-#    error "Not implemented"
+    UINT16 __val; __asm__ __volatile__("inw %1, %0" : "=a"(__val) : "Nd"(Port)); return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -501,7 +501,7 @@ CpuIoInDword(UINT16 Port)
 #if defined(_WIN32) || defined(_WIN64)
     return __indword(Port);
 #elif defined(__linux__)
-#    error "Not implemented"
+    UINT32 __val; __asm__ __volatile__("inl %1, %0" : "=a"(__val) : "Nd"(Port)); return __val;
 #else
 #    error "Unsupported platform"
 #endif
@@ -520,7 +520,7 @@ CpuIoInByteString(UINT16 Port, UINT8 * Data, UINT32 Size)
 #if defined(_WIN32) || defined(_WIN64)
     __inbytestring(Port, Data, Size);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("rep insb" : "+D"(Data), "+c"(Size) : "d"(Port) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -539,7 +539,7 @@ CpuIoInWordString(UINT16 Port, UINT16 * Data, UINT32 Size)
 #if defined(_WIN32) || defined(_WIN64)
     __inwordstring(Port, Data, Size);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("rep insw" : "+D"(Data), "+c"(Size) : "d"(Port) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -558,7 +558,7 @@ CpuIoInDwordString(UINT16 Port, UINT32 * Data, UINT32 Size)
 #if defined(_WIN32) || defined(_WIN64)
     __indwordstring(Port, (unsigned long *)Data, Size);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("rep insl" : "+D"(Data), "+c"(Size) : "d"(Port) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -576,7 +576,7 @@ CpuIoOutByte(UINT16 Port, UINT8 Value)
 #if defined(_WIN32) || defined(_WIN64)
     __outbyte(Port, Value);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("outb %0, %1" : : "a"(Value), "Nd"(Port));
 #else
 #    error "Unsupported platform"
 #endif
@@ -594,7 +594,7 @@ CpuIoOutWord(UINT16 Port, UINT16 Value)
 #if defined(_WIN32) || defined(_WIN64)
     __outword(Port, Value);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("outw %0, %1" : : "a"(Value), "Nd"(Port));
 #else
 #    error "Unsupported platform"
 #endif
@@ -612,7 +612,7 @@ CpuIoOutDword(UINT16 Port, UINT32 Value)
 #if defined(_WIN32) || defined(_WIN64)
     __outdword(Port, Value);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("outl %0, %1" : : "a"(Value), "Nd"(Port));
 #else
 #    error "Unsupported platform"
 #endif
@@ -631,7 +631,7 @@ CpuIoOutByteString(UINT16 Port, UINT8 * Data, UINT32 Count)
 #if defined(_WIN32) || defined(_WIN64)
     __outbytestring(Port, Data, Count);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("rep outsb" : "+S"(Data), "+c"(Count) : "d"(Port) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -650,7 +650,7 @@ CpuIoOutWordString(UINT16 Port, UINT16 * Data, UINT32 Count)
 #if defined(_WIN32) || defined(_WIN64)
     __outwordstring(Port, Data, Count);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("rep outsw" : "+S"(Data), "+c"(Count) : "d"(Port) : "memory");
 #else
 #    error "Unsupported platform"
 #endif
@@ -669,7 +669,7 @@ CpuIoOutDwordString(UINT16 Port, UINT32 * Data, UINT32 Count)
 #if defined(_WIN32) || defined(_WIN64)
     __outdwordstring(Port, (unsigned long *)Data, Count);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("rep outsl" : "+S"(Data), "+c"(Count) : "d"(Port) : "memory");
 #else
 #    error "Unsupported platform"
 #endif

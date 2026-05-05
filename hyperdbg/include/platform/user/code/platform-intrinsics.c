@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file platform-intrinsics.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of cross platform APIs for intrinsic functions (x86 instructions)
@@ -31,7 +31,7 @@ CpuCpuId(INT32 * CpuInfo, INT32 FunctionId)
 #if defined(_WIN32) || defined(_WIN64)
     __cpuid(CpuInfo, FunctionId);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("cpuid" : "=a"(CpuInfo[0]), "=b"(CpuInfo[1]), "=c"(CpuInfo[2]), "=d"(CpuInfo[3]) : "a"(FunctionId), "c"(0));
 #else
 #    error "Unsupported platform"
 #endif
@@ -50,7 +50,7 @@ CpuCpuIdEx(INT32 * CpuInfo, INT32 FunctionId, INT32 SubFunctionId)
 #if defined(_WIN32) || defined(_WIN64)
     __cpuidex(CpuInfo, FunctionId, SubFunctionId);
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("cpuid" : "=a"(CpuInfo[0]), "=b"(CpuInfo[1]), "=c"(CpuInfo[2]), "=d"(CpuInfo[3]) : "a"(FunctionId), "c"(SubFunctionId));
 #else
 #    error "Unsupported platform"
 #endif
@@ -71,7 +71,9 @@ CpuReadTsc(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return __rdtsc();
 #elif defined(__linux__)
-#    error "Not implemented"
+    UINT32 __lo, __hi;
+    __asm__ __volatile__("rdtsc" : "=a"(__lo), "=d"(__hi));
+    return ((UINT64)__hi << 32) | __lo;
 #else
 #    error "Unsupported platform"
 #endif
@@ -90,7 +92,7 @@ CpuPause(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     _mm_pause();
 #elif defined(__linux__)
-#    error "Not implemented"
+    __asm__ __volatile__("pause");
 #else
 #    error "Unsupported platform"
 #endif

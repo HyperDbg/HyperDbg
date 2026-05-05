@@ -105,7 +105,21 @@ CpuWriteMsr(ULONG MsrAddress, UINT64 MsrValue);
 #if defined(_WIN32) || defined(_WIN64)
 #    define CpuReadDr(DrNumber) __readdr(DrNumber)
 #elif defined(__linux__)
-#    error "Not implemented"
+#    define CpuReadDr(DrNumber)                                     \
+        ({                                                           \
+            ULONG_PTR __val;                                         \
+            switch (DrNumber)                                        \
+            {                                                        \
+            case 0: __asm__ volatile("mov %%dr0, %0" : "=r"(__val)); break; \
+            case 1: __asm__ volatile("mov %%dr1, %0" : "=r"(__val)); break; \
+            case 2: __asm__ volatile("mov %%dr2, %0" : "=r"(__val)); break; \
+            case 3: __asm__ volatile("mov %%dr3, %0" : "=r"(__val)); break; \
+            case 6: __asm__ volatile("mov %%dr6, %0" : "=r"(__val)); break; \
+            case 7: __asm__ volatile("mov %%dr7, %0" : "=r"(__val)); break; \
+            default: __val = 0; break;                               \
+            }                                                        \
+            __val;                                                   \
+        })
 #else
 #    error "Unsupported platform"
 #endif
@@ -116,7 +130,19 @@ CpuWriteMsr(ULONG MsrAddress, UINT64 MsrValue);
 #if defined(_WIN32) || defined(_WIN64)
 #    define CpuWriteDr(DrNumber, DrValue) __writedr(DrNumber, DrValue)
 #elif defined(__linux__)
-#    error "Not implemented"
+#    define CpuWriteDr(DrNumber, DrValue)                                            \
+        do {                                                                         \
+            switch (DrNumber)                                                        \
+            {                                                                        \
+            case 0: __asm__ volatile("mov %0, %%dr0" : : "r"((ULONG_PTR)(DrValue))); break; \
+            case 1: __asm__ volatile("mov %0, %%dr1" : : "r"((ULONG_PTR)(DrValue))); break; \
+            case 2: __asm__ volatile("mov %0, %%dr2" : : "r"((ULONG_PTR)(DrValue))); break; \
+            case 3: __asm__ volatile("mov %0, %%dr3" : : "r"((ULONG_PTR)(DrValue))); break; \
+            case 6: __asm__ volatile("mov %0, %%dr6" : : "r"((ULONG_PTR)(DrValue))); break; \
+            case 7: __asm__ volatile("mov %0, %%dr7" : : "r"((ULONG_PTR)(DrValue))); break; \
+            default: break;                                                          \
+            }                                                                        \
+        } while (0)
 #else
 #    error "Unsupported platform"
 #endif
