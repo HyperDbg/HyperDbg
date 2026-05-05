@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file DebugRegisters.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of debug registers functions
@@ -77,7 +77,7 @@ SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
     //
     if (DebugRegNum == 0)
     {
-        __writedr(0, TargetAddress);
+        CpuWriteDr(0, TargetAddress);
 
         Dr7.GlobalBreakpoint0 = 1;
 
@@ -119,7 +119,7 @@ SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
     }
     else if (DebugRegNum == 1)
     {
-        __writedr(1, TargetAddress);
+        CpuWriteDr(1, TargetAddress);
         Dr7.GlobalBreakpoint1 = 1;
 
         //
@@ -160,7 +160,7 @@ SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
     }
     else if (DebugRegNum == 2)
     {
-        __writedr(2, TargetAddress);
+        CpuWriteDr(2, TargetAddress);
         Dr7.GlobalBreakpoint2 = 1;
 
         //
@@ -201,7 +201,7 @@ SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
     }
     else if (DebugRegNum == 3)
     {
-        __writedr(3, TargetAddress);
+        CpuWriteDr(3, TargetAddress);
         Dr7.GlobalBreakpoint3 = 1;
 
         //
@@ -252,7 +252,7 @@ SetDebugRegisters(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
     }
     else
     {
-        __writedr(7, Dr7.AsUInt);
+        CpuWriteDr(7, Dr7.AsUInt);
     }
 
     return TRUE;

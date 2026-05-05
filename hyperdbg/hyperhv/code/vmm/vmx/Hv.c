@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Hv.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file describes the routines in Hypervisor
@@ -24,7 +24,7 @@ HvAdjustControls(UINT32 Ctl, UINT32 Msr)
 {
     MSR MsrValue = {0};
 
-    MsrValue.Flags = __readmsr(Msr);
+    MsrValue.Flags = CpuReadMsr(Msr);
     Ctl &= MsrValue.Fields.High; /* bit == 0 in high word ==> must be zero */
     Ctl |= MsrValue.Fields.Low;  /* bit == 1 in low word  ==> must be one  */
     return Ctl;
@@ -73,7 +73,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     // Otherwise, issue the CPUID to the logical processor based on the indexes
     // on the VP's GPRs.
     //
-    __cpuidex(CpuInfo, (INT32)Regs->rax, (INT32)Regs->rcx);
+    CpuCpuIdEx(CpuInfo, (INT32)Regs->rax, (INT32)Regs->rcx);
 
     //
     // check whether we are in transparent mode or not
@@ -505,13 +505,13 @@ HvRestoreRegisters()
     // Restore FS Base
     //
     VmxVmread64P(VMCS_GUEST_FS_BASE, &FsBase);
-    __writemsr(IA32_FS_BASE, FsBase);
+    CpuWriteMsr(IA32_FS_BASE, FsBase);
 
     //
     // Restore Gs Base
     //
     VmxVmread64P(VMCS_GUEST_GS_BASE, &GsBase);
-    __writemsr(IA32_GS_BASE, GsBase);
+    CpuWriteMsr(IA32_GS_BASE, GsBase);
 
     //
     // Restore GDTR
@@ -892,11 +892,11 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     if (Dr7.GeneralDetect)
     {
         DR6 Dr6 = {
-            .AsUInt                      = __readdr(6),
+            .AsUInt                      = CpuReadDr(6),
             .BreakpointCondition         = 0,
             .DebugRegisterAccessDetected = TRUE};
 
-        __writedr(6, Dr6.AsUInt);
+        CpuWriteDr(6, Dr6.AsUInt);
 
         Dr7.GeneralDetect = FALSE;
 
@@ -938,22 +938,22 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         switch (ExitQualification.DebugRegister)
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_DR0:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR0, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR0, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR1:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR1, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR1, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR2:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR2, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR2, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR3:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR3, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR3, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR6:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR6, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR6, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR7:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR7, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR7, GpRegister);
             break;
         default:
             break;
@@ -964,22 +964,22 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         switch (ExitQualification.DebugRegister)
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_DR0:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR0);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR0);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR1:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR1);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR1);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR2:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR2);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR2);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR3:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR3);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR3);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR6:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR6);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR6);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR7:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR7);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR7);
             break;
         default:
             break;
@@ -1633,7 +1633,7 @@ HvSetGuestIa32LbrCtl(UINT64 Value)
 VOID
 HvSetLbrSelect(UINT64 FilterOptions)
 {
-    __writemsr(MSR_LEGACY_LBR_SELECT, FilterOptions);
+    CpuWriteMsr(MSR_LEGACY_LBR_SELECT, FilterOptions);
 }
 
 /**
@@ -1649,7 +1649,7 @@ HvCheckCpuSupportForSaveAndLoadDebugControls()
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
 
     //
     // Read 1-settings of save debug controls (exit controls)
@@ -1697,7 +1697,7 @@ HvCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls()
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
 
     //
     // Read 1-settings of save debug controls (exit controls)

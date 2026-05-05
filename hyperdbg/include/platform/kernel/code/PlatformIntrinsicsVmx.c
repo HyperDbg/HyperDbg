@@ -1,7 +1,7 @@
 /**
  * @file PlatformIntrinsicsVmx.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Implementation of cross platform APIs for intrinsic functions
+ * @brief Implementation of cross platform APIs for intrinsic functions (VMX instructions)
  * @details
  * @version 0.19
  * @date 2026-04-27

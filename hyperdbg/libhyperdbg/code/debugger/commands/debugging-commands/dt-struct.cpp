@@ -35,13 +35,13 @@ CommandDtHelp()
                  "[pid ProcessId (hex)] [padding Padding (yesno)] [offset Offset (yesno)] "
                  "[bitfield Bitfield (yesno)] [native Native (yesno)] [decl Declaration (yesno)] "
                  "[def Definitions (yesno)] [func Functions (yesno)] [pragma Pragma (yesno)] "
-                 "[prefix Prefix (string)] [suffix Suffix (string)] [inline Expantion (string)] "
+                 "[prefix Prefix (string)] [suffix Suffix (string)] [inline Expansion (string)] "
                  "[output FileName (string)]\n\n");
     ShowMessages("syntax : \t!dt [Module!SymbolName (string)] [AddressExpression (string)] "
                  "[padding Padding (yesno)] [offset Offset (yesno)] [bitfield Bitfield (yesno)] "
                  "[native Native (yesno)] [decl Declaration (yesno)] [def Definitions (yesno)] "
                  "[func Functions (yesno)] [pragma Pragma (yesno)] [prefix Prefix (string)] "
-                 "[suffix Suffix (string)] [inline Expantion (string)] [output FileName (string)]\n");
+                 "[suffix Suffix (string)] [inline Expansion (string)] [output FileName (string)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS\n");

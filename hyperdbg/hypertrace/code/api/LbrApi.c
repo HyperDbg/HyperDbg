@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file LbrApi.c
  * @author Hari Mishal (harimishal6@gmail.com)
  * @author Sina Karvandi (sina@hyperdbg.org)
@@ -30,8 +30,8 @@ HyperTraceLbrExamplePerformTrace()
             }
             else
             {
-                __nop();
-                __nop();
+                CpuNop();
+                CpuNop();
             }
         }
 

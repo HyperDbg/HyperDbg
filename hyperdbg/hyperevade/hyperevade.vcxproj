@@ -106,6 +106,7 @@
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
     <ClCompile Include="code\SyscallFootprints.c" />
     <ClCompile Include="code\Transparency.c" />
@@ -114,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\SyscallFootprints.h" />
     <ClInclude Include="header\Transparency.h" />

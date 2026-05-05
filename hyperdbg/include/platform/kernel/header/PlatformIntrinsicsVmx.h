@@ -1,7 +1,7 @@
 /**
  * @file PlatformIntrinsicsVmx.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Cross platform APIs for intrinsic functions
+ * @brief Cross platform APIs for intrinsic functions (VMX instructions)
  * @details
  * @version 0.19
  * @date 2026-04-27
@@ -12,7 +12,6 @@
 #pragma once
 
 #if defined(__linux__)
-// #    include "../../general/header/GeneralTypes.h"
 #    include "../../../../include/SDK/HyperDbgSdk.h"
 #endif // defined(__linux__)
 
