@@ -86,6 +86,7 @@
 //
 #include "platform/kernel/header/PlatformMem.h"
 #include "platform/kernel/header/PlatformIntrinsics.h"
+#include "platform/kernel/header/PlatformBroadcast.h"
 
 //
 // Optimization algorithms
@@ -134,11 +135,6 @@
 #include "header/debugger/broadcast/DpcRoutines.h"
 #include "header/debugger/broadcast/HaltedRoutines.h"
 #include "header/debugger/broadcast/HaltedBroadcast.h"
-
-//
-// DPC Headers
-//
-#include "header/common/Dpc.h"
 
 //
 // Events & Meta events

@@ -135,15 +135,10 @@ DpcRoutinePerformVirtualization(KDPC * Dpc, PVOID DeferredContext, PVOID SystemA
     //
     VmxPerformVirtualizationOnSpecificCore();
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }
@@ -454,15 +449,10 @@ DpcRoutineEnableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID SystemA
     //
     AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_CR3_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -485,15 +475,10 @@ DpcRoutineChangeToMbecSupportedEptp(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
     //
     AsmVmxVmcall(VMCALL_CHANGE_TO_MBEC_SUPPORTED_EPTP, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -516,15 +501,10 @@ DpcRoutineRestoreToNormalEptp(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
     //
     AsmVmxVmcall(VMCALL_RESTORE_TO_NORMAL_EPTP, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -547,15 +527,10 @@ DpcRoutineEnableOrDisableMbec(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
     //
     AsmVmxVmcall(VMCALL_DISABLE_OR_ENABLE_MBEC, (UINT64)DeferredContext, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -578,15 +553,10 @@ DpcRoutineDisableMovToCr3Exiting(KDPC * Dpc, PVOID DeferredContext, PVOID System
     //
     AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CR3_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -609,15 +579,10 @@ DpcRoutineEnableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
     //
     AsmVmxVmcall(VMCALL_ENABLE_SYSCALL_HOOK_EFER, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -640,15 +605,10 @@ DpcRoutineDisableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID Syst
     //
     AsmVmxVmcall(VMCALL_DISABLE_SYSCALL_HOOK_EFER, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -671,15 +631,10 @@ DpcRoutineEnablePml(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     //
     AsmVmxVmcall(VMCALL_ENABLE_DIRTY_LOGGING_MECHANISM, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -702,15 +657,10 @@ DpcRoutineDisablePml(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
     //
     AsmVmxVmcall(VMCALL_DISABLE_DIRTY_LOGGING_MECHANISM, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -732,15 +682,10 @@ DpcRoutineChangeMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID
     //
     AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_READ, (UINT64)DeferredContext, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -763,15 +708,10 @@ DpcRoutineResetMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
     //
     AsmVmxVmcall(VMCALL_RESET_MSR_BITMAP_READ, NULL64_ZERO, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -793,15 +733,10 @@ DpcRoutineChangeMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
     //
     AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_WRITE, (UINT64)DeferredContext, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -824,15 +759,10 @@ DpcRoutineResetMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID
     //
     AsmVmxVmcall(VMCALL_RESET_MSR_BITMAP_WRITE, NULL64_ZERO, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -855,15 +785,10 @@ DpcRoutineEnableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
     //
     AsmVmxVmcall(VMCALL_SET_RDTSC_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -886,15 +811,10 @@ DpcRoutineDisableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
     //
     AsmVmxVmcall(VMCALL_UNSET_RDTSC_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -919,15 +839,10 @@ DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores(KDPC * Dpc, PVOID Defe
     //
     AsmVmxVmcall(VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -951,15 +866,10 @@ DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC * Dpc, PVOID Defe
     //
     AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -982,15 +892,10 @@ DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC * Dpc, DEBUGGER_E
     //
     AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS, EventOptions->OptionalParam1, EventOptions->OptionalParam2, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1013,15 +918,10 @@ DpcRoutineEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
     //
     AsmVmxVmcall(VMCALL_SET_RDPMC_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1044,15 +944,10 @@ DpcRoutineDisableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
     //
     AsmVmxVmcall(VMCALL_UNSET_RDPMC_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1074,15 +969,10 @@ DpcRoutineSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
     //
     AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, (UINT64)DeferredContext, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1104,15 +994,10 @@ DpcRoutineUnsetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
     //
     AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, (UINT64)DeferredContext, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1139,15 +1024,10 @@ DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc
     //
     AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, NULL64_ZERO, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1170,15 +1050,10 @@ DpcRoutineEnableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContex
     //
     AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1200,15 +1075,10 @@ DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_EVENT_OPT
     //
     AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, EventOptions->OptionalParam1, EventOptions->OptionalParam2, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1230,15 +1100,10 @@ DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC * Dpc, DEBUGGER_EVENT_OP
     //
     AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CONTROL_REGS_EXITING, EventOptions->OptionalParam1, EventOptions->OptionalParam2, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1261,15 +1126,10 @@ DpcRoutineDisableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredConte
     //
     AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1292,15 +1152,10 @@ DpcRoutineSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID Deferred
     //
     AsmVmxVmcall(VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1326,15 +1181,10 @@ DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCo
     //
     AsmVmxVmcall(VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1356,15 +1206,10 @@ DpcRoutineChangeIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syst
     //
     AsmVmxVmcall(VMCALL_CHANGE_IO_BITMAP, (UINT64)DeferredContext, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1387,15 +1232,10 @@ DpcRoutineResetIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
     //
     AsmVmxVmcall(VMCALL_RESET_IO_BITMAP, NULL64_ZERO, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1418,15 +1258,10 @@ DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID Deferred
     //
     AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_BREAKPOINT, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1449,15 +1284,10 @@ DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID Deferre
     //
     AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_BREAKPOINT, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1480,15 +1310,10 @@ DpcRoutineEnableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
     //
     AsmVmxVmcall(VMCALL_SET_VM_EXIT_ON_NMIS, NULL64_ZERO, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1511,15 +1336,10 @@ DpcRoutineDisableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
     //
     AsmVmxVmcall(VMCALL_UNSET_VM_EXIT_ON_NMIS, NULL64_ZERO, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1547,15 +1367,10 @@ DpcRoutineEnableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
     //
     AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1583,15 +1398,10 @@ DpcRoutineDisableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVO
     //
     AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1614,15 +1424,10 @@ DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores(KDPC * Dpc, PVOID Deferred
     //
     AsmVmxVmcall(VMCALL_UNHOOK_ALL_PAGES, NULL64_ZERO, NULL64_ZERO, NULL64_ZERO);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1647,15 +1452,10 @@ DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC * Dpc, PVOID Deferre
     //
     AsmVmxVmcall(VMCALL_UNHOOK_SINGLE_PAGE, UnhookingDetail->PhysicalAddress, UnhookingDetail->OriginalEntry, NULL64_ZERO);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1690,15 +1490,10 @@ DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Syste
                      NULL64_ZERO);
     }
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1721,15 +1516,10 @@ DpcRoutineInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
     //
     AsmVmxSaveState();
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -1755,13 +1545,8 @@ DpcRoutineTerminateGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
         LogError("Err, there were an error terminating vmx");
     }
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }

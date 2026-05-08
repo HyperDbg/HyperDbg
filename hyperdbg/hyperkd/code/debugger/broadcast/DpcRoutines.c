@@ -202,15 +202,10 @@ DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgu
     //
     CpuWriteMsr((ULONG)CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -236,15 +231,10 @@ DpcRoutineReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgum
     //
     CurrentDebuggingState->MsrState.Value = CpuReadMsr((ULONG)CurrentDebuggingState->MsrState.Msr);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -267,15 +257,10 @@ DpcRoutineVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
     //
     VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -298,15 +283,10 @@ DpcRoutineSetHardwareDebugRegisters(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
     //
     UdApplyHardwareDebugRegister(DeferredContext);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }

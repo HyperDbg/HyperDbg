@@ -57,11 +57,11 @@
 //
 #include "platform/kernel/header/PlatformMem.h"
 #include "platform/kernel/header/PlatformIntrinsics.h"
+#include "platform/kernel/header/PlatformBroadcast.h"
 
 //
 // DPC and broadcasting function headers
 //
-#include "broadcast/Dpc.h"
 #include "broadcast/DpcRoutines.h"
 #include "broadcast/Broadcast.h"
 

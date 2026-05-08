@@ -58,15 +58,10 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     //
     LbrStart(LBR_SELECT_WITHOUT_FILTER);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }
@@ -117,15 +112,10 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
         }
     }
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }
@@ -150,15 +140,10 @@ DpcRoutineFlushLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVO
     //
     LbrFlush();
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }
@@ -182,15 +167,10 @@ DpcRoutineFilterLbrOptions(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgume
     //
     LbrFilter((UINT64)DeferredContext);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }
