@@ -17,10 +17,10 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: %.c pch.h
-	$(CC) $(CFLAGS) -c -o $@ $
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 platform-intrinsics.c:
-	cp ../../../include/platform/user/code/platform-intrinsics.c $(PWD)/platform-intrinsics.c
+	cp $(PWD)/../../../include/platform/user/code/platform-intrinsics.c $(PWD)/platform-intrinsics.c
 
 clean:
 	rm -f $(OBJS) $(TARGET)

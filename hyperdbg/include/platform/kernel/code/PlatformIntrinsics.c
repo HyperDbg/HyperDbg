@@ -462,9 +462,17 @@ CpuSegmentLimit(UINT32 Selector)
 #if defined(_WIN32) || defined(_WIN64)
     return __segmentlimit(Selector);
 #elif defined(__linux__)
-    ULONG __limit;
-    __asm__ __volatile__("lsl %1, %0" : "=r"(__limit) : "r"(Selector));
-    return __limit;
+
+    UINT32 Limit;
+
+    __asm__ __volatile__(
+        "lsl %1, %0"
+        : "=r"(Limit)
+        : "rm"(Selector)
+        : "cc");
+
+    return Limit;
+
 #else
 #    error "Unsupported platform"
 #endif

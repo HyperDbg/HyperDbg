@@ -25,7 +25,7 @@
  * @param CpuInfo
  * @param FunctionId
  */
-inline VOID
+ VOID
 CpuCpuId(INT32 * CpuInfo, INT32 FunctionId)
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -44,7 +44,7 @@ CpuCpuId(INT32 * CpuInfo, INT32 FunctionId)
  * @param FunctionId
  * @param SubFunctionId
  */
-inline VOID
+ VOID
 CpuCpuIdEx(INT32 * CpuInfo, INT32 FunctionId, INT32 SubFunctionId)
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -65,7 +65,7 @@ CpuCpuIdEx(INT32 * CpuInfo, INT32 FunctionId, INT32 SubFunctionId)
  *
  * @return UINT64
  */
-inline UINT64
+ UINT64
 CpuReadTsc(VOID)
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -86,7 +86,7 @@ CpuReadTsc(VOID)
 /**
  * @brief Execute PAUSE (spin-wait hint)
  */
-inline VOID
+ VOID
 CpuPause(VOID)
 {
 #if defined(_WIN32) || defined(_WIN64)

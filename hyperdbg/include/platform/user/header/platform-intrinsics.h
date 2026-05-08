@@ -22,13 +22,13 @@
 //
 // CPUID
 //
-extern inline VOID
+VOID
 CpuCpuId(INT32 * CpuInfo, INT32 FunctionId);
 
 //
 // CPUID (with sub-leaf)
 //
-extern inline VOID
+VOID
 CpuCpuIdEx(INT32 * CpuInfo, INT32 FunctionId, INT32 SubFunctionId);
 
 //////////////////////////////////////////////////
@@ -38,8 +38,8 @@ CpuCpuIdEx(INT32 * CpuInfo, INT32 FunctionId, INT32 SubFunctionId);
 //
 // RDTSC
 //
-extern inline UINT64
-    CpuReadTsc(VOID);
+UINT64
+CpuReadTsc(VOID);
 
 //////////////////////////////////////////////////
 //              Misc Instructions               //
@@ -48,5 +48,5 @@ extern inline UINT64
 //
 // PAUSE
 //
-extern inline VOID
+VOID
     CpuPause(VOID);
