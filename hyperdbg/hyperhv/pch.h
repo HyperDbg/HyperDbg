@@ -63,10 +63,6 @@
 #include "platform/kernel/header/PlatformMem.h"
 #include "platform/kernel/header/PlatformIntrinsics.h"
 #include "platform/kernel/header/PlatformBroadcast.h"
-
-//
-// Platform intrinsics headers
-//
 #include "platform/kernel/header/PlatformIntrinsicsVmx.h"
 
 //

@@ -32,6 +32,9 @@ VOID
 PlatformSetMemory(PVOID Destination, int Value, SIZE_T Size);
 
 VOID
+PlatformZeroMemory(PVOID Destination, SIZE_T Size);
+
+VOID
 PlatformFreeMemory(PVOID Memory);
 
 PVOID
