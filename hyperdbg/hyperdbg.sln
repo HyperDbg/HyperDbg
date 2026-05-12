@@ -148,24 +148,48 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{D0E5A2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{6498728B-D9B0-4CAB-A9E3-ACE5BC371010}"
 	ProjectSection(SolutionItems) = preProject
+		include\platform\kernel\code\PlatformBroadcast.c = include\platform\kernel\code\PlatformBroadcast.c
+		include\platform\kernel\code\PlatformCpu.c = include\platform\kernel\code\PlatformCpu.c
+		include\platform\kernel\code\PlatformDbg.c = include\platform\kernel\code\PlatformDbg.c
+		include\platform\kernel\code\PlatformDpc.c = include\platform\kernel\code\PlatformDpc.c
+		include\platform\kernel\code\PlatformEvent.c = include\platform\kernel\code\PlatformEvent.c
 		include\platform\kernel\code\PlatformIntrinsics.c = include\platform\kernel\code\PlatformIntrinsics.c
 		include\platform\kernel\code\PlatformIntrinsicsVmx.c = include\platform\kernel\code\PlatformIntrinsicsVmx.c
+		include\platform\kernel\code\PlatformIo.c = include\platform\kernel\code\PlatformIo.c
+		include\platform\kernel\code\PlatformIrql.c = include\platform\kernel\code\PlatformIrql.c
 		include\platform\kernel\code\PlatformMem.c = include\platform\kernel\code\PlatformMem.c
+		include\platform\kernel\code\PlatformProcess.c = include\platform\kernel\code\PlatformProcess.c
+		include\platform\kernel\code\PlatformSpinlock.c = include\platform\kernel\code\PlatformSpinlock.c
+		include\platform\kernel\code\PlatformTime.c = include\platform\kernel\code\PlatformTime.c
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AA41FFF1-A730-433E-8D26-13DA5B653825}"
 	ProjectSection(SolutionItems) = preProject
 		include\platform\kernel\header\pch.h = include\platform\kernel\header\pch.h
+		include\platform\kernel\header\PlatformBroadcast.h = include\platform\kernel\header\PlatformBroadcast.h
+		include\platform\kernel\header\PlatformCpu.h = include\platform\kernel\header\PlatformCpu.h
+		include\platform\kernel\header\PlatformDbg.h = include\platform\kernel\header\PlatformDbg.h
+		include\platform\kernel\header\PlatformDpc.h = include\platform\kernel\header\PlatformDpc.h
+		include\platform\kernel\header\PlatformEvent.h = include\platform\kernel\header\PlatformEvent.h
 		include\platform\kernel\header\PlatformIntrinsics.h = include\platform\kernel\header\PlatformIntrinsics.h
 		include\platform\kernel\header\PlatformIntrinsicsVmx.h = include\platform\kernel\header\PlatformIntrinsicsVmx.h
+		include\platform\kernel\header\PlatformIo.h = include\platform\kernel\header\PlatformIo.h
+		include\platform\kernel\header\PlatformIrql.h = include\platform\kernel\header\PlatformIrql.h
 		include\platform\kernel\header\PlatformMem.h = include\platform\kernel\header\PlatformMem.h
 		include\platform\kernel\header\PlatformModuleInfo.h = include\platform\kernel\header\PlatformModuleInfo.h
+		include\platform\kernel\header\PlatformProcess.h = include\platform\kernel\header\PlatformProcess.h
+		include\platform\kernel\header\PlatformSpinlock.h = include\platform\kernel\header\PlatformSpinlock.h
+		include\platform\kernel\header\PlatformTime.h = include\platform\kernel\header\PlatformTime.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{4BF590C3-1032-4DD2-BF87-BB9E5781977C}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\user\code\platform-intrinsics.c = include\platform\user\code\platform-intrinsics.c
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{DBE32379-8D5A-4454-A1B6-ACC407881898}"
 	ProjectSection(SolutionItems) = preProject
+		include\platform\user\header\platform-intrinsics.h = include\platform\user\header\platform-intrinsics.h
 		include\platform\user\header\Windows.h = include\platform\user\header\Windows.h
 	EndProjectSection
 EndProject

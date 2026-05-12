@@ -89,6 +89,12 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c">
+      <Filter>code\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\pch.h">
@@ -104,9 +110,6 @@
       <Filter>header\api</Filter>
     </ClInclude>
     <ClInclude Include="header\broadcast\Broadcast.h">
-      <Filter>header\broadcast</Filter>
-    </ClInclude>
-    <ClInclude Include="header\broadcast\Dpc.h">
       <Filter>header\broadcast</Filter>
     </ClInclude>
     <ClInclude Include="header\broadcast\DpcRoutines.h">
@@ -131,6 +134,12 @@
       <Filter>header\api</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h">
       <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>

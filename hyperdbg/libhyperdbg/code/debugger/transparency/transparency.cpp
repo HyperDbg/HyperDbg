@@ -33,7 +33,7 @@ TransparentModeRdtscDiffVmexit()
     //
     // Win32
     //
-    ret = __rdtsc();
+    ret = CpuReadTsc();
 
     /* vm exit forced here. it uses: eax = 0; cpuid; */
 
@@ -45,7 +45,7 @@ TransparentModeRdtscDiffVmexit()
     //
     // WIN32
     //
-    __cpuid(cpuid_result, 0);
+    CpuCpuId(cpuid_result, 0);
 
     //
     // GCC
@@ -56,7 +56,7 @@ TransparentModeRdtscDiffVmexit()
     //
     // WIN32
     //
-    ret2 = __rdtsc();
+    ret2 = CpuReadTsc();
 
     return ret2 - ret;
 }
@@ -80,7 +80,7 @@ TransparentModeRdtscVmexitTracing()
     //
     // WIN32
     //
-    ret = __rdtsc();
+    ret = CpuReadTsc();
 
     //
     // GCC
@@ -91,7 +91,7 @@ TransparentModeRdtscVmexitTracing()
     //
     // WIN32
     //
-    ret2 = __rdtsc();
+    ret2 = CpuReadTsc();
 
     return ret2 - ret;
 }

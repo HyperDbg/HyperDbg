@@ -121,6 +121,28 @@ PlatformSetMemory(
 #endif
 }
 
+/**
+ * @brief Zeros a memory block.
+ * @param Destination Memory address.
+ * @param Size Number of bytes.
+ */
+VOID
+PlatformZeroMemory(
+    PVOID  Destination,
+    SIZE_T Size)
+{
+    if (!Destination)
+        return;
+
+#ifdef _WIN32
+    RtlZeroMemory(Destination, Size);
+#elif defined(__linux__)
+    memset(Destination, 0, Size);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
 /////////////////////////////////////////////////
 /// ...  Backward Compatibility / Specific APIs ...
 /////////////////////////////////////////////////

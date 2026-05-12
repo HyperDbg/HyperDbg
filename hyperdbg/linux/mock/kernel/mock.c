@@ -66,6 +66,8 @@ mock_init(void)
 
     VmxVmread64(0, 0); // Just to test the intrinsic wrapper compiles and links correctly
 
+    CpuReadMsr(0x1); // Just to test the intrinsic wrapper compiles and links correctly
+
     /////////////////////////////////////////////////////////////////////////////////////
 
     return 0;

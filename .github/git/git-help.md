@@ -44,6 +44,13 @@ To remove the effects of `git add .` and `git commit -m "test"` or just `git add
 git reset --soft HEAD~1
 ```
 
+To remove **all uncommitted and untracked changes** in Git and reset your working tree to the last commit:
+
+```bash
+git reset --hard
+git clean -fd
+```
+
 ---------------
 
 ## Releasing instructions

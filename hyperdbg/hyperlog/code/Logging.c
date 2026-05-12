@@ -99,7 +99,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
 {
     ULONG ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Initialize buffers for trace message and data messages
@@ -155,8 +155,8 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         // for both but the second buffer spinlock is useless
         // as we use our custom spinlock
         //
-        KeInitializeSpinLock(&MessageBufferInformation[i].BufferLock);
-        KeInitializeSpinLock(&MessageBufferInformation[i].BufferLockForNonImmMessage);
+        PlatformSpinlockInitialize(&MessageBufferInformation[i].BufferLock);
+        PlatformSpinlockInitialize(&MessageBufferInformation[i].BufferLockForNonImmMessage);
 
         //
         // allocate the buffer for regular buffers
@@ -183,9 +183,9 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         //
         // Zeroing the buffer
         //
-        RtlZeroMemory((void *)MessageBufferInformation[i].BufferStartAddress, LogBufferSize);
-        RtlZeroMemory((void *)MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, PacketChunkSize);
-        RtlZeroMemory((void *)MessageBufferInformation[i].BufferStartAddressPriority, LogBufferSizePriority);
+        PlatformZeroMemory((PVOID)MessageBufferInformation[i].BufferStartAddress, LogBufferSize);
+        PlatformZeroMemory((PVOID)MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, PacketChunkSize);
+        PlatformZeroMemory((PVOID)MessageBufferInformation[i].BufferStartAddressPriority, LogBufferSizePriority);
 
         //
         // Set the end address
@@ -197,7 +197,7 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     //
     // Copy the callbacks into the global callback holder
     //
-    RtlCopyBytes(&g_MsgTracingCallbacks, MsgTracingCallbacks, sizeof(MESSAGE_TRACING_CALLBACKS));
+    PlatformWriteMemory(&g_MsgTracingCallbacks, MsgTracingCallbacks, sizeof(MESSAGE_TRACING_CALLBACKS));
 
     return TRUE;
 }
@@ -384,7 +384,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
             //
             // vmx non-root
             //
-            OldIRQL = KeRaiseIrqlToDpcLevel();
+            OldIRQL = PlatformIrqlRaiseToDpcLevel();
         }
 
         //
@@ -403,7 +403,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
             //
             // vmx non-root
             //
-            KeLowerIrql(OldIRQL);
+            PlatformIrqlLower(OldIRQL);
         }
 
         return TRUE;
@@ -431,7 +431,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
         //
         // Acquire the lock
         //
-        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
+        PlatformSpinlockAcquire(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
     }
 
     //
@@ -500,7 +500,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
     //
     // Copy the buffer
     //
-    RtlCopyBytes(SavingBuffer, Buffer, BufferLength);
+    PlatformWriteMemory(SavingBuffer, Buffer, BufferLength);
 
     //
     // Increment the next index to write
@@ -531,7 +531,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
         //
         // Insert dpc to queue
         //
-        KeInsertQueueDpc(&g_GlobalNotifyRecord->Dpc, g_GlobalNotifyRecord, NULL);
+        PlatformDpcInsertQueueDpc(&g_GlobalNotifyRecord->Dpc, g_GlobalNotifyRecord, NULL);
 
         //
         // set notify routine to null
@@ -552,7 +552,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
         //
         // Release the lock
         //
-        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+        PlatformSpinlockRelease(&MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 
     return TRUE;
@@ -598,7 +598,7 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         //
         // Acquire the lock
         //
-        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
+        PlatformSpinlockAcquire(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
     }
 
     //
@@ -632,7 +632,7 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
                 //
                 // Release the lock
                 //
-                KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+                PlatformSpinlockRelease(&MessageBufferInformation[Index].BufferLock, OldIRQL);
             }
 
             return ResultsOfBuffersSetToRead;
@@ -658,7 +658,7 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         // there might be multiple messages on the start of the queue that didn't read yet)
         // we don't free the header
         //
-        RtlZeroMemory(SendingBuffer, Header->BufferLength);
+        PlatformZeroMemory(SendingBuffer, Header->BufferLength);
 
         //
         // Check to see whether we passed the index or not
@@ -689,7 +689,7 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         //
         // Release the lock
         //
-        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+        PlatformSpinlockRelease(&MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 
     return ResultsOfBuffersSetToRead;
@@ -737,7 +737,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         // Acquire the lock
         //
-        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
+        PlatformSpinlockAcquire(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
     }
 
     //
@@ -776,7 +776,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
                 //
                 // Release the lock
                 //
-                KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+                PlatformSpinlockRelease(&MessageBufferInformation[Index].BufferLock, OldIRQL);
             }
 
             return FALSE;
@@ -794,7 +794,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // First copy the header
     //
-    RtlCopyBytes(BufferToSaveMessage, &Header->OperationNumber, sizeof(UINT32));
+    PlatformWriteMemory(BufferToSaveMessage, &Header->OperationNumber, sizeof(UINT32));
 
     //
     // Second, save the buffer contents
@@ -815,7 +815,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     PVOID SavingAddress = (PVOID)((UINT64)BufferToSaveMessage + sizeof(UINT32));
 
-    RtlCopyBytes(SavingAddress, SendingBuffer, Header->BufferLength);
+    PlatformWriteMemory(SavingAddress, SendingBuffer, Header->BufferLength);
 
 #if ShowMessagesOnDebugger
 
@@ -834,17 +834,17 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
             {
                 if (i != 0)
                 {
-                    DbgPrint("%s", (char *)((UINT64)SendingBuffer + (DbgPrintLimitation * i) - 2));
+                    PlatformDbgPrint("%s", (char *)((UINT64)SendingBuffer + (DbgPrintLimitation * i) - 2));
                 }
                 else
                 {
-                    DbgPrint("%s", (char *)((UINT64)SendingBuffer + (DbgPrintLimitation * i)));
+                    PlatformDbgPrint("%s", (char *)((UINT64)SendingBuffer + (DbgPrintLimitation * i)));
                 }
             }
         }
         else
         {
-            DbgPrint("%s", (char *)SendingBuffer);
+            PlatformDbgPrint("%s", (char *)SendingBuffer);
         }
     }
 #endif
@@ -864,7 +864,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     // there might be multiple messages on the start of the queue that didn't read yet)
     // we don't free the header
     //
-    RtlZeroMemory(SendingBuffer, Header->BufferLength);
+    PlatformZeroMemory(SendingBuffer, Header->BufferLength);
 
     if (PriorityMessageIsAvailable)
     {
@@ -914,7 +914,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         // Release the lock
         //
-        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+        PlatformSpinlockRelease(&MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 
     return TRUE;
@@ -998,7 +998,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     char *  LogMessage     = NULL;
     char *  TempMessage    = NULL;
     char    TimeBuffer[20] = {0};
-    ULONG   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG   CurrentCore    = PlatformCpuGetCurrentProcessorNumber();
 
     //
     // Set Vmx State
@@ -1069,9 +1069,9 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         //
         TIME_FIELDS   TimeFields;
         LARGE_INTEGER SystemTime, LocalTime;
-        KeQuerySystemTime(&SystemTime);
-        ExSystemTimeToLocalTime(&SystemTime, &LocalTime);
-        RtlTimeToTimeFields(&LocalTime, &TimeFields);
+        PlatformTimeQuerySystemTime(&SystemTime);
+        PlatformTimeConvertToLocalTime(&SystemTime, &LocalTime);
+        PlatformTimeConvertToTimeFields(&LocalTime, &TimeFields);
 
         //
         // We won't use this because we can't use in any IRQL
@@ -1287,7 +1287,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
             //
             // Acquire the lock
             //
-            KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLockForNonImmMessage, &OldIRQL);
+            PlatformSpinlockAcquire(&MessageBufferInformation[Index].BufferLockForNonImmMessage, &OldIRQL);
         }
         //
         // Set the result to True
@@ -1312,13 +1312,13 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
             // Free the immediate buffer
             //
             MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer = 0;
-            RtlZeroMemory((void *)MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage, PacketChunkSize);
+            PlatformZeroMemory((PVOID)MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage, PacketChunkSize);
         }
 
         //
         // We have to save the message
         //
-        RtlCopyBytes((void *)(MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage +
+        PlatformWriteMemory((PVOID)(MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage +
                               MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer),
                      LogMessage,
                      BufferLen);
@@ -1340,7 +1340,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
             //
             // Release the lock
             //
-            KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLockForNonImmMessage, OldIRQL);
+            PlatformSpinlockRelease(&MessageBufferInformation[Index].BufferLockForNonImmMessage, OldIRQL);
         }
 
         return Result;
@@ -1390,18 +1390,18 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
             //
             if (!(Irp->CurrentLocation <= Irp->StackCount + 1))
             {
-                DbgPrint("Err, probably two or more functions called DPC for an object");
+                PlatformDbgPrint("Err, probably two or more functions called DPC for an object");
                 return;
             }
 
-            IrpSp         = IoGetCurrentIrpStackLocation(Irp);
+            IrpSp         = PlatformIoGetCurrentIrpStackLocation(Irp);
             InBuffLength  = IrpSp->Parameters.DeviceIoControl.InputBufferLength;
             OutBuffLength = IrpSp->Parameters.DeviceIoControl.OutputBufferLength;
 
             if (!InBuffLength || !OutBuffLength)
             {
                 Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;
-                IoCompleteRequest(Irp, IO_NO_INCREMENT);
+                PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
                 break;
             }
 
@@ -1428,14 +1428,14 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
                 // we have to return here as there is nothing to send here
                 //
                 Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;
-                IoCompleteRequest(Irp, IO_NO_INCREMENT);
+                PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
                 break;
             }
 
             Irp->IoStatus.Information = Length;
 
             Irp->IoStatus.Status = STATUS_SUCCESS;
-            IoCompleteRequest(Irp, IO_NO_INCREMENT);
+            PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
         }
         break;
 
@@ -1443,12 +1443,12 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
         //
         // Signal the Event created in user-mode.
         //
-        KeSetEvent(NotifyRecord->Message.Event, 0, FALSE);
+        PlatformEventSet(NotifyRecord->Message.Event, 0, FALSE);
 
         //
         // Dereference the object as we are done with it.
         //
-        ObDereferenceObject(NotifyRecord->Message.Event);
+        PlatformObjectDereference(NotifyRecord->Message.Event);
 
         break;
 
@@ -1488,7 +1488,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
 
     if (g_GlobalNotifyRecord == NULL)
     {
-        IrpStack      = IoGetCurrentIrpStackLocation(Irp);
+        IrpStack      = PlatformIoGetCurrentIrpStackLocation(Irp);
         RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
         //
@@ -1505,12 +1505,12 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
         NotifyRecord->Type               = IRP_BASED;
         NotifyRecord->Message.PendingIrp = Irp;
 
-        KeInitializeDpc(&NotifyRecord->Dpc,        // Dpc
+        PlatformDpcInitialize(&NotifyRecord->Dpc,        // Dpc
                         LogNotifyUsermodeCallback, // DeferredRoutine
                         NotifyRecord               // DeferredContext
         );
 
-        IoMarkIrpPending(Irp);
+        PlatformIoMarkIrpPending(Irp);
 
         //
         // check for new message (for both Vmx-root mode or Vmx non root-mode)
@@ -1527,7 +1527,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
             //
             // Insert dpc to queue
             //
-            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
         else if (LogCheckForNewMessage(TRUE, TRUE))
         {
@@ -1538,7 +1538,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
             //
             // Insert dpc to queue
             //
-            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
         else if (LogCheckForNewMessage(FALSE, FALSE))
         {
@@ -1550,7 +1550,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
             //
             // Insert dpc to queue
             //
-            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
         else if (LogCheckForNewMessage(TRUE, FALSE))
         {
@@ -1561,7 +1561,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
             //
             // Insert dpc to queue
             //
-            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
         else
         {
@@ -1599,7 +1599,7 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
     PIRP                    Irp = (PIRP)TargetIrp;
 
-    IrpStack      = IoGetCurrentIrpStackLocation(Irp);
+    IrpStack      = PlatformIoGetCurrentIrpStackLocation(Irp);
     RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
     //
@@ -1609,13 +1609,13 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
 
     if (NULL == NotifyRecord)
     {
-        DbgPrint("Err, unable to allocate memory for notify record\n");
+        PlatformDbgPrint("Err, unable to allocate memory for notify record\n");
         return FALSE;
     }
 
     NotifyRecord->Type = EVENT_BASED;
 
-    KeInitializeDpc(&NotifyRecord->Dpc,        // Dpc
+    PlatformDpcInitialize(&NotifyRecord->Dpc,        // Dpc
                     LogNotifyUsermodeCallback, // DeferredRoutine
                     NotifyRecord               // DeferredContext
     );
@@ -1624,7 +1624,7 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
     // Get the object pointer from the handle
     // Note we must be in the context of the process that created the handle
     //
-    Status = ObReferenceObjectByHandle(RegisterEvent->hEvent,
+    Status = PlatformObjectReferenceByHandle(RegisterEvent->hEvent,
                                        SYNCHRONIZE | EVENT_MODIFY_STATE,
                                        *ExEventObjectType,
                                        Irp->RequestorMode,
@@ -1633,7 +1633,7 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
 
     if (!NT_SUCCESS(Status))
     {
-        DbgPrint("Err, unable to reference user mode event object, status = 0x%x\n", Status);
+        PlatformDbgPrint("Err, unable to reference user mode event object, status = 0x%x\n", Status);
         PlatformMemFreePool(NotifyRecord);
         return FALSE;
     }
@@ -1641,7 +1641,7 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
     //
     // Insert dpc to the queue
     //
-    KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+    PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
 
     return TRUE;
 }

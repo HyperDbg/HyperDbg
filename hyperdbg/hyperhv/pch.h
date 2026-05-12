@@ -62,10 +62,7 @@
 //
 #include "platform/kernel/header/PlatformMem.h"
 #include "platform/kernel/header/PlatformIntrinsics.h"
-
-//
-// Platform intrinsics headers
-//
+#include "platform/kernel/header/PlatformBroadcast.h"
 #include "platform/kernel/header/PlatformIntrinsicsVmx.h"
 
 //
@@ -97,7 +94,6 @@
 #include "vmm/vmx/VmxBroadcast.h"
 #include "memory/MemoryMapper.h"
 #include "interface/Dispatch.h"
-#include "common/Dpc.h"
 #include "common/Msr.h"
 #include "memory/PoolManager.h"
 #include "common/Trace.h"
