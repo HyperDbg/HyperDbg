@@ -317,8 +317,16 @@ LbrClearHardwareState()
     //
     for (ULONG i = 0; i < (ULONG)g_LbrCapacity; i++)
     {
-        xwrmsr(MSR_LBR_NHM_FROM + i, 0);
-        xwrmsr(MSR_LBR_NHM_TO + i, 0);
+        if (g_ArchBasedLastBranchRecord)
+        {
+            xwrmsr(IA32_LBR_0_FROM_IP + i, 0);
+            xwrmsr(IA32_LBR_0_TO_IP + i, 0);
+        }
+        else
+        {
+            xwrmsr(MSR_LASTBRANCH_0_FROM_IP + i, 0);
+            xwrmsr(MSR_LASTBRANCH_0_TO_IP + i, 0);
+        }
     }
 }
 
@@ -875,9 +883,18 @@ LbrSave()
     //
     for (ULONG i = 0; i < (ULONG)g_LbrCapacity; i++)
     {
-        xrdmsr(MSR_LBR_NHM_FROM + i, &State->BranchEntry[i].From);
-        xrdmsr(MSR_LBR_NHM_TO + i, &State->BranchEntry[i].To);
-        xrdmsr(MSR_LASTBRANCH_INFO_0 + i, &State->LastBranchInfo[i].AsUInt);
+        if (g_ArchBasedLastBranchRecord)
+        {
+            xrdmsr(IA32_LBR_0_FROM_IP + i, &State->BranchEntry[i].From);
+            xrdmsr(IA32_LBR_0_TO_IP + i, &State->BranchEntry[i].To);
+            xrdmsr(IA32_LBR_0_INFO + i, &State->LastBranchInfo[i].AsUInt);
+        }
+        else
+        {
+            xrdmsr(MSR_LASTBRANCH_0_FROM_IP + i, &State->BranchEntry[i].From);
+            xrdmsr(MSR_LASTBRANCH_0_TO_IP + i, &State->BranchEntry[i].To);
+            xrdmsr(MSR_LASTBRANCH_INFO_0 + i, &State->LastBranchInfo[i].AsUInt);
+        }
     }
 }
 

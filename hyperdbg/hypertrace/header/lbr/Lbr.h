@@ -14,11 +14,21 @@
 //			    	  Constants	    			//
 //////////////////////////////////////////////////
 
+//
+// Legacy LBR MSRs
+//
 #define MSR_LBR_TOS               0x000001C9
-#define MSR_LBR_NHM_FROM          0x00000680
-#define MSR_LBR_NHM_TO            0x000006C0
+#define MSR_LASTBRANCH_0_FROM_IP  0x00000680
+#define MSR_LASTBRANCH_0_TO_IP    0x000006C0
 #define MSR_LASTBRANCH_INFO_0     0x00000DC0
 #define LBR_SELECT_WITHOUT_FILTER 0x00000000
+
+//
+// Arch LBR MSRs
+//
+#define IA32_LBR_0_FROM_IP 0x1500
+#define IA32_LBR_0_TO_IP   0x1600
+#define IA32_LBR_0_INFO    0x1200
 
 #define CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION 0x1c
 
