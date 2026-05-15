@@ -204,45 +204,71 @@ LbrCheckAndReadLegacyLbrDetails()
 VOID
 LbrBuildArchBasedFilterOptions(UINT64 FilterOptions, IA32_LBR_CTL_REGISTER * Ia32LbrCtl)
 {
+    //
+    // By default, we are enabling all of them
+    //
+    Ia32LbrCtl->Bits.OS          = 1;
+    Ia32LbrCtl->Bits.USR         = 1;
+    Ia32LbrCtl->Bits.JCC         = 1;
+    Ia32LbrCtl->Bits.NearRelCall = 1;
+    Ia32LbrCtl->Bits.NearIndCall = 1;
+    Ia32LbrCtl->Bits.NearRet     = 1;
+    Ia32LbrCtl->Bits.NearIndJmp  = 1;
+    Ia32LbrCtl->Bits.NearRelJmp  = 1;
+    Ia32LbrCtl->Bits.OtherBranch = 1;
+    Ia32LbrCtl->Bits.CallStack   = 1;
+
+    //
+    // Perform filtering the results
+    //
     if (FilterOptions & LBR_KERNEL)
     {
-        Ia32LbrCtl->Bits.OS = 1;
+        Ia32LbrCtl->Bits.OS = 0;
     }
+
     if (FilterOptions & LBR_USER)
     {
-        Ia32LbrCtl->Bits.USR = 1;
+        Ia32LbrCtl->Bits.USR = 0;
     }
+
     if (FilterOptions & LBR_JCC)
     {
-        Ia32LbrCtl->Bits.JCC = 1;
+        Ia32LbrCtl->Bits.JCC = 0;
     }
+
     if (FilterOptions & LBR_REL_CALL)
     {
-        Ia32LbrCtl->Bits.NearRelCall = 1;
+        Ia32LbrCtl->Bits.NearRelCall = 0;
     }
+
     if (FilterOptions & LBR_IND_CALL)
     {
-        Ia32LbrCtl->Bits.NearIndCall = 1;
+        Ia32LbrCtl->Bits.NearIndCall = 0;
     }
+
     if (FilterOptions & LBR_RETURN)
     {
-        Ia32LbrCtl->Bits.NearRet = 1;
+        Ia32LbrCtl->Bits.NearRet = 0;
     }
+
     if (FilterOptions & LBR_IND_JMP)
     {
-        Ia32LbrCtl->Bits.NearIndJmp = 1;
+        Ia32LbrCtl->Bits.NearIndJmp = 0;
     }
+
     if (FilterOptions & LBR_REL_JMP)
     {
-        Ia32LbrCtl->Bits.NearRelJmp = 1;
+        Ia32LbrCtl->Bits.NearRelJmp = 0;
     }
+
     if (FilterOptions & LBR_FAR)
     {
-        Ia32LbrCtl->Bits.OtherBranch = 1;
+        Ia32LbrCtl->Bits.OtherBranch = 0;
     }
+
     if (FilterOptions & LBR_CALL_STACK)
     {
-        Ia32LbrCtl->Bits.CallStack = 1;
+        Ia32LbrCtl->Bits.CallStack = 0;
     }
 }
 
@@ -804,7 +830,7 @@ LbrStop()
 VOID
 LbrFlush()
 {
-    LogInfo("Flush LBR on cpu core: %d\n", KeGetCurrentProcessorNumberEx(NULL));
+    // LogInfo("Flush LBR on cpu core: %d\n", KeGetCurrentProcessorNumberEx(NULL));
 
     //
     // Stop LBR collection and save any remaining entries
@@ -833,7 +859,7 @@ LbrFlush()
 VOID
 LbrFilter(UINT64 FilterOptions)
 {
-    LogInfo("Updating LBR filter options: 0x%llx\n", FilterOptions);
+    // LogInfo("Updating LBR filter options: 0x%llx\n", FilterOptions);
 
     //
     // First, we flush the LBR to clear out any existing entries that may not meet the new filter criteria
