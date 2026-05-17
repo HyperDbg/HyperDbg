@@ -767,6 +767,9 @@ typedef struct _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS
 } DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS,
     *PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS;
 
+#define SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS \
+    sizeof(DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)
+
 // ==============================================================================================
 
 /**
@@ -915,6 +918,8 @@ typedef struct _DEBUGGER_UD_COMMAND_PACKET
     UINT32                     Result;
 
 } DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;
+
+#define SIZEOF_DEBUGGER_UD_COMMAND_PACKET sizeof(DEBUGGER_UD_COMMAND_PACKET)
 
 // ==============================================================================================
 
