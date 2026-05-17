@@ -285,18 +285,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             //
-            // Only the rdmsr needs and output buffer
-            //
-            if (DebuggerReadOrWriteMsrRequest->ActionType != DEBUGGER_MSR_WRITE)
-            {
-                if (!OutBuffLength)
-                {
-                    Status = STATUS_INVALID_PARAMETER;
-                    break;
-                }
-            }
-
-            //
             // Both usermode and to send to usermode and the coming buffer are
             // at the same place
             //
@@ -526,6 +514,16 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                                                     IrpStack,
                                                     &InBuffLength,
                                                     &OutBuffLength))
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // The OutBuffLength should have at least MaximumSearchResults * sizeof(UINT64)
+            // free space to store the results
+            //
+            if (OutBuffLength < MaximumSearchResults * sizeof(UINT64))
             {
                 Status = STATUS_INVALID_PARAMETER;
                 break;
