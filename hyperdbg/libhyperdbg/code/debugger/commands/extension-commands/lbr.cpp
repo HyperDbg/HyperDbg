@@ -38,15 +38,20 @@ CommandLbrHelp()
     ShowMessages("\t\te.g : !lbr filter user rel_call ind_call return far\n");
 
     ShowMessages("\nlist of filter options: \n");
-    ShowMessages("\t kernel:      do not capture at ring0\n");
-    ShowMessages("\t user:        do not capture at ring > 0\n");
-    ShowMessages("\t jcc:         do not capture conditional branches\n");
-    ShowMessages("\t rel_call:    do not capture relative calls\n");
-    ShowMessages("\t ind_call:    do not capture indirect calls\n");
-    ShowMessages("\t return:      do not capture near returns\n");
-    ShowMessages("\t ind_jmp:     do not capture indirect jumps\n");
-    ShowMessages("\t rel_jmp:     do not capture relative jumps\n");
-    ShowMessages("\t far:         do not capture far branches\n");
+    ShowMessages("\t kernel:         do not capture at ring0\n");
+    ShowMessages("\t user:           do not capture at ring > 0\n");
+    ShowMessages("\t jcc:            do not capture conditional branches\n");
+    ShowMessages("\t rel_call:       do not capture relative calls\n");
+    ShowMessages("\t ind_call:       do not capture indirect calls\n");
+    ShowMessages("\t return:         do not capture near returns\n");
+    ShowMessages("\t ind_jmp:        do not capture indirect jumps\n");
+    ShowMessages("\t rel_jmp:        do not capture relative jumps\n");
+    ShowMessages("\t far:            do not capture far branches (only in legacy LBR. check docs for details)\n");
+    ShowMessages("\t other_branches: do not capture jmp/call ptr*, jmp/call m*, ret (0c8h), sys*, interrupts,\n");
+    ShowMessages("\t                 exceptions (other than debug exceptions), iret, int3, intn, into, tsx abort\n");
+    ShowMessages("\t                 eenter, eresume, eexit, aex, init, sipi, rsm (only in ARCH LBR. check docs for details)\n");
+    ShowMessages("\t call_stack:     enable LBR stack to use LIFO filtering to capture call stack profile\n");
+    ShowMessages("\t                 not available on CPUs older than Haswell (needs special treatment. check docs for details)\n");
     ShowMessages("\t (no option): capture everything (default option)\n");
 }
 
@@ -192,9 +197,11 @@ CommandLbrParseFilterOperation(vector<CommandToken> CommandTokens, HYPERTRACE_LB
         {
             LbrRequest->LbrFilterOptions |= LBR_REL_JMP;
         }
-        else if (CompareLowerCaseStrings(CommandTokens.at(i), "far"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "far") ||
+                 CompareLowerCaseStrings(CommandTokens.at(i), "other_branch") ||
+                 CompareLowerCaseStrings(CommandTokens.at(i), "other_branches"))
         {
-            LbrRequest->LbrFilterOptions |= LBR_FAR;
+            LbrRequest->LbrFilterOptions |= LBR_FAR_OTHER_BRANCHES;
         }
         else if (CompareLowerCaseStrings(CommandTokens.at(i), "call_stack"))
         {

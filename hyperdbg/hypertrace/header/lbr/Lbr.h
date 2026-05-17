@@ -44,9 +44,8 @@
 //////////////////////////////////////////////////
 
 /*
- * Intel Architectural LBR CPUID detection/enumeration details:
+ * @brief Intel Architectural LBR CPUID detection/enumeration details:
  */
-
 typedef union _CPUID28_EAX
 {
     struct
@@ -91,6 +90,17 @@ typedef union _CPUID28_ECX
     };
     UINT32 AsUInt;
 } CPUID28_ECX, *PCPUID28_ECX;
+
+/*
+ * @brief The structure to hold the CPUID leaf 0x28 details for Architectural LBRs
+ */
+typedef struct _CPUID28_LEAFS
+{
+    CPUID28_EAX Eax;
+    CPUID28_EBX Ebx;
+    CPUID28_ECX Ecx;
+    UINT32      Edx;
+} CPUID28_LEAFS, *PCPUID28_LEAFS;
 
 //////////////////////////////////////////////////
 //               MSR Structures                 //

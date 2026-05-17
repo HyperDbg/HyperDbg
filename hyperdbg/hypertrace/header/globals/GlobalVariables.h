@@ -64,3 +64,9 @@ LBR_STACK_ENTRY * g_LbrStateList;
  *
  */
 ULONGLONG g_LbrCapacity;
+
+/**
+ * @brief The global variable to hold CPUID leaf 0x28 information (Architectural LBR Enumeration Leaf)
+ *
+ */
+CPUID28_LEAFS g_Cpuid28Leafs;

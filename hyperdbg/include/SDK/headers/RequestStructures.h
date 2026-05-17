@@ -1283,7 +1283,7 @@ typedef struct _HYPERTRACE_LBR_DUMP_PACKETS
 {
     UINT32          CoreId;
     BOOLEAN         NextCoreIsValid; // In the case of dumping all cores, this flag indicates whether the next core number is valid
-    BOOLEAN         ArchBasedLBR;    // Whether the LBR is architecture-based (like Intel CET) or not (like Intel LBR or AMD IBS)
+    BOOLEAN         ArchBasedLBR;    // Whether the LBR is architecture-based
     LBR_STACK_ENTRY LbrStack;
     UINT8           CurrentLbrCapacity;
     UINT32          KernelStatus;

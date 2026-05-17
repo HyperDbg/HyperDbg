@@ -131,6 +131,14 @@ LbrCheckAndReadArchitecturalLbrDetails()
     Ecx1c.AsUInt = c;
 
     //
+    // Store the CPUID.1CH leaf information in a global structure for later use
+    //
+    g_Cpuid28Leafs.Eax = Eax1c;
+    g_Cpuid28Leafs.Ebx = Ebx1c;
+    g_Cpuid28Leafs.Ecx = Ecx1c;
+    g_Cpuid28Leafs.Edx = d;
+
+    //
     // Read LBR capacity from CPUID.1CH.00H:EAX[7:0]
     // Based on Intel SDM: For each bit n set in this field, the IA32_LBR_DEPTH.DEPTH value 8 * (n + 1) is supported
     //
@@ -192,6 +200,50 @@ LbrCheckAndReadLegacyLbrDetails()
     }
 
     return TRUE;
+}
+
+/**
+ * @brief Check and adjust compatibility of LBR filterings for ARCH based LBR
+ *
+ * @return VOID
+ */
+VOID
+LbrAdjustArchBasedFilteringCompatibility(IA32_LBR_CTL_REGISTER * Ia32LbrCtl)
+{
+    //
+    // Check capabilities and apply necessary adjustments based on CPU support
+    //
+    if (!g_Cpuid28Leafs.Ebx.LbrCpl)
+    {
+        //
+        // If CPL filtering is not supported
+        // we cannot filter kernel vs user mode branches, so we clear those filter bits to avoid confusion
+        //
+        Ia32LbrCtl->Bits.OS  = 0;
+        Ia32LbrCtl->Bits.USR = 0;
+    }
+
+    if (!g_Cpuid28Leafs.Ebx.LbrFilter)
+    {
+        //
+        // If branch filtering is not supported, we cannot filter by branch type, so we clear all the specific branch type filter bits
+        //
+        Ia32LbrCtl->Bits.JCC         = 0;
+        Ia32LbrCtl->Bits.NearRelJmp  = 0;
+        Ia32LbrCtl->Bits.NearIndJmp  = 0;
+        Ia32LbrCtl->Bits.NearRelCall = 0;
+        Ia32LbrCtl->Bits.NearIndCall = 0;
+        Ia32LbrCtl->Bits.NearRet     = 0;
+        Ia32LbrCtl->Bits.OtherBranch = 0;
+    }
+
+    if (!g_Cpuid28Leafs.Ebx.LbrCallStack)
+    {
+        //
+        // If call-stack mode is not supported, we cannot filter by call stack, so we clear that filter bit
+        //
+        Ia32LbrCtl->Bits.CallStack = 0;
+    }
 }
 
 /**
@@ -261,7 +313,7 @@ LbrBuildArchBasedFilterOptions(UINT64 FilterOptions, IA32_LBR_CTL_REGISTER * Ia3
         Ia32LbrCtl->Bits.NearRelJmp = 0;
     }
 
-    if (FilterOptions & LBR_FAR)
+    if (FilterOptions & LBR_FAR_OTHER_BRANCHES)
     {
         Ia32LbrCtl->Bits.OtherBranch = 0;
     }
@@ -270,8 +322,12 @@ LbrBuildArchBasedFilterOptions(UINT64 FilterOptions, IA32_LBR_CTL_REGISTER * Ia3
     {
         Ia32LbrCtl->Bits.CallStack = 0;
     }
-}
 
+    //
+    // Adjust LBR fitlering options based on the CPU capabilities to ensure we are not setting unsupported filter bits
+    //
+    LbrAdjustArchBasedFilteringCompatibility(Ia32LbrCtl);
+}
 /**
  * @brief Set the LBR select filter MSR (MSR_LEGACY_LBR_SELECT) for legacy LBR,
  *        dispatching via VMCALL when in VMX non-root mode
@@ -925,6 +981,57 @@ LbrSave()
 }
 
 /**
+ * @brief Get the branch type name based on the LBR branch type value (only applicable for architectural LBR)
+ *
+ * @details THIS FUNCTION IS ALSO IMPLEMENTED IN THE USER MODE
+ *
+ * @param BrType The raw branch type value from the LBR info MSR
+ * @param BrTypeName A character buffer to receive the branch type name string
+ *
+ * @return VOID
+ */
+VOID
+LbrGetArchBranchTypet(UINT32 BrType, CHAR * BrTypeName)
+{
+    if (BrType == LBR_BR_TYPE_COND)
+    {
+        strncpy(BrTypeName, "COND", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_JMP_INDIRECT)
+    {
+        strncpy(BrTypeName, "JMP Indirect", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_JMP_DIRECT)
+    {
+        strncpy(BrTypeName, "JMP Direct", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_CALL_INDIRECT)
+    {
+        strncpy(BrTypeName, "CALL Indirect", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_CALL_DIRECT)
+    {
+        strncpy(BrTypeName, "CALL Direct", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_RET)
+    {
+        strncpy(BrTypeName, "RET", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType >= LBR_BR_TYPE_RESERVED_MIN && BrType <= LBR_BR_TYPE_RESERVED_MAX)
+    {
+        strncpy(BrTypeName, "Reserved", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType >= LBR_BR_TYPE_OTHER_MIN && BrType <= LBR_BR_TYPE_OTHER_MAX)
+    {
+        strncpy(BrTypeName, "Other Branch", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else
+    {
+        strncpy(BrTypeName, "Unknown", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+}
+
+/**
  * @brief Print collected LBR branches
  *
  * @return VOID
@@ -934,8 +1041,9 @@ LbrPrint()
 {
     ULONG             CurrentIdx;
     LBR_STACK_ENTRY * State;
-    UINT32            CurrentCore = 0;
-
+    UINT32            CurrentCore                          = 0;
+    CHAR              BrTypeName[LBR_BR_TYPE_NAME_MAX_LEN] = {0};
+    UINT32            BrType                               = 0;
     //
     // Get the current core id
     //
@@ -967,11 +1075,38 @@ LbrPrint()
             continue;
         }
 
-        Log("\t [%2u] Branch Mispredicted: %s, Cycle Count (Decimal): %03d - From: %016llx  To: %016llx\n",
-            CurrentIdx,
-            State->LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
-            State->LastBranchInfo[CurrentIdx].CycleCount,
-            State->BranchEntry[CurrentIdx].From,
-            State->BranchEntry[CurrentIdx].To);
+        if (g_ArchBasedLastBranchRecord)
+        {
+            BrType = (UINT32)State->LastBranchInfo[CurrentIdx].BrType_OnlyArchLbr;
+
+            //
+            // Get the branch type name for better readability when printing
+            //
+            LbrGetArchBranchTypet(BrType, BrTypeName);
+
+            //
+            // Architectural LBR
+            //
+            Log("\t [%2u] Branch Mispredicted: %s, Branch type: %s, Cycle Count (Decimal): %04d (is valid? %s) - From: %016llx  To: %016llx\n",
+                CurrentIdx,
+                State->LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
+                BrTypeName,
+                State->LastBranchInfo[CurrentIdx].CycleCount,
+                State->LastBranchInfo[CurrentIdx].CycCntValid_OnlyArchLbr ? "true " : "false",
+                State->BranchEntry[CurrentIdx].From,
+                State->BranchEntry[CurrentIdx].To);
+        }
+        else
+        {
+            //
+            // Legacy LBR
+            //
+            Log("\t [%2u] Branch Mispredicted: %s, Cycle Count (Decimal): %04d - From: %016llx  To: %016llx\n",
+                CurrentIdx,
+                State->LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
+                State->LastBranchInfo[CurrentIdx].CycleCount,
+                State->BranchEntry[CurrentIdx].From,
+                State->BranchEntry[CurrentIdx].To);
+        }
     }
 }
