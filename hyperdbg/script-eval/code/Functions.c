@@ -325,6 +325,17 @@ ScriptEngineFunctionMemcpy(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL *
     UINT64 PrevReadLen                                              = 0;
     BYTE   MovingBuffer[DebuggerScriptEngineMemcpyMovingBufferSize] = {0};
 
+    //
+    // Reject zero-length copies: a Num of 0 would pass address-range
+    // validation vacuously (checking 0 bytes at any mapped page succeeds),
+    // which could be abused as a kernel address-mapping oracle.
+    //
+    if (Num == 0)
+    {
+        *HasError = TRUE;
+        return;
+    }
+
 #ifdef SCRIPT_ENGINE_USER_MODE
 
     //
