@@ -437,8 +437,8 @@ LbrEnableLegacyBased(ULONGLONG * DbgCtlMsr)
     // Enable LBR and CLEAR 'Freeze LBRs on PMI' (Bit 11)
     // If Bit 11 is set, the LBR stops recording as soon as a single PMI interrupt fires
     //
-    *DbgCtlMsr |= IA32_DEBUGCTL_LBR_FLAG; // Bit 0 = 1
-    *DbgCtlMsr &= ~(1ULL << 11);          // Bit 11 = 0
+    *DbgCtlMsr |= IA32_DEBUGCTL_LBR_FLAG;                          // Bit 0 = 1
+    *DbgCtlMsr &= ~(1ULL << IA32_DEBUGCTL_FREEZE_LBRS_ON_PMI_BIT); // Bit 11 = 0
 }
 
 /**
@@ -789,6 +789,48 @@ LbrAdjustFilterOptions(UINT64 FilterOptions, IA32_LBR_CTL_REGISTER * Ia32LbrCtl)
     if (!g_ArchBasedLastBranchRecord)
     {
         LbrSetLbrSelectFilter(FilterOptions);
+    }
+}
+
+/**
+ * @brief Check if LBR is enabled or not
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LbrCheck()
+{
+    ULONGLONG             DbgCtlMsr  = 0;
+    IA32_LBR_CTL_REGISTER Ia32LbrCtl = {0};
+
+    //
+    // Check if LBR is enabled or not
+    //
+    if (g_ArchBasedLastBranchRecord)
+    {
+        xrdmsr(IA32_LBR_CTL, &Ia32LbrCtl.AsUInt);
+
+        if (Ia32LbrCtl.Bits.LBREn)
+        {
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+    else
+    {
+        xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
+
+        if (DbgCtlMsr & IA32_DEBUGCTL_LBR_FLAG)
+        {
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
     }
 }
 

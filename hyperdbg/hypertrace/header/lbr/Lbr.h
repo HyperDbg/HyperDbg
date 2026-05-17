@@ -172,6 +172,9 @@ LbrStart(UINT64 FilterOptions);
 VOID
 LbrFilter(UINT64 FilterOptions);
 
+BOOLEAN
+LbrCheck();
+
 VOID
 LbrStop();
 
