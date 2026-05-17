@@ -947,7 +947,7 @@ HyperDbgInterpreter(CHAR * Command)
     // Detect whether it's a .help command or not
     //
     if (!FirstCommand.compare(".help") || !FirstCommand.compare("help") ||
-        !FirstCommand.compare(".hh"))
+        !FirstCommand.compare(".hh") || !FirstCommand.compare("!help"))
     {
         if (Tokens.size() == 2)
         {
@@ -1345,6 +1345,7 @@ InitializeCommandsDictionary()
     g_CommandsList[".help"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
     g_CommandsList[".hh"]   = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
     g_CommandsList["help"]  = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
+    g_CommandsList["!help"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
 
     g_CommandsList["clear"] = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
     g_CommandsList[".cls"]  = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};

@@ -20,6 +20,12 @@
  */
 #define MSR_LEGACY_LBR_SELECT 0x000001C8
 
+/**
+ * @brief Maximum LBR capacity that is supported by processors
+ *
+ */
+#define MAXIMUM_LBR_CAPACITY 0x20 // 32 entries, which is the maximum supported by modern Intel CPUs
+
 /*
  * Intel LBR_SELECT bits
  *
@@ -53,10 +59,10 @@
 #define LBR_CALL_STACK         (1 << LBR_CALL_STACK_BIT)
 
 /**
- * @brief Maximum LBR capacity that is supported by processors
- *
+ * @brief For call-stack mode, only CALLs and RETs should be captured
+ * Capturing other branch types may lead to undefined behavior
  */
-#define MAXIMUM_LBR_CAPACITY 0x20 // 32 entries, which is the maximum supported by modern Intel CPUs
+#define LBR_CALL_STACK_BASE_FLAGS (LBR_CALL_STACK | (LBR_JCC | LBR_IND_JMP | LBR_REL_JMP | LBR_FAR_OTHER_BRANCHES))
 
 /**
  * @brief Branch Type Encodings (Only on Architectural LBR, not available in Legacy LBR)

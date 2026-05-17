@@ -17,6 +17,9 @@
 //
 // Legacy LBR MSRs
 //
+#ifndef MSR_LEGACY_LBR_SELECT
+#    define MSR_LEGACY_LBR_SELECT 0x000001C8 // originally defined in SDK to be used by other module like HyperHV
+#endif                                       // !MSR_LEGACY_LBR_SELECT
 #define MSR_LBR_TOS               0x000001C9
 #define MSR_LASTBRANCH_0_FROM_IP  0x00000680
 #define MSR_LASTBRANCH_0_TO_IP    0x000006C0

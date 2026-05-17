@@ -18,6 +18,7 @@ New release of the HyperDbg Debugger.
 - HyperDbg SDK now compiles on Linux (GCC) for both user-mode and kernel-mode
 - VMX instructions are ported to platform-independent files to support Linux
 - All CPU-related intrinsic instructions are ported to platform-independent files to support Linux
+- Add '!help' alias for the '.help' command
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))

@@ -727,6 +727,72 @@ LbrResetControlRegisters()
 }
 
 /**
+ * @brief Adjust filter options for call stack
+ *
+ * @param FilterOptions A bitmask of filter options
+ * @return VOID
+ */
+VOID
+LbrAdjustFilterOptionsForCallStack(UINT64 * FilterOptions)
+{
+    //
+    // Call-stack mode should be used with branch type enabling configured to capture only CALLs (NEAR_REL_CALL and
+    // NEAR_IND_CALL) and RETs (NEAR_RET). When configured in this manner, the LBR array emulates a call stack,
+    // where CALLs are "pushed" and RETs "pop" them off the stack. If other branch types (JCC, NEAR_*_JMP, or
+    // OTHER_BRANCH) are enabled for recording with call-stack mode, LBR behavior may be undefined, so we will
+    // mask out any branch type filters that are not CALLs or RETs when call-stack mode is requested to ensure
+    // we are correctly emulating a call stack and avoiding undefined behavior
+    //
+
+    //
+    // If it is call_stack then we only keep the user and kernel bit and filter all branch types
+    // except calls and rets to ensure we are only capturing call stack profile
+    //
+    if (*FilterOptions & LBR_CALL_STACK)
+    {
+        //
+        // Preserve only the user/kernel privilege bits from the original options,
+        // then apply the mandatory call stack base flags
+        //
+        *FilterOptions = LBR_CALL_STACK_BASE_FLAGS | (*FilterOptions & (LBR_KERNEL | LBR_USER));
+    }
+}
+
+/**
+ * @brief Adjust filter options
+ *
+ * @param FilterOptions A bitmask of filter options
+ * @param Ia32LbrCtl Pointer to the IA32_LBR_CTL_REGISTER to adjust based on the filter options and CPU capabilities
+ *
+ * @return VOID
+ */
+VOID
+LbrAdjustFilterOptions(UINT64 FilterOptions, IA32_LBR_CTL_REGISTER * Ia32LbrCtl)
+{
+    //
+    // Adjust filter options in case of call_stack
+    //
+    LbrAdjustFilterOptionsForCallStack(&FilterOptions);
+
+    //
+    // For architectural LBR, convert filter options into IA32_LBR_CTL bit fields
+    //
+    if (g_ArchBasedLastBranchRecord)
+    {
+        LbrBuildArchBasedFilterOptions(FilterOptions, Ia32LbrCtl);
+    }
+
+    //
+    // For legacy LBR, write the raw filter options to MSR_LEGACY_LBR_SELECT
+    // Architectural LBR encodes its filters in IA32_LBR_CTL and does not use this MSR
+    //
+    if (!g_ArchBasedLastBranchRecord)
+    {
+        LbrSetLbrSelectFilter(FilterOptions);
+    }
+}
+
+/**
  * @brief Start collecting LBR branches
  *
  * @param FilterOptions A bitmask of filter options to apply to the LBR branches (e.g., filtering by branch type, privilege level, etc.)
@@ -742,26 +808,14 @@ LbrStart(UINT64 FilterOptions)
 
     if (g_LbrCapacity == 0)
     {
-        LogInfo("LBR: Aborting, CPU model not supported.\n");
+        LogInfo("Err, LBR aborting, CPU model not supported\n");
         return FALSE;
     }
 
     //
-    // For architectural LBR, convert filter options into IA32_LBR_CTL bit fields
+    // Adjust and set filter options
     //
-    if (g_ArchBasedLastBranchRecord)
-    {
-        LbrBuildArchBasedFilterOptions(FilterOptions, &Ia32LbrCtl);
-    }
-
-    //
-    // For legacy LBR, write the raw filter options to MSR_LEGACY_LBR_SELECT
-    // Architectural LBR encodes its filters in IA32_LBR_CTL and does not use this MSR
-    //
-    if (!g_ArchBasedLastBranchRecord)
-    {
-        LbrSetLbrSelectFilter(FilterOptions);
-    }
+    LbrAdjustFilterOptions(FilterOptions, &Ia32LbrCtl);
 
     //
     // Clear hardware state before enabling LBR
