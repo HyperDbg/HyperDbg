@@ -58,8 +58,23 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 //                 PT Functions 	    		//
 //////////////////////////////////////////////////
 
-BOOLEAN
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTracePtDisable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtSave(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtDump(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtFlush(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
 
 //
 // Perform operations related to HyperTrace PT based on the request type and parameters

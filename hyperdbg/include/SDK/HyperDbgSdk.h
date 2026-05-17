@@ -22,6 +22,11 @@
 #include "SDK/headers/LbrDefinitions.h"
 
 //
+// Intel Processor Trace
+//
+#include "SDK/headers/PtDefinitions.h"
+
+//
 // Asserts
 //
 #include "SDK/headers/Assertions.h"

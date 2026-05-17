@@ -66,3 +66,71 @@ BroadcastFilterLbrOptionsOnAllCores(UINT64 LbrFilterOptions)
     //
     KeGenericCallDpc(DpcRoutineFilterLbrOptions, (PVOID)(UINT_PTR)LbrFilterOptions);
 }
+
+/**
+ * @brief Routines to enable PT on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastEnablePtOnAllCores()
+{
+    KeGenericCallDpc(DpcRoutineEnablePt, NULL);
+}
+
+/**
+ * @brief Routines to disable PT on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastDisablePtOnAllCores()
+{
+    KeGenericCallDpc(DpcRoutineDisablePt, NULL);
+}
+
+/**
+ * @brief Routines to save PT state on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastSavePtOnAllCores()
+{
+    KeGenericCallDpc(DpcRoutineSavePt, NULL);
+}
+
+/**
+ * @brief Routines to dump PT state on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastDumpPtOnAllCores()
+{
+    KeGenericCallDpc(DpcRoutineDumpPt, NULL);
+}
+
+/**
+ * @brief Routines to flush PT state on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastFlushPtOnAllCores()
+{
+    KeGenericCallDpc(DpcRoutineFlushPt, NULL);
+}
+
+/**
+ * @brief Routines to apply a PT filter on all cores. The same Options
+ *        pointer is passed to every per-core DPC; KeGenericCallDpc is
+ *        synchronous so the caller's storage is valid throughout.
+ *
+ * @return VOID
+ */
+VOID
+BroadcastFilterPtOnAllCores(PT_FILTER_OPTIONS * Options)
+{
+    KeGenericCallDpc(DpcRoutineFilterPt, (PVOID)Options);
+}

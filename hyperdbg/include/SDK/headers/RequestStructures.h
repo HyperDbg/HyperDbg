@@ -1283,17 +1283,36 @@ typedef enum _HYPERTRACE_PT_OPERATION_REQUEST_TYPE
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DISABLE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SAVE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DUMP,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FLUSH,
 
 } HYPERTRACE_PT_OPERATION_REQUEST_TYPE;
 
 /**
  * @brief The structure of HyperTrace PT result packet in HyperDbg
  *
+ *        Configuration fields (TraceUser/TraceKernel/TargetCr3/BufferSize/
+ *        NumAddrRanges/AddrRanges) are populated by the caller for ENABLE
+ *        and FILTER operations. For other operations they are ignored.
+ *
+ *        BufferSize must be a power of two multiple of 4 KB (4KB ... 128MB).
+ *        Pass 0 to keep the existing per-CPU value (default 2 MB on first
+ *        enable).
  */
 typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
 {
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE PtOperationType;
     UINT32                               KernelStatus;
+
+    //
+    // Filter / config (used by FILTER and ENABLE)
+    //
+    UINT32        TraceUser;     /* Boolean: trace CPL > 0                 */
+    UINT32        TraceKernel;   /* Boolean: trace CPL == 0                */
+    UINT64        TargetCr3;     /* CR3 to filter by (0 = no filter)       */
+    UINT64        BufferSize;    /* Output buffer size (0 = keep current)  */
+    UINT32        NumAddrRanges; /* Number of valid AddrRanges entries     */
+    UINT32        Reserved;      /* Padding to keep the array 8-aligned    */
+    PT_ADDR_RANGE AddrRanges[PT_MAX_ADDR_RANGES];
 
 } HYPERTRACE_PT_OPERATION_PACKETS, *PHYPERTRACE_PT_OPERATION_PACKETS;
 

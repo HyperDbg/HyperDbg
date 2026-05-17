@@ -56,6 +56,22 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks,
     g_LbrStateList = (LBR_STACK_ENTRY *)PlatformMemAllocateZeroedNonPagedPool(sizeof(LBR_STACK_ENTRY) * ProcessorsCount);
 
     //
+    // Initialize the global PT per-CPU state list. Each entry starts in
+    // PT_STATE_DISABLED with no buffers allocated; PtStart() will lazily
+    // allocate ToPA / output / overflow buffers on first use per core.
+    //
+    g_PtStateList = (PT_PER_CPU *)PlatformMemAllocateZeroedNonPagedPool(sizeof(PT_PER_CPU) * ProcessorsCount);
+    if (g_PtStateList != NULL)
+    {
+        UINT32 i;
+        for (i = 0; i < ProcessorsCount; i++)
+        {
+            PtEngineInitDefaultConfig(&g_PtStateList[i].Config);
+            g_PtStateList[i].State = PT_STATE_DISABLED;
+        }
+    }
+
+    //
     // Set the flag to indicate whether the initialization is being done for hypervisor environment or not
     //
     g_RunningOnHypervisorEnvironment = RunningOnHypervisorEnvironment;
@@ -109,6 +125,23 @@ HyperTraceUnInit()
     if (g_ProcessorTraceEnabled)
     {
         HyperTracePtDisable(NULL);
+    }
+
+    //
+    // Free PT buffers (if any) and the per-CPU state list
+    //
+    if (g_PtStateList != NULL)
+    {
+        UINT32 ProcessorsCountLocal = KeQueryActiveProcessorCount(0);
+        UINT32 i;
+
+        for (i = 0; i < ProcessorsCountLocal; i++)
+        {
+            PtEngineFreeBuffers(&g_PtStateList[i]);
+        }
+
+        PlatformMemFreePool(g_PtStateList);
+        g_PtStateList = NULL;
     }
 
     //
