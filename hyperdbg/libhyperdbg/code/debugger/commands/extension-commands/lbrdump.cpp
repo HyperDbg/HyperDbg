@@ -89,6 +89,57 @@ CommandLbrdumpHelp()
 }
 
 /**
+ * @brief Get the branch type name based on the LBR branch type value (only applicable for architectural LBR)
+ *
+ * @details THIS FUNCTION IS ALSO IMPLEMENTED IN THE USER MODE
+ *
+ * @param BrType The raw branch type value from the LBR info MSR
+ * @param BrTypeName A character buffer to receive the branch type name string
+ *
+ * @return VOID
+ */
+VOID
+CommandLbrdumpGetArchBranchTypet(UINT32 BrType, CHAR * BrTypeName)
+{
+    if (BrType == LBR_BR_TYPE_COND)
+    {
+        strncpy(BrTypeName, "COND", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_JMP_INDIRECT)
+    {
+        strncpy(BrTypeName, "JMP Indirect", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_JMP_DIRECT)
+    {
+        strncpy(BrTypeName, "JMP Direct", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_CALL_INDIRECT)
+    {
+        strncpy(BrTypeName, "CALL Indirect", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_CALL_DIRECT)
+    {
+        strncpy(BrTypeName, "CALL Direct", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType == LBR_BR_TYPE_RET)
+    {
+        strncpy(BrTypeName, "RET", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType >= LBR_BR_TYPE_RESERVED_MIN && BrType <= LBR_BR_TYPE_RESERVED_MAX)
+    {
+        strncpy(BrTypeName, "Reserved", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else if (BrType >= LBR_BR_TYPE_OTHER_MIN && BrType <= LBR_BR_TYPE_OTHER_MAX)
+    {
+        strncpy(BrTypeName, "Other Branch", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+    else
+    {
+        strncpy(BrTypeName, "Unknown", LBR_BR_TYPE_NAME_MAX_LEN);
+    }
+}
+
+/**
  * @brief Print collected LBR branches
  *
  * @param LbrdumpRequest
@@ -99,7 +150,9 @@ VOID
 CommandLbrdumpPrint(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
 {
     ULONG   CurrentIdx;
-    BOOLEAN IsCoreEmpty = TRUE;
+    BOOLEAN IsCoreEmpty                          = TRUE;
+    CHAR    BrTypeName[LBR_BR_TYPE_NAME_MAX_LEN] = {0};
+    UINT32  BrType                               = 0;
 
     ShowMessages("LBR Chronological Trace on core (decimal): %d\n\n", LbrdumpRequest->CoreId);
 
@@ -124,12 +177,39 @@ CommandLbrdumpPrint(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
 
         IsCoreEmpty = FALSE;
 
-        ShowMessages("\t [%2u] Branch Mispredicted: %s, Cycle Count (Decimal): %03d - From: %016llx  To: %016llx\n",
-                     CurrentIdx,
-                     LbrdumpRequest->LbrStack.LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
-                     LbrdumpRequest->LbrStack.LastBranchInfo[CurrentIdx].CycleCount,
-                     LbrdumpRequest->LbrStack.BranchEntry[CurrentIdx].From,
-                     LbrdumpRequest->LbrStack.BranchEntry[CurrentIdx].To);
+        if (LbrdumpRequest->ArchBasedLBR)
+        {
+            BrType = (UINT32)LbrdumpRequest->LbrStack.LastBranchInfo[CurrentIdx].BrType_OnlyArchLbr;
+
+            //
+            // Get the branch type name for better readability when printing
+            //
+            CommandLbrdumpGetArchBranchTypet(BrType, BrTypeName);
+
+            //
+            // Architectural LBR
+            //
+            ShowMessages("\t [%2u] Branch Mispredicted: %s, Branch type: %s, Cycle Count (Decimal): %04d (is valid? %s) - From: %016llx  To: %016llx\n",
+                         CurrentIdx,
+                         LbrdumpRequest->LbrStack.LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
+                         BrTypeName,
+                         LbrdumpRequest->LbrStack.LastBranchInfo[CurrentIdx].CycleCount,
+                         LbrdumpRequest->LbrStack.LastBranchInfo[CurrentIdx].CycCntValid_OnlyArchLbr ? "true " : "false",
+                         LbrdumpRequest->LbrStack.BranchEntry[CurrentIdx].From,
+                         LbrdumpRequest->LbrStack.BranchEntry[CurrentIdx].To);
+        }
+        else
+        {
+            //
+            // Legacy LBR
+            //
+            ShowMessages("\t [%2u] Branch Mispredicted: %s, Cycle Count (Decimal): %04d - From: %016llx  To: %016llx\n",
+                         CurrentIdx,
+                         LbrdumpRequest->LbrStack.LastBranchInfo[CurrentIdx].Mispred ? "true " : "false",
+                         LbrdumpRequest->LbrStack.LastBranchInfo[CurrentIdx].CycleCount,
+                         LbrdumpRequest->LbrStack.BranchEntry[CurrentIdx].From,
+                         LbrdumpRequest->LbrStack.BranchEntry[CurrentIdx].To);
+        }
     }
 
     if (IsCoreEmpty)

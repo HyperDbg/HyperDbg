@@ -590,7 +590,8 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_LBR_NOT_SUPPORTED:
-        ShowMessages("err, LBR is not supported on this processor (%x)\n",
+        ShowMessages("err, LBR is not supported on this processor, this is likely caused by running inside "
+                     "a nested virtualization (VM) environment that masks and removes LBR CPU flags (%x)\n",
                      Error);
         break;
 

@@ -199,8 +199,6 @@ typedef enum _DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE
 
 } DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE;
 
-#define SIZEOF_DEBUGGER_MODIFY_EVENTS sizeof(DEBUGGER_MODIFY_EVENTS)
-
 /**
  * @brief Type of mode change traps
  *
@@ -252,6 +250,8 @@ typedef struct _DEBUGGER_MODIFY_EVENTS
     BOOLEAN IsEnabled; // Determines what's the action (enable | disable | clear)
 
 } DEBUGGER_MODIFY_EVENTS, *PDEBUGGER_MODIFY_EVENTS;
+
+#define SIZEOF_DEBUGGER_MODIFY_EVENTS sizeof(DEBUGGER_MODIFY_EVENTS)
 
 /**
  * @brief request for performing a short-circuiting event
@@ -401,6 +401,8 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
 
 } DEBUGGER_GENERAL_EVENT_DETAIL, *PDEBUGGER_GENERAL_EVENT_DETAIL;
 
+#define SIZEOF_DEBUGGER_GENERAL_EVENT_DETAIL sizeof(DEBUGGER_GENERAL_EVENT_DETAIL)
+
 /**
  * @brief Each event can have multiple actions
  * @details THIS STRUCTURE IS ONLY USED IN USER MODE
@@ -419,6 +421,8 @@ typedef struct _DEBUGGER_GENERAL_ACTION
     UINT32 ScriptBufferPointer;
 
 } DEBUGGER_GENERAL_ACTION, *PDEBUGGER_GENERAL_ACTION;
+
+#define SIZEOF_DEBUGGER_GENERAL_ACTION sizeof(DEBUGGER_GENERAL_ACTION)
 
 /**
  * @brief Status of register buffers

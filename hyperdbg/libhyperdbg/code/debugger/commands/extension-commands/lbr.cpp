@@ -36,18 +36,26 @@ CommandLbrHelp()
     ShowMessages("\t\te.g : !lbr filter kernel jcc return ind_jmp rel_jmp far\n");
     ShowMessages("\t\te.g : !lbr filter kernel jcc ind_jmp rel_jmp\n");
     ShowMessages("\t\te.g : !lbr filter user rel_call ind_call return far\n");
+    ShowMessages("\t\te.g : !lbr filter call_stack user\n");
+    ShowMessages("\t\te.g : !lbr filter call_stack kernel\n");
 
     ShowMessages("\nlist of filter options: \n");
-    ShowMessages("\t kernel:      do not capture at ring0\n");
-    ShowMessages("\t user:        do not capture at ring > 0\n");
-    ShowMessages("\t jcc:         do not capture conditional branches\n");
-    ShowMessages("\t rel_call:    do not capture relative calls\n");
-    ShowMessages("\t ind_call:    do not capture indirect calls\n");
-    ShowMessages("\t return:      do not capture near returns\n");
-    ShowMessages("\t ind_jmp:     do not capture indirect jumps\n");
-    ShowMessages("\t rel_jmp:     do not capture relative jumps\n");
-    ShowMessages("\t far:         do not capture far branches\n");
-    ShowMessages("\t (no option): capture everything (default option)\n");
+    ShowMessages("\t kernel:         do not capture at ring0\n");
+    ShowMessages("\t user:           do not capture at ring > 0\n");
+    ShowMessages("\t jcc:            do not capture conditional branches\n");
+    ShowMessages("\t rel_call:       do not capture relative calls\n");
+    ShowMessages("\t ind_call:       do not capture indirect calls\n");
+    ShowMessages("\t return:         do not capture near returns\n");
+    ShowMessages("\t ind_jmp:        do not capture indirect jumps\n");
+    ShowMessages("\t rel_jmp:        do not capture relative jumps\n");
+    ShowMessages("\t far:            do not capture far branches (only in legacy LBR. check docs for details)\n");
+    ShowMessages("\t other_branches: do not capture jmp/call ptr*, jmp/call m*, ret (0c8h), sys*, interrupts,\n");
+    ShowMessages("\t                 exceptions (other than debug exceptions), iret, int3, intn, into, tsx abort\n");
+    ShowMessages("\t                 eenter, eresume, eexit, aex, init, sipi, rsm (only in ARCH LBR. check docs for details)\n");
+    ShowMessages("\t call_stack:     enable LBR stack to use LIFO filtering to capture call stack profile\n");
+    ShowMessages("\t                 not available on CPUs older than Haswell. for this item you can only specify the 'user'\n");
+    ShowMessages("\t                 or the 'kernel'. it prevents all types of branches except calls and rets\n");
+    ShowMessages("\t (no option):    capture everything (default option)\n");
 }
 
 /**
@@ -145,6 +153,32 @@ CommandLbrParseSimpleOperation(vector<CommandToken> CommandTokens, HYPERTRACE_LB
 }
 
 /**
+ * @brief Check validity of the filter options in case of call_stack mode
+ *
+ * @param LbrRequest
+ * @return BOOLEAN TRUE if the filter options are valid in case of call_stack mode
+ */
+BOOLEAN
+CommandLbrValidateCallStackFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
+{
+    if (LbrRequest->LbrFilterOptions & LBR_CALL_STACK)
+    {
+        //
+        // Call-stack mode should be used with branch type enabling configured to capture only CALLs (NEAR_REL_CALL and
+        // NEAR_IND_CALL) and RETs (NEAR_RET). if the user specifed LBR_REL_CALL | LBR_IND_CALL | LBR_RETURN then
+        // it is invalid
+        //
+        if ((LbrRequest->LbrFilterOptions & (LBR_REL_CALL | LBR_IND_CALL | LBR_RETURN)))
+        {
+            ShowMessages("err, invalid filter options for 'call_stack' mode. when the 'call_stack' is enabled,"
+                         " 'rel_call', 'ind_call', and 'return' could not be specified as filter options\n\n");
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+/**
  * @brief Parses the LBR filter operation and accumulates filter option flags
  *
  * @param CommandTokens
@@ -192,9 +226,11 @@ CommandLbrParseFilterOperation(vector<CommandToken> CommandTokens, HYPERTRACE_LB
         {
             LbrRequest->LbrFilterOptions |= LBR_REL_JMP;
         }
-        else if (CompareLowerCaseStrings(CommandTokens.at(i), "far"))
+        else if (CompareLowerCaseStrings(CommandTokens.at(i), "far") ||
+                 CompareLowerCaseStrings(CommandTokens.at(i), "other_branch") ||
+                 CompareLowerCaseStrings(CommandTokens.at(i), "other_branches"))
         {
-            LbrRequest->LbrFilterOptions |= LBR_FAR;
+            LbrRequest->LbrFilterOptions |= LBR_FAR_OTHER_BRANCHES;
         }
         else if (CompareLowerCaseStrings(CommandTokens.at(i), "call_stack"))
         {
@@ -206,6 +242,36 @@ CommandLbrParseFilterOperation(vector<CommandToken> CommandTokens, HYPERTRACE_LB
                          GetCaseSensitiveStringFromCommandToken(CommandTokens.at(i)).c_str());
             return FALSE;
         }
+    }
+
+    //
+    // Call-stack mode should be used with branch type enabling configured to capture only CALLs (NEAR_REL_CALL and
+    // NEAR_IND_CALL) and RETs (NEAR_RET). When configured in this manner, the LBR array emulates a call stack,
+    // where CALLs are "pushed" and RETs "pop" them off the stack. If other branch types (JCC, NEAR_*_JMP, or
+    // OTHER_BRANCH) are enabled for recording with call-stack mode, LBR behavior may be undefined, so we will
+    // mask out any branch type filters that are not CALLs or RETs when call-stack mode is requested to ensure
+    // we are correctly emulating a call stack and avoiding undefined behavior
+    //
+
+    //
+    // If it is call_stack then we only keep the user and kernel bit and filter all branch types
+    // except calls and rets to ensure we are only capturing call stack profile
+    //
+    if (LbrRequest->LbrFilterOptions & LBR_CALL_STACK)
+    {
+        //
+        // Validate the filter options in case of call_stack mode
+        //
+        if (CommandLbrValidateCallStackFilterOptions(LbrRequest) == FALSE)
+        {
+            return FALSE;
+        }
+
+        //
+        // Preserve only the user/kernel privilege bits from the original options,
+        // then apply the mandatory call stack base flags
+        //
+        LbrRequest->LbrFilterOptions = LBR_CALL_STACK_BASE_FLAGS | (LbrRequest->LbrFilterOptions & (LBR_KERNEL | LBR_USER));
     }
 
     return TRUE;

@@ -426,15 +426,17 @@ typedef enum _DEBUGGER_MSR_ACTION_TYPE
  */
 typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR
 {
-    UINT64 Msr;        // It's actually a 32-Bit value but let's not mess with a register
-    UINT32 CoreNumber; // specifies the core to execute wrmsr or read the msr
-                       // (DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES mean all
-                       // the cores)
-    DEBUGGER_MSR_ACTION_TYPE
-    ActionType; // Detects whether user needs wrmsr or rdmsr
-    UINT64 Value;
+    UINT64 Msr;                          // It's actually a 32-Bit value but let's not mess with a register
+    UINT32 CoreNumber;                   // specifies the core to execute wrmsr or read the msr
+                                         // (DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES mean all
+                                         // the cores)
+    DEBUGGER_MSR_ACTION_TYPE ActionType; // Detects whether user needs wrmsr or rdmsr
+    UINT64                   Value;
 
 } DEBUGGER_READ_AND_WRITE_ON_MSR, *PDEBUGGER_READ_AND_WRITE_ON_MSR;
+
+#define SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR \
+    sizeof(DEBUGGER_READ_AND_WRITE_ON_MSR)
 
 // ==============================================================================================
 
@@ -767,6 +769,9 @@ typedef struct _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS
 } DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS,
     *PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS;
 
+#define SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS \
+    sizeof(DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)
+
 // ==============================================================================================
 
 /**
@@ -915,6 +920,8 @@ typedef struct _DEBUGGER_UD_COMMAND_PACKET
     UINT32                     Result;
 
 } DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;
+
+#define SIZEOF_DEBUGGER_UD_COMMAND_PACKET sizeof(DEBUGGER_UD_COMMAND_PACKET)
 
 // ==============================================================================================
 
@@ -1283,7 +1290,7 @@ typedef struct _HYPERTRACE_LBR_DUMP_PACKETS
 {
     UINT32          CoreId;
     BOOLEAN         NextCoreIsValid; // In the case of dumping all cores, this flag indicates whether the next core number is valid
-    BOOLEAN         ArchBasedLBR;    // Whether the LBR is architecture-based (like Intel CET) or not (like Intel LBR or AMD IBS)
+    BOOLEAN         ArchBasedLBR;    // Whether the LBR is architecture-based
     LBR_STACK_ENTRY LbrStack;
     UINT8           CurrentLbrCapacity;
     UINT32          KernelStatus;

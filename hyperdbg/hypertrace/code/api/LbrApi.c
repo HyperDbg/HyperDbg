@@ -129,6 +129,15 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
     BroadcastEnableLbrOnAllCores();
 
     //
+    // Check if LBR is enabled or not (for example in VMs, LBR flags are usually masked)
+    //
+    if (!LbrCheck())
+    {
+        HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_NOT_SUPPORTED);
+        return FALSE;
+    }
+
+    //
     // Set the flag to indicate that LBR tracing is enabled
     //
     g_LastBranchRecordEnabled = TRUE;
