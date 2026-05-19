@@ -154,7 +154,7 @@ BroadcastFlushPtOnAllCores()
  * @return VOID
  */
 VOID
-BroadcastFilterPtOnAllCores(PT_FILTER_OPTIONS * Options)
+BroadcastFilterPtOnAllCores(PT_FILTER_OPTIONS * FilterOptions)
 {
-    KeGenericCallDpc(DpcRoutineFilterPt, (PVOID)Options);
+    KeGenericCallDpc(DpcRoutineFilterPt, (PVOID)FilterOptions);
 }

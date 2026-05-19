@@ -403,7 +403,7 @@ HyperTracePtFlush(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
 BOOLEAN
 HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
 {
-    PT_FILTER_OPTIONS Options       = {0};
+    PT_FILTER_OPTIONS FilterOptions       = {0};
     BOOLEAN           WasEnabled    = g_ProcessorTraceEnabled;
     BOOLEAN           BufferChanged = FALSE;
     UINT64            ExistingSize  = 0;
@@ -416,22 +416,22 @@ HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
     //
     if (Req->TraceUser || Req->TraceKernel)
     {
-        Options.TraceUser   = (Req->TraceUser != 0) ? TRUE : FALSE;
-        Options.TraceKernel = (Req->TraceKernel != 0) ? TRUE : FALSE;
+        FilterOptions.TraceUser   = (Req->TraceUser != 0) ? TRUE : FALSE;
+        FilterOptions.TraceKernel = (Req->TraceKernel != 0) ? TRUE : FALSE;
     }
     else
     {
-        Options.TraceUser   = TRUE;
-        Options.TraceKernel = TRUE;
+        FilterOptions.TraceUser   = TRUE;
+        FilterOptions.TraceKernel = TRUE;
     }
-    Options.TargetCr3     = Req->TargetCr3;
-    Options.BufferSize    = Req->BufferSize;
-    Options.NumAddrRanges = Req->NumAddrRanges;
-    if (Options.NumAddrRanges > PT_MAX_ADDR_RANGES)
-        Options.NumAddrRanges = PT_MAX_ADDR_RANGES;
-    for (Copy = 0; Copy < Options.NumAddrRanges; Copy++)
+    FilterOptions.TargetCr3     = Req->TargetCr3;
+    FilterOptions.BufferSize    = Req->BufferSize;
+    FilterOptions.NumAddrRanges = Req->NumAddrRanges;
+    if (FilterOptions.NumAddrRanges > PT_MAX_ADDR_RANGES)
+        FilterOptions.NumAddrRanges = PT_MAX_ADDR_RANGES;
+    for (Copy = 0; Copy < FilterOptions.NumAddrRanges; Copy++)
     {
-        Options.AddrRanges[Copy] = Req->AddrRanges[Copy];
+        FilterOptions.AddrRanges[Copy] = Req->AddrRanges[Copy];
     }
 
     //
@@ -441,7 +441,7 @@ HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
     {
         ExistingSize = g_PtStateList[0].Config.BufferSize;
     }
-    if (Options.BufferSize != 0 && Options.BufferSize != ExistingSize)
+    if (FilterOptions.BufferSize != 0 && FilterOptions.BufferSize != ExistingSize)
     {
         BufferChanged = TRUE;
     }
@@ -490,11 +490,11 @@ HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
     {
         //
         // Fast filter-only path: PT is running and BufferSize is
-        // unchanged. Force Options.BufferSize=0 so PtFilter on each core
+        // unchanged. Force FilterOptions.BufferSize=0 so PtFilter on each core
         // keeps the buffer that's already allocated, then broadcast.
         //
-        Options.BufferSize = 0;
-        BroadcastFilterPtOnAllCores(&Options);
+        FilterOptions.BufferSize = 0;
+        BroadcastFilterPtOnAllCores(&FilterOptions);
     }
 
     if (Req != NULL)

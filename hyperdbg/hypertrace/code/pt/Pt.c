@@ -1399,14 +1399,14 @@ PtDump()
  *        handles that case before broadcasting.
  */
 VOID
-PtFilter(const PT_FILTER_OPTIONS * Options)
+PtFilter(const PT_FILTER_OPTIONS * FilterOptions)
 {
     UINT32          CurrentCore;
     PT_PER_CPU *    Cpu;
     UINT32          i;
     PT_CAPABILITIES Caps = {0};
 
-    if (g_PtStateList == NULL || Options == NULL)
+    if (g_PtStateList == NULL || FilterOptions == NULL)
         return;
 
     if (PtEngineQueryCapabilities(&Caps) != 0)
@@ -1429,42 +1429,42 @@ PtFilter(const PT_FILTER_OPTIONS * Options)
     //
     // Apply only the user-tunable fields to this CPU's per-CPU config.
     //
-    Cpu->Config.TraceUser     = Options->TraceUser;
-    Cpu->Config.TraceKernel   = Options->TraceKernel;
+    Cpu->Config.TraceUser     = FilterOptions->TraceUser;
+    Cpu->Config.TraceKernel   = FilterOptions->TraceKernel;
 
-    if (Options->TargetCr3 != 0 && !Caps.Cr3Filtering)
+    if (FilterOptions->TargetCr3 != 0 && !Caps.Cr3Filtering)
     {
         LogInfo("PT: CR3 filtering requested but not supported by CPU\n");
         Cpu->Config.TargetCr3 = 0;
     }
     else
     {
-        Cpu->Config.TargetCr3 = Options->TargetCr3;
+        Cpu->Config.TargetCr3 = FilterOptions->TargetCr3;
     }
 
-    if (Options->NumAddrRanges > Caps.NumAddrRanges)
+    if (FilterOptions->NumAddrRanges > Caps.NumAddrRanges)
     {
-        LogInfo("PT: requested %u IP filter ranges, but CPU only supports %u\n", Options->NumAddrRanges, Caps.NumAddrRanges);
+        LogInfo("PT: requested %u IP filter ranges, but CPU only supports %u\n", FilterOptions->NumAddrRanges, Caps.NumAddrRanges);
         Cpu->Config.NumAddrRanges = Caps.NumAddrRanges;
     }
-    else if (Options->NumAddrRanges > 0 && !Caps.IpFiltering)
+    else if (FilterOptions->NumAddrRanges > 0 && !Caps.IpFiltering)
     {
         LogInfo("PT: IP filtering requested but not supported by CPU\n");
         Cpu->Config.NumAddrRanges = 0;
     }
     else
     {
-        Cpu->Config.NumAddrRanges = Options->NumAddrRanges;
+        Cpu->Config.NumAddrRanges = FilterOptions->NumAddrRanges;
     }
 
-    if (Options->BufferSize != 0)
+    if (FilterOptions->BufferSize != 0)
     {
-        Cpu->Config.BufferSize = Options->BufferSize;
+        Cpu->Config.BufferSize = FilterOptions->BufferSize;
     }
 
     for (i = 0; i < PT_MAX_ADDR_RANGES; i++)
     {
-        Cpu->Config.AddrRanges[i] = Options->AddrRanges[i];
+        Cpu->Config.AddrRanges[i] = FilterOptions->AddrRanges[i];
     }
 
     //

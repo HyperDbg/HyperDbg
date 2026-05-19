@@ -14,26 +14,8 @@
 //                  Functions                   //
 //////////////////////////////////////////////////
 
-BOOLEAN
-HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
-
-BOOLEAN
-HyperTracePtPause(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
-
-BOOLEAN
-HyperTracePtResume(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
-
-BOOLEAN
-HyperTracePtSize(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
-
-BOOLEAN
-HyperTracePtDump(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
-
-BOOLEAN
-HyperTracePtFlush(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
-
-BOOLEAN
-HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
-
-BOOLEAN
-HyperTracePtMmap(HYPERTRACE_PT_MMAP_PACKETS * Req);
+//
+// The exported HyperTracePt* API is declared in
+// SDK/imports/kernel/HyperDbgHyperTrace.h (with the dllexport / dllimport
+// decoration). Internal-only PT helpers should be declared here.
+//

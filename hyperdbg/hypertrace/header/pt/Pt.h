@@ -104,7 +104,7 @@ PtFlush();
 // untouched in the per-CPU PT_TRACE_CONFIG.
 //
 VOID
-PtFilter(const PT_FILTER_OPTIONS * Options);
+PtFilter(const PT_FILTER_OPTIONS * FilterOptions);
 
 //
 // PASSIVE_LEVEL helpers — call before / after the per-core DPC broadcasts.
