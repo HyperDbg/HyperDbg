@@ -90,14 +90,38 @@ BroadcastDisablePtOnAllCores()
 }
 
 /**
- * @brief Routines to save PT state on all cores
+ * @brief Routines to pause PT tracing on all cores
  *
  * @return VOID
  */
 VOID
-BroadcastSavePtOnAllCores()
+BroadcastPausePtOnAllCores()
 {
-    KeGenericCallDpc(DpcRoutineSavePt, NULL);
+    KeGenericCallDpc(DpcRoutinePausePt, NULL);
+}
+
+/**
+ * @brief Routines to resume PT tracing on all cores
+ *
+ * @return VOID
+ */
+VOID
+BroadcastResumePtOnAllCores()
+{
+    KeGenericCallDpc(DpcRoutineResumePt, NULL);
+}
+
+/**
+ * @brief Routines to snapshot per-CPU PT output positions. The DPC
+ *        writes its own core's byte count into Sizes[CoreId]; the
+ *        caller's UINT64 array must hold at least one slot per CPU.
+ *
+ * @return VOID
+ */
+VOID
+BroadcastSizePtOnAllCores(UINT64 * Sizes)
+{
+    KeGenericCallDpc(DpcRoutineSizePt, (PVOID)Sizes);
 }
 
 /**

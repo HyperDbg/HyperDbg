@@ -18,7 +18,13 @@ BOOLEAN
 HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
 
 BOOLEAN
-HyperTracePtSave(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
+HyperTracePtPause(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
+
+BOOLEAN
+HyperTracePtResume(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
+
+BOOLEAN
+HyperTracePtSize(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
 
 BOOLEAN
 HyperTracePtDump(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);

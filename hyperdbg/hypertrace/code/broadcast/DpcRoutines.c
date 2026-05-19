@@ -216,15 +216,54 @@ DpcRoutineDisablePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
 }
 
 /**
- * @brief Broadcast saving PT state
+ * @brief Broadcast pausing PT
  */
 BOOLEAN
-DpcRoutineSavePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutinePausePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(DeferredContext);
 
-    PtSave();
+    PtPause();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast resuming PT
+ */
+BOOLEAN
+DpcRoutineResumePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    PtResume();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast snapshotting per-CPU PT output position.
+ *
+ *        DeferredContext is a UINT64 array (one slot per active CPU);
+ *        each per-core DPC writes its own core's byte count and never
+ *        touches another slot, so no synchronisation is required.
+ */
+BOOLEAN
+DpcRoutineSizePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UINT64 * Sizes = (UINT64 *)DeferredContext;
+    UINT32   Core  = KeGetCurrentProcessorNumberEx(NULL);
+
+    UNREFERENCED_PARAMETER(Dpc);
+
+    if (Sizes != NULL && Core < PT_MAX_CPUS_FOR_MMAP)
+        Sizes[Core] = PtSize();
 
     KeSignalCallDpcSynchronize(SystemArgument2);
     KeSignalCallDpcDone(SystemArgument1);

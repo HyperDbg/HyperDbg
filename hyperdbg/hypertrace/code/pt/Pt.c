@@ -5,8 +5,9 @@
  * @details Programs Intel PT MSRs and manages per-CPU ToPA / output buffers.
  *          The engine half (PtEngine*) deals with a single PT_PER_CPU at a
  *          time and is OS-agnostic. The HyperDbg wrappers (PtCheck, PtStart,
- *          PtStop, PtSave, PtDump, PtFlush) operate on the global per-CPU
- *          state list (g_PtStateList) and mirror the LBR API surface.
+ *          PtStop, PtPause, PtResume, PtSize, PtDump, PtFlush) operate on the
+ *          global per-CPU state list (g_PtStateList) and mirror the LBR API
+ *          surface.
  * @version 0.19
  * @date 2026-04-29
  *
@@ -1248,7 +1249,7 @@ PtStart()
 /**
  * @brief Stop PT tracing on the CURRENT CPU.
  *        Trace data accumulated in the per-CPU output buffer is left in
- *        place; PtSave / PtDump can read it later.
+ *        place; PtSize / PtDump can read it later.
  */
 VOID
 PtStop()
@@ -1268,21 +1269,14 @@ PtStop()
 }
 
 /**
- * @brief Snapshot the current bytes-captured counter for the CURRENT CPU
- *        without disturbing tracing state. PT data still resides in the
- *        per-CPU output buffer; nothing is copied out.
- *
- *        Mirrors LbrSave.
+ * @brief Pause PT tracing on the CURRENT CPU. Buffer state is preserved
+ *        so a subsequent PtResume picks up where this left off.
  */
 VOID
-PtSave()
+PtPause()
 {
-    UINT32                       CurrentCore;
-    PT_PER_CPU *                 Cpu;
-    PT_OUTPUT_MASK_PTRS_REGISTER Mask;
-    UINT32                       TopaIndex;
-    UINT32                       BytesInEntry;
-    UINT64                       Total;
+    UINT32       CurrentCore;
+    PT_PER_CPU * Cpu;
 
     if (g_PtStateList == NULL)
         return;
@@ -1290,8 +1284,55 @@ PtSave()
     CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
     Cpu         = &g_PtStateList[CurrentCore];
 
-    if (Cpu->State != PT_STATE_TRACING && Cpu->State != PT_STATE_PAUSED && Cpu->State != PT_STATE_STOPPED)
+    LogInfo("PT: pausing trace on core %u\n", CurrentCore);
+
+    PtEnginePause(Cpu);
+}
+
+/**
+ * @brief Resume PT tracing on the CURRENT CPU after a prior PtPause.
+ */
+VOID
+PtResume()
+{
+    UINT32       CurrentCore;
+    PT_PER_CPU * Cpu;
+
+    if (g_PtStateList == NULL)
         return;
+
+    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    Cpu         = &g_PtStateList[CurrentCore];
+
+    LogInfo("PT: resuming trace on core %u\n", CurrentCore);
+
+    PtEngineResume(Cpu);
+}
+
+/**
+ * @brief Snapshot the current PT output position on the CURRENT CPU
+ *        without disturbing tracing state. The returned value is the
+ *        number of bytes of valid trace data sitting in this CPU's
+ *        main + overflow buffer, i.e. the offset a decoder should stop
+ *        at when reading from the user mapping.
+ */
+UINT64
+PtSize()
+{
+    UINT32                       CurrentCore;
+    PT_PER_CPU *                 Cpu;
+    PT_OUTPUT_MASK_PTRS_REGISTER Mask;
+    UINT32                       TopaIndex;
+    UINT32                       BytesInEntry;
+
+    if (g_PtStateList == NULL)
+        return 0;
+
+    CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    Cpu         = &g_PtStateList[CurrentCore];
+
+    if (Cpu->State != PT_STATE_TRACING && Cpu->State != PT_STATE_PAUSED && Cpu->State != PT_STATE_STOPPED)
+        return 0;
 
     //
     // Read MASK_PTRS without touching MSRs that would disturb tracing.
@@ -1303,11 +1344,9 @@ PtSave()
     BytesInEntry = (UINT32)Mask.OutputOffset;
 
     if (TopaIndex == 0)
-        Total = BytesInEntry;
-    else
-        Total = Cpu->Buffer.OutputSize + BytesInEntry;
+        return BytesInEntry;
 
-    Cpu->TotalBytesCaptured += Total;
+    return Cpu->Buffer.OutputSize + BytesInEntry;
 }
 
 /**

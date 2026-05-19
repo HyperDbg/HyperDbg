@@ -33,7 +33,9 @@ CommandPtHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : !pt enable\n");
     ShowMessages("\t\te.g : !pt disable\n");
-    ShowMessages("\t\te.g : !pt save\n");
+    ShowMessages("\t\te.g : !pt pause\n");
+    ShowMessages("\t\te.g : !pt resume\n");
+    ShowMessages("\t\te.g : !pt size\n");
     ShowMessages("\t\te.g : !pt dump\n");
     ShowMessages("\t\te.g : !pt flush\n");
 
@@ -287,9 +289,17 @@ CommandPt(vector<CommandToken> CommandTokens, string Command)
     {
         PtRequest.PtOperationType = HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DISABLE;
     }
-    else if (CompareLowerCaseStrings(CommandTokens.at(1), "save") && CommandTokens.size() == 2)
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "pause") && CommandTokens.size() == 2)
     {
-        PtRequest.PtOperationType = HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SAVE;
+        PtRequest.PtOperationType = HYPERTRACE_PT_OPERATION_REQUEST_TYPE_PAUSE;
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "resume") && CommandTokens.size() == 2)
+    {
+        PtRequest.PtOperationType = HYPERTRACE_PT_OPERATION_REQUEST_TYPE_RESUME;
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "size") && CommandTokens.size() == 2)
+    {
+        PtRequest.PtOperationType = HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SIZE;
     }
     else if (CompareLowerCaseStrings(CommandTokens.at(1), "dump") && CommandTokens.size() == 2)
     {
@@ -330,8 +340,18 @@ CommandPt(vector<CommandToken> CommandTokens, string Command)
         case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DISABLE:
             ShowMessages("PT disabled successfully\n");
             break;
-        case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SAVE:
-            ShowMessages("PT trace state is saved\n");
+        case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_PAUSE:
+            ShowMessages("PT trace paused\n");
+            break;
+        case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_RESUME:
+            ShowMessages("PT trace resumed\n");
+            break;
+        case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SIZE:
+            ShowMessages("PT buffer bytes-written per CPU:\n");
+            for (UINT32 i = 0; i < PtRequest.NumCpus; i++)
+            {
+                ShowMessages("  core %u : 0x%llx\n", i, PtRequest.BytesPerCpu[i]);
+            }
             break;
         case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DUMP:
             ShowMessages("PT trace state is shown\n");

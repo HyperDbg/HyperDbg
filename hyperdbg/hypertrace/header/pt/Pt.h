@@ -81,7 +81,13 @@ VOID
 PtStop();
 
 VOID
-PtSave();
+PtPause();
+
+VOID
+PtResume();
+
+UINT64
+PtSize();
 
 VOID
 PtDump();

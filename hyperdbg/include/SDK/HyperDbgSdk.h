@@ -7,9 +7,6 @@
 #include "SDK/headers/DataTypes.h"
 #include "SDK/headers/Ioctls.h"
 #include "SDK/headers/Events.h"
-#include "SDK/headers/RequestStructures.h"
-#include "SDK/headers/Symbols.h"
-#include "SDK/headers/HardwareDebugger.h"
 
 //
 // Devices
@@ -25,6 +22,10 @@
 // Intel Processor Trace
 //
 #include "SDK/headers/PtDefinitions.h"
+
+#include "SDK/headers/RequestStructures.h"
+#include "SDK/headers/Symbols.h"
+#include "SDK/headers/HardwareDebugger.h"
 
 //
 // Asserts

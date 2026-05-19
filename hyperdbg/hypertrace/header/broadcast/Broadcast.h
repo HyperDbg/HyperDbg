@@ -35,7 +35,13 @@ VOID
 BroadcastDisablePtOnAllCores();
 
 VOID
-BroadcastSavePtOnAllCores();
+BroadcastPausePtOnAllCores();
+
+VOID
+BroadcastResumePtOnAllCores();
+
+VOID
+BroadcastSizePtOnAllCores(UINT64 * Sizes);
 
 VOID
 BroadcastDumpPtOnAllCores();

@@ -195,18 +195,17 @@ HyperTracePtDisable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest)
 }
 
 /**
- * @brief Save PT trace state on all cores
+ * @brief Pause PT tracing on every core. Buffers stay allocated and the
+ *        per-CPU CTL is preserved, so HyperTracePtResume can restart the
+ *        trace exactly where it stopped.
  *
  * @param HyperTraceOperationRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTracePtSave(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
+HyperTracePtPause(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
 {
-    //
-    // PT must be enabled first
-    //
     if (!g_ProcessorTraceEnabled)
     {
         if (HyperTraceOperationRequest != NULL)
@@ -216,15 +215,83 @@ HyperTracePtSave(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
         return FALSE;
     }
 
-    LogInfo("Saving PT state...\n");
-
-    BroadcastSavePtOnAllCores();
+    BroadcastPausePtOnAllCores();
 
     if (HyperTraceOperationRequest != NULL)
     {
         HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     }
 
+    return TRUE;
+}
+
+/**
+ * @brief Resume PT tracing on every core after a prior HyperTracePtPause.
+ *
+ * @param HyperTraceOperationRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTracePtResume(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
+{
+    if (!g_ProcessorTraceEnabled)
+    {
+        if (HyperTraceOperationRequest != NULL)
+        {
+            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_PT_ALREADY_DISABLED;
+        }
+        return FALSE;
+    }
+
+    BroadcastResumePtOnAllCores();
+
+    if (HyperTraceOperationRequest != NULL)
+    {
+        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Snapshot the current PT output position on every core and write
+ *        the per-CPU byte counts into HyperTraceOperationRequest->BytesPerCpu.
+ *        The returned counts are the decode window — bytes [0, BytesPerCpu[i])
+ *        in CPU i's user mapping currently hold valid trace data.
+ *
+ * @param HyperTraceOperationRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTracePtSize(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
+{
+    UINT32 ProcessorsCount;
+
+    if (!g_ProcessorTraceEnabled)
+    {
+        if (HyperTraceOperationRequest != NULL)
+        {
+            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_PT_ALREADY_DISABLED;
+        }
+        return FALSE;
+    }
+
+    if (HyperTraceOperationRequest == NULL)
+        return FALSE;
+
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    if (ProcessorsCount > PT_MAX_CPUS_FOR_MMAP)
+        ProcessorsCount = PT_MAX_CPUS_FOR_MMAP;
+
+    RtlZeroMemory(HyperTraceOperationRequest->BytesPerCpu,
+                  sizeof(HyperTraceOperationRequest->BytesPerCpu));
+
+    BroadcastSizePtOnAllCores(HyperTraceOperationRequest->BytesPerCpu);
+
+    HyperTraceOperationRequest->NumCpus      = ProcessorsCount;
+    HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     return TRUE;
 }
 
@@ -515,11 +582,27 @@ HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationReques
 
         break;
 
-    case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SAVE:
+    case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_PAUSE:
 
-        LogInfo("HyperTrace: Saving PT tracing...\n");
+        LogInfo("HyperTrace: Pausing PT tracing...\n");
 
-        HyperTracePtSave(PtOperationRequest);
+        HyperTracePtPause(PtOperationRequest);
+
+        break;
+
+    case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_RESUME:
+
+        LogInfo("HyperTrace: Resuming PT tracing...\n");
+
+        HyperTracePtResume(PtOperationRequest);
+
+        break;
+
+    case HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SIZE:
+
+        LogInfo("HyperTrace: Snapshotting PT buffer sizes...\n");
+
+        HyperTracePtSize(PtOperationRequest);
 
         break;
 

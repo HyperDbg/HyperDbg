@@ -1281,9 +1281,12 @@ typedef enum _HYPERTRACE_PT_OPERATION_REQUEST_TYPE
 {
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_ENABLE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DISABLE,
-    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SAVE,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_PAUSE,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_RESUME,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SIZE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DUMP,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FLUSH,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FILTER,
 
 } HYPERTRACE_PT_OPERATION_REQUEST_TYPE;
 
@@ -1297,6 +1300,11 @@ typedef enum _HYPERTRACE_PT_OPERATION_REQUEST_TYPE
  *        BufferSize must be a power of two multiple of 4 KB (4KB ... 128MB).
  *        Pass 0 to keep the existing per-CPU value (default 2 MB on first
  *        enable).
+ *
+ *        For SIZE operations the kernel fills NumCpus and BytesPerCpu[]
+ *        with each CPU's current PT output position, i.e. how many bytes
+ *        of valid trace data are currently sitting in that CPU's main +
+ *        overflow buffer; the rest of the packet is unused on output.
  */
 typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
 {
@@ -1313,6 +1321,13 @@ typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
     UINT32        NumAddrRanges; /* Number of valid AddrRanges entries     */
     UINT32        Reserved;      /* Padding to keep the array 8-aligned    */
     PT_ADDR_RANGE AddrRanges[PT_MAX_ADDR_RANGES];
+
+    //
+    // SIZE output: per-CPU bytes-written snapshot
+    //
+    UINT32 NumCpus;                            /* CPUs populated in BytesPerCpu */
+    UINT32 Reserved2;                          /* Padding to 8-align the array  */
+    UINT64 BytesPerCpu[PT_MAX_CPUS_FOR_MMAP];
 
 } HYPERTRACE_PT_OPERATION_PACKETS, *PHYPERTRACE_PT_OPERATION_PACKETS;
 
