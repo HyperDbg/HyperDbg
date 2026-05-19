@@ -81,3 +81,10 @@ HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+//
+// Map every per-CPU PT main output + overflow buffer into the calling
+// user process. See HYPERTRACE_PT_MMAP_PACKETS for the lifetime contract.
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtMmap(HYPERTRACE_PT_MMAP_PACKETS * Req);

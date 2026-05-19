@@ -439,6 +439,41 @@ HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
 }
 
 /**
+ * @brief Map every per-CPU PT main output + overflow buffer into the
+ *        calling user-mode process. See HYPERTRACE_PT_MMAP_PACKETS for
+ *        the full lifetime / single-process contract.
+ */
+BOOLEAN
+HyperTracePtMmap(HYPERTRACE_PT_MMAP_PACKETS * Req)
+{
+    if (Req == NULL)
+        return FALSE;
+
+    Req->NumCpus = 0;
+
+    if (!g_HyperTraceCallbacksInitialized)
+    {
+        Req->KernelStatus = DEBUGGER_ERROR_HYPERTRACE_NOT_INITIALIZED;
+        return FALSE;
+    }
+
+    if (!g_ProcessorTraceEnabled)
+    {
+        Req->KernelStatus = DEBUGGER_ERROR_PT_ALREADY_DISABLED;
+        return FALSE;
+    }
+
+    if (PtMmapAllCpuBuffersToUser(Req->Cpus, PT_MAX_CPUS_FOR_MMAP, &Req->NumCpus) != 0)
+    {
+        Req->KernelStatus = DEBUGGER_ERROR_PT_NOT_SUPPORTED;
+        return FALSE;
+    }
+
+    Req->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    return TRUE;
+}
+
+/**
  * @brief Perform actions related to HyperTrace PT
  *
  * @param PtOperationRequest

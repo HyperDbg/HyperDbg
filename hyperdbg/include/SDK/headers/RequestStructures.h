@@ -1326,6 +1326,42 @@ typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
 // ==============================================================================================
 
 /**
+ * @brief Result packet for the HyperTrace PT mmap surface.
+ *
+ *        On success KernelStatus is DEBUGGER_OPERATION_WAS_SUCCESSFUL,
+ *        NumCpus gives the number of CPUs that were mapped, and
+ *        Cpus[0..NumCpus) hand back a single { UserVa, Size } per CPU.
+ *        Each Size covers the main output buffer immediately followed
+ *        by the 4 KB overflow page as one contiguous byte stream.
+ *
+ *        Mapping contract (cooperative single-process):
+ *          - The IOCTL maps into the address space of the process that
+ *            calls DeviceIoControl. The returned user VAs are not
+ *            portable across processes.
+ *          - Mapping is tied to the PT enable cycle. PT disable / flush
+ *            tears the mapping down; the caller must not touch the
+ *            user VAs afterwards.
+ *          - Calling the IOCTL twice within the same enable cycle
+ *            returns the existing mapping (idempotent).
+ */
+typedef struct _HYPERTRACE_PT_MMAP_PACKETS
+{
+    UINT32              KernelStatus;
+    UINT32              NumCpus;
+    PT_USER_BUFFER_DESC Cpus[PT_MAX_CPUS_FOR_MMAP];
+
+} HYPERTRACE_PT_MMAP_PACKETS, *PHYPERTRACE_PT_MMAP_PACKETS;
+
+/**
+ * @brief Debugger size of HYPERTRACE_PT_MMAP_PACKETS
+ *
+ */
+#define SIZEOF_HYPERTRACE_PT_MMAP_PACKETS \
+    sizeof(HYPERTRACE_PT_MMAP_PACKETS)
+
+// ==============================================================================================
+
+/**
  * @brief Maximum number of IDT entries
  *
  */

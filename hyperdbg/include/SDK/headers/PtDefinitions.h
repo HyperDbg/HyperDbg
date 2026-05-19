@@ -53,6 +53,13 @@
 #define PT_MAX_ADDR_RANGES     4
 
 //
+// Maximum CPUs that the PT user-mode mmap surface can describe in a
+// single request. Sized to fit one HYPERTRACE_PT_MMAP_PACKETS within a
+// typical IOCTL buffer and to cover realistic host topologies.
+//
+#define PT_MAX_CPUS_FOR_MMAP 64
+
+//
 // ToPA entry Size field encoding: value N = 4KB * 2^N
 //
 #define PT_TOPA_SIZE_4K   0
@@ -335,3 +342,29 @@ typedef struct _PT_OUTPUT_BUFFER
     UINT64 WriteOffset; /* Next write position; valid data is [0..WriteOffset) */
 
 } PT_OUTPUT_BUFFER, *PPT_OUTPUT_BUFFER;
+
+//////////////////////////////////////////////////
+//          User-mode mmap descriptor           //
+//////////////////////////////////////////////////
+
+/**
+ * @brief One per-CPU descriptor returned by the PT mmap surface.
+ *
+ *        The main output buffer and the 4 KB overflow page are stitched
+ *        into a single virtually contiguous region in the calling user
+ *        process — main first, then overflow, matching the order PT
+ *        writes them on a ToPA PMI. Consumers read the whole stream
+ *        as Size bytes starting at UserVa.
+ *
+ *        UserVa is valid only in the address space of the process that
+ *        issued the mmap IOCTL, and only until PT is disabled / flushed
+ *        (at which point the underlying kernel buffers are torn down).
+ */
+typedef struct _PT_USER_BUFFER_DESC
+{
+    UINT32 CpuId;
+    UINT32 Reserved;
+    UINT64 UserVa; /* base of the combined main + overflow mapping */
+    UINT64 Size;   /* total bytes in the mapping (main + overflow) */
+
+} PT_USER_BUFFER_DESC, *PPT_USER_BUFFER_DESC;

@@ -84,6 +84,139 @@ PtVaToPa(PVOID Va)
 }
 
 //////////////////////////////////////////////////
+//          User-mode mmap helpers              //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Build an MDL whose PFN list concatenates the main output
+ *        buffer and the overflow page, then map the combined region
+ *        into the current user process as one virtually contiguous
+ *        range.
+ *
+ *        Main and overflow come from separate
+ *        MmAllocateContiguousMemorySpecifyCache calls so they are each
+ *        physically contiguous but not contiguous with each other. By
+ *        constructing one MDL whose PFN array is [main pfns | overflow
+ *        pfns], MmMapLockedPagesSpecifyCache produces a single user VA
+ *        range of MainSize + OverflowSize bytes that the consumer reads
+ *        as one stream (main first, overflow second). Pages are
+ *        non-paged so MDL_PAGES_LOCKED is enough to satisfy the mapper.
+ *
+ *        Wrapped in SEH because MmMapLockedPagesSpecifyCache raises on
+ *        quota / VAD failures rather than returning NULL.
+ *
+ * @return INT32  0 on success, -1 on failure (outputs untouched).
+ */
+static INT32
+PtMmapCpuRegionToUser(PVOID  MainVa,
+                      UINT64 MainPhysical,
+                      SIZE_T MainSize,
+                      UINT64 OverflowPhysical,
+                      SIZE_T OverflowSize,
+                      PMDL * OutMdl,
+                      PVOID * OutUserVa)
+{
+    SIZE_T       TotalSize = MainSize + OverflowSize;
+    ULONG        MainPages;
+    ULONG        OverflowPages;
+    ULONG        i;
+    PFN_NUMBER * Pfns;
+    PFN_NUMBER   MainPfnBase;
+    PFN_NUMBER   OverflowPfnBase;
+    PMDL         Mdl;
+    PVOID        UserVa = NULL;
+
+    if (MainVa == NULL || MainSize == 0 || OverflowSize == 0 || TotalSize == 0)
+        return -1;
+
+    //
+    // Sizes must be whole pages — ToPA-backed buffers always are.
+    //
+    if ((MainSize & (PT_PAGE_SIZE - 1)) != 0 || (OverflowSize & (PT_PAGE_SIZE - 1)) != 0)
+        return -1;
+
+    //
+    // IoAllocateMdl sizes the embedded PFN array from the byte range we
+    // pass in. The seed VA only sets the byte-offset within the first
+    // page (0 for our page-aligned contiguous allocations); we overwrite
+    // the PFN list below so it stops describing MainVa past its own end.
+    //
+    Mdl = IoAllocateMdl(MainVa, (ULONG)TotalSize, FALSE, FALSE, NULL);
+    if (Mdl == NULL)
+        return -1;
+
+    MainPages       = (ULONG)(MainSize >> PAGE_SHIFT);
+    OverflowPages   = (ULONG)(OverflowSize >> PAGE_SHIFT);
+    MainPfnBase     = (PFN_NUMBER)(MainPhysical >> PAGE_SHIFT);
+    OverflowPfnBase = (PFN_NUMBER)(OverflowPhysical >> PAGE_SHIFT);
+
+    Pfns = MmGetMdlPfnArray(Mdl);
+    for (i = 0; i < MainPages; i++)
+        Pfns[i] = MainPfnBase + i;
+    for (i = 0; i < OverflowPages; i++)
+        Pfns[MainPages + i] = OverflowPfnBase + i;
+
+    //
+    // Pages are physically present and non-pageable (contiguous memory);
+    // tag the MDL so MmMapLockedPagesSpecifyCache accepts it.
+    //
+    Mdl->MdlFlags |= MDL_PAGES_LOCKED;
+
+    __try
+    {
+        UserVa = MmMapLockedPagesSpecifyCache(
+            Mdl,
+            UserMode,
+            MmCached,
+            NULL,
+            FALSE,
+            NormalPagePriority);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        UserVa = NULL;
+    }
+
+    if (UserVa == NULL)
+    {
+        IoFreeMdl(Mdl);
+        return -1;
+    }
+
+    *OutMdl    = Mdl;
+    *OutUserVa = UserVa;
+    return 0;
+}
+
+/**
+ * @brief Tear down the combined user mapping produced by
+ *        PtMmapCpuRegionToUser. Caller must be in the mapping process;
+ *        see the cooperative single-process contract.
+ */
+static VOID
+PtUnmapCpuRegionFromUser(PMDL Mdl, PVOID UserVa)
+{
+    if (UserVa != NULL && Mdl != NULL)
+    {
+        __try
+        {
+            MmUnmapLockedPages(UserVa, Mdl);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            //
+            // Mapping process may have already exited.
+            //
+        }
+    }
+
+    if (Mdl != NULL)
+    {
+        IoFreeMdl(Mdl);
+    }
+}
+
+//////////////////////////////////////////////////
 //                Engine routines               //
 //////////////////////////////////////////////////
 
@@ -960,12 +1093,112 @@ PtFreeAllCpuBuffers()
     if (g_PtStateList == NULL)
         return;
 
+    //
+    // Drop any live user mappings before the underlying contiguous
+    // memory goes away. Must run in the same process that called the
+    // mmap IOCTL — see HYPERTRACE_PT_MMAP_PACKETS for the contract.
+    //
+    PtUnmapAllCpuBuffersFromUser();
+
     ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     for (i = 0; i < ProcessorsCount; i++)
     {
         PtEngineFreeBuffers(&g_PtStateList[i]);
     }
+}
+
+/**
+ * @brief Map every per-CPU PT main output buffer and 4 KB overflow page
+ *        into the current user process as a single virtually contiguous
+ *        region per CPU, and fill OutDescs[i] with the base UserVa and
+ *        the total Size (main + overflow) for that CPU.
+ *
+ *        PT buffers must already exist (PtAllocateAllCpuBuffers must
+ *        have run, i.e. PT is enabled). Idempotent within an enable
+ *        cycle: a second call returns the already-cached mappings. On
+ *        any per-CPU failure the partial work is rolled back and the
+ *        function returns -1.
+ *
+ * @return INT32  0 on success, -1 on failure.
+ */
+INT32
+PtMmapAllCpuBuffersToUser(PT_USER_BUFFER_DESC * OutDescs, UINT32 MaxDescs, UINT32 * OutNumCpus)
+{
+    UINT32 ProcessorsCount;
+    UINT32 i;
+
+    if (OutDescs == NULL || OutNumCpus == NULL || g_PtStateList == NULL)
+        return -1;
+
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    if (ProcessorsCount == 0 || ProcessorsCount > MaxDescs || ProcessorsCount > PT_MAX_CPUS_FOR_MMAP)
+        return -1;
+
+    if (!g_PtUserMappingsActive)
+    {
+        for (i = 0; i < ProcessorsCount; i++)
+        {
+            PT_PER_CPU * Cpu = &g_PtStateList[i];
+
+            if (Cpu->Buffer.OutputVa == NULL || Cpu->Buffer.OverflowVa == NULL)
+            {
+                PtUnmapAllCpuBuffersFromUser();
+                return -1;
+            }
+
+            if (PtMmapCpuRegionToUser(Cpu->Buffer.OutputVa,
+                                      Cpu->Buffer.OutputPhysical,
+                                      (SIZE_T)Cpu->Buffer.OutputSize,
+                                      Cpu->Buffer.OverflowPhysical,
+                                      (SIZE_T)PT_OVERFLOW_SIZE,
+                                      &g_PtUserMappings[i].Mdl,
+                                      &g_PtUserMappings[i].UserVa) != 0)
+            {
+                PtUnmapAllCpuBuffersFromUser();
+                return -1;
+            }
+        }
+
+        g_PtUserMappingsActive = TRUE;
+    }
+
+    for (i = 0; i < ProcessorsCount; i++)
+    {
+        OutDescs[i].CpuId    = i;
+        OutDescs[i].Reserved = 0;
+        OutDescs[i].UserVa   = (UINT64)(ULONG_PTR)g_PtUserMappings[i].UserVa;
+        OutDescs[i].Size     = g_PtStateList[i].Buffer.OutputSize + PT_OVERFLOW_SIZE;
+    }
+
+    *OutNumCpus = ProcessorsCount;
+    return 0;
+}
+
+/**
+ * @brief Release every user mapping created by PtMmapAllCpuBuffersToUser.
+ *        Called by PtFreeAllCpuBuffers (i.e. on PT disable / flush) so
+ *        user VAs stop being usable before the backing memory is freed.
+ *        Also used as a rollback path on partial mmap failure.
+ *
+ *        Always walks the full table (PtUnmapCpuRegionFromUser is
+ *        NULL-safe) so rollback after a half-finished mapping still
+ *        cleans up the CPUs that were mapped before the failure.
+ */
+VOID
+PtUnmapAllCpuBuffersFromUser()
+{
+    UINT32 i;
+
+    for (i = 0; i < PT_MAX_CPUS_FOR_MMAP; i++)
+    {
+        PtUnmapCpuRegionFromUser(g_PtUserMappings[i].Mdl,
+                                 g_PtUserMappings[i].UserVa);
+        g_PtUserMappings[i].Mdl    = NULL;
+        g_PtUserMappings[i].UserVa = NULL;
+    }
+
+    g_PtUserMappingsActive = FALSE;
 }
 
 /**

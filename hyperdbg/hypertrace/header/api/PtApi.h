@@ -28,3 +28,6 @@ HyperTracePtFlush(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
 
 BOOLEAN
 HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest);
+
+BOOLEAN
+HyperTracePtMmap(HYPERTRACE_PT_MMAP_PACKETS * Req);

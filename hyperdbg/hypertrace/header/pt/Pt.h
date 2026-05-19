@@ -48,6 +48,21 @@ typedef struct _PT_FILTER_OPTIONS
 
 } PT_FILTER_OPTIONS, *PPT_FILTER_OPTIONS;
 
+/**
+ * @brief Per-CPU bookkeeping for the user-mode mmap surface.
+ *
+ *        One MDL + user VA per CPU describes the main output buffer
+ *        immediately followed by the 4 KB overflow page as a single
+ *        virtually contiguous region in the mapping process. Lives in
+ *        g_PtUserMappings; lifetime tied to the PT enable cycle.
+ */
+typedef struct _PT_USER_MAPPING
+{
+    PMDL  Mdl;
+    PVOID UserVa;
+
+} PT_USER_MAPPING, *PPT_USER_MAPPING;
+
 //////////////////////////////////////////////////
 //                  Functions                   //
 //////////////////////////////////////////////////
@@ -96,6 +111,17 @@ PtAllocateAllCpuBuffers();
 
 VOID
 PtFreeAllCpuBuffers();
+
+//
+// User-mode mmap surface: map every per-CPU main output + overflow
+// buffer into the calling user process. Idempotent within an enable
+// cycle; torn down by PtFreeAllCpuBuffers (i.e. PT disable / flush).
+//
+INT32
+PtMmapAllCpuBuffersToUser(PT_USER_BUFFER_DESC * OutDescs, UINT32 MaxDescs, UINT32 * OutNumCpus);
+
+VOID
+PtUnmapAllCpuBuffersFromUser();
 
 //
 // Engine routines (operate on a specific PT_PER_CPU instance)
