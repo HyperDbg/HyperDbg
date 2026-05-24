@@ -88,6 +88,37 @@ HyperTraceLbrCheck()
 }
 
 /**
+ * @brief Restore (re-enable) LBR collection on the current core with the specified filter options
+ * @param FilterOptions A bitmask of filter options to apply to the LBR branches
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrRestoreByFilter(UINT64 FilterOptions)
+{
+    //
+    // Only restore (re-enable) LBR once it is already initialized
+    //
+    if (g_LastBranchRecordEnabled)
+    {
+        return FALSE;
+    }
+
+    return LbrStart(FilterOptions);
+}
+
+/**
+ * @brief Restore (re-enable) LBR collection on the current core with previous filter options
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrRestore()
+{
+    return HyperTraceLbrRestoreByFilter(g_LbrFilterOptions);
+}
+
+/**
  * @brief Enable LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
@@ -100,11 +131,15 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
     //
     // Check if LBR is already enabled or not
     //
+    // We allow re-enabling LBR even if it is already enabled to support scenarios where
+    // the LBR is deactivated as a result of a #DB and wants to re-enable it again
+    /*
     if (g_LastBranchRecordEnabled)
     {
         HyperTraceSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_ENABLED);
         return FALSE;
     }
+    */
 
     //
     // Check for ARCHITECTURAL LBR support first, if not supported then check for LEGACY LBR support

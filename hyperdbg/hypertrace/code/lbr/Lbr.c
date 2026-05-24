@@ -775,6 +775,11 @@ LbrAdjustFilterOptions(UINT64 FilterOptions, IA32_LBR_CTL_REGISTER * Ia32LbrCtl)
     LbrAdjustFilterOptionsForCallStack(&FilterOptions);
 
     //
+    // Save the LBR filter options to a global variable for later use
+    //
+    g_LbrFilterOptions = FilterOptions;
+
+    //
     // For architectural LBR, convert filter options into IA32_LBR_CTL bit fields
     //
     if (g_ArchBasedLastBranchRecord)

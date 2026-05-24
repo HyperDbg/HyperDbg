@@ -2089,3 +2089,43 @@ ScriptEngineFunctionLbrCheck()
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
+
+/**
+ * @brief Implementation of lbr_restore function
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFunctionLbrRestore()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call lbr_restore function in the user-mode\n");
+    return FALSE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    return HyperTraceLbrRestore();
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of lbr_restore_by_filter function
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFunctionLbrRestoreByFilter(UINT64 FilterOptions)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call lbr_restore_by_filter function in the user-mode\n");
+    return FALSE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    return HyperTraceLbrRestoreByFilter(FilterOptions);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}

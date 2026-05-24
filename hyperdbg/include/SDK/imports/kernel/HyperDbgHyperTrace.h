@@ -37,13 +37,19 @@ HyperTraceUnInit();
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrCheck();
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrRestore();
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrRestoreByFilter(UINT64 FilterOptions);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrPrint(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
-
-IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceLbrCheck();
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);

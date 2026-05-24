@@ -70,3 +70,9 @@ ULONGLONG g_LbrCapacity;
  *
  */
 CPUID28_LEAFS g_Cpuid28Leafs;
+
+/**
+ * @brief The global variable to hold the current LBR filter options bitmask (for both architectural and legacy LBR)
+ *
+ */
+UINT64 g_LbrFilterOptions;

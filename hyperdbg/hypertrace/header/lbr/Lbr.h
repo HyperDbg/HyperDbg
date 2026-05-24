@@ -169,11 +169,11 @@ LbrCheckAndReadArchitecturalLbrDetails();
 BOOLEAN
 LbrStart(UINT64 FilterOptions);
 
-VOID
-LbrFilter(UINT64 FilterOptions);
-
 BOOLEAN
 LbrCheck();
+
+VOID
+LbrFilter(UINT64 FilterOptions);
 
 VOID
 LbrStop();
