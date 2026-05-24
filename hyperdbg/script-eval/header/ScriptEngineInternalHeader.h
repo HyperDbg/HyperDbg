@@ -269,6 +269,9 @@ ScriptEngineFunctionLbrSave();
 BOOLEAN
 ScriptEngineFunctionLbrPrint();
 
+BOOLEAN
+ScriptEngineFunctionLbrCheck();
+
 UINT64
 ScriptEngineFunctionStrcmp(const char * Address1, const char * Address2);
 

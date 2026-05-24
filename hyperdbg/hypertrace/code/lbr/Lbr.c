@@ -377,8 +377,8 @@ LbrSetLbrSelectFilter(UINT64 FilterOptions)
 /**
  * @brief Zero out the LBR hardware state (TOS and all from/to MSR pairs)
  *
- * @details For architectural LBR the TOS index is not maintained by software — the CPU
- *          shifts entries automatically — so MSR_LBR_TOS is skipped in that case.
+ * @details For architectural LBR the TOS index is not maintained by software and the CPU
+ * shifts entries automatically, so MSR_LBR_TOS is skipped in that case.
  *
  * @return VOID
  */
@@ -793,6 +793,76 @@ LbrAdjustFilterOptions(UINT64 FilterOptions, IA32_LBR_CTL_REGISTER * Ia32LbrCtl)
 }
 
 /**
+ * @brief Check if architectural LBR is enabled based on the IA32_LBR_CTL register value
+ *
+ * @param Ia32LbrCtl The IA32_LBR_CTL register value to inspect
+ * @return BOOLEAN
+ */
+BOOLEAN
+LbrCheckArchBased(IA32_LBR_CTL_REGISTER Ia32LbrCtl)
+{
+    return Ia32LbrCtl.Bits.LBREn ? TRUE : FALSE;
+}
+
+/**
+ * @brief Check if legacy LBR is enabled based on the IA32_DEBUGCTL MSR value
+ *
+ * @param DbgCtlMsr The IA32_DEBUGCTL MSR value to inspect
+ * @return BOOLEAN
+ */
+BOOLEAN
+LbrCheckLegacyBased(ULONGLONG DbgCtlMsr)
+{
+    return (DbgCtlMsr & IA32_DEBUGCTL_LBR_FLAG) ? TRUE : FALSE;
+}
+
+/**
+ * @brief Check if LBR is enabled while in VMX root-mode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LbrCheckOnVmxRootMode()
+{
+    ULONGLONG             DbgCtlMsr  = 0;
+    IA32_LBR_CTL_REGISTER Ia32LbrCtl = {0};
+
+    if (g_ArchBasedLastBranchRecord)
+    {
+        Ia32LbrCtl.AsUInt = g_Callbacks.VmFuncGetGuestIa32LbrCtl();
+        return LbrCheckArchBased(Ia32LbrCtl);
+    }
+    else
+    {
+        DbgCtlMsr = g_Callbacks.VmFuncGetDebugctl();
+        return LbrCheckLegacyBased(DbgCtlMsr);
+    }
+}
+
+/**
+ * @brief Check if LBR is enabled while in native mode or VMX non-root mode
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LbrCheckOnNativeOrVmxNonRootMode()
+{
+    ULONGLONG             DbgCtlMsr  = 0;
+    IA32_LBR_CTL_REGISTER Ia32LbrCtl = {0};
+
+    if (g_ArchBasedLastBranchRecord)
+    {
+        xrdmsr(IA32_LBR_CTL, &Ia32LbrCtl.AsUInt);
+        return LbrCheckArchBased(Ia32LbrCtl);
+    }
+    else
+    {
+        xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
+        return LbrCheckLegacyBased(DbgCtlMsr);
+    }
+}
+
+/**
  * @brief Check if LBR is enabled or not
  *
  * @return BOOLEAN
@@ -800,37 +870,20 @@ LbrAdjustFilterOptions(UINT64 FilterOptions, IA32_LBR_CTL_REGISTER * Ia32LbrCtl)
 BOOLEAN
 LbrCheck()
 {
-    ULONGLONG             DbgCtlMsr  = 0;
-    IA32_LBR_CTL_REGISTER Ia32LbrCtl = {0};
+    BOOLEAN IsOnVmxRootMode = FALSE;
 
-    //
-    // Check if LBR is enabled or not
-    //
-    if (g_ArchBasedLastBranchRecord)
+    if (g_RunningOnHypervisorEnvironment)
     {
-        xrdmsr(IA32_LBR_CTL, &Ia32LbrCtl.AsUInt);
+        IsOnVmxRootMode = g_Callbacks.VmFuncVmxGetCurrentExecutionMode();
+    }
 
-        if (Ia32LbrCtl.Bits.LBREn)
-        {
-            return TRUE;
-        }
-        else
-        {
-            return FALSE;
-        }
+    if (IsOnVmxRootMode)
+    {
+        return LbrCheckOnVmxRootMode();
     }
     else
     {
-        xrdmsr(IA32_DEBUGCTL, &DbgCtlMsr);
-
-        if (DbgCtlMsr & IA32_DEBUGCTL_LBR_FLAG)
-        {
-            return TRUE;
-        }
-        else
-        {
-            return FALSE;
-        }
+        return LbrCheckOnNativeOrVmxNonRootMode();
     }
 }
 

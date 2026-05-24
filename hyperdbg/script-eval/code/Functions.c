@@ -2048,7 +2048,7 @@ ScriptEngineFunctionLbrSave()
 }
 
 /**
- * @brief Implementation of lbr_print_all function
+ * @brief Implementation of lbr_print function
  *
  * @return BOOLEAN
  */
@@ -2056,7 +2056,7 @@ BOOLEAN
 ScriptEngineFunctionLbrPrint()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("err, it's not possible to call lbr_dump function in the user-mode\n");
+    ShowMessages("err, it's not possible to call lbr_print function in the user-mode\n");
     return FALSE;
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -2066,6 +2066,26 @@ ScriptEngineFunctionLbrPrint()
     // Depending if we are in VMX-root then a VMCALL is issued by default instead, otherwise the VMCALL is ignored
     //
     return HyperTraceLbrPrint(NULL);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of lbr_check function
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFunctionLbrCheck()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call lbr_check function in the user-mode\n");
+    return FALSE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    return HyperTraceLbrCheck();
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

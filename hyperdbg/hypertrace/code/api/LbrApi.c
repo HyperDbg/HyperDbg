@@ -77,6 +77,17 @@ HyperTraceSetKernelStatus(
 }
 
 /**
+ * @brief Check if LBR is supported and enabled on the current core
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrCheck()
+{
+    return LbrCheck();
+}
+
+/**
  * @brief Enable LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
@@ -243,7 +254,7 @@ HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
         return FALSE;
     }
 
-    LogInfo("Saving LBR Buffer...\n");
+    // LogInfo("Saving LBR Buffer...\n");
 
     //
     // Save the LBR state
@@ -277,7 +288,7 @@ HyperTraceLbrPrint(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest
         return FALSE;
     }
 
-    LogInfo("Dumping LBR Buffer...\n");
+    // LogInfo("Dumping LBR Buffer...\n");
 
     //
     // Save the LBR state
