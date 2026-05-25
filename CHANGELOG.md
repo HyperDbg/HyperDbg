@@ -14,9 +14,11 @@ New release of the HyperDbg Debugger.
 - Added Architectural LBR support to the HyperTrace module
 - Added the '!lbr' command for performing different Last Branch Record (LBR) operations ([link](https://docs.hyperdbg.org/commands/extension-commands/lbr))
 - Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdmp))
-- Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr_print))
+- Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_print))
 - Added mock application for compiling SDK for Linux
 - Add '!help' alias for the '.help' command
+- Added **lbr_check()** and **lbr_restore()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_check))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore))
+- Added **lbr_restore_by_filter(filter)** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore_by_filter))
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
