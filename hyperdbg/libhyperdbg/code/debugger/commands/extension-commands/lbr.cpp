@@ -56,6 +56,10 @@ CommandLbrHelp()
     ShowMessages("\t                 not available on CPUs older than Haswell. for this item you can only specify the 'user'\n");
     ShowMessages("\t                 or the 'kernel'. it prevents all types of branches except calls and rets\n");
     ShowMessages("\t (no option):    capture everything (default option)\n");
+
+    ShowMessages("\nnote 1: LBR is usually not supported (or is emulated) in nested virtualization (VM) environments\n");
+    ShowMessages("note 2: LBR will be disabled if there is a debug-break (#DB) condition, such as the trap flags or\n");
+    ShowMessages("        hardware debug registers (to learn how to mitigate this, check the documentation)\n");
 }
 
 /**

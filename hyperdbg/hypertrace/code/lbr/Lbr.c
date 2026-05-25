@@ -1208,7 +1208,7 @@ LbrPrint()
     //
     State = &g_LbrStateList[CurrentCore];
 
-    Log("LBR Chronological Trace on core (decimal): %d\n", CurrentCore);
+    Log("LBR Chronological Trace on core : 0x%x\n\n", CurrentCore);
 
     for (ULONG i = 1; i <= g_LbrCapacity; i++)
     {
