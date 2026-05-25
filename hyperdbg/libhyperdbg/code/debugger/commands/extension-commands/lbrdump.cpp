@@ -80,6 +80,7 @@ VOID
 CommandLbrdumpHelp()
 {
     ShowMessages("!lbrdump : dumps Last Branch Record (LBR).\n");
+    ShowMessages("for using this command, you should configure it using the '!lbr' command\n");
 
     ShowMessages("syntax : \t!lbrdump [core CoreId (hex)]\n");
 
@@ -103,15 +104,15 @@ CommandLbrdumpGetArchBranchTypet(UINT32 BrType, CHAR * BrTypeName)
 {
     if (BrType == LBR_BR_TYPE_COND)
     {
-        strncpy(BrTypeName, "COND", LBR_BR_TYPE_NAME_MAX_LEN);
+        strncpy(BrTypeName, "COND         ", LBR_BR_TYPE_NAME_MAX_LEN);
     }
     else if (BrType == LBR_BR_TYPE_JMP_INDIRECT)
     {
-        strncpy(BrTypeName, "JMP Indirect", LBR_BR_TYPE_NAME_MAX_LEN);
+        strncpy(BrTypeName, "JMP Indirect ", LBR_BR_TYPE_NAME_MAX_LEN);
     }
     else if (BrType == LBR_BR_TYPE_JMP_DIRECT)
     {
-        strncpy(BrTypeName, "JMP Direct", LBR_BR_TYPE_NAME_MAX_LEN);
+        strncpy(BrTypeName, "JMP Direct   ", LBR_BR_TYPE_NAME_MAX_LEN);
     }
     else if (BrType == LBR_BR_TYPE_CALL_INDIRECT)
     {
@@ -119,23 +120,23 @@ CommandLbrdumpGetArchBranchTypet(UINT32 BrType, CHAR * BrTypeName)
     }
     else if (BrType == LBR_BR_TYPE_CALL_DIRECT)
     {
-        strncpy(BrTypeName, "CALL Direct", LBR_BR_TYPE_NAME_MAX_LEN);
+        strncpy(BrTypeName, "CALL Direct  ", LBR_BR_TYPE_NAME_MAX_LEN);
     }
     else if (BrType == LBR_BR_TYPE_RET)
     {
-        strncpy(BrTypeName, "RET", LBR_BR_TYPE_NAME_MAX_LEN);
+        strncpy(BrTypeName, "RET          ", LBR_BR_TYPE_NAME_MAX_LEN);
     }
     else if (BrType >= LBR_BR_TYPE_RESERVED_MIN && BrType <= LBR_BR_TYPE_RESERVED_MAX)
     {
-        strncpy(BrTypeName, "Reserved", LBR_BR_TYPE_NAME_MAX_LEN);
+        strncpy(BrTypeName, "Reserved     ", LBR_BR_TYPE_NAME_MAX_LEN);
     }
     else if (BrType >= LBR_BR_TYPE_OTHER_MIN && BrType <= LBR_BR_TYPE_OTHER_MAX)
     {
-        strncpy(BrTypeName, "Other Branch", LBR_BR_TYPE_NAME_MAX_LEN);
+        strncpy(BrTypeName, "Other Branch ", LBR_BR_TYPE_NAME_MAX_LEN);
     }
     else
     {
-        strncpy(BrTypeName, "Unknown", LBR_BR_TYPE_NAME_MAX_LEN);
+        strncpy(BrTypeName, "Unknown      ", LBR_BR_TYPE_NAME_MAX_LEN);
     }
 }
 
@@ -154,7 +155,7 @@ CommandLbrdumpPrint(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
     CHAR    BrTypeName[LBR_BR_TYPE_NAME_MAX_LEN] = {0};
     UINT32  BrType                               = 0;
 
-    ShowMessages("LBR Chronological Trace on core (decimal): %d\n\n", LbrdumpRequest->CoreId);
+    ShowMessages("LBR Chronological Trace on core: 0x%x\n\n", LbrdumpRequest->CoreId);
 
     for (ULONG i = 1; i <= LbrdumpRequest->CurrentLbrCapacity; i++)
     {
@@ -218,6 +219,10 @@ CommandLbrdumpPrint(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
                      "\t you can use the 'lbr_save();' function in the script engine\n"
                      "\t on the target core to save the LBR entries before dumping\n\n"
                      "\t ===========================================================\n\n");
+    }
+    else
+    {
+        ShowMessages("\n\t ===========================================================\n\n");
     }
 }
 

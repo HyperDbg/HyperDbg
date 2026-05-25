@@ -35,10 +35,10 @@
 # TwoOpFunc4 the two inputs are numbers or wstrings and returns a number.
 .TwoOpFunc4->wcscmp
 
-.ZeroOpFunc1->pause flush event_trace_step event_trace_step_in event_trace_step_out event_trace_instrumentation_step event_trace_instrumentation_step_in lbr_check
+.ZeroOpFunc1->pause flush event_trace_step event_trace_step_in event_trace_step_out event_trace_instrumentation_step event_trace_instrumentation_step_in 
 
 # ZeroOpFunc2 no input and returns a number
-.ZeroOpFunc2->rdtsc rdtscp lbr_save lbr_dump lbr_print lbr_restore
+.ZeroOpFunc2->rdtsc rdtscp lbr_save lbr_dump lbr_print lbr_restore lbr_check
 
 .VarArgFunc1->printf 
 

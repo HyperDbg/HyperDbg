@@ -510,9 +510,13 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 
         HyperTraceLbrUpdateFilterOptions(LbrOperationRequest);
 
+        break;
+
     default:
+
         Status                            = FALSE;
         LbrOperationRequest->KernelStatus = DEBUGGER_ERROR_INVALID_HYPERTRACE_OPERATION_TYPE;
+
         break;
     }
 
