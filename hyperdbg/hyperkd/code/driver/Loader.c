@@ -125,6 +125,11 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.LogCallbackCheckIfBufferIsFull                 = LogCallbackCheckIfBufferIsFull;
 
     //
+    // Fill the HyperTrace callback(s)
+    //
+    VmmCallbacks.HyperTraceLbrIsSupported = HyperTraceLbrIsSupported;
+
+    //
     // Fill the VMM callbacks
     //
     VmmCallbacks.VmmCallbackTriggerEvents                   = DebuggerTriggerEvents;
