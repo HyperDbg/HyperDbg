@@ -134,10 +134,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PHYPERTRACE_LBR_DUMP_PACKETS                            HyperTraceLbrdumpRequest;
     PHYPERTRACE_PT_OPERATION_PACKETS                        HyperTracePtOperationRequest;
     PVOID                                                   BufferToStoreThreadsAndProcessesDetails;
-    NTSTATUS                                                Status;
     ULONG                                                   InBuffLength;  // Input buffer length
     ULONG                                                   OutBuffLength; // Output buffer length
     SIZE_T                                                  ReturnSize;
+    NTSTATUS                                                Status                 = STATUS_SUCCESS;
     BOOLEAN                                                 DoNotChangeInformation = FALSE;
 
     //
@@ -152,6 +152,35 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
         switch (IrpStack->Parameters.DeviceIoControl.IoControlCode)
         {
+        case IOCTL_INIT_VMM:
+
+            //
+            // Initialize the vmm and the debugger
+            //
+            if (LoaderInitVmmAndDebugger())
+            {
+                DoNotChangeInformation = FALSE;
+                Status                 = STATUS_SUCCESS;
+            }
+            else
+            {
+                //
+                // There was a problem, so not loaded
+                //
+                DoNotChangeInformation = FALSE;
+                Status                 = STATUS_UNSUCCESSFUL;
+            }
+
+            break;
+
+        case IOCTL_INIT_HYPERTRACE:
+
+            //
+            // Initialize HyperTrace
+            //
+
+            break;
+
         case IOCTL_REGISTER_EVENT:
 
             //

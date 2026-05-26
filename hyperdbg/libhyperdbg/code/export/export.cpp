@@ -64,25 +64,25 @@ hyperdbg_u_unload_vmm()
 }
 
 /**
- * @brief Install the VMM driver
+ * @brief Install the KD driver
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_install_vmm_driver()
+hyperdbg_u_install_kd_driver()
 {
-    return HyperDbgInstallVmmDriver();
+    return HyperDbgInstallKdDriver();
 }
 
 /**
- * @brief Uninstall the VMM driver
+ * @brief Uninstall the KD (Kernel Debugger) driver
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_uninstall_vmm_driver()
+hyperdbg_u_uninstall_kd_driver()
 {
-    return HyperDbgUninstallVmmDriver();
+    return HyperDbgUninstallKdDriver();
 }
 
 /**

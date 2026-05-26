@@ -33,6 +33,7 @@ CommandLoadHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : load vmm\n");
+    ShowMessages("\t\te.g : load trace\n");
 }
 
 /**
@@ -64,7 +65,7 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
     //
     // Check for the module
     //
-    if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") || CompareLowerCaseStrings(CommandTokens.at(1), "vm"))
     {
         //
         // Check to make sure that the driver is not already loaded
@@ -81,7 +82,7 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
         //
         ShowMessages("loading the vmm driver\n");
 
-        if (HyperDbgInstallVmmDriver() == 1 || HyperDbgLoadVmmModule() == 1)
+        if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
             ShowMessages("failed to install or load the driver\n");
             return;

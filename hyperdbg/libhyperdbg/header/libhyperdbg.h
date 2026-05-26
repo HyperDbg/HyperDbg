@@ -22,10 +22,10 @@ INT
 HyperDbgUnloadVmm();
 
 INT
-HyperDbgInstallVmmDriver();
+HyperDbgInstallKdDriver();
 
 INT
-HyperDbgUninstallVmmDriver();
+HyperDbgUninstallKdDriver();
 
 INT
 HyperDbgLoadVmmModule();

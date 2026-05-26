@@ -554,13 +554,13 @@ SetDebugPrivilege()
 }
 
 /**
- * @brief Install VMM driver
+ * @brief Install KD (Kernel Debugger) driver
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
  */
 INT
-HyperDbgInstallVmmDriver()
+HyperDbgInstallKdDriver()
 {
     //
     // The driver is not started yet so let us the install driver
@@ -656,33 +656,75 @@ HyperDbgUninstallDriver(LPCTSTR DriverName)
 }
 
 /**
- * @brief Remove the VMM driver
+ * @brief Remove the KD (Kernel Debugger) driver
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
  */
 INT
-HyperDbgUninstallVmmDriver()
+HyperDbgUninstallKdDriver()
 {
     return HyperDbgUninstallDriver(g_DriverName);
 }
 
 /**
- * @brief Create handle from VMM module
+ * @brief Initialize VMM module
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
  */
 INT
-HyperDbgCreateHandleFromVmmModule()
+HyperDbgInitVmmModule()
+{
+    BOOL Status;
+
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    //
+    // Send IOCTL to initialize VMM module
+    //
+    Status = DeviceIoControl(g_DeviceHandle, // Handle to device
+                             IOCTL_INIT_VMM, // IO Control Code (IOCTL)
+                             NULL,           // Input Buffer to driver.
+                             0,              // Length of input buffer in bytes. (x 2 is bcuz
+                                             // as the driver is x64 and has 64 bit values)
+                             NULL,           // Output Buffer from driver.
+                             0,              // Length of output buffer in bytes.
+                             NULL,           // Bytes placed in buffer.
+                             NULL            // synchronous call
+    );
+
+    //
+    // check if the IOCTL was successful, if not show the error message and return
+    //
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return 1;
+    }
+
+    //
+    // VMM module is initialized at this point
+    //
+    return 0;
+}
+
+/**
+ * @brief Create handle from KD (HyperKD) module
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgCreateHandleFromKdModule()
 {
     DWORD ErrorNum;
     DWORD ThreadId;
 
     if (g_DeviceHandle)
     {
-        ShowMessages("handle of the driver found, if you use 'load' before, please "
-                     "unload it using 'unload'\n");
+        ShowMessages("handle of the driver found, if you use the 'load' command before, please "
+                     "unload it using the 'unload' command\n");
         return 1;
     }
 
@@ -851,6 +893,52 @@ HyperDbgUnloadVmm()
 }
 
 /**
+ * @brief load kd module
+ *
+ * @return int return zero if it was successful or non-zero if there
+ */
+INT
+HyperDbgLoadKdModule()
+{
+    //
+    // Create event to show if the kd module is loaded or not
+    //
+    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    if (HyperDbgCreateHandleFromKdModule() == 1)
+    {
+        //
+        // No need to handle anymore
+        //
+        CloseHandle(g_IsDriverLoadedSuccessfully);
+        return 1;
+    }
+
+    //
+    // KD module is loaded at this point
+    //
+
+    //
+    // We wait for the first message from the kernel debugger to continue
+    //
+    WaitForSingleObject(
+        g_IsDriverLoadedSuccessfully,
+        INFINITE);
+
+    //
+    // No need to handle anymore
+    //
+    CloseHandle(g_IsDriverLoadedSuccessfully);
+
+    //
+    // If we reach here so the module are loaded
+    //
+    g_IsDebuggerModulesLoaded = TRUE;
+
+    return 0;
+}
+
+/**
  * @brief load vmm module
  *
  * @return int return zero if it was successful or non-zero if there
@@ -901,39 +989,21 @@ HyperDbgLoadVmmModule()
     }
 
     //
-    // Create event to show if the hypervisor is loaded or not
+    // Load the KD module and create handle to it
     //
-    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-    if (HyperDbgCreateHandleFromVmmModule() == 1)
+    if (HyperDbgLoadKdModule() == 1)
     {
-        //
-        // No need to handle anymore
-        //
-        CloseHandle(g_IsDriverLoadedSuccessfully);
         return 1;
     }
 
     //
-    // Vmm module (Hypervisor) is loaded
+    // Initialize VMM module
     //
-
-    //
-    // We wait for the first message from the kernel debugger to continue
-    //
-    WaitForSingleObject(
-        g_IsDriverLoadedSuccessfully,
-        INFINITE);
-
-    //
-    // No need to handle anymore
-    //
-    CloseHandle(g_IsDriverLoadedSuccessfully);
-
-    //
-    // If we reach here so the module are loaded
-    //
-    g_IsDebuggerModulesLoaded = TRUE;
+    if (HyperDbgInitVmmModule() == 1)
+    {
+        ShowMessages("err, initializing VMM module\n");
+        return 1;
+    }
 
     ShowMessages("vmm module is running...\n");
 

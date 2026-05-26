@@ -43,10 +43,10 @@ IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_unload_vmm();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_install_vmm_driver();
+hyperdbg_u_install_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_uninstall_vmm_driver();
+hyperdbg_u_uninstall_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_stop_vmm_driver();

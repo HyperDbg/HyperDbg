@@ -105,7 +105,7 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
             //
             // Uninstall the driver
             //
-            if (HyperDbgUninstallVmmDriver())
+            if (HyperDbgUninstallKdDriver())
             {
                 ShowMessages("err, failed to uninstall the driver\n");
                 return;
