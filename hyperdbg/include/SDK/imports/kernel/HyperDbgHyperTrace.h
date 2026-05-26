@@ -37,6 +37,9 @@ HyperTraceUnInit();
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrIsSupported(UINT32 * Capacity);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrCheck();
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
