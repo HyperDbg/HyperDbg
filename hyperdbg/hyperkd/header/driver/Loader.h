@@ -17,6 +17,9 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
+LoaderInitHyperLog();
+
+BOOLEAN
 LoaderInitVmmAndDebugger();
 
 BOOLEAN

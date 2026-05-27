@@ -14,7 +14,6 @@
 //
 // Global Variables
 //
-extern HANDLE  g_IsDriverLoadedSuccessfully;
 extern HANDLE  g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;

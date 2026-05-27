@@ -83,6 +83,7 @@ DriverEntry(
     //
     DbgPrint("HyperDbg's device and major functions are loaded");
 
+
     ASSERT(NT_SUCCESS(Ntstatus));
     return Ntstatus;
 }

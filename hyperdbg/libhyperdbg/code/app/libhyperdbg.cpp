@@ -681,6 +681,11 @@ HyperDbgInitVmmModule()
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     //
+    // Create event to show if the kd module is loaded or not
+    //
+    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    //
     // Send IOCTL to initialize VMM module
     //
     Status = DeviceIoControl(g_DeviceHandle, // Handle to device
@@ -700,8 +705,21 @@ HyperDbgInitVmmModule()
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        CloseHandle(g_IsDriverLoadedSuccessfully);
         return 1;
     }
+
+    //
+    // We wait for the first message from the kernel debugger to continue
+    //
+    WaitForSingleObject(
+        g_IsDriverLoadedSuccessfully,
+        INFINITE);
+
+    //
+    // No need to handle anymore
+    //
+    CloseHandle(g_IsDriverLoadedSuccessfully);
 
     //
     // VMM module is initialized at this point
@@ -900,35 +918,17 @@ HyperDbgUnloadVmm()
 INT
 HyperDbgLoadKdModule()
 {
-    //
-    // Create event to show if the kd module is loaded or not
-    //
-    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
-
     if (HyperDbgCreateHandleFromKdModule() == 1)
     {
         //
         // No need to handle anymore
         //
-        CloseHandle(g_IsDriverLoadedSuccessfully);
         return 1;
     }
 
     //
     // KD module is loaded at this point
     //
-
-    //
-    // We wait for the first message from the kernel debugger to continue
-    //
-    WaitForSingleObject(
-        g_IsDriverLoadedSuccessfully,
-        INFINITE);
-
-    //
-    // No need to handle anymore
-    //
-    CloseHandle(g_IsDriverLoadedSuccessfully);
 
     //
     // If we reach here so the module are loaded
@@ -1002,6 +1002,7 @@ HyperDbgLoadVmmModule()
     if (HyperDbgInitVmmModule() == 1)
     {
         ShowMessages("err, initializing VMM module\n");
+
         return 1;
     }
 

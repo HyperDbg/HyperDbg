@@ -94,20 +94,14 @@ LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment)
 }
 
 /**
- * @brief Initialize the VMM and Debugger
+ * @brief Initialize the hyper log module
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitVmmAndDebugger()
+LoaderInitHyperLog()
 {
     MESSAGE_TRACING_CALLBACKS MsgTracingCallbacks = {0};
-    VMM_CALLBACKS             VmmCallbacks        = {0};
-
-    //
-    // Allow to server IOCTL
-    //
-    g_AllowIoctlFromUsermode = TRUE;
 
     //
     // *** Fill the callbacks for the message tracer ***
@@ -115,6 +109,43 @@ LoaderInitVmmAndDebugger()
     MsgTracingCallbacks.VmxOperationCheck            = VmFuncVmxGetCurrentExecutionMode;
     MsgTracingCallbacks.CheckImmediateMessageSending = KdCheckImmediateMessagingMechanism;
     MsgTracingCallbacks.SendImmediateMessage         = KdLoggingResponsePacketToDebugger;
+
+    //
+    // Initialize message tracer (if not already initialized)
+    //
+    if (g_HyperLogInitialized == FALSE && LogInitialize(&MsgTracingCallbacks))
+    {
+        g_HyperLogInitialized = TRUE;
+
+        LogDebugInfo("HyperDbg's hyperlog loaded successfully");
+
+        return TRUE;
+    }
+    else
+    {
+        //
+        // We use DbgPrint here because if the hyperlog is not loaded we can't use it to log the error
+        // so we just log the error with DbgPrint and continue without loading hyperlog
+        //
+        DbgPrint("Err, HyperDbg's hyperlog was not loaded or already loaded");
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Initialize the VMM and Debugger
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LoaderInitVmmAndDebugger()
+{
+    VMM_CALLBACKS VmmCallbacks = {0};
+
+    //
+    // Allow to serve IOCTL
+    //
+    g_AllowIoctlFromUsermode = TRUE;
 
     //
     // *** Fill the callbacks for using hyperlog in VMM ***
@@ -158,44 +189,29 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.InterceptionCallbackTriggerCr3ProcessChange = ProcessTriggerCr3ProcessChange;
 
     //
-    // Initialize message tracer
+    // Initialize VMX
     //
-    if (LogInitialize(&MsgTracingCallbacks))
+    if (VmFuncInitVmm(&VmmCallbacks))
     {
+        LogDebugInfo("HyperDbg's hypervisor loaded successfully");
+
         //
-        // Initialize VMX
+        // Initialize the debugger
         //
-        if (VmFuncInitVmm(&VmmCallbacks))
+        if (DebuggerInitialize())
         {
-            LogDebugInfo("HyperDbg's hypervisor loaded successfully");
+            LogDebugInfo("HyperDbg's debugger loaded successfully");
 
-            //
-            // Initialize the debugger
-            //
-            if (DebuggerInitialize())
-            {
-                LogDebugInfo("HyperDbg's debugger loaded successfully");
-
-                //
-                // Set the variable so no one else can get a handle anymore
-                //
-                g_HandleInUse = TRUE;
-
-                return TRUE;
-            }
-            else
-            {
-                LogError("Err, HyperDbg's debugger was not loaded");
-            }
+            return TRUE;
         }
         else
         {
-            LogError("Err, HyperDbg's hypervisor was not loaded");
+            LogError("Err, HyperDbg's debugger was not loaded");
         }
     }
     else
     {
-        LogError("Err, HyperDbg's message tracing module was not loaded");
+        LogError("Err, HyperDbg's hypervisor was not loaded");
     }
 
     //
@@ -214,14 +230,17 @@ LoaderInitVmmAndDebugger()
 VOID
 LoaderUninitializeLogTracer()
 {
-    LogDebugInfo("Unloading HyperDbg's debugger...\n");
-
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
 
+    LogDebugInfo("Unloading hyperlog...\n");
+
     //
-    // Uinitialize log buffer
+    // Uinitialize log buffer if it was initialized
     //
-    LogDebugInfo("Uninitializing logs\n");
-    LogUnInitialize();
+    if (g_HyperLogInitialized)
+    {
+        g_HyperLogInitialized = FALSE;
+        LogUnInitialize();
+    }
 #endif
 }
