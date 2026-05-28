@@ -14,9 +14,7 @@
 //
 // Global Variables
 //
-extern HANDLE  g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsVmmModuleLoaded;
 extern BOOLEAN g_IsHyperTraceModuleLoaded;
 

@@ -14,12 +14,9 @@
 //
 // Global Variables
 //
-extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
-extern UINT32                g_SymbolTableSize;
-extern UINT32                g_SymbolTableCurrentIndex;
-extern HANDLE                g_SerialListeningThreadHandle;
-extern HANDLE                g_SerialRemoteComPortHandle;
-extern HANDLE                g_DebuggeeStopCommandEventHandle;
+extern HANDLE g_SerialListeningThreadHandle;
+extern HANDLE g_SerialRemoteComPortHandle;
+extern HANDLE g_DebuggeeStopCommandEventHandle;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
                                         g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];

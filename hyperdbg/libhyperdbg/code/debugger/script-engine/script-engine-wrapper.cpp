@@ -23,7 +23,6 @@ extern UINT64 * g_ScriptStackBuffer;
 extern UINT64   g_CurrentExprEvalResult;
 extern BOOLEAN  g_CurrentExprEvalResultHasError;
 extern UINT64 * g_HwdbgPinsStatus;
-extern BOOLEAN  g_HwdbgInstanceInfoIsValid;
 
 //
 // Temporary structures used only for testing

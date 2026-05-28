@@ -11,12 +11,6 @@
  */
 #include "pch.h"
 
-//
-// Global Variables
-//
-extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
-extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
-
 /**
  * @brief help of the .switch command
  *

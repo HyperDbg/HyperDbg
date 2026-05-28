@@ -16,12 +16,11 @@ using namespace std;
 //
 // Global Variables
 //
-extern HANDLE     g_DeviceHandle;
-extern HANDLE     g_IsDriverLoadedSuccessfully;
-extern BOOLEAN    g_IsVmxOffProcessStart;
-extern BOOLEAN    g_BreakPrintingOutput;
-extern BOOLEAN    g_OutputSourcesInitialized;
-extern LIST_ENTRY g_OutputSources;
+extern HANDLE  g_DeviceHandle;
+extern HANDLE  g_IsDriverLoadedSuccessfully;
+extern BOOLEAN g_IsVmxOffProcessStart;
+extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_OutputSourcesInitialized;
 
 /**
  * @brief Read kernel buffers using IRP Pending

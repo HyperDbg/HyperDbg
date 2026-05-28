@@ -19,7 +19,6 @@ extern PMODULE_SYMBOL_DETAIL                        g_SymbolTable;
 extern UINT32                                       g_SymbolTableSize;
 extern UINT32                                       g_SymbolTableCurrentIndex;
 extern BOOLEAN                                      g_IsExecutingSymbolLoadingRoutines;
-extern BOOLEAN                                      g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN                                      g_AddressConversion;
 extern std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION> g_DisassemblerSymbolMap;
 
@@ -1012,7 +1011,6 @@ SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES * Modules)
     //
     if (!WindowsSetDebugPrivilege())
     {
-
         ShowMessages("err, couldn't set debug privilege\n");
         return FALSE;
     }

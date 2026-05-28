@@ -15,11 +15,7 @@
 //
 // Global Variables
 //
-extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-                                        g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
-extern OVERLAPPED                       g_OverlappedIoStructureForReadDebugger;
-extern OVERLAPPED                       g_OverlappedIoStructureForWriteDebugger;
 extern HANDLE                           g_SerialRemoteComPortHandle;
 extern BOOLEAN                          g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN                          g_IsDebuggeeRunning;
@@ -33,6 +29,8 @@ extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfAddingActionsToEvent;
 extern UINT64                           g_ResultOfEvaluatedExpression;
 extern UINT32                           g_ErrorStateOfResultOfEvaluatedExpression;
 extern UINT64                           g_KernelBaseAddress;
+extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
+    g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 
 /**
  * @brief Check if the remote debuggee needs to pause the system

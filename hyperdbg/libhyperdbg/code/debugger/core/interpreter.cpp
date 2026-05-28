@@ -16,26 +16,21 @@
 //
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern CommandType              g_CommandsList;
-
-extern BOOLEAN g_ShouldPreviousCommandBeContinued;
-extern BOOLEAN g_IsCommandListInitialized;
-extern BOOLEAN g_LogOpened;
-extern BOOLEAN g_ExecutingScript;
-extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsDebuggeeRunning;
-extern BOOLEAN g_BreakPrintingOutput;
-extern BOOLEAN g_IsInterpreterOnString;
-extern BOOLEAN g_IsInterpreterPreviousCharacterABackSlash;
-extern BOOLEAN g_RtmSupport;
-
-extern UINT32 g_VirtualAddressWidth;
-extern UINT32 g_InterpreterCountOfOpenCurlyBrackets;
-extern ULONG  g_CurrentRemoteCore;
-
-extern string g_ServerPort;
-extern string g_ServerIp;
+extern BOOLEAN                  g_ShouldPreviousCommandBeContinued;
+extern BOOLEAN                  g_IsCommandListInitialized;
+extern BOOLEAN                  g_LogOpened;
+extern BOOLEAN                  g_ExecutingScript;
+extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_BreakPrintingOutput;
+extern BOOLEAN                  g_IsInterpreterOnString;
+extern BOOLEAN                  g_IsInterpreterPreviousCharacterABackSlash;
+extern BOOLEAN                  g_RtmSupport;
+extern UINT32                   g_VirtualAddressWidth;
+extern UINT32                   g_InterpreterCountOfOpenCurlyBrackets;
+extern ULONG                    g_CurrentRemoteCore;
+extern string                   g_ServerPort;
+extern string                   g_ServerIp;
 
 class CommandParser
 {

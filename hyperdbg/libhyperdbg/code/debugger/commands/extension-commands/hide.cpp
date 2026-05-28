@@ -14,15 +14,6 @@
 //
 // Global Variables
 //
-extern UINT64 g_CpuidAverage;
-extern UINT64 g_CpuidStandardDeviation;
-extern UINT64 g_CpuidMedian;
-
-extern UINT64 g_RdtscAverage;
-extern UINT64 g_RdtscStandardDeviation;
-extern UINT64 g_RdtscMedian;
-
-extern BOOLEAN                  g_TransparentResultsMeasured;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
