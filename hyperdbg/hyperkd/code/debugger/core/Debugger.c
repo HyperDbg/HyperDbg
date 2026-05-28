@@ -209,12 +209,6 @@ DebuggerInitialize()
     }
 
     //
-    // Initialize the HyperTrace (if supported by the processor)
-    // By default, the debugger module initialize it for a hypervisor environment
-    //
-    LoaderInitHyperTrace(TRUE);
-
-    //
     // Pre-allocate pools for possible EPT hooks
     //
     ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);

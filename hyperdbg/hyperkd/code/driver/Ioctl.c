@@ -135,6 +135,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
+    PDEBUGGER_INIT_VMM_PACKET                               InitVmmRequest;
+    PDEBUGGER_INIT_HYPERTRACE_PACKET                        InitHyperTraceRequest;
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
     PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
@@ -199,9 +201,23 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     case IOCTL_INIT_VMM:
 
         //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGER_INIT_VMM_PACKET,
+                                                (PVOID *)&InitVmmRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
         // Initialize the vmm and the debugger
         //
-        if (LoaderInitVmmAndDebugger())
+        if (LoaderInitVmmAndDebugger(InitVmmRequest))
         {
             Status = STATUS_SUCCESS;
         }
@@ -213,15 +229,38 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             Status = STATUS_UNSUCCESSFUL;
         }
 
-        DoNotChangeInformation = FALSE;
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_INIT_VMM_PACKET, &DoNotChangeInformation, Irp, &Status);
 
         break;
 
     case IOCTL_INIT_HYPERTRACE:
 
         //
-        // Initialize HyperTrace
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
         //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET,
+                                                (PVOID *)&InitHyperTraceRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Initialize the HyperTrace (if supported by the processor)
+        //
+        LoaderInitHyperTrace(InitHyperTraceRequest, TRUE);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, &DoNotChangeInformation, Irp, &Status);
 
         break;
 

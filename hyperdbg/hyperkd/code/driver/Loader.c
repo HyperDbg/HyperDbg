@@ -18,7 +18,7 @@
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment)
+LoaderInitHyperTrace(PDEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTracePacket, BOOLEAN RunningOnHypervisorEnvironment)
 {
     HYPERTRACE_CALLBACKS HyperTraceCallbacks = {0};
 
@@ -81,6 +81,17 @@ LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment)
     if (HyperTraceInitCallback(&HyperTraceCallbacks, RunningOnHypervisorEnvironment))
     {
         LogDebugInfo("HyperDbg's hypertrace loaded successfully");
+
+        //
+        // Mark hypertrace as initialized
+        //
+        g_HyperTraceInitialized = TRUE;
+
+        //
+        // Set the kernel status to success
+        //
+        InitHyperTracePacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
         return TRUE;
     }
     else
@@ -89,6 +100,12 @@ LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment)
         // We won't fail the loading just because of hypertrace, so we just log the error and continue without loading hypertrace
         //
         LogDebugInfo("Err, HyperDbg's hypertrace was not loaded");
+
+        //
+        // Set the kernel status to indicate failure
+        //
+        InitHyperTracePacket->KernelStatus = DEBUGGER_ERROR_HYPERTRACE_NOT_INITIALIZED;
+
         return FALSE;
     }
 }
@@ -135,12 +152,23 @@ LoaderInitHyperLog()
 /**
  * @brief Initialize the VMM and Debugger
  *
+ * @param InitVmmPacket The packet to fill the result of the initialization
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitVmmAndDebugger()
+LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
 {
     VMM_CALLBACKS VmmCallbacks = {0};
+
+    //
+    // Check if HyperTrace is already initialized, if so we cannot initialize VMM
+    //
+    if (g_HyperTraceInitialized)
+    {
+        InitVmmPacket->KernelStatus = DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_HYPERTRACE_IS_LOADED;
+        return FALSE;
+    }
 
     //
     // Allow to serve IOCTL
@@ -201,6 +229,11 @@ LoaderInitVmmAndDebugger()
         if (DebuggerInitialize())
         {
             LogDebugInfo("HyperDbg's debugger loaded successfully");
+
+            //
+            // Set the kernel status to success
+            //
+            InitVmmPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
             return TRUE;
         }

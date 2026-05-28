@@ -615,6 +615,16 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_HYPERTRACE_IS_LOADED:
+        ShowMessages("err, HyperTrace is already loaded, please unload HyperTrace module using the "
+                     "'unload' command and then load the 'VMM' module. Then you can load HyperTrace "
+                     "after loading the VMM as it is because HyperTrace behaves differently to sync "
+                     "with VMM modules; it needs to have this notion that it is running within the "
+                     "hypervisor, so that is why it needs to be initialized again if the VMM module "
+                     "is loaded (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

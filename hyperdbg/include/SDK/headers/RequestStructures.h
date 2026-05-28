@@ -12,6 +12,36 @@
 #pragma once
 #include "Pcie.h"
 
+#define SIZEOF_DEBUGGER_INIT_VMM_PACKET \
+    sizeof(DEBUGGER_INIT_VMM_PACKET)
+
+/**
+ * @brief request for initializing VMM
+ *
+ */
+typedef struct _DEBUGGER_INIT_VMM_PACKET
+{
+    UINT32 KernelStatus;
+
+} DEBUGGER_INIT_VMM_PACKET, *PDEBUGGER_INIT_VMM_PACKET;
+
+// ==============================================================================================
+
+#define SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET \
+    sizeof(DEBUGGER_INIT_HYPERTRACE_PACKET)
+
+/**
+ * @brief request for initializing HyperTrace
+ *
+ */
+typedef struct _DEBUGGER_INIT_HYPERTRACE_PACKET
+{
+    UINT32 KernelStatus;
+
+} DEBUGGER_INIT_HYPERTRACE_PACKET, *PDEBUGGER_INIT_HYPERTRACE_PACKET;
+
+// ==============================================================================================
+
 #define SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS \
     sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS)
 

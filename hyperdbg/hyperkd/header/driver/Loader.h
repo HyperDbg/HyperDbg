@@ -20,10 +20,10 @@ BOOLEAN
 LoaderInitHyperLog();
 
 BOOLEAN
-LoaderInitVmmAndDebugger();
+LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket);
 
 BOOLEAN
-LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment);
+LoaderInitHyperTrace(PDEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTracePacket, BOOLEAN RunningOnHypervisorEnvironment);
 
 VOID
 LoaderUninitializeLogTracer();

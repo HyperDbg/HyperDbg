@@ -96,6 +96,29 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
         //
         SymbolLocalReload(GetCurrentProcessId());
     }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "trace"))
+    {
+        //
+        // Check to make sure that the driver is not already loaded
+        //
+        if (g_DeviceHandle)
+        {
+            ShowMessages("handle of the driver found, if you use 'load' before, please "
+                         "first unload it then call 'unload'\n");
+            return;
+        }
+
+        //
+        // Load HyperTrace Module
+        //
+        ShowMessages("loading the hypertrace driver\n");
+
+        if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadHyperTraceModule() == 1)
+        {
+            ShowMessages("failed to install or load the driver\n");
+            return;
+        }
+    }
     else
     {
         //

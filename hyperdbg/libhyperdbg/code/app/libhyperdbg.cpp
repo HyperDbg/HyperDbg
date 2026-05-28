@@ -674,9 +674,58 @@ HyperDbgUninstallKdDriver()
  * was error
  */
 INT
+HyperDbgInitHyperTraceModule()
+{
+    BOOL                         Status;
+    DEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTracePacket = {0};
+
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    //
+    // Send IOCTL to initialize HyperTrace module
+    //
+    Status = DeviceIoControl(g_DeviceHandle,                      // Handle to device
+                             IOCTL_INIT_HYPERTRACE,               // IO Control Code (IOCTL)
+                             &InitHyperTracePacket,               // Input Buffer to driver.
+                             SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, // Length of input buffer in bytes.
+                             &InitHyperTracePacket,               // Output Buffer from driver.
+                             SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, // Length of output buffer in bytes.
+                             NULL,                                // Bytes placed in buffer.
+                             NULL                                 // synchronous call
+    );
+
+    //
+    // Check if the IOCTL was successful, if not show the error message and return
+    //
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return 1;
+    }
+
+    //
+    // Check the kernel status
+    //
+    if (InitHyperTracePacket.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        ShowErrorMessage(InitHyperTracePacket.KernelStatus);
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Initialize VMM module
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
 HyperDbgInitVmmModule()
 {
-    BOOL Status;
+    BOOL                    Status;
+    DEBUGGER_INIT_VMM_PACKET InitVmmPacket = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
@@ -688,15 +737,14 @@ HyperDbgInitVmmModule()
     //
     // Send IOCTL to initialize VMM module
     //
-    Status = DeviceIoControl(g_DeviceHandle, // Handle to device
-                             IOCTL_INIT_VMM, // IO Control Code (IOCTL)
-                             NULL,           // Input Buffer to driver.
-                             0,              // Length of input buffer in bytes. (x 2 is bcuz
-                                             // as the driver is x64 and has 64 bit values)
-                             NULL,           // Output Buffer from driver.
-                             0,              // Length of output buffer in bytes.
-                             NULL,           // Bytes placed in buffer.
-                             NULL            // synchronous call
+    Status = DeviceIoControl(g_DeviceHandle,             // Handle to device
+                             IOCTL_INIT_VMM,             // IO Control Code (IOCTL)
+                             &InitVmmPacket,             // Input Buffer to driver.
+                             SIZEOF_DEBUGGER_INIT_VMM_PACKET, // Length of input buffer in bytes.
+                             &InitVmmPacket,             // Output Buffer from driver.
+                             SIZEOF_DEBUGGER_INIT_VMM_PACKET, // Length of output buffer in bytes.
+                             NULL,                       // Bytes placed in buffer.
+                             NULL                        // synchronous call
     );
 
     //
@@ -705,6 +753,17 @@ HyperDbgInitVmmModule()
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        CloseHandle(g_IsDriverLoadedSuccessfully);
+        return 1;
+    }
+
+    //
+    // Check the kernel status for early errors (e.g., HyperTrace already loaded)
+    //
+    if (InitVmmPacket.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL &&
+        InitVmmPacket.KernelStatus != 0)
+    {
+        ShowErrorMessage(InitVmmPacket.KernelStatus);
         CloseHandle(g_IsDriverLoadedSuccessfully);
         return 1;
     }
@@ -918,6 +977,19 @@ HyperDbgUnloadVmm()
 INT
 HyperDbgLoadKdModule()
 {
+    //
+    // Check if the module is already loaded, if that's the case, we don't
+    // need to handle anymore
+    //
+    if (g_IsDebuggerModulesLoaded)
+    {
+        //
+        // Return zero to indicate that the module is loaded successfully,
+        //  and we no need to re-load it anymore
+        //
+        return 0;
+    }
+
     if (HyperDbgCreateHandleFromKdModule() == 1)
     {
         //
@@ -939,23 +1011,14 @@ HyperDbgLoadKdModule()
 }
 
 /**
- * @brief load vmm module
+ * @brief Get the vendor of the current processor
  *
- * @return int return zero if it was successful or non-zero if there
+ * @return GENERIC_PROCESSOR_VENDOR the vendor of the processor
  */
-INT
-HyperDbgLoadVmmModule()
+GENERIC_PROCESSOR_VENDOR
+HyperDbgGetProcessorVendor()
 {
     char CpuId[13] = {0};
-
-    //
-    // Enable Debug privilege to the current token
-    //
-    if (!SetDebugPrivilege())
-    {
-        ShowMessages("err, couldn't set debug privilege\n");
-        return 1;
-    }
 
     //
     // Read the vendor string
@@ -966,14 +1029,46 @@ HyperDbgLoadVmmModule()
 
     if (strcmp(CpuId, "GenuineIntel") == 0)
     {
-        ShowMessages("virtualization technology is vt-x\n");
+        return GENERIC_PROCESSOR_VENDOR_INTEL;
+    }
+    else if (strcmp(CpuId, "AuthenticAMD") == 0)
+    {
+        return GENERIC_PROCESSOR_VENDOR_AMD;
     }
     else
     {
-        ShowMessages("this program is not designed to run in a non-VT-x "
-                     "environment !\n");
+        return GENERIC_PROCESSOR_VENDOR_OTHERS;
+    }
+}
+
+/**
+ * @brief load vmm module
+ *
+ * @return int return zero if it was successful or non-zero if there
+ */
+INT
+HyperDbgLoadVmmModule()
+{
+    //
+    // Enable Debug privilege to the current token
+    //
+    if (!SetDebugPrivilege())
+    {
+        ShowMessages("err, couldn't set debug privilege\n");
         return 1;
     }
+
+    //
+    // Check if the processor is a genuine Intel processor (required for VT-x)
+    //
+    if (HyperDbgGetProcessorVendor() != GENERIC_PROCESSOR_VENDOR_INTEL)
+    {
+        ShowMessages("err, this program is not designed to run in a non-VT-x "
+                     "environment. It needs an Intel processor.\n");
+        return 1;
+    }
+
+    ShowMessages("virtualization technology is vt-x\n");
 
     if (VmxSupportDetection())
     {
@@ -1007,6 +1102,58 @@ HyperDbgLoadVmmModule()
     }
 
     ShowMessages("vmm module is running...\n");
+
+    return 0;
+}
+
+/**
+ * @brief load hypertrace module
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgLoadHyperTraceModule()
+{
+    //
+    // Enable Debug privilege to the current token
+    //
+    if (!SetDebugPrivilege())
+    {
+        ShowMessages("err, couldn't set debug privilege\n");
+        return 1;
+    }
+
+    //
+    // Check if the processor is a genuine Intel processor (required for HyperTrace)
+    //
+    if (HyperDbgGetProcessorVendor() != GENERIC_PROCESSOR_VENDOR_INTEL)
+    {
+        ShowMessages("err, this program is not designed to run in a non-Intel "
+                     "environment as it needs Intel PT (Processor Trace) and Intel LBR "
+                     "(Last Branch Record). It needs an Intel processor.\n");
+        return 1;
+    }
+
+    //
+    // Load the KD module and create handle to it
+    //
+    if (HyperDbgLoadKdModule() == 1)
+    {
+        return 1;
+    }
+
+    //
+    // Initialize HyperTrace module
+    //
+    if (HyperDbgInitHyperTraceModule() == 1)
+    {
+        ShowMessages("err, initializing HyperTrace module\n");
+
+        return 1;
+    }
+
+    ShowMessages("hypertrace module is running...\n");
 
     return 0;
 }

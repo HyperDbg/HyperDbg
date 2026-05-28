@@ -19,6 +19,9 @@ INT
 HyperDbgCreateHandleFromVmmModule();
 
 INT
+HyperDbgInitHyperTraceModule();
+
+INT
 HyperDbgUnloadVmm();
 
 INT
@@ -29,6 +32,12 @@ HyperDbgUninstallKdDriver();
 
 INT
 HyperDbgLoadVmmModule();
+
+INT
+HyperDbgLoadHyperTraceModule();
+
+GENERIC_PROCESSOR_VENDOR
+HyperDbgGetProcessorVendor();
 
 INT
 HyperDbgStopVmmDriver();

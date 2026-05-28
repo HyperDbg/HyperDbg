@@ -34,6 +34,7 @@ CommandUnloadHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : unload vmm\n");
+    ShowMessages("\t\te.g : unload vm\n");
     ShowMessages("\t\te.g : unload remove vmm\n");
 }
 
@@ -59,8 +60,9 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
     //
     // Check for the module
     //
-    if ((CommandTokens.size() == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "vmm")) ||
-        (CommandTokens.size() == 3 && CompareLowerCaseStrings(CommandTokens.at(2), "vmm") && CompareLowerCaseStrings(CommandTokens.at(1), "remove")))
+    if ((CommandTokens.size() == 2 && (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") || CompareLowerCaseStrings(CommandTokens.at(1), "vm"))) ||
+        (CommandTokens.size() == 3 && (CompareLowerCaseStrings(CommandTokens.at(2), "vmm") || CompareLowerCaseStrings(CommandTokens.at(2), "vm")) &&
+         CompareLowerCaseStrings(CommandTokens.at(1), "remove")))
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {
