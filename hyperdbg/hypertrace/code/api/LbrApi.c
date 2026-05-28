@@ -149,11 +149,12 @@ HyperTraceLbrRestore()
  * @brief Check if LBR is supported on the current CPU and get its capacity
  *
  * @param Capacity Pointer to a variable to receive the LBR capacity (number of entries)
+ * @param IsArchLbr Pointer to a variable to receive whether the supported LBR is architectural LBR or not (legacy LBR)
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceLbrIsSupported(UINT32 * Capacity)
+HyperTraceLbrIsSupported(UINT32 * Capacity, BOOLEAN * IsArchLbr)
 {
     //
     // Check for ARCHITECTURAL LBR support first, if not supported then check for LEGACY LBR support
@@ -175,6 +176,14 @@ HyperTraceLbrIsSupported(UINT32 * Capacity)
     if (Capacity != NULL)
     {
         *Capacity = (UINT32)g_LbrCapacity;
+    }
+
+    //
+    // Set IsArchLbr when the pointer is valid
+    //
+    if (IsArchLbr != NULL)
+    {
+        *IsArchLbr = g_ArchBasedLastBranchRecord;
     }
 
     return TRUE;

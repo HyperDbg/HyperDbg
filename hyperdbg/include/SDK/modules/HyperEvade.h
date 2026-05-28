@@ -52,7 +52,7 @@ typedef BOOLEAN (*LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL)(BOOLEAN Priority);
  * @brief A function that checks if LBR is supported on the current CPU and gets its capacity
  *
  */
-typedef BOOLEAN (*HYPERTRACE_LBR_IS_SUPPORTED)(UINT32 * Capacity);
+typedef BOOLEAN (*HYPERTRACE_LBR_IS_SUPPORTED)(UINT32 * Capacity, BOOLEAN * IsArchLbr);
 
 /**
  * @brief A function that checks the validity and safety of the target address
