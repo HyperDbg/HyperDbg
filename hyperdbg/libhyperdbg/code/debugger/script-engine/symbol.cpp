@@ -1010,8 +1010,9 @@ SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES * Modules)
     //
     // Enable Debug privilege to the current token
     //
-    if (!SetDebugPrivilege())
+    if (!WindowsSetDebugPrivilege())
     {
+
         ShowMessages("err, couldn't set debug privilege\n");
         return FALSE;
     }

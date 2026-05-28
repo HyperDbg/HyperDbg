@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\platform\user\header\platform-intrinsics.h" />
+    <ClInclude Include="..\include\platform\user\header\windows-only\windows-privilege.h" />
     <ClInclude Include="..\include\platform\user\header\Windows.h" />
     <ClInclude Include="header\assembler.h" />
     <ClInclude Include="header\commands.h" />
@@ -145,8 +146,10 @@
     <ClInclude Include="header\kd.h" />
     <ClInclude Include="header\libhyperdbg.h" />
     <ClInclude Include="header\list.h" />
+    <ClInclude Include="header\messaging.h" />
     <ClInclude Include="header\namedpipe.h" />
     <ClInclude Include="header\objects.h" />
+    <ClInclude Include="header\packets.h" />
     <ClInclude Include="header\pci-id.h" />
     <ClInclude Include="header\pe-parser.h" />
     <ClInclude Include="header\rev-ctrl.h" />
@@ -160,11 +163,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\platform\user\code\platform-intrinsics.c" />
+    <ClCompile Include="..\include\platform\user\code\windows-only\windows-privilege.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
     <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
     <ClCompile Include="..\script-eval\code\Regs.c" />
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
+    <ClCompile Include="code\app\messaging.cpp" />
+    <ClCompile Include="code\app\packets.cpp" />
     <ClCompile Include="code\common\spinlock.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\a.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\continue.cpp" />

@@ -15,7 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN                  g_BreakPrintingOutput;
-extern BOOLEAN                  g_IsDebuggerModulesLoaded;
+extern BOOLEAN                  g_IsKdModuleLoaded;
 extern BOOLEAN                  g_AutoUnpause;
 extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
@@ -79,7 +79,7 @@ BreakController(DWORD CtrlType)
                 KdBreakControlCheckAndPauseDebugger(TRUE);
             }
         }
-        else if (!g_IsDebuggerModulesLoaded && !g_IsConnectedToRemoteDebuggee)
+        else if (!g_IsKdModuleLoaded && !g_IsConnectedToRemoteDebuggee)
         {
             //
             // vmm module is not loaded here

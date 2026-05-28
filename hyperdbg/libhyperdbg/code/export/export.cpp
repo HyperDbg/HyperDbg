@@ -97,6 +97,39 @@ hyperdbg_u_stop_vmm_driver()
 }
 
 /**
+ * @brief Get the vendor of the current processor
+ *
+ * @return GENERIC_PROCESSOR_VENDOR the vendor of the processor
+ */
+GENERIC_PROCESSOR_VENDOR
+hyperdbg_u_get_processor_vendor()
+{
+    return HyperDbgGetProcessorVendor();
+}
+
+/**
+ * @brief Load the KD module
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_load_kd_module()
+{
+    return HyperDbgLoadKdModule();
+}
+
+/**
+ * @brief Load the HyperTrace module
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_load_hypertrace_module()
+{
+    return HyperDbgLoadHyperTraceModule();
+}
+
+/**
  * @brief Run a command
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
@@ -200,7 +233,7 @@ hyperdbg_u_unset_text_message_callback()
 INT
 hyperdbg_u_script_read_file_and_execute_commandline(INT argc, CHAR * argv[])
 {
-    return ScriptReadFileAndExecuteCommandline(argc, argv);
+    return HyperDbgScriptReadFileAndExecuteCommandline(argc, argv);
 }
 
 /**

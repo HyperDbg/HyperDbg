@@ -16,7 +16,9 @@
 //
 extern HANDLE  g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsKdModuleLoaded;
+extern BOOLEAN g_IsVmmModuleLoaded;
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
 
 /**
  * @brief help of the load command
@@ -32,6 +34,7 @@ CommandLoadHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : load vmm\n");
+    ShowMessages("\t\te.g : load kd\n");
     ShowMessages("\t\te.g : load trace\n");
 }
 
@@ -64,22 +67,23 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
     //
     // Check for the module
     //
-    if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") || CompareLowerCaseStrings(CommandTokens.at(1), "vm"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") ||
+        CompareLowerCaseStrings(CommandTokens.at(1), "vm"))
     {
         //
         // Check to make sure that the driver is not already loaded
         //
-        if (g_DeviceHandle)
+        if (g_IsVmmModuleLoaded)
         {
-            ShowMessages("handle of the driver found, if you use 'load' before, please "
-                         "first unload it then call 'unload'\n");
+            ShowMessages("the vmm module is already running, if you use 'load' before, please "
+                         "first unload it using the 'unload' command\n");
             return;
         }
 
         //
         // Load VMM Module
         //
-        ShowMessages("loading the vmm driver\n");
+        ShowMessages("loading the vmm module\n");
 
         if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
@@ -96,22 +100,23 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
         //
         SymbolLocalReload(GetCurrentProcessId());
     }
-    else if (CompareLowerCaseStrings(CommandTokens.at(1), "trace"))
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "trace") ||
+             CompareLowerCaseStrings(CommandTokens.at(1), "hypertrace"))
     {
         //
         // Check to make sure that the driver is not already loaded
         //
-        if (g_DeviceHandle)
+        if (g_IsHyperTraceModuleLoaded)
         {
-            ShowMessages("handle of the driver found, if you use 'load' before, please "
-                         "first unload it then call 'unload'\n");
+            ShowMessages("the trace module is already running, if you use 'load' before, please "
+                         "first unload it using the 'unload' command\n");
             return;
         }
 
         //
         // Load HyperTrace Module
         //
-        ShowMessages("loading the hypertrace driver\n");
+        ShowMessages("loading the trace module\n");
 
         if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadHyperTraceModule() == 1)
         {

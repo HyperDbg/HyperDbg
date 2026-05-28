@@ -144,6 +144,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 // Platform-specific intrinsics
 //
 #include "platform/user/header/platform-intrinsics.h"
+#include "platform/user/header/windows-only/windows-privilege.h"
 
 //
 // PCI IDs
@@ -165,6 +166,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/install.h"
 #include "header/list.h"
 #include "header/tests.h"
+#include "header/messaging.h"
+#include "header/packets.h"
 #include "header/transparency.h"
 #include "header/communication.h"
 #include "header/namedpipe.h"

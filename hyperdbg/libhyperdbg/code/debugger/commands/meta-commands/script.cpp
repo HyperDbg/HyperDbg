@@ -222,7 +222,7 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
  * @return INT
  */
 INT
-ScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[])
+HyperDbgScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[])
 {
     vector<string> Args;
 

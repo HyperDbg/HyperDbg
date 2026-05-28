@@ -15,7 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
@@ -81,7 +81,7 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
             return;
         }
 
-        if (g_IsDebuggerModulesLoaded)
+        if (g_IsKdModuleLoaded)
         {
             HyperDbgUnloadVmm();
         }

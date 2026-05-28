@@ -570,7 +570,8 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_HYPERTRACE_NOT_INITIALIZED:
-        ShowMessages("err, the HyperTrace module is not initialized (%x)\n",
+        ShowMessages("err, the HyperTrace module is not loaded and initialized, "
+                     "use the 'load trace' command to load the HyperTrace module  (%x)\n",
                      Error);
         break;
 

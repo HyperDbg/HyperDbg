@@ -34,7 +34,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
@@ -3028,7 +3028,7 @@ KdCloseConnection()
     //
     if (g_IsSerialConnectedToRemoteDebugger)
     {
-        if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded)
+        if (g_IsConnectedToHyperDbgLocally && g_IsKdModuleLoaded)
         {
             //
             // The messages (and outputs) should no longer be passed
