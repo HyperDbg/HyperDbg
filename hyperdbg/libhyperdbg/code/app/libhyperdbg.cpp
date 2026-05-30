@@ -362,7 +362,7 @@ HyperDbgUnloadVmm()
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
-    ShowMessages("start terminating...\n");
+    ShowMessages("start terminating vmm...\n");
 
     //
     // Uninitialize the user debugger if it's initialized
@@ -551,7 +551,7 @@ HyperDbgLoadVmmModule()
     //
     // Enable Debug privilege to the current token
     //
-    if ( !WindowsSetDebugPrivilege())
+    if (!WindowsSetDebugPrivilege())
     {
         ShowMessages("err, couldn't set debug privilege\n");
         return 1;
@@ -635,7 +635,7 @@ HyperDbgLoadHyperTraceModule()
     //
     // Enable Debug privilege to the current token
     //
-    if ( !WindowsSetDebugPrivilege())
+    if (!WindowsSetDebugPrivilege())
     {
         ShowMessages("err, couldn't set debug privilege\n");
         return 1;

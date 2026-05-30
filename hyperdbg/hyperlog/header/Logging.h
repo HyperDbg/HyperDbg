@@ -20,13 +20,13 @@
  * @brief VMX buffer for logging messages
  *
  */
-char * VmxLogMessage;
+CHAR * g_VmxLogMessage;
 
 /**
  * @brief VMX temporary buffer for logging messages
  *
  */
-char * VmxTempMessage;
+CHAR * g_VmxTempMessage;
 
 //////////////////////////////////////////////////
 //					Structures					//
@@ -101,19 +101,19 @@ typedef struct _LOG_BUFFER_INFORMATION
  * @brief Global Variable for buffer on all cores
  *
  */
-LOG_BUFFER_INFORMATION * MessageBufferInformation;
+LOG_BUFFER_INFORMATION * g_MessageBufferInformation;
 
 /**
  * @brief Vmx-root lock for logging
  *
  */
-volatile LONG VmxRootLoggingLock;
+volatile LONG g_VmxRootLoggingLock;
 
 /**
  * @brief Vmx-root lock for logging
  *
  */
-volatile LONG VmxRootLoggingLockForNonImmBuffers;
+volatile LONG g_VmxRootLoggingLockForNonImmBuffers;
 
 //////////////////////////////////////////////////
 //					Illustration				//

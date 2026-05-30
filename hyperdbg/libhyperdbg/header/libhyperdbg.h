@@ -16,9 +16,6 @@
 //////////////////////////////////////////////////
 
 INT
-HyperDbgCreateHandleFromVmmModule();
-
-INT
 HyperDbgInitHyperTraceModule();
 
 INT

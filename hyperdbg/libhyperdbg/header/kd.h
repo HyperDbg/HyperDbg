@@ -216,6 +216,12 @@ KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId);
 BOOLEAN
 KdSendResponseOfThePingPacket();
 
+BOOLEAN
+KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket);
+
+BOOLEAN
+KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket);
+
 VOID
 KdUninitializeConnection();
 
@@ -241,9 +247,3 @@ KdBreakControlCheckAndContinueDebugger();
 
 VOID
 KdSetStatusAndWaitForPause();
-
-BOOLEAN
-KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket);
-
-BOOLEAN
-KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket);
