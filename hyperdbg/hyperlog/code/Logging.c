@@ -213,7 +213,7 @@ LogUnInitialize()
     //
     // de-allocate buffer for messages and initialize the core buffer information (for vmx-root core)
     //
-    for (UINT32 i = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
         //
         // Check if the buffer is allocated or not
@@ -1319,9 +1319,9 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
         // We have to save the message
         //
         PlatformWriteMemory((PVOID)(g_MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage +
-                              g_MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer),
-                     LogMessage,
-                     BufferLen);
+                                    g_MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer),
+                            LogMessage,
+                            BufferLen);
 
         //
         // add the length
@@ -1506,8 +1506,8 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
         NotifyRecord->Message.PendingIrp = Irp;
 
         PlatformDpcInitialize(&NotifyRecord->Dpc,        // Dpc
-                        LogNotifyUsermodeCallback, // DeferredRoutine
-                        NotifyRecord               // DeferredContext
+                              LogNotifyUsermodeCallback, // DeferredRoutine
+                              NotifyRecord               // DeferredContext
         );
 
         PlatformIoMarkIrpPending(Irp);
@@ -1616,8 +1616,8 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
     NotifyRecord->Type = EVENT_BASED;
 
     PlatformDpcInitialize(&NotifyRecord->Dpc,        // Dpc
-                    LogNotifyUsermodeCallback, // DeferredRoutine
-                    NotifyRecord               // DeferredContext
+                          LogNotifyUsermodeCallback, // DeferredRoutine
+                          NotifyRecord               // DeferredContext
     );
 
     //
@@ -1625,11 +1625,11 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
     // Note we must be in the context of the process that created the handle
     //
     Status = PlatformObjectReferenceByHandle(RegisterEvent->hEvent,
-                                       SYNCHRONIZE | EVENT_MODIFY_STATE,
-                                       *ExEventObjectType,
-                                       Irp->RequestorMode,
-                                       &NotifyRecord->Message.Event,
-                                       NULL);
+                                             SYNCHRONIZE | EVENT_MODIFY_STATE,
+                                             *ExEventObjectType,
+                                             Irp->RequestorMode,
+                                             &NotifyRecord->Message.Event,
+                                             NULL);
 
     if (!NT_SUCCESS(Status))
     {

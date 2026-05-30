@@ -33,6 +33,7 @@ New release of the HyperDbg Debugger.
 - All CPU-related intrinsic instructions are ported to platform-independent files to support Linux
 - HyperDbg SDK now compiles on Linux (GCC) for both user-mode and kernel-mode
 - Fix the 'wrmsr' command IOCTL checks by receiving output the buffer ([link](https://docs.hyperdbg.org/commands/debugging-commands/wrmsr))
+- Extensive refactoring of codes (doxygen, variables, function names)
 
 ## [0.18.1.0] - 2026-04-09
 New release of the HyperDbg Debugger.

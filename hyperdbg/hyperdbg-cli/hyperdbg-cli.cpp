@@ -1,7 +1,7 @@
 ﻿/**
  * @file hyperdbg-cli.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Main HyperDbg Cli source coede
+ * @brief Main HyperDbg Cli source code
  * @details
  * @version 0.1
  * @date 2020-04-11
@@ -24,9 +24,9 @@ using namespace std;
 /**
  * @brief CLI main function
  *
- * @param argc
- * @param argv
- * @return int
+ * @param argc the number of arguments
+ * @param argv the arguments
+ * @return int zero on success, 1 on failure
  */
 int
 main(int argc, char * argv[])
@@ -74,7 +74,7 @@ main(int argc, char * argv[])
         //
         reset = TRUE;
 
-    GetMultiLinecCommand:
+    GetMultiLineCommand:
 
         string temp_command = "";
 
@@ -115,7 +115,7 @@ main(int argc, char * argv[])
             //
             // Get next command
             //
-            goto GetMultiLinecCommand;
+            goto GetMultiLineCommand;
         }
         else
         {

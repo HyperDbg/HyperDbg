@@ -19,15 +19,15 @@ HANDLE
 NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize, UINT32 InputBufferSize);
 
 BOOLEAN
-NamedPipeServerWaitForClientConntection(HANDLE PipeHandle);
+NamedPipeServerWaitForClientConnection(HANDLE PipeHandle);
 
 UINT32
-NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int MaximumReadBufferLength);
+NamedPipeServerReadClientMessage(HANDLE PipeHandle, CHAR * BufferToSave, INT32 MaximumReadBufferLength);
 
 BOOLEAN
 NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
-                                   char * BufferToSend,
-                                   int    BufferSize);
+                                   CHAR * BufferToSend,
+                                   INT32  BufferSize);
 
 VOID
 NamedPipeServerCloseHandle(HANDLE PipeHandle);
@@ -40,10 +40,10 @@ HANDLE
 NamedPipeClientCreatePipe(LPCSTR PipeName);
 
 BOOLEAN
-NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSize);
+NamedPipeClientSendMessage(HANDLE PipeHandle, CHAR * BufferToSend, INT32 BufferSize);
 
 UINT32
-NamedPipeClientReadMessage(HANDLE PipeHandle, char * BufferToRead, int MaximumSizeOfBuffer);
+NamedPipeClientReadMessage(HANDLE PipeHandle, CHAR * BufferToRead, INT32 MaximumSizeOfBuffer);
 
 VOID
 NamedPipeClientClosePipe(HANDLE PipeHandle);
