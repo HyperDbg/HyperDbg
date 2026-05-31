@@ -1394,8 +1394,8 @@ typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
     //
     // SIZE output: per-CPU bytes-written snapshot
     //
-    UINT32 NumCpus;                            /* CPUs populated in BytesPerCpu */
-    UINT32 Reserved2;                          /* Padding to 8-align the array  */
+    UINT32 NumCpus;   /* CPUs populated in BytesPerCpu */
+    UINT32 Reserved2; /* Padding to 8-align the array  */
     UINT64 BytesPerCpu[PT_MAX_CPUS_FOR_MMAP];
 
 } HYPERTRACE_PT_OPERATION_PACKETS, *PHYPERTRACE_PT_OPERATION_PACKETS;

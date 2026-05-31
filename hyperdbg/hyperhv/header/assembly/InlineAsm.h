@@ -40,7 +40,7 @@ extern VOID inline AsmRestoreToVmxOffState();
 extern NTSTATUS inline AsmVmxVmcall(UINT64 VmcallNumber,
                                     UINT64 OptionalParam1,
                                     UINT64 OptionalParam2,
-                                    INT64  OptionalParam3);
+                                    UINT64 OptionalParam3);
 
 /**
  * @brief Hyper-v vmcall handler
