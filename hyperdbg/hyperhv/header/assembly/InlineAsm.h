@@ -20,13 +20,13 @@
  * @brief Enable VMX Operation
  *
  */
-extern void inline AsmEnableVmxOperation();
+extern VOID inline AsmEnableVmxOperation();
 
 /**
  * @brief Restore in vmxoff state
  *
  */
-extern void inline AsmRestoreToVmxOffState();
+extern VOID inline AsmRestoreToVmxOffState();
 
 /**
  * @brief Request Vmcall
@@ -37,18 +37,18 @@ extern void inline AsmRestoreToVmxOffState();
  * @param OptionalParam3
  * @return NTSTATUS
  */
-extern NTSTATUS inline AsmVmxVmcall(unsigned long long VmcallNumber,
-                                    unsigned long long OptionalParam1,
-                                    unsigned long long OptionalParam2,
-                                    long long          OptionalParam3);
+extern NTSTATUS inline AsmVmxVmcall(UINT64 VmcallNumber,
+                                    UINT64 OptionalParam1,
+                                    UINT64 OptionalParam2,
+                                    INT64  OptionalParam3);
 
 /**
  * @brief Hyper-v vmcall handler
  *
  * @param GuestRegisters
- * @return void
+ * @return VOID
  */
-extern void inline AsmHypervVmcall(unsigned long long GuestRegisters);
+extern VOID inline AsmHypervVmcall(UINT64 GuestRegisters);
 
 /**
  * @brief VMFUNC instruction
@@ -56,9 +56,9 @@ extern void inline AsmHypervVmcall(unsigned long long GuestRegisters);
  * @param EptpIndex
  * @param Function
  *
- * @return unsigned long long I'm not sure what it returns
+ * @return UINT64 I'm not sure what it returns
  */
-extern unsigned long long inline AsmVmfunc(unsigned long EptpIndex, unsigned long Function);
+extern UINT64 inline AsmVmfunc(ULONG EptpIndex, ULONG Function);
 
 //
 // ====================  Vmx Context State Operations ====================
@@ -69,14 +69,14 @@ extern unsigned long long inline AsmVmfunc(unsigned long EptpIndex, unsigned lon
  * @brief Save state on vmx
  *
  */
-extern void
+extern VOID
 AsmVmxSaveState();
 
 /**
  * @brief Restore state on vmx
  *
  */
-extern void
+extern VOID
 AsmVmxRestoreState();
 
 //
@@ -88,20 +88,20 @@ AsmVmxRestoreState();
  * @brief Vm-exit handler
  *
  */
-extern void
+extern VOID
 AsmVmexitHandler();
 
 /**
  * @brief Save vmxoff state
  *
  */
-extern void inline AsmSaveVmxOffState();
+extern VOID inline AsmSaveVmxOffState();
 
 /**
  * @brief Restore XMM registers
  *
  */
-extern void inline AsmVmxoffRestoreXmmRegs(unsigned long long XmmRegs);
+extern VOID inline AsmVmxoffRestoreXmmRegs(UINT64 XmmRegs);
 
 //
 // ====================  Extended Page Tables ====================
@@ -113,18 +113,18 @@ extern void inline AsmVmxoffRestoreXmmRegs(unsigned long long XmmRegs);
  *
  * @param Type
  * @param Descriptors
- * @return unsigned char
+ * @return UCHAR
  */
-extern unsigned char inline AsmInvept(unsigned long Type, void * Descriptors);
+extern UCHAR inline AsmInvept(ULONG Type, PVOID Descriptors);
 
 /**
  * @brief INVVPID wrapper
  *
  * @param Type
  * @param Descriptors
- * @return unsigned char
+ * @return UCHAR
  */
-extern unsigned char inline AsmInvvpid(unsigned long Type, void * Descriptors);
+extern UCHAR inline AsmInvvpid(ULONG Type, PVOID Descriptors);
 
 //
 // ====================  Get segment registers ====================
@@ -136,77 +136,77 @@ extern unsigned char inline AsmInvvpid(unsigned long Type, void * Descriptors);
 /**
  * @brief Get CS Register
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetCs();
 
 /**
  * @brief Get DS Register
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetDs();
 
-extern void
-AsmSetDs(unsigned short DsSelector);
+extern VOID
+AsmSetDs(UINT16 DsSelector);
 
 /**
  * @brief Get ES Register
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetEs();
 
-extern void
-AsmSetEs(unsigned short EsSelector);
+extern VOID
+AsmSetEs(UINT16 EsSelector);
 
 /**
  * @brief Get SS Register
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetSs();
 
-extern void
-AsmSetSs(unsigned short SsSelector);
+extern VOID
+AsmSetSs(UINT16 SsSelector);
 
 /**
  * @brief Get FS Register
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetFs();
 
-extern void
-AsmSetFs(unsigned short FsSelector);
+extern VOID
+AsmSetFs(UINT16 FsSelector);
 
 /**
  * @brief Get GS Register
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetGs();
 
 /**
  * @brief Get LDTR Register
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetLdtr();
 
 /**
  * @brief Get TR Register
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetTr();
 
 /* ******* Gdt related functions ******* */
@@ -214,16 +214,16 @@ AsmGetTr();
 /**
  * @brief get GDT base
  *
- * @return unsigned long long
+ * @return UINT64
  */
-extern unsigned long long inline AsmGetGdtBase();
+extern UINT64 inline AsmGetGdtBase();
 
 /**
  * @brief Get GDT Limit
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetGdtLimit();
 
 /* ******* Idt related functions ******* */
@@ -231,20 +231,20 @@ AsmGetGdtLimit();
 /**
  * @brief Get IDT base
  *
- * @return unsigned long long
+ * @return UINT64
  */
-extern unsigned long long inline AsmGetIdtBase();
+extern UINT64 inline AsmGetIdtBase();
 
 /**
  * @brief Get IDT limit
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetIdtLimit();
 
 extern UINT32
-AsmGetAccessRights(unsigned short Selector);
+AsmGetAccessRights(UINT16 Selector);
 //
 // ====================  Common Functions ====================
 // File : AsmCommon.asm
@@ -253,22 +253,22 @@ AsmGetAccessRights(unsigned short Selector);
 /**
  * @brief Get R/EFLAGS
  *
- * @return unsigned short
+ * @return UINT16
  */
-extern unsigned short
+extern UINT16
 AsmGetRflags();
 
 /**
  * @brief Run CLI Instruction
  *
  */
-extern void inline AsmCliInstruction();
+extern VOID inline AsmCliInstruction();
 
 /**
  * @brief Run STI Instruction
  *
  */
-extern void inline AsmStiInstruction();
+extern VOID inline AsmStiInstruction();
 
 /**
  * @brief Reload new GDTR
@@ -276,23 +276,24 @@ extern void inline AsmStiInstruction();
  * @param GdtBase
  * @param GdtLimit
  */
-extern void
-AsmReloadGdtr(void * GdtBase, unsigned long GdtLimit);
+extern VOID
+AsmReloadGdtr(PVOID GdtBase, ULONG GdtLimit);
 
 /**
  * @brief Reload new IDTR
  *
- * @param GdtBase
- * @param GdtLimit
+ * @param IdtrBase
+ * @param IdtrLimit
  */
-extern void
-AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
+extern VOID
+AsmReloadIdtr(PVOID IdtrBase, ULONG IdtrLimit);
 
 /**
  * @brief Read SSP
  *
+ * @return UINT64
  */
-extern unsigned long long
+extern UINT64
 AsmReadSsp();
 
 //
@@ -304,8 +305,8 @@ AsmReadSsp();
  * @brief Detour hook handler
  *
  */
-extern void
-AsmGeneralDetourHook(void);
+extern VOID
+    AsmGeneralDetourHook(VOID);
 
 //
 // ====================  Kernel Test Functions ====================
@@ -316,11 +317,11 @@ AsmGeneralDetourHook(void);
  * @brief Tests with test tags wrapper
  *
  */
-extern unsigned long long
-AsmTestWrapperWithTestTags(unsigned long long Param1,
-                           unsigned long long Param2,
-                           unsigned long long Param3,
-                           unsigned long long Param4);
+extern UINT64
+AsmTestWrapperWithTestTags(UINT64 Param1,
+                           UINT64 Param2,
+                           UINT64 Param3,
+                           UINT64 Param4);
 
 //
 // ====================  Interrupt Handler Functions ====================
@@ -331,215 +332,215 @@ AsmTestWrapperWithTestTags(unsigned long long Param1,
  * @brief The 0th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler0();
 
 /**
  * @brief The 1st entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler1();
 
 /**
  * @brief The 2nd entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler2();
 
 /**
  * @brief The 3rd entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler3();
 
 /**
  * @brief The 4th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler4();
 
 /**
  * @brief The 5th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler5();
 
 /**
  * @brief The 6th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler6();
 
 /**
  * @brief The 7th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler7();
 
 /**
  * @brief The 8th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler8();
 
 /**
  * @brief The 9th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler9();
 
 /**
  * @brief The 10th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler10();
 
 /**
  * @brief The 11th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler11();
 
 /**
  * @brief The 12th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler12();
 
 /**
  * @brief The 13th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler13();
 
 /**
  * @brief The 14th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler14();
 
 /**
  * @brief The 15th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler15();
 
 /**
  * @brief The 16th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler16();
 
 /**
  * @brief The 17th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler17();
 
 /**
  * @brief The 18th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler18();
 
 /**
  * @brief The 19th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler19();
 
 /**
  * @brief The 20th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler20();
 
 /**
  * @brief The 21st entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler21();
 
 /**
  * @brief The 22nd entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler22();
 
 /**
  * @brief The 23rd entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler23();
 
 /**
  * @brief The 24th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler24();
 
 /**
  * @brief The 25th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler25();
 
 /**
  * @brief The 26th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler26();
 
 /**
  * @brief The 27th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler27();
 
 /**
  * @brief The 28th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler28();
 
 /**
  * @brief The 29th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler29();
 
 /**
  * @brief The 30th entry in IDT
  *
  */
-extern void
+extern VOID
 InterruptHandler30();

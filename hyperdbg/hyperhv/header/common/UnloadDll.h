@@ -15,6 +15,7 @@
 //	     		Exported Functions  			//
 //////////////////////////////////////////////////
 
-__declspec(dllexport) NTSTATUS DllInitialize(_In_ PUNICODE_STRING RegistryPath);
+__declspec(dllexport) NTSTATUS
+DllInitialize(_In_ PUNICODE_STRING RegistryPath);
 
-__declspec(dllexport) NTSTATUS DllUnload(void);
+__declspec(dllexport) NTSTATUS DllUnload(VOID);

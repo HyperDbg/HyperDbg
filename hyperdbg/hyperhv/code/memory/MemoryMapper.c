@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file MemoryMapper.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file shows the functions to map memory to reserved system ranges
@@ -685,7 +685,7 @@ MemoryMapperInitialize()
     //
     // Set the core's id and initialize memory mapper
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         //
         // *** Initialize memory mapper for each core ***
@@ -717,7 +717,7 @@ MemoryMapperUninitialize()
 {
     ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         //
         // Unmap and free the reserved buffer

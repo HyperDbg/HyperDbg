@@ -274,7 +274,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Split the 2MB page-table of each core to 4KB page-table
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         //
         // We need to split the large page to 4KB page using pre-allocated pools
@@ -1251,7 +1251,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         }
     }
 
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         //
         // We need to split the large page to 4KB page using pre-allocated pools
@@ -2069,7 +2069,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
     // is the HookedEntry that should be remove (not the first one as it has the
     // correct PreviousByte)
     //
-    for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+    for (SIZE_T i = 0; i < HookedEntry->CountOfBreakpoints; i++)
     {
         if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
         {
@@ -2162,7 +2162,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 // in the array, then we'll ignore setting the previous bit as previous bit might
                 // be modified for the previous command
                 //
-                for (size_t j = 0; j < HookedEntry->CountOfBreakpoints; j++)
+                for (SIZE_T j = 0; j < HookedEntry->CountOfBreakpoints; j++)
                 {
                     if (HookedEntry->BreakpointAddresses[j] == VirtualAddress)
                     {
@@ -2189,7 +2189,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 // all addresses to a lower array index (because one entry is
                 // missing and might) be in the middle of the array
                 //
-                for (size_t j = i /* IndexToRemove */; j < HookedEntry->CountOfBreakpoints - 1; j++)
+                for (SIZE_T j = i /* IndexToRemove */; j < HookedEntry->CountOfBreakpoints - 1; j++)
                 {
                     HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
                     HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
@@ -2274,7 +2274,7 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
             //
             // It's a hidden breakpoint
             //
-            for (size_t i = 0; i < CurrEntity->CountOfBreakpoints; i++)
+            for (SIZE_T i = 0; i < CurrEntity->CountOfBreakpoints; i++)
             {
                 if (CurrEntity->BreakpointAddresses[i] == VirtualAddress)
                 {

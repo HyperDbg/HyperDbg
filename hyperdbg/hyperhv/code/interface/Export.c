@@ -941,10 +941,10 @@ VmFuncEventInjectInterruption(UINT32  InterruptionType,
  * @return NTSTATUS
  */
 NTSTATUS
-VmFuncVmxVmcall(unsigned long long VmcallNumber,
-                unsigned long long OptionalParam1,
-                unsigned long long OptionalParam2,
-                unsigned long long OptionalParam3)
+VmFuncVmxVmcall(UINT64 VmcallNumber,
+                UINT64 OptionalParam1,
+                UINT64 OptionalParam2,
+                UINT64 OptionalParam3)
 {
     return AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
 }
@@ -1045,14 +1045,14 @@ VmFuncVmxCompatibleWcsncmp(const WCHAR * Address1, const WCHAR * Address2, SIZE_
  * @return INT32
  */
 INT32
-VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
+VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
 {
     return VmxCompatibleMemcmp(Address1, Address2, Count);
 }
 
 /**
  * @brief Enables MTF and adjust external interrupt state
- * @param UINT32 CoreId
+ * @param CoreId
  *
  * @return VOID
  */
@@ -1065,7 +1065,7 @@ VmFuncEnableMtfAndChangeExternalInterruptState(UINT32 CoreId)
 /**
  * @brief Checks to enable and reinject previous interrupts
  *
- * @param UINT32 CoreId
+ * @param CoreId
  *
  * @return VOID
  */

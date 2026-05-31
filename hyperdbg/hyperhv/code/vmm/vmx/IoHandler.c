@@ -37,12 +37,12 @@ IoHandleIoVmExits(VIRTUAL_MACHINE_STATE * VCpu, VMX_EXIT_QUALIFICATION_IO_INSTRU
 
     union
     {
-        unsigned char *  AsBytePtr;
-        unsigned short * AsWordPtr;
-        unsigned long *  AsDwordPtr;
+        UCHAR *  AsBytePtr;
+        USHORT * AsWordPtr;
+        ULONG *  AsDwordPtr;
 
-        void * AsPtr;
-        UINT64 AsUint64;
+        PVOID  AsPtr;
+        UINT64 AsUInt64;
 
     } PortValue;
 
@@ -215,11 +215,11 @@ IoHandleSetIoBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Port)
 {
     if (Port <= 0x7FFF)
     {
-        SetBit(Port, (unsigned long *)VCpu->IoBitmapVirtualAddressA);
+        SetBit(Port, (ULONG *)VCpu->IoBitmapVirtualAddressA);
     }
     else if ((0x8000 <= Port) && (Port <= 0xFFFF))
     {
-        SetBit(Port - 0x8000, (unsigned long *)VCpu->IoBitmapVirtualAddressB);
+        SetBit(Port - 0x8000, (ULONG *)VCpu->IoBitmapVirtualAddressB);
     }
     else
     {
@@ -245,8 +245,8 @@ IoHandlePerformIoBitmapChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Port)
         //
         // Means all the bitmaps should be put to 1
         //
-        memset((void *)VCpu->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
-        memset((void *)VCpu->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
+        memset((PVOID)VCpu->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+        memset((PVOID)VCpu->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
     }
     else
     {
@@ -270,6 +270,6 @@ IoHandlePerformIoBitmapReset(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Means all the bitmaps should be put to 0
     //
-    memset((void *)VCpu->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
-    memset((void *)VCpu->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
+    memset((PVOID)VCpu->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
+    memset((PVOID)VCpu->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
 }

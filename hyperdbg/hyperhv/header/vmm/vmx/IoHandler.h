@@ -57,55 +57,55 @@ IoInDword(UINT16 port)
     return CpuIoInDword(port);
 }
 
-inline void
+inline VOID
 IoInByteString(UINT16 port, UINT8 * data, UINT32 size)
 {
     CpuIoInByteString(port, data, size);
 }
 
-inline void
+inline VOID
 IoInWordString(UINT16 port, UINT16 * data, UINT32 size)
 {
     CpuIoInWordString(port, data, size);
 }
 
-inline void
+inline VOID
 IoInDwordString(UINT16 port, UINT32 * data, UINT32 size)
 {
     CpuIoInDwordString(port, data, size);
 }
 
-inline void
+inline VOID
 IoOutByte(UINT16 port, UINT8 value)
 {
     CpuIoOutByte(port, value);
 }
 
-inline void
+inline VOID
 IoOutWord(UINT16 port, UINT16 value)
 {
     CpuIoOutWord(port, value);
 }
 
-inline void
+inline VOID
 IoOutDword(UINT16 port, UINT32 value)
 {
     CpuIoOutDword(port, value);
 }
 
-inline void
+inline VOID
 IoOutByteString(UINT16 port, UINT8 * data, UINT32 count)
 {
     CpuIoOutByteString(port, data, count);
 }
 
-inline void
+inline VOID
 IoOutWordString(UINT16 port, UINT16 * data, UINT32 count)
 {
     CpuIoOutWordString(port, data, count);
 }
 
-inline void
+inline VOID
 IoOutDwordString(UINT16 port, UINT32 * data, UINT32 count)
 {
     CpuIoOutDwordString(port, data, count);
