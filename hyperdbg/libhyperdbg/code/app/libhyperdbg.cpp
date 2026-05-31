@@ -108,13 +108,12 @@ HyperDbgStopDriver(LPCTSTR DriverName)
 }
 
 /**
- * @brief Stop VMM driver
+ * @brief Stop KD driver
  *
- * @return INT return zero if it was successful or non-zero if there
- * was error
+ * @return INT return zero if it was successful or non-zero if there was error
  */
 INT
-HyperDbgStopVmmDriver()
+HyperDbgStopKdDriver()
 {
     return HyperDbgStopDriver(g_DriverName);
 }
@@ -423,7 +422,25 @@ HyperDbgUnloadVmm()
     //
     g_IsVmxOffProcessStart = TRUE;
 
-    Sleep(1000); // Wait so next thread can return from IRP Pending
+    //
+    // Hypervisor (VMM) module is not loaded anymore
+    //
+    g_IsVmmModuleLoaded = FALSE;
+
+    ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief Unload KD driver
+ *
+ * @return INT return zero if it was successful or non-zero if there was error
+ */
+INT
+HyperDbgUnloadKd()
+{
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     //
     // Send IRP_MJ_CLOSE to driver to terminate Vmxs
@@ -450,7 +467,7 @@ HyperDbgUnloadVmm()
     //
     SymbolDeleteSymTable();
 
-    ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+    ShowMessages("the debugger module is unloaded!\n");
 
     return 0;
 }

@@ -43,13 +43,16 @@ IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_unload_vmm();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_unload_kd();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_install_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_uninstall_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_stop_vmm_driver();
+hyperdbg_u_stop_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG GENERIC_PROCESSOR_VENDOR
 hyperdbg_u_get_processor_vendor();

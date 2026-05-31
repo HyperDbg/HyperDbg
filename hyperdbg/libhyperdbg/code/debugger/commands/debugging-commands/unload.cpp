@@ -16,6 +16,7 @@
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsKdModuleLoaded;
+extern BOOLEAN g_IsVmmModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
@@ -81,7 +82,7 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
             return;
         }
 
-        if (g_IsKdModuleLoaded)
+        if (g_IsVmmModuleLoaded)
         {
             HyperDbgUnloadVmm();
         }
@@ -96,9 +97,18 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
         if (CompareLowerCaseStrings(CommandTokens.at(1), "remove"))
         {
             //
+            // Unload the KD module
+            //
+            if (HyperDbgUnloadKd())
+            {
+                ShowMessages("err, failed to unload the kd (kernel debugger) driver\n");
+                return;
+            }
+
+            //
             // Stop the driver
             //
-            if (HyperDbgStopVmmDriver())
+            if (HyperDbgStopKdDriver())
             {
                 ShowMessages("err, failed to stop driver\n");
                 return;

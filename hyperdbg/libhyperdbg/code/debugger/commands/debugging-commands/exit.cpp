@@ -62,7 +62,15 @@ CommandExit(vector<CommandToken> CommandTokens, string Command)
         //
         if (g_DeviceHandle)
         {
+            //
+            // Unload the VMM module first because it is using the driver and then unload the KD module
+            //
             HyperDbgUnloadVmm();
+
+            //
+            // Unload the KD module
+            //
+            HyperDbgUnloadKd();
         }
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)

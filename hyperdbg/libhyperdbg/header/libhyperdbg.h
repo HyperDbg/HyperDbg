@@ -22,6 +22,9 @@ INT
 HyperDbgUnloadVmm();
 
 INT
+HyperDbgUnloadKd();
+
+INT
 HyperDbgInstallKdDriver();
 
 INT
@@ -37,7 +40,7 @@ INT
 HyperDbgLoadHyperTraceModule();
 
 INT
-HyperDbgStopVmmDriver();
+HyperDbgStopKdDriver();
 
 INT
 HyperDbgInterpreter(CHAR * Command);

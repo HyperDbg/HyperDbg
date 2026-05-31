@@ -53,7 +53,7 @@ hyperdbg_u_load_vmm()
 }
 
 /**
- * @brief Unload the VMM
+ * @brief Unload the VMM module
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
@@ -61,6 +61,17 @@ INT
 hyperdbg_u_unload_vmm()
 {
     return HyperDbgUnloadVmm();
+}
+
+/**
+ * @brief Unload the KD module
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_unload_kd()
+{
+    return HyperDbgUnloadKd();
 }
 
 /**
@@ -86,14 +97,14 @@ hyperdbg_u_uninstall_kd_driver()
 }
 
 /**
- * @brief Stop the VMM driver
+ * @brief Stop the KD driver
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_stop_vmm_driver()
+hyperdbg_u_stop_kd_driver()
 {
-    return HyperDbgStopVmmDriver();
+    return HyperDbgStopKdDriver();
 }
 
 /**
