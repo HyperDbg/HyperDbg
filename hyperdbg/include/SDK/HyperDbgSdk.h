@@ -1,5 +1,8 @@
 #pragma once
 
+//
+// General SDK Headers
+//
 #include "SDK/headers/Constants.h"
 #include "SDK/headers/BasicTypes.h"
 #include "SDK/headers/ErrorCodes.h"
@@ -7,6 +10,8 @@
 #include "SDK/headers/DataTypes.h"
 #include "SDK/headers/Ioctls.h"
 #include "SDK/headers/Events.h"
+#include "SDK/headers/Symbols.h"
+#include "SDK/headers/HardwareDebugger.h"
 
 //
 // Devices
@@ -23,9 +28,10 @@
 //
 #include "SDK/headers/PtDefinitions.h"
 
+//
+// Request Packets
+//
 #include "SDK/headers/RequestStructures.h"
-#include "SDK/headers/Symbols.h"
-#include "SDK/headers/HardwareDebugger.h"
 
 //
 // Asserts

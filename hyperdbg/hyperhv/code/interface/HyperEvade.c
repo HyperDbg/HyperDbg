@@ -39,6 +39,11 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     HyperevadeCallbacks.LogCallbackCheckIfBufferIsFull                 = g_Callbacks.LogCallbackCheckIfBufferIsFull;
 
     //
+    // HyperTrace callback(s)
+    //
+    HyperevadeCallbacks.HyperTraceLbrIsSupported = HyperTraceCallbackLbrIsSupported;
+
+    //
     // Memory callbacks
     //
     HyperevadeCallbacks.CheckAccessValidityAndSafety               = CheckAccessValidityAndSafety;

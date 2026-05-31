@@ -15,5 +15,15 @@ int
 main(void)
 {
     printf("Hello world HyperDbg!\n");
+
+    //////////////////////////////////////////////////////////////
+    //
+    // Test for working intrinsics
+    //
+    CpuReadTsc();
+    CpuCpuId(NULL, 0);
+
+    //////////////////////////////////////////////////////////////
+
     return 0;
 }

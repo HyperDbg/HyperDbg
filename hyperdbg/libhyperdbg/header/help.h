@@ -313,6 +313,9 @@ VOID
 CommandLbrHelp();
 
 VOID
+CommandLbrdumpHelp();
+
+VOID
 CommandPtHelp();
 
 //

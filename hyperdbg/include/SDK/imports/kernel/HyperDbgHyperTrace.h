@@ -37,16 +37,34 @@ HyperTraceUnInit();
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrIsSupported(UINT32 * Capacity, BOOLEAN * IsArchLbr);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrCheck();
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrRestore();
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrRestoreByFilter(UINT64 FilterOptions);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceLbrDump(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
+HyperTraceLbrPrint(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId);
+
+//
+// Perform operations related to HyperTrace LBR dumping
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrPerformDump(HYPERTRACE_LBR_DUMP_PACKETS * LbrDumpRequest);
 
 //
 // Perform operations related to HyperTrace LBR based on the request type and parameters

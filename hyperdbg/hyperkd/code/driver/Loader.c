@@ -38,30 +38,42 @@ LoaderInitHyperTrace(BOOLEAN RunningOnHypervisorEnvironment)
     //
     // Fill the callbacks for using hyperhv in hypertrace
     //
-    HyperTraceCallbacks.VmFuncVmxGetCurrentExecutionMode                 = VmFuncVmxGetCurrentExecutionMode;
-    HyperTraceCallbacks.VmFuncGetDebugctl                                = VmFuncGetDebugctl;
-    HyperTraceCallbacks.VmFuncGetDebugctlVmcallOnTargetCore              = VmFuncGetDebugctlVmcallOnTargetCore;
-    HyperTraceCallbacks.VmFuncSetDebugctl                                = VmFuncSetDebugctl;
-    HyperTraceCallbacks.VmFuncSetDebugctlVmcallOnTargetCore              = VmFuncSetDebugctlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncVmxGetCurrentExecutionMode = VmFuncVmxGetCurrentExecutionMode;
+
+    //
+    // *** Legacy LBR callbacks ***
+    //
+
     HyperTraceCallbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls = VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
-    HyperTraceCallbacks.VmFuncSetLoadDebugControls                       = VmFuncSetLoadDebugControls;
-    HyperTraceCallbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore     = VmFuncSetLoadDebugControlsVmcallOnTargetCore;
-    HyperTraceCallbacks.VmFuncSetSaveDebugControls                       = VmFuncSetSaveDebugControls;
-    HyperTraceCallbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore     = VmFuncSetSaveDebugControlsVmcallOnTargetCore;
-    HyperTraceCallbacks.VmFuncSetLbrSelect                               = VmFuncSetLbrSelect;
-    HyperTraceCallbacks.VmFuncSetLbrSelectVmcallOnTargetCore             = VmFuncSetLbrSelectVmcallOnTargetCore;
+
+    HyperTraceCallbacks.VmFuncGetDebugctl                   = VmFuncGetDebugctl;
+    HyperTraceCallbacks.VmFuncGetDebugctlVmcallOnTargetCore = VmFuncGetDebugctlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetDebugctl                   = VmFuncSetDebugctl;
+    HyperTraceCallbacks.VmFuncSetDebugctlVmcallOnTargetCore = VmFuncSetDebugctlVmcallOnTargetCore;
+
+    HyperTraceCallbacks.VmFuncSetLoadDebugControls                   = VmFuncSetLoadDebugControls;
+    HyperTraceCallbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore = VmFuncSetLoadDebugControlsVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetSaveDebugControls                   = VmFuncSetSaveDebugControls;
+    HyperTraceCallbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore = VmFuncSetSaveDebugControlsVmcallOnTargetCore;
+
+    HyperTraceCallbacks.VmFuncSetLbrSelect                   = VmFuncSetLbrSelect;
+    HyperTraceCallbacks.VmFuncSetLbrSelectVmcallOnTargetCore = VmFuncSetLbrSelectVmcallOnTargetCore;
 
     //
-    // Memory callbacks
+    // *** Architectural LBR callbacks ***
     //
-    HyperTraceCallbacks.CheckAccessValidityAndSafety               = CheckAccessValidityAndSafety;
-    HyperTraceCallbacks.MemoryMapperReadMemorySafeOnTargetProcess  = MemoryMapperReadMemorySafeOnTargetProcess;
-    HyperTraceCallbacks.MemoryMapperWriteMemorySafeOnTargetProcess = MemoryMapperWriteMemorySafeOnTargetProcess;
 
-    //
-    // Common callbacks
-    //
-    HyperTraceCallbacks.CommonGetProcessNameFromProcessControlBlock = CommonGetProcessNameFromProcessControlBlock;
+    HyperTraceCallbacks.VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls = VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls;
+
+    HyperTraceCallbacks.VmFuncGetGuestIa32LbrCtl                   = VmFuncGetGuestIa32LbrCtl;
+    HyperTraceCallbacks.VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore = VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetGuestIa32LbrCtl                   = VmFuncSetGuestIa32LbrCtl;
+    HyperTraceCallbacks.VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore = VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore;
+
+    HyperTraceCallbacks.VmFuncSetLoadGuestIa32LbrCtl                    = VmFuncSetLoadGuestIa32LbrCtl;
+    HyperTraceCallbacks.VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore  = VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetClearGuestIa32LbrCtl                   = VmFuncSetClearGuestIa32LbrCtl;
+    HyperTraceCallbacks.VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore = VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore;
 
     //
     // Initialize hypertrace module
@@ -111,6 +123,11 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.LogCallbackSendMessageToQueue                  = LogCallbackSendMessageToQueue;
     VmmCallbacks.LogCallbackSendBuffer                          = LogCallbackSendBuffer;
     VmmCallbacks.LogCallbackCheckIfBufferIsFull                 = LogCallbackCheckIfBufferIsFull;
+
+    //
+    // Fill the HyperTrace callback(s)
+    //
+    VmmCallbacks.HyperTraceLbrIsSupported = HyperTraceLbrIsSupported;
 
     //
     // Fill the VMM callbacks

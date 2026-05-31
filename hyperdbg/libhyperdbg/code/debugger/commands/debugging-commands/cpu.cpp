@@ -140,12 +140,12 @@ private:
             // Calling __cpuid with 0x0 as the function_id argument
             // gets the number of the highest valid function ID.
             //
-            __cpuid(cpui.data(), 0);
+            CpuCpuId(cpui.data(), 0);
             nIds_ = cpui[0];
 
             for (int i = 0; i <= nIds_; ++i)
             {
-                __cpuidex(cpui.data(), i, 0);
+                CpuIdEx(cpui.data(), i, 0);
                 data_.push_back(cpui);
             }
 
@@ -189,7 +189,7 @@ private:
             // Calling __cpuid with 0x80000000 as the function_id argument
             // gets the number of the highest valid extended ID.
             //
-            __cpuid(cpui.data(), 0x80000000);
+            CpuCpuId(cpui.data(), 0x80000000);
             nExIds_ = cpui[0];
 
             char brand[0x40];
@@ -197,7 +197,7 @@ private:
 
             for (int i = 0x80000000; i <= nExIds_; ++i)
             {
-                __cpuidex(cpui.data(), i, 0);
+                CpuIdEx(cpui.data(), i, 0);
                 extdata_.push_back(cpui);
             }
 

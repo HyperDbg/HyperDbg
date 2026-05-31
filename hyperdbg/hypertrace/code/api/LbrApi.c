@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file LbrApi.c
  * @author Hari Mishal (harimishal6@gmail.com)
  * @author Sina Karvandi (sina@hyperdbg.org)
@@ -19,7 +19,7 @@
 VOID
 HyperTraceLbrExamplePerformTrace()
 {
-    if (LbrStart(LBR_SELECT))
+    if (LbrStart(LBR_SELECT_WITHOUT_FILTER))
     {
         for (volatile int i = 0; i < 50; i++)
         {
@@ -30,15 +30,15 @@ HyperTraceLbrExamplePerformTrace()
             }
             else
             {
-                __nop();
-                __nop();
+                CpuNop();
+                CpuNop();
             }
         }
 
         LogInfo("Dumping LBR Buffer...\n");
 
         LbrStop();
-        LbrDump(); // This will print the collected LBR branches to the log
+        LbrPrint(); // This will print the collected LBR branches to the log
     }
 }
 
@@ -58,6 +58,138 @@ HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId)
 }
 
 /**
+ * @brief Set the kernel status in the HyperTrace LBR operation request structure
+ *
+ * @param HyperTraceLbrOperationRequest
+ * @param Status
+ *
+ * @return VOID
+ */
+VOID
+HyperTraceLbrSetKernelStatus(
+    HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceLbrOperationRequest,
+    UINT32                             Status)
+{
+    if (HyperTraceLbrOperationRequest != NULL)
+    {
+        HyperTraceLbrOperationRequest->KernelStatus = Status;
+    }
+}
+
+/**
+ * @brief Set the kernel status in the HyperTrace LBR dump operation request structure
+ *
+ * @param HyperTraceLbrDumpOperationRequest
+ * @param Status
+ *
+ * @return VOID
+ */
+VOID
+HyperTraceLbrDumpSetKernelStatus(
+    HYPERTRACE_LBR_DUMP_PACKETS * HyperTraceLbrDumpOperationRequest,
+    UINT32                        Status)
+{
+    if (HyperTraceLbrDumpOperationRequest != NULL)
+    {
+        HyperTraceLbrDumpOperationRequest->KernelStatus = Status;
+    }
+}
+
+/**
+ * @brief Check if LBR is supported and enabled on the current core
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrCheck()
+{
+    //
+    // Only check LBR once it is already initialized
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        return FALSE;
+    }
+
+    return LbrCheck();
+}
+
+/**
+ * @brief Restore (re-enable) LBR collection on the current core with the specified filter options
+ * @param FilterOptions A bitmask of filter options to apply to the LBR branches
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrRestoreByFilter(UINT64 FilterOptions)
+{
+    //
+    // Only restore (re-enable) LBR once it is already initialized
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        return FALSE;
+    }
+
+    return LbrStart(FilterOptions);
+}
+
+/**
+ * @brief Restore (re-enable) LBR collection on the current core with previous filter options
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrRestore()
+{
+    return HyperTraceLbrRestoreByFilter(g_LbrFilterOptions);
+}
+
+/**
+ * @brief Check if LBR is supported on the current CPU and get its capacity
+ *
+ * @param Capacity Pointer to a variable to receive the LBR capacity (number of entries)
+ * @param IsArchLbr Pointer to a variable to receive whether the supported LBR is architectural LBR or not (legacy LBR)
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrIsSupported(UINT32 * Capacity, BOOLEAN * IsArchLbr)
+{
+    //
+    // Check for ARCHITECTURAL LBR support first, if not supported then check for LEGACY LBR support
+    //
+    if (!LbrCheckAndReadArchitecturalLbrDetails())
+    {
+        //
+        // If the CPU does not support architectural LBR, we can check for legacy LBR support as a fallback
+        //
+        if (!LbrCheckAndReadLegacyLbrDetails())
+        {
+            return FALSE;
+        }
+    }
+
+    //
+    // Set capacity when the pointer is valid
+    //
+    if (Capacity != NULL)
+    {
+        *Capacity = (UINT32)g_LbrCapacity;
+    }
+
+    //
+    // Set IsArchLbr when the pointer is valid
+    //
+    if (IsArchLbr != NULL)
+    {
+        *IsArchLbr = g_ArchBasedLastBranchRecord;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Enable LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
@@ -70,34 +202,57 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
     //
     // Check if LBR is already enabled or not
     //
+    // We allow re-enabling LBR even if it is already enabled to support scenarios where
+    // the LBR is deactivated as a result of a #DB and wants to re-enable it again
+    /*
     if (g_LastBranchRecordEnabled)
     {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_ENABLED;
+        HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_ENABLED);
         return FALSE;
     }
+    */
 
     //
-    // Check LBR support on CPU
+    // Check for ARCHITECTURAL LBR support first, if not supported then check for LEGACY LBR support
     //
-    if (!LbrCheck())
+    if (!LbrCheckAndReadArchitecturalLbrDetails())
     {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_NOT_SUPPORTED;
-        return FALSE;
+        //
+        // If the CPU does not support architectural LBR, we can check for legacy LBR support as a fallback
+        //
+        if (!LbrCheckAndReadLegacyLbrDetails())
+        {
+            HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_NOT_SUPPORTED);
+            return FALSE;
+        }
     }
 
     //
     // Check VMCS support for LBR if the initialization is being done for hypervisor environment
     //
-    if (g_RunningOnHypervisorEnvironment && !g_Callbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls())
+    if (g_RunningOnHypervisorEnvironment)
     {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_DEBUGCTL_NOT_SUPPORTED_ON_VMCS;
-        return FALSE;
+        if ((g_ArchBasedLastBranchRecord && !g_Callbacks.VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls()) ||
+            (!g_ArchBasedLastBranchRecord && !g_Callbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls()))
+        {
+            HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_NOT_SUPPORTED_ON_VMCS);
+            return FALSE;
+        }
     }
 
     //
     // Broadcast enabling LBR on all cores
     //
     BroadcastEnableLbrOnAllCores();
+
+    //
+    // Check if LBR is enabled or not (for example in VMs, LBR flags are usually masked)
+    //
+    if (!LbrCheck())
+    {
+        HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_NOT_SUPPORTED);
+        return FALSE;
+    }
 
     //
     // Set the flag to indicate that LBR tracing is enabled
@@ -107,7 +262,7 @@ HyperTraceLbrEnable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReques
     //
     // Set successful status
     //
-    HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -127,11 +282,7 @@ HyperTraceLbrDisable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReque
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
-
+        HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
@@ -148,10 +299,7 @@ HyperTraceLbrDisable(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationReque
     //
     // Set successful status
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -171,26 +319,24 @@ HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
-
+        HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
     //
-    // Broadcast disabling LBR on all cores
+    // Disabling LBR
     //
-    BroadcastDisableLbrOnAllCores();
+    g_LastBranchRecordEnabled = FALSE;
+
+    //
+    // Broadcast flushing LBR on all cores
+    //
+    BroadcastFlushLbrOnAllCores();
 
     //
     // Set successful status
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -210,15 +356,11 @@ HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
-
+        HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
-    LogInfo("Saving LBR Buffer...\n");
+    // LogInfo("Saving LBR Buffer...\n");
 
     //
     // Save the LBR state
@@ -228,51 +370,46 @@ HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
     //
     // The operation was successful
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
 
 /**
- * @brief Dump LBR tracing for HyperTrace
+ * @brief Print LBR tracing for HyperTrace
  *
  * @param HyperTraceOperationRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperTraceLbrDump(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
+HyperTraceLbrPrint(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest)
 {
     //
     // Check if LBR is already disabled or not
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
-
+        HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
-    LogInfo("Dumping LBR Buffer...\n");
+    // LogInfo("Dumping LBR Buffer...\n");
+
+    //
+    // Save the LBR state
+    //
+    LbrSave();
 
     //
     // This will print the collected LBR branches to the log
     //
-    LbrDump();
+    LbrPrint();
 
     //
     // The operation was successful
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
@@ -292,10 +429,7 @@ HyperTraceLbrUpdateFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOp
     //
     if (!g_LastBranchRecordEnabled)
     {
-        if (HyperTraceOperationRequest != NULL)
-        {
-            HyperTraceOperationRequest->KernelStatus = DEBUGGER_ERROR_LBR_ALREADY_DISABLED;
-        }
+        HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
         return FALSE;
     }
 
@@ -307,16 +441,83 @@ HyperTraceLbrUpdateFilterOptions(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOp
     //
     // The operation was successful
     //
-    if (HyperTraceOperationRequest != NULL)
-    {
-        HyperTraceOperationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-    }
+    HyperTraceLbrSetKernelStatus(HyperTraceOperationRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
 
     return TRUE;
 }
 
 /**
- * @brief Perform actions related to HyperTrace LBR
+ * @brief Perform actions related to HyperTrace LBR dumping
+ *
+ * @param LbrDumpRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceLbrPerformDump(HYPERTRACE_LBR_DUMP_PACKETS * LbrDumpRequest)
+{
+    ULONG ProcessorsCount;
+
+    //
+    // Check if LBR is enabled or not before dumping
+    //
+    if (!g_LastBranchRecordEnabled)
+    {
+        HyperTraceLbrDumpSetKernelStatus(LbrDumpRequest, DEBUGGER_ERROR_LBR_ALREADY_DISABLED);
+        return FALSE;
+    }
+
+    //
+    // Get the number of processors in the system to validate the requested core id for dumping
+    //
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Check if core id is valid
+    //
+    if (LbrDumpRequest->CoreId >= ProcessorsCount)
+    {
+        HyperTraceLbrDumpSetKernelStatus(LbrDumpRequest, DEBUGGER_ERROR_INVALID_CORE_ID);
+        return FALSE;
+    }
+
+    //
+    // Check if next core is valid in the case of dumping all cores
+    //
+    if (LbrDumpRequest->CoreId == ProcessorsCount - 1)
+    {
+        LbrDumpRequest->NextCoreIsValid = FALSE;
+    }
+    else
+    {
+        LbrDumpRequest->NextCoreIsValid = TRUE;
+    }
+
+    //
+    // Set ARCH or LEGACY LBR flag in the dump request structure based on the type of LBR supported by the CPU
+    //
+    LbrDumpRequest->ArchBasedLBR = g_ArchBasedLastBranchRecord;
+
+    //
+    // Set the current LBR capacity in the dump request structure based on the type of LBR supported by the CPU
+    //
+    LbrDumpRequest->CurrentLbrCapacity = (UINT8)g_LbrCapacity;
+
+    //
+    // Copy the LBR stack entries of the requested core into the dump request structure to be sent back to usermode
+    //
+    RtlCopyMemory(&LbrDumpRequest->LbrStack, &g_LbrStateList[LbrDumpRequest->CoreId], sizeof(LBR_STACK_ENTRY));
+
+    //
+    // Set successful status
+    //
+    HyperTraceLbrDumpSetKernelStatus(LbrDumpRequest, DEBUGGER_OPERATION_WAS_SUCCESSFUL);
+
+    return TRUE;
+}
+
+/**
+ * @brief Perform actions related to HyperTrace LBR operations
  *
  * @param LbrOperationRequest
  *
@@ -332,7 +533,7 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
     //
     if (!g_HyperTraceCallbacksInitialized)
     {
-        LbrOperationRequest->KernelStatus = DEBUGGER_ERROR_HYPERTRACE_NOT_INITIALIZED;
+        HyperTraceLbrSetKernelStatus(LbrOperationRequest, DEBUGGER_ERROR_HYPERTRACE_NOT_INITIALIZED);
         return FALSE;
     }
 
@@ -343,7 +544,7 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
     {
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_ENABLE:
 
-        LogInfo("HyperTrace: Enabling LBR tracing...\n");
+        // LogInfo("HyperTrace: Enabling LBR tracing...\n");
 
         HyperTraceLbrEnable(LbrOperationRequest);
 
@@ -351,31 +552,15 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DISABLE:
 
-        LogInfo("HyperTrace: Disabling LBR tracing...\n");
+        // LogInfo("HyperTrace: Disabling LBR tracing...\n");
 
         HyperTraceLbrDisable(LbrOperationRequest);
 
         break;
 
-    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_SAVE:
-
-        LogInfo("HyperTrace: Saving LBR tracing...\n");
-
-        HyperTraceLbrSave(LbrOperationRequest);
-
-        break;
-
-    case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_DUMP:
-
-        LogInfo("HyperTrace: Showing LBR tracing...\n");
-
-        HyperTraceLbrDump(LbrOperationRequest);
-
-        break;
-
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FLUSH:
 
-        LogInfo("HyperTrace: Flushing LBR tracing...\n");
+        // LogInfo("HyperTrace: Flushing LBR tracing...\n");
 
         HyperTraceLbrFlush(LbrOperationRequest);
 
@@ -383,15 +568,17 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 
     case HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER:
 
-        LogInfo("HyperTrace: Updating LBR filter options...\n");
+        // LogInfo("HyperTrace: Updating LBR filter options...\n");
 
         HyperTraceLbrUpdateFilterOptions(LbrOperationRequest);
 
         break;
 
     default:
-        Status                            = FALSE;
-        LbrOperationRequest->KernelStatus = DEBUGGER_ERROR_INVALID_HYPERTRACE_OPERATION_TYPE;
+
+        Status = FALSE;
+        HyperTraceLbrSetKernelStatus(LbrOperationRequest, DEBUGGER_ERROR_INVALID_HYPERTRACE_OPERATION_TYPE);
+
         break;
     }
 

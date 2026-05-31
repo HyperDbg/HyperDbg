@@ -43,6 +43,7 @@ CommandWrmsr(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                           Status;
     UINT64                         Msr;
+    ULONG                          ReturnedLength;
     DEBUGGER_READ_AND_WRITE_ON_MSR MsrWriteRequest = {0};
     BOOL                           IsNextCoreId    = FALSE;
     BOOL                           SetMsr          = FALSE;
@@ -157,9 +158,9 @@ CommandWrmsr(vector<CommandToken> CommandTokens, string Command)
         IOCTL_DEBUGGER_READ_OR_WRITE_MSR,      // IO Control Code (IOCTL)
         &MsrWriteRequest,                      // Input Buffer to driver.
         SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR, // Input buffer length
-        NULL,                                  // Output Buffer from driver.
-        NULL,                                  // Length of output buffer in bytes.
-        NULL,                                  // Bytes placed in buffer.
+        &MsrWriteRequest,                      // Output Buffer from driver.
+        SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR, // Length of output buffer in bytes.
+        &ReturnedLength,                       // Bytes placed in buffer.
         NULL                                   // synchronous call
     );
 

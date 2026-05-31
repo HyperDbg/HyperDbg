@@ -127,6 +127,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\platform\user\header\platform-intrinsics.h" />
     <ClInclude Include="..\include\platform\user\header\Windows.h" />
     <ClInclude Include="header\assembler.h" />
     <ClInclude Include="header\commands.h" />
@@ -158,6 +159,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\platform\user\code\platform-intrinsics.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
     <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
@@ -178,6 +180,7 @@
     <ClCompile Include="code\debugger\commands\extension-commands\idt.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\ioapic.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\lbr.cpp" />
+    <ClCompile Include="code\debugger\commands\extension-commands\lbrdump.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\pcicam.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\pcitree.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\pt.cpp" />

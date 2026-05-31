@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Ept.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Gbps
@@ -24,8 +24,8 @@ EptCheckFeatures(VOID)
     IA32_VMX_EPT_VPID_CAP_REGISTER VpidRegister;
     IA32_MTRR_DEF_TYPE_REGISTER    MTRRDefType;
 
-    VpidRegister.AsUInt = __readmsr(IA32_VMX_EPT_VPID_CAP);
-    MTRRDefType.AsUInt  = __readmsr(IA32_MTRR_DEF_TYPE);
+    VpidRegister.AsUInt = CpuReadMsr(IA32_VMX_EPT_VPID_CAP);
+    MTRRDefType.AsUInt  = CpuReadMsr(IA32_MTRR_DEF_TYPE);
 
     if (!VpidRegister.PageWalkLength4 || !VpidRegister.MemoryTypeWriteBack || !VpidRegister.Pde2MbPages)
     {
@@ -163,8 +163,8 @@ EptBuildMtrrMap(VOID)
     UINT32                          CurrentRegister;
     UINT32                          NumberOfBitsInMask;
 
-    MTRRCap.AsUInt     = __readmsr(IA32_MTRR_CAPABILITIES);
-    MTRRDefType.AsUInt = __readmsr(IA32_MTRR_DEF_TYPE);
+    MTRRCap.AsUInt     = CpuReadMsr(IA32_MTRR_CAPABILITIES);
+    MTRRDefType.AsUInt = CpuReadMsr(IA32_MTRR_DEF_TYPE);
 
     //
     // All MTRRs are disabled when clear, and the
@@ -200,7 +200,7 @@ EptBuildMtrrMap(VOID)
     {
         const UINT32               K64Base  = 0x0;
         const UINT32               K64Size  = 0x10000;
-        IA32_MTRR_FIXED_RANGE_TYPE K64Types = {__readmsr(IA32_MTRR_FIX64K_00000)};
+        IA32_MTRR_FIXED_RANGE_TYPE K64Types = {CpuReadMsr(IA32_MTRR_FIX64K_00000)};
         for (unsigned int i = 0; i < 8; i++)
         {
             Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
@@ -214,7 +214,7 @@ EptBuildMtrrMap(VOID)
         const UINT32 K16Size = 0x4000;
         for (unsigned int i = 0; i < 2; i++)
         {
-            IA32_MTRR_FIXED_RANGE_TYPE K16Types = {__readmsr(IA32_MTRR_FIX16K_80000 + i)};
+            IA32_MTRR_FIXED_RANGE_TYPE K16Types = {CpuReadMsr(IA32_MTRR_FIX16K_80000 + i)};
             for (unsigned int j = 0; j < 8; j++)
             {
                 Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
@@ -229,7 +229,7 @@ EptBuildMtrrMap(VOID)
         const UINT32 K4Size = 0x1000;
         for (unsigned int i = 0; i < 8; i++)
         {
-            IA32_MTRR_FIXED_RANGE_TYPE K4Types = {__readmsr(IA32_MTRR_FIX4K_C0000 + i)};
+            IA32_MTRR_FIXED_RANGE_TYPE K4Types = {CpuReadMsr(IA32_MTRR_FIX4K_C0000 + i)};
 
             for (unsigned int j = 0; j < 8; j++)
             {
@@ -247,8 +247,8 @@ EptBuildMtrrMap(VOID)
         //
         // For each dynamic register pair
         //
-        CurrentPhysBase.AsUInt = __readmsr(IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
-        CurrentPhysMask.AsUInt = __readmsr(IA32_MTRR_PHYSMASK0 + (CurrentRegister * 2));
+        CurrentPhysBase.AsUInt = CpuReadMsr(IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
+        CurrentPhysMask.AsUInt = CpuReadMsr(IA32_MTRR_PHYSMASK0 + (CurrentRegister * 2));
 
         //
         // Is the range enabled?
@@ -270,7 +270,7 @@ EptBuildMtrrMap(VOID)
             // Calculate the total size of the range
             // The lowest bit of the mask that is set to 1 specifies the size of the range
             //
-            _BitScanForward64((ULONG *)&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
+            CpuBitScanForward64((ULONG *)&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
 
             //
             // Size of the range in bytes + Base Address
@@ -552,7 +552,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     // Copy the template into all the PML1 entries
     //
-    __stosq((SIZE_T *)&NewSplit->PML1[0], EntryTemplate.AsUInt, VMM_EPT_PML1E_COUNT);
+    CpuStosQ((SIZE_T *)&NewSplit->PML1[0], EntryTemplate.AsUInt, VMM_EPT_PML1E_COUNT);
 
     //
     // Set the page frame numbers for identity mapping
@@ -713,7 +713,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     //
     // Copy the template into each of the 512 PML4 entry slots
     //
-    __stosq((SIZE_T *)&PageTable->PML4[1], PageTable->PML4[0].AsUInt, VMM_EPT_PML4E_COUNT - 1);
+    CpuStosQ((SIZE_T *)&PageTable->PML4[1], PageTable->PML4[0].AsUInt, VMM_EPT_PML4E_COUNT - 1);
 
     for (int i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     {
@@ -758,14 +758,14 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     //
     // Copy the template into each of the 512 PML3 entry slots for the original entries
     //
-    __stosq((SIZE_T *)&PageTable->PML3[0], PML3Template.AsUInt, VMM_EPT_PML3E_COUNT);
+    CpuStosQ((SIZE_T *)&PageTable->PML3[0], PML3Template.AsUInt, VMM_EPT_PML3E_COUNT);
 
     //
     // Copt the template into each of the 512 PML3 entry slots for the reserved entries
     //
     for (size_t i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
     {
-        __stosq((SIZE_T *)&PageTable->PML3_RSVD[i][0], PML3TemplateLarge.AsUInt, VMM_EPT_PML3E_COUNT);
+        CpuStosQ((SIZE_T *)&PageTable->PML3_RSVD[i][0], PML3TemplateLarge.AsUInt, VMM_EPT_PML3E_COUNT);
     }
 
     //
@@ -822,7 +822,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     // this region or not. We will cause a fault in our EPT handler if the guest access a page
     // outside a usable range, despite the EPT frame being present here
     //
-    __stosq((SIZE_T *)&PageTable->PML2[0], PML2EntryTemplate.AsUInt, VMM_EPT_PML3E_COUNT * VMM_EPT_PML2E_COUNT);
+    CpuStosQ((SIZE_T *)&PageTable->PML2[0], PML2EntryTemplate.AsUInt, VMM_EPT_PML3E_COUNT * VMM_EPT_PML2E_COUNT);
 
     //
     // For each of the 512 collections of 512 2MB PML2 entries

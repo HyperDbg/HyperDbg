@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file VmxRegions.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implement allocations for VMX Regions (VMXON Region, VMCS, MSR Bitmap and etc.)
@@ -63,7 +63,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
     LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
@@ -74,7 +74,8 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Execute Vmxon instruction
     //
-    VmxonStatus = __vmx_on(&AlignedVmxonRegionPhysicalAddr);
+    VmxonStatus = VmxVmxon(&AlignedVmxonRegionPhysicalAddr);
+
     if (VmxonStatus)
     {
         LogError("Err, executing vmxon instruction failed with status : %d", VmxonStatus);
@@ -139,7 +140,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
     LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
@@ -276,7 +277,7 @@ VmxAllocateInvalidMsrBimap()
     {
         __try
         {
-            __readmsr(i);
+            CpuReadMsr(i);
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {

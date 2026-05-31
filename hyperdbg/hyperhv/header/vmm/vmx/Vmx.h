@@ -226,46 +226,6 @@ typedef enum _MOV_TO_DEBUG_REG
 } MOV_TO_DEBUG_REG;
 
 //////////////////////////////////////////////////
-//				VMX Instructions				//
-//////////////////////////////////////////////////
-
-extern inline UCHAR
-VmxVmread64(size_t Field, UINT64 FieldValue);
-
-extern inline UCHAR
-VmxVmread32(size_t Field, UINT32 FieldValue);
-
-extern inline UCHAR
-VmxVmread16(size_t Field, UINT16 FieldValue);
-
-extern inline UCHAR
-VmxVmread64P(size_t Field, UINT64 * FieldValue);
-
-extern inline UCHAR
-VmxVmread32P(size_t Field, UINT32 * FieldValue);
-
-extern inline UCHAR
-VmxVmread16P(size_t Field, UINT16 * FieldValue);
-
-extern inline UCHAR
-VmxVmwrite64(size_t Field, UINT64 FieldValue);
-
-extern inline UCHAR
-VmxVmwrite32(size_t Field, UINT32 FieldValue);
-
-extern inline UCHAR
-VmxVmwrite16(size_t Field, UINT16 FieldValue);
-
-VOID
-VmxVmptrst();
-
-VOID
-VmxVmresume();
-
-VOID
-VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu);
-
-//////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 
@@ -281,23 +241,8 @@ VmxPerformVirtualizationOnAllCores();
 BOOLEAN
 VmxTerminate();
 
-VOID
-VmxPerformTermination();
-
-VOID
-VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
-VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu);
-
-VOID
-VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu);
-
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore();
-
-VOID
-VmxFixCr4AndCr0Bits();
 
 BOOLEAN
 VmxLoadVmcs(_In_ VIRTUAL_MACHINE_STATE * VCpu);
@@ -313,6 +258,33 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
 BOOLEAN
 VmxSetupVmcs(_In_ VIRTUAL_MACHINE_STATE * VCpu, _In_ PVOID GuestStack);
+
+VOID
+VmxPerformVmptrst();
+
+VOID
+VmxPerformVmresume();
+
+VOID
+VmxPerformVmxoff(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+VmxPerformTermination();
+
+VOID
+VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+VmxHandleVmxPreemptionTimerVmexit(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+VmxFixCr4AndCr0Bits();
+
+VOID
+VmxCompatibleMicroSleep(UINT64 ns);
 
 UINT64
 VmxReturnStackPointerForVmxoff();
@@ -348,6 +320,3 @@ INT32
 VmxCompatibleMemcmp(const CHAR * Address1,
                     const CHAR * Address2,
                     size_t       Count);
-
-VOID
-VmxCompatibleMicroSleep(UINT64 ns);

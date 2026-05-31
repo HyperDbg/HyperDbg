@@ -57,7 +57,7 @@ SpinlockLock(volatile LONG * Lock)
     {
         for (unsigned i = 0; i < wait; ++i)
         {
-            _mm_pause();
+            CpuPause();
         }
 
         //
@@ -91,7 +91,7 @@ SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait)
     {
         for (unsigned i = 0; i < wait; ++i)
         {
-            _mm_pause();
+            CpuPause();
         }
 
         //

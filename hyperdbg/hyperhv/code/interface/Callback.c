@@ -201,6 +201,27 @@ VmmCallbackUnhandledEptViolation(UINT32 CoreId,
 }
 
 /**
+ * @brief routine callback to check if LBR is supported and get the LBR capacity if supported
+ *
+ * @param Capacity
+ * @param IsArchLbr
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceCallbackLbrIsSupported(UINT32 * Capacity, BOOLEAN * IsArchLbr)
+{
+    if (g_Callbacks.HyperTraceLbrIsSupported == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+    return g_Callbacks.HyperTraceLbrIsSupported(Capacity, IsArchLbr);
+}
+
+/**
  * @brief routine callback to handle breakpoint exception
  *
  * @param CoreId

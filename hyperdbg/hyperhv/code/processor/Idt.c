@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Idt.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Routines for Interrupt Descriptor Table
@@ -21,7 +21,7 @@ VOID
 IdtDumpInterruptEntries()
 {
     KDESCRIPTOR64 descr;
-    __sidt(&descr.Limit);
+    CpuSidt(&descr.Limit);
 
     ULONG n = (descr.Limit + 1) / sizeof(KIDTENTRY64);
 

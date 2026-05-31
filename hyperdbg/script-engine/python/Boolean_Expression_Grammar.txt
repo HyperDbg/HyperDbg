@@ -1,5 +1,8 @@
+# ZeroOpFunc2 no input and returns a number
+.ZeroOpFunc2->rdtsc rdtscp lbr_save lbr_dump lbr_print lbr_restore lbr_check
+
 # OneOpFunc1 input is a number and returns a number.
-.OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen disassemble_len disassemble_len32 disassemble_len64 lbr_save lbr_dump interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical poi_pa hi_pa low_pa db_pa dd_pa dw_pa dq_pa
+.OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen disassemble_len disassemble_len32 disassemble_len64 interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical poi_pa hi_pa low_pa db_pa dd_pa dw_pa dq_pa lbr_restore_by_filter
 
 # TwoOpFunc1 inputs are two numbers and returns a number.
 .TwoOpFunc1->ed eb eq interlocked_exchange interlocked_exchange_add wcscmp eb_pa ed_pa eq_pa
@@ -82,7 +85,7 @@ E10->* E12 @POI
 E10->& E12 @REFERENCE
 
 
-
+E12->.ZeroOpFunc2 ( ) @.ZeroOpFunc2
 E12->.OneOpFunc1 ( EXP ) @.OneOpFunc1
 E12->.TwoOpFunc1 ( EXP , EXP ) @.TwoOpFunc2
 E12->.ThreeOpFunc1 ( EXP , EXP , EXP ) @.ThreeOpFunc1

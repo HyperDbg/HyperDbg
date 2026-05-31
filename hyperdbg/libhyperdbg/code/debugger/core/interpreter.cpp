@@ -947,7 +947,7 @@ HyperDbgInterpreter(CHAR * Command)
     // Detect whether it's a .help command or not
     //
     if (!FirstCommand.compare(".help") || !FirstCommand.compare("help") ||
-        !FirstCommand.compare(".hh"))
+        !FirstCommand.compare(".hh") || !FirstCommand.compare("!help"))
     {
         if (Tokens.size() == 2)
         {
@@ -1345,6 +1345,7 @@ InitializeCommandsDictionary()
     g_CommandsList[".help"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
     g_CommandsList[".hh"]   = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
     g_CommandsList["help"]  = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
+    g_CommandsList["!help"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
 
     g_CommandsList["clear"] = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
     g_CommandsList[".cls"]  = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
@@ -1630,6 +1631,10 @@ InitializeCommandsDictionary()
     g_CommandsList["!smi"] = {&CommandSmi, &CommandSmiHelp, DEBUGGER_COMMAND_SMI_ATTRIBUTES};
 
     g_CommandsList["!lbr"] = {&CommandLbr, &CommandLbrHelp, DEBUGGER_COMMAND_LBR_ATTRIBUTES};
+
+    g_CommandsList["!lbrdump"]  = {&CommandLbrdump, &CommandLbrdumpHelp, DEBUGGER_COMMAND_LBRDUMP_ATTRIBUTES};
+    g_CommandsList["!lbrdmp"]   = {&CommandLbrdump, &CommandLbrdumpHelp, DEBUGGER_COMMAND_LBRDUMP_ATTRIBUTES};
+    g_CommandsList["!lbrprint"] = {&CommandLbrdump, &CommandLbrdumpHelp, DEBUGGER_COMMAND_LBRDUMP_ATTRIBUTES};
 
     g_CommandsList["!pt"] = {&CommandPt, &CommandPtHelp, DEBUGGER_COMMAND_PT_ATTRIBUTES};
 

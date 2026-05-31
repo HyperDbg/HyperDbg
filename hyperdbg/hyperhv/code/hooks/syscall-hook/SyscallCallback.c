@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file SyscallCallback.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of the functions related to the callback for Syscall
@@ -30,7 +30,7 @@ SyscallCallbackInitialize()
         //
         // Insert EPT memory page hook for Windows system call handler, KiSystemCall64()
         //
-        Msr.Flags = __readmsr(IA32_LSTAR);
+        Msr.Flags = CpuReadMsr(IA32_LSTAR);
 
         //
         // We set the hook at the address of the system call handler + 3
@@ -101,7 +101,7 @@ SyscallCallbackUninitialize()
         PlatformMemFreePool(g_SyscallCallbackTrapFlagState);
 
         MSR Msr   = {0};
-        Msr.Flags = __readmsr(IA32_LSTAR);
+        Msr.Flags = CpuReadMsr(IA32_LSTAR);
 
         if (!ConfigureEptHookUnHookSingleAddress((UINT64)(Msr.Flags + 3), (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
         {

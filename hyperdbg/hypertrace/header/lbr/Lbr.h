@@ -14,11 +14,26 @@
 //			    	  Constants	    			//
 //////////////////////////////////////////////////
 
-#define MSR_LBR_TOS           0x000001C9
-#define MSR_LBR_NHM_FROM      0x00000680
-#define MSR_LBR_NHM_TO        0x000006C0
-#define MSR_LASTBRANCH_INFO_0 0x00000DC0
-#define LBR_SELECT            0x00000000
+//
+// Legacy LBR MSRs
+//
+#ifndef MSR_LEGACY_LBR_SELECT
+#    define MSR_LEGACY_LBR_SELECT 0x000001C8 // originally defined in SDK to be used by other module like HyperHV
+#endif                                       // !MSR_LEGACY_LBR_SELECT
+#define MSR_LBR_TOS               0x000001C9
+#define MSR_LASTBRANCH_0_FROM_IP  0x00000680
+#define MSR_LASTBRANCH_0_TO_IP    0x000006C0
+#define MSR_LASTBRANCH_INFO_0     0x00000DC0
+#define LBR_SELECT_WITHOUT_FILTER 0x00000000
+
+//
+// Arch LBR MSRs
+//
+#define IA32_LBR_0_FROM_IP 0x1500
+#define IA32_LBR_0_TO_IP   0x1600
+#define IA32_LBR_0_INFO    0x1200
+
+#define CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION 0x1c
 
 //
 // This MSR could be used as an alternative to MSR_LBR_SELECT and IA32_DEBUGCTL for enabling and configuring LBR
@@ -28,46 +43,71 @@
 #define IA32_LBR_CTL 0x000014CE
 
 //////////////////////////////////////////////////
-//               MSR Structures                 //
+//               CPUID Structures               //
 //////////////////////////////////////////////////
 
-/**
- * MSR_LBR_INFO_x - Last Branch Record Info Register
- *
+/*
+ * @brief Intel Architectural LBR CPUID detection/enumeration details:
  */
-typedef union
+typedef union _CPUID28_EAX
 {
     struct
     {
-        /** Bits 15:0 - Elapsed core clocks since last update to the LBR stack (saturating) */
-        UINT64 CycleCount : 16;
-
-        /** Bits 60:16 - Reserved (R/W) */
-        UINT64 Reserved : 45;
-
-        /**
-         * Bit 61 - TSX Abort indicator.
-         * When set:
-         *   LBR_FROM = EIP at the time of the TSX Abort
-         *   LBR_TO   = EIP of the start of HLE region OR EIP of the RTM Abort Handler
-         */
-        UINT64 TsxAbort : 1;
-
-        /** Bit 62 - When set, indicates the entry occurred in a TSX region */
-        UINT64 InTsx : 1;
-
-        /**
-         * Bit 63 - Branch misprediction flag.
-         * When set, the target of the branch was mispredicted and/or the
-         * direction (taken/non-taken) was mispredicted.
-         * When clear, the target branch was predicted.
-         */
-        UINT64 Mispred : 1;
+        /* Supported LBR depth values */
+        UINT32 LbrDepthMask : 8;
+        UINT32 Reserved : 22;
+        /* Deep C-state Reset */
+        UINT32 LbrDeepCReset : 1;
+        /* IP values contain LIP */
+        UINT32 LbrLip : 1;
     };
+    UINT32 AsUInt;
+} CPUID28_EAX, *PCPUID28_EAX;
 
-    UINT64 AsUInt;
+typedef union _CPUID28_EBX
+{
+    struct
+    {
+        /* CPL Filtering Supported */
+        UINT32 LbrCpl : 1;
+        /* Branch Filtering Supported */
+        UINT32 LbrFilter : 1;
+        /* Call-stack Mode Supported */
+        UINT32 LbrCallStack : 1;
+        UINT32 Reserved : 29;
+    };
+    UINT32 AsUInt;
+} CPUID28_EBX, *PCPUID28_EBX;
 
-} MSR_LBR_INFO, *PMSR_LBR_INFO;
+typedef union _CPUID28_ECX
+{
+    struct
+    {
+        /* Mispredict Bit Supported */
+        UINT32 LbrMispred : 1;
+        /* Timed LBRs Supported */
+        UINT32 LbrTimedLbr : 1;
+        /* Branch Type Field Supported */
+        UINT32 LbrBrType : 1;
+        UINT32 Reserved : 29;
+    };
+    UINT32 AsUInt;
+} CPUID28_ECX, *PCPUID28_ECX;
+
+/*
+ * @brief The structure to hold the CPUID leaf 0x28 details for Architectural LBRs
+ */
+typedef struct _CPUID28_LEAFS
+{
+    CPUID28_EAX Eax;
+    CPUID28_EBX Ebx;
+    CPUID28_ECX Ecx;
+    UINT32      Edx;
+} CPUID28_LEAFS, *PCPUID28_LEAFS;
+
+//////////////////////////////////////////////////
+//               MSR Structures                 //
+//////////////////////////////////////////////////
 
 /**
  * @brief The structure to hold the IA32_LBR_CTL MSR, which is used to enable and configure the LBR feature
@@ -97,33 +137,6 @@ typedef union _IA32_LBR_CTL_REGISTER
 } IA32_LBR_CTL_REGISTER, *PIA32_LBR_CTL_REGISTER;
 
 //////////////////////////////////////////////////
-//                  Structures                  //
-//////////////////////////////////////////////////
-
-/**
- * @brief The structure to hold a single LBR entry (from and to addresses)
- *
- */
-typedef struct _LBR_BRANCH_ENTRY
-{
-    ULONGLONG From;
-    ULONGLONG To;
-
-} LBR_BRANCH_ENTRY, PLBR_BRANCH_ENTRY;
-
-/**
- * @brief The structure to hold the LBR stack for a single processor core, including the branch entries and the TOS index
- *
- */
-typedef struct _LBR_STACK_ENTRY
-{
-    LBR_BRANCH_ENTRY BranchEntry[MAXIMUM_LBR_CAPACITY];
-    MSR_LBR_INFO     LastBranchInfo[MAXIMUM_LBR_CAPACITY];
-    UINT32           Tos;
-
-} LBR_STACK_ENTRY, PLBR_STACK_ENTRY;
-
-//////////////////////////////////////////////////
 //                Global Variables              //
 //////////////////////////////////////////////////
 
@@ -143,21 +156,21 @@ typedef struct _CPU_LBR_MAP
  */
 extern CPU_LBR_MAP CPU_LBR_MAPS[];
 
-/**
- * @brief The global variable to hold the LBR capacity of the current CPU
- *
- */
-ULONGLONG LbrCapacity;
-
 //////////////////////////////////////////////////
 //                  Functions                   //
 //////////////////////////////////////////////////
 
 BOOLEAN
-LbrCheck();
+LbrCheckAndReadLegacyLbrDetails();
+
+BOOLEAN
+LbrCheckAndReadArchitecturalLbrDetails();
 
 BOOLEAN
 LbrStart(UINT64 FilterOptions);
+
+BOOLEAN
+LbrCheck();
 
 VOID
 LbrFilter(UINT64 FilterOptions);
@@ -172,4 +185,4 @@ VOID
 LbrSave();
 
 VOID
-LbrDump();
+LbrPrint();

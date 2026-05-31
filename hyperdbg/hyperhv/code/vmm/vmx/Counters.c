@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Counters.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The functions for emulating counters
@@ -26,7 +26,7 @@ CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
     // to solve it, in the future we solve it using tsc offsetting
     // or tsc scalling (The reason is because of that fucking patchguard :( )
     //
-    UINT64      Tsc       = __rdtsc();
+    UINT64      Tsc       = CpuReadTsc();
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     GuestRegs->rax = 0x00000000ffffffff & Tsc;
@@ -43,7 +43,7 @@ VOID
 CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT32      Aux       = 0;
-    UINT64      Tsc       = __rdtscp(&Aux);
+    UINT64      Tsc       = CpuReadTscp(&Aux);
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     GuestRegs->rax = 0x00000000ffffffff & Tsc;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file ManageRegs.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
@@ -479,7 +479,7 @@ GetGuestCr2()
 {
     UINT64 Cr2;
 
-    Cr2 = __readcr2();
+    Cr2 = CpuReadCr2();
     return Cr2;
 }
 
@@ -523,7 +523,7 @@ GetGuestCr8()
 {
     UINT64 Cr8;
 
-    Cr8 = __readcr8();
+    Cr8 = CpuReadCr8();
     return Cr8;
 }
 
@@ -548,7 +548,7 @@ SetGuestCr0(UINT64 Cr0)
 VOID
 SetGuestCr2(UINT64 Cr2)
 {
-    __writecr2(Cr2);
+    CpuWriteCr2(Cr2);
 }
 
 /**
@@ -584,7 +584,7 @@ SetGuestCr4(UINT64 Cr4)
 VOID
 SetGuestCr8(UINT64 Cr8)
 {
-    __writecr8(Cr8);
+    CpuWriteCr8(Cr8);
 }
 
 /**
@@ -596,7 +596,7 @@ SetGuestCr8(UINT64 Cr8)
 VOID
 SetGuestDr0(UINT64 value)
 {
-    __writedr(0, value);
+    CpuWriteDr(0, value);
 }
 
 /**
@@ -608,7 +608,7 @@ SetGuestDr0(UINT64 value)
 VOID
 SetGuestDr1(UINT64 value)
 {
-    __writedr(1, value);
+    CpuWriteDr(1, value);
 }
 
 /**
@@ -620,7 +620,7 @@ SetGuestDr1(UINT64 value)
 VOID
 SetGuestDr2(UINT64 value)
 {
-    __writedr(2, value);
+    CpuWriteDr(2, value);
 }
 
 /**
@@ -632,7 +632,7 @@ SetGuestDr2(UINT64 value)
 VOID
 SetGuestDr3(UINT64 value)
 {
-    __writedr(3, value);
+    CpuWriteDr(3, value);
 }
 
 /**
@@ -644,7 +644,7 @@ SetGuestDr3(UINT64 value)
 VOID
 SetGuestDr6(UINT64 value)
 {
-    __writedr(6, value);
+    CpuWriteDr(6, value);
 }
 
 /**
@@ -656,7 +656,7 @@ SetGuestDr6(UINT64 value)
 VOID
 SetGuestDr7(UINT64 value)
 {
-    __writedr(7, value);
+    CpuWriteDr(7, value);
 }
 
 /**
@@ -668,7 +668,7 @@ UINT64
 GetGuestDr0()
 {
     UINT64 Dr0 = 0;
-    Dr0        = __readdr(0);
+    Dr0        = CpuReadDr(0);
     return Dr0;
 }
 
@@ -681,7 +681,7 @@ UINT64
 GetGuestDr1()
 {
     UINT64 Dr1 = 0;
-    Dr1        = __readdr(1);
+    Dr1        = CpuReadDr(1);
     return Dr1;
 }
 
@@ -694,7 +694,7 @@ UINT64
 GetGuestDr2()
 {
     UINT64 Dr2 = 0;
-    Dr2        = __readdr(2);
+    Dr2        = CpuReadDr(2);
     return Dr2;
 }
 
@@ -707,7 +707,7 @@ UINT64
 GetGuestDr3()
 {
     UINT64 Dr3 = 0;
-    Dr3        = __readdr(3);
+    Dr3        = CpuReadDr(3);
     return Dr3;
 }
 
@@ -720,7 +720,7 @@ UINT64
 GetGuestDr6()
 {
     UINT64 Dr6 = 0;
-    Dr6        = __readdr(6);
+    Dr6        = CpuReadDr(6);
     return Dr6;
 }
 
@@ -733,6 +733,6 @@ UINT64
 GetGuestDr7()
 {
     UINT64 Dr7 = 0;
-    Dr7        = __readdr(7);
+    Dr7        = CpuReadDr(7);
     return Dr7;
 }

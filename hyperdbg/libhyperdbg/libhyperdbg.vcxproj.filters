@@ -173,6 +173,9 @@
     <ClInclude Include="header\pci-id.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\platform-intrinsics.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -600,6 +603,12 @@
     </ClCompile>
     <ClCompile Include="code\debugger\commands\extension-commands\pt.cpp">
       <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\extension-commands\lbrdump.cpp">
+      <Filter>code\debugger\commands\extension-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\user\code\platform-intrinsics.c">
+      <Filter>code\platform</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

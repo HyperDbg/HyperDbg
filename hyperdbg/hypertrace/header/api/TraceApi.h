@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file TraceApi.h
  * @author
  * @brief Header for general tracing routines for HyperTrace module
@@ -22,16 +22,26 @@
 //             Platform Wrappers                //
 //////////////////////////////////////////////////
 
-#define xrdmsr(msr, pval) (*(pval) = __readmsr(msr))
+#define xrdmsr(msr, pval) (*(pval) = CpuReadMsr(msr))
 #define xwrmsr(msr, val)  (msr, val)
 
 // CPUID (Fixed C6001: initialized CpuInfo)
 #define xcpuid(code, a, b, c, d) \
     {                            \
         int CpuInfo[4] = {0};    \
-        __cpuid(CpuInfo, code);  \
+        CpuCpuId(CpuInfo, code);  \
         *a = CpuInfo[0];         \
         *b = CpuInfo[1];         \
         *c = CpuInfo[2];         \
         *d = CpuInfo[3];         \
+    }
+
+#define xcpuidex(code, subleaf, a, b, c, d) \
+    {                                       \
+        int CpuInfo[4] = {0};               \
+        CpuCpuIdEx(CpuInfo, code, subleaf);  \
+        *a = CpuInfo[0];                    \
+        *b = CpuInfo[1];                    \
+        *c = CpuInfo[2];                    \
+        *d = CpuInfo[3];                    \
     }

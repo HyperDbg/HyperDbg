@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Common.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Common functions that needs to be used in all source code files
@@ -84,7 +84,7 @@ CommonIsStringStartsWith(const char * pre, const char * str)
 VOID
 CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
 {
-    __cpuidex(CpuInfo, Func, SubFunc);
+    CpuCpuIdEx(CpuInfo, Func, SubFunc);
 }
 
 /**

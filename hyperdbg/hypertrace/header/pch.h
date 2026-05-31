@@ -56,6 +56,27 @@
 // Platform independent headers
 //
 #include "platform/kernel/header/PlatformMem.h"
+#include "platform/kernel/header/PlatformIntrinsics.h"
+#include "platform/kernel/header/PlatformBroadcast.h"
+#include "platform/kernel/header/PlatformCpu.h"
+#include "platform/kernel/header/PlatformSpinlock.h"
+#include "platform/kernel/header/PlatformIrql.h"
+#include "platform/kernel/header/PlatformDpc.h"
+#include "platform/kernel/header/PlatformTime.h"
+#include "platform/kernel/header/PlatformDbg.h"
+#include "platform/kernel/header/PlatformIo.h"
+#include "platform/kernel/header/PlatformEvent.h"
+
+//
+// DPC and broadcasting function headers
+//
+#include "broadcast/DpcRoutines.h"
+#include "broadcast/Broadcast.h"
+
+//
+// Unload function (to be called when the driver is unloaded)
+//
+#include "common/UnloadDll.h"
 
 //
 // Hyperlog headers

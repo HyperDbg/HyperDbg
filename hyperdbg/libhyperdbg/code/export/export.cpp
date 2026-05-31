@@ -281,14 +281,14 @@ hyperdbg_u_pause_debuggee()
  * @param address The address of the breakpoint
  * @param pid The process ID of the breakpoint
  * @param tid The thread ID of the breakpoint
- * @param core_numer The core number of the breakpoint
+ * @param core_number The core number of the breakpoint
  *
  * @return BOOLEAN
  */
 BOOLEAN
-hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_numer)
+hyperdbg_u_set_breakpoint(UINT64 address, UINT32 pid, UINT32 tid, UINT32 core_number)
 {
-    return CommandBpRequest(address, pid, tid, core_numer);
+    return CommandBpRequest(address, pid, tid, core_number);
 }
 
 /**
@@ -827,4 +827,17 @@ UINT64
 hyperdbg_u_eval_expression(CHAR * Expr, PBOOLEAN HasError)
 {
     return ScriptEngineEvalSingleExpression(Expr, HasError);
+}
+
+/**
+ * @brief Dump LBR stack
+ *
+ * @param LbrdumpRequest The LBR dump request packet
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_lbr_dump(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
+{
+    return HyperDbgLbrdumpSendRequest(LbrdumpRequest);
 }

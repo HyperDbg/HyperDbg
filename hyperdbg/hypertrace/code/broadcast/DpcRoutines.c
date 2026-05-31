@@ -32,29 +32,36 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
     //
     if (g_RunningOnHypervisorEnvironment)
     {
-        //
-        // Perform VMX-root mode specific operations to enable load and save
-        // VM-exit and VM-entry controls for IA32_DEBUGCTL for LBR
-        //
-        g_Callbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore(TRUE);
-        g_Callbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore(TRUE);
+        if (g_ArchBasedLastBranchRecord)
+        {
+            //
+            // Perform VMX-root mode specific operations to load and clear guest
+            // IA32_LBR_CTL MSR (VMCS_GUEST_LBR_CTL) for LBR
+            //
+            g_Callbacks.VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore(TRUE);
+            g_Callbacks.VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore(TRUE);
+        }
+        else
+        {
+            //
+            // Perform VMX-root mode specific operations to enable load and save
+            // VM-exit and VM-entry controls for IA32_DEBUGCTL for LBR
+            //
+            g_Callbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore(TRUE);
+            g_Callbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore(TRUE);
+        }
     }
 
     //
     // Enable LBR on all cores from VMX-root mode by VMCALL
     // By default, all filter options are disabled, which means all branch types will be captured
     //
-    LbrStart(LBR_SELECT);
+    LbrStart(LBR_SELECT_WITHOUT_FILTER);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }
@@ -85,23 +92,30 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
     //
     if (g_RunningOnHypervisorEnvironment)
     {
-        //
-        // Perform VMX-root mode specific operations to disable load and save
-        // VM-exit and VM-entry controls for IA32_DEBUGCTL for LBR
-        //
-        g_Callbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore(FALSE);
-        g_Callbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore(FALSE);
+        if (g_ArchBasedLastBranchRecord)
+        {
+            //
+            // Perform VMX-root mode specific operations to disable load and clear guest
+            // IA32_LBR_CTL MSR (VMCS_GUEST_LBR_CTL) for LBR
+            //
+            g_Callbacks.VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore(FALSE);
+            g_Callbacks.VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore(FALSE);
+        }
+        else
+        {
+            //
+            // Perform VMX-root mode specific operations to disable load and save
+            // VM-exit and VM-entry controls for IA32_DEBUGCTL for LBR
+            //
+            g_Callbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore(FALSE);
+            g_Callbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore(FALSE);
+        }
     }
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }
@@ -126,15 +140,10 @@ DpcRoutineFlushLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVO
     //
     LbrFlush();
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }
@@ -158,15 +167,10 @@ DpcRoutineFilterLbrOptions(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgume
     //
     LbrFilter((UINT64)DeferredContext);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }

@@ -922,7 +922,7 @@ ConvertStringVectorToCharPointerArray(const std::string & s)
 VOID
 CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
 {
-    __cpuidex(CpuInfo, Func, SubFunc);
+    CpuIdEx(CpuInfo, Func, SubFunc);
 }
 
 /**

@@ -35,22 +35,47 @@ BOOLEAN g_HyperTraceCallbacksInitialized;
 BOOLEAN g_RunningOnHypervisorEnvironment;
 
 /**
+ * @brief The flag indicating whether the architectural LBR is supported by the CPU or not
+ * if false it means the legacy LBR is supported
+ *
+ */
+BOOLEAN g_ArchBasedLastBranchRecord;
+
+/**
  * @brief The flag indicating whether the hypertrace LBR tracing is initialized or not
  *
  */
 BOOLEAN g_LastBranchRecordEnabled;
 
 /**
- * @brief The flag indicating whether the hypertrace Processor Trace is initialized or not
- *
- */
-BOOLEAN g_ProcessorTraceEnabled;
-
-/**
  * @brief This will be a dynamically allocated array to hold LBR states for each core
  *
  */
 LBR_STACK_ENTRY * g_LbrStateList;
+
+/**
+ * @brief The global variable to hold the LBR capacity of the current CPU
+ *
+ */
+ULONGLONG g_LbrCapacity;
+
+/**
+ * @brief The global variable to hold CPUID leaf 0x28 information (Architectural LBR Enumeration Leaf)
+ *
+ */
+CPUID28_LEAFS g_Cpuid28Leafs;
+
+/**
+ * @brief The global variable to hold the current LBR filter options bitmask (for both architectural and legacy LBR)
+ *
+ */
+UINT64 g_LbrFilterOptions;
+
+/**
+ * @brief The flag indicating whether the hypertrace Processor Trace is initialized or not
+ *
+ */
+BOOLEAN g_ProcessorTraceEnabled;
 
 /**
  * @brief Dynamically allocated array of per-CPU Intel PT state.

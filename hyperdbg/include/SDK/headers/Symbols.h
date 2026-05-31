@@ -57,6 +57,8 @@ typedef struct _USERMODE_LOADED_MODULE_DETAILS
 
 } USERMODE_LOADED_MODULE_DETAILS, *PUSERMODE_LOADED_MODULE_DETAILS;
 
+#define SIZEOF_USERMODE_LOADED_MODULE_DETAILS sizeof(USERMODE_LOADED_MODULE_DETAILS)
+
 /**
  * @brief Callback type that should be used to add
  * list of Addresses to ObjectNames

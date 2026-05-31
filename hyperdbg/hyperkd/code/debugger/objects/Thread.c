@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Thread.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of kernel debugger functions for threads
@@ -442,7 +442,7 @@ ThreadDetectChangeByDebugRegisterOnGs(PROCESSOR_DEBUGGING_STATE * DbgState,
         // from user-mode then IA32_KERNEL_GS_BASE should be used
         // but it's not for our case
         //
-        MsrGsBase = __readmsr(IA32_GS_BASE);
+        MsrGsBase = CpuReadMsr(IA32_GS_BASE);
 
         //
         // Now, we have the gs base on MSR

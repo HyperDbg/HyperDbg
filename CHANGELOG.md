@@ -8,12 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
+- First release of the HyperTrace module ([link](https://url.hyperdbg.org/hypertrace))
 - HyperTrace now enables/disables VM-entry/VM-exit controls for Load and Save IA32_DEBUGCTL MSR
-- Add mock application for compiling SDK for Linux
-- HyperDbg SDK now compiles on Linux (GCC) for both user-mode and kernel-mode
+- Added Legacy LBR support to the HyperTrace module
+- Added Architectural LBR support to the HyperTrace module
+- Added the '!lbr' command for performing different Last Branch Record (LBR) operations ([link](https://docs.hyperdbg.org/commands/extension-commands/lbr))
+- Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdmp))
+- Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_print))
+- Added mock application for compiling SDK for Linux
+- Add '!help' alias for the '.help' command
+- Added **lbr_check()** and **lbr_restore()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_check))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore))
+- Added **lbr_restore_by_filter(filter)** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore_by_filter))
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
+- Refactoring the IOCTL parameter checks and status routines
+- All basic types are now defined for Linux
+- VMX instructions are ported to platform-independent files to support Linux
+- All CPU-related intrinsic instructions are ported to platform-independent files to support Linux
+- HyperDbg SDK now compiles on Linux (GCC) for both user-mode and kernel-mode
+- Fix the 'wrmsr' command IOCTL checks by receiving output the buffer ([link](https://docs.hyperdbg.org/commands/debugging-commands/wrmsr))
 
 ## [0.18.1.0] - 2026-04-09
 New release of the HyperDbg Debugger.
