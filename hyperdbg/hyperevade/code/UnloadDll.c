@@ -2,7 +2,7 @@
  * @file UnloadDll.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Unloading DLL in the target Windows
- *
+ * @details
  * @version 0.4
  * @date 2023-07-06
  *
@@ -18,6 +18,12 @@
 // other module remains loaded in the memory.
 //
 
+/**
+ * @brief Routine called on DLL initialization
+ *
+ * @param RegistryPath The registry path of the driver
+ * @return NTSTATUS
+ */
 NTSTATUS
 DllInitialize(
     _In_ PUNICODE_STRING RegistryPath)
@@ -27,8 +33,13 @@ DllInitialize(
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Routine called on DLL unload
+ *
+ * @return NTSTATUS
+ */
 NTSTATUS
-DllUnload(void)
+DllUnload(VOID)
 {
     return STATUS_SUCCESS;
 }

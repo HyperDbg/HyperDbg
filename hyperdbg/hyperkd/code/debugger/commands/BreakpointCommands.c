@@ -50,7 +50,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
     Result = BinarySearchPerformSearchItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                            g_TrapFlagState.NumberOfItems,
                                            &Index,
-                                           ProcThrdInfo.asUInt);
+                                           ProcThrdInfo.AsUInt);
 
     //
     // Indicate whether the trap flag is set by the debugger or not
@@ -195,7 +195,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     Result = BinarySearchPerformSearchItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                            g_TrapFlagState.NumberOfItems,
                                            &Index,
-                                           ProcThrdInfo.asUInt);
+                                           ProcThrdInfo.AsUInt);
 
     if (Result)
     {
@@ -215,7 +215,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
                                                      &g_TrapFlagState.NumberOfItems,
                                                      MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS,
                                                      &Index, // not used
-                                                     ProcThrdInfo.asUInt);
+                                                     ProcThrdInfo.AsUInt);
         goto Return;
     }
 

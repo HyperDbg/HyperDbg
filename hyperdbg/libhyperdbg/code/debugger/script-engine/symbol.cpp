@@ -19,7 +19,6 @@ extern PMODULE_SYMBOL_DETAIL                        g_SymbolTable;
 extern UINT32                                       g_SymbolTableSize;
 extern UINT32                                       g_SymbolTableCurrentIndex;
 extern BOOLEAN                                      g_IsExecutingSymbolLoadingRoutines;
-extern BOOLEAN                                      g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN                                      g_AddressConversion;
 extern std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION> g_DisassemblerSymbolMap;
 
@@ -86,10 +85,10 @@ SymbolPrepareDebuggerWithSymbolInfo(UINT32 UserProcessId)
  * @return VOID
  */
 VOID
-SymbolCreateDisassemblerMapCallback(UINT64       Address,
-                                    char *       ModuleName,
-                                    char *       ObjectName,
-                                    unsigned int ObjectSize)
+SymbolCreateDisassemblerMapCallback(UINT64 Address,
+                                    CHAR * ModuleName,
+                                    CHAR * ObjectName,
+                                    UINT32 ObjectSize)
 {
     //
     // It has a string, should not be initialized with zero
@@ -273,7 +272,7 @@ SymbolBuildAndShowSymbolTable()
     //
     // show packet details
     //
-    for (size_t i = 0; i < g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL); i++)
+    for (SIZE_T i = 0; i < g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL); i++)
     {
         ShowMessages("is pdb details available? : %s\n", g_SymbolTable[i].IsSymbolDetailsFound ? "true" : "false");
         ShowMessages("is pdb a path instead of module name? : %s\n", g_SymbolTable[i].IsLocalSymbolPath ? "true" : "false");
@@ -478,10 +477,10 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     ULONG                           ReturnedLength;
     PRTL_PROCESS_MODULES            ModuleInfo                                        = NULL;
     PMODULE_SYMBOL_DETAIL           ModuleSymDetailArray                              = NULL;
-    char                            SystemRoot[MAX_PATH]                              = {0};
-    char                            ModuleSymbolPath[MAX_PATH]                        = {0};
-    char                            TempPath[MAX_PATH]                                = {0};
-    char                            ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE] = {0};
+    CHAR                            SystemRoot[MAX_PATH]                              = {0};
+    CHAR                            ModuleSymbolPath[MAX_PATH]                        = {0};
+    CHAR                            TempPath[MAX_PATH]                                = {0};
+    CHAR                            ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE] = {0};
     BOOLEAN                         IsSymbolPdbDetailAvailable                        = FALSE;
     BOOLEAN                         IsFreeUsermodeModulesBuffer                       = FALSE;
     UINT32                          ModuleDetailsSize                                 = 0;
@@ -514,7 +513,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     transform(SystemRootString.begin(),
               SystemRootString.end(),
               SystemRootString.begin(),
-              [](unsigned char c) { return std::tolower(c); });
+              [](UCHAR c) { return std::tolower(c); });
 
     //
     // Remove system32 from the root
@@ -807,7 +806,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
         RtlZeroMemory(ModuleSymbolPath, sizeof(ModuleSymbolPath));
         RtlZeroMemory(ModuleSymbolGuidAndAge, sizeof(ModuleSymbolGuidAndAge));
 
-        string ModuleFullPath((const char *)ModuleInfo->Modules[i].FullPathName);
+        string ModuleFullPath((const CHAR *)ModuleInfo->Modules[i].FullPathName);
 
         if (ModuleFullPath.rfind("\\SystemRoot\\", 0) == 0)
         {
@@ -1010,7 +1009,7 @@ SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES * Modules)
     //
     // Enable Debug privilege to the current token
     //
-    if (!SetDebugPrivilege())
+    if (!WindowsSetDebugPrivilege())
     {
         ShowMessages("err, couldn't set debug privilege\n");
         return FALSE;

@@ -29,12 +29,12 @@
  * @brief The maximum wait before PAUSE
  *
  */
-static unsigned MaxWait = 65536;
+static UINT32 MaxWait = 65536;
 
 /**
  * @brief Tries to get the lock otherwise returns
  *
- * @param LONG Lock variable
+ * @param Lock Lock variable
  * @return BOOLEAN If it was successful on getting the lock
  */
 BOOLEAN
@@ -46,16 +46,16 @@ SpinlockTryLock(volatile LONG * Lock)
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
  *
- * @param LONG Lock variable
+ * @param Lock Lock variable
  */
-void
+VOID
 SpinlockLock(volatile LONG * Lock)
 {
-    unsigned wait = 1;
+    UINT32 Wait = 1;
 
     while (!SpinlockTryLock(Lock))
     {
-        for (unsigned i = 0; i < wait; ++i)
+        for (UINT32 i = 0; i < Wait; ++i)
         {
             CpuPause();
         }
@@ -65,13 +65,13 @@ SpinlockLock(volatile LONG * Lock)
         // clamp it to the MaxWait.
         //
 
-        if (wait * 2 > MaxWait)
+        if (Wait * 2 > MaxWait)
         {
-            wait = MaxWait;
+            Wait = MaxWait;
         }
         else
         {
-            wait = wait * 2;
+            Wait = Wait * 2;
         }
     }
 }
@@ -79,17 +79,17 @@ SpinlockLock(volatile LONG * Lock)
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
  *
- * @param LONG Lock variable
- * @param LONG MaxWait Maximum wait (pause) count
+ * @param Lock Lock variable
+ * @param MaximumWait Maximum wait (pause) count
  */
-void
-SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait)
+VOID
+SpinlockLockWithCustomWait(volatile LONG * Lock, UINT32 MaximumWait)
 {
-    unsigned wait = 1;
+    UINT32 Wait = 1;
 
     while (!SpinlockTryLock(Lock))
     {
-        for (unsigned i = 0; i < wait; ++i)
+        for (UINT32 i = 0; i < Wait; ++i)
         {
             CpuPause();
         }
@@ -99,13 +99,13 @@ SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait)
         // clamp it to the MaxWait.
         //
 
-        if (wait * 2 > MaximumWait)
+        if (Wait * 2 > MaximumWait)
         {
-            wait = MaximumWait;
+            Wait = MaximumWait;
         }
         else
         {
-            wait = wait * 2;
+            Wait = Wait * 2;
         }
     }
 }
@@ -113,9 +113,9 @@ SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait)
 /**
  * @brief Release the lock
  *
- * @param LONG Lock variable
+ * @param Lock Lock variable
  */
-void
+VOID
 SpinlockUnlock(volatile LONG * Lock)
 {
     *Lock = 0;

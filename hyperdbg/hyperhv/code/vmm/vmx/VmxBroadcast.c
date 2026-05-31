@@ -157,7 +157,7 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
     //
     // Indicate that we're waiting for NMI
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (i != VCpu->CoreId)
         {

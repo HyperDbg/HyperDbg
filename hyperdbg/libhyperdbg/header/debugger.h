@@ -196,7 +196,7 @@ DWORD WINAPI
 ListeningSerialPauseDebuggerThread(PVOID Param);
 
 VOID
-LogopenSaveToFile(const char * Text);
+LogopenSaveToFile(const CHAR * Text);
 
 BOOL
 BreakController(DWORD CtrlType);
@@ -235,13 +235,13 @@ BOOLEAN
 CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer);
 
 VOID
-CommandTrackHandleReceivedInstructions(unsigned char * BufferToDisassemble,
-                                       UINT32          BuffLength,
-                                       BOOLEAN         Isx86_64,
-                                       UINT64          RipAddress);
+CommandTrackHandleReceivedInstructions(UCHAR * BufferToDisassemble,
+                                       UINT32  BuffLength,
+                                       BOOLEAN Isx86_64,
+                                       UINT64  RipAddress);
 
 VOID
-CommandTrackHandleReceivedCallInstructions(const char * NameOfFunctionFromSymbols,
+CommandTrackHandleReceivedCallInstructions(const CHAR * NameOfFunctionFromSymbols,
                                            UINT64       ComputedAbsoluteAddress);
 
 VOID

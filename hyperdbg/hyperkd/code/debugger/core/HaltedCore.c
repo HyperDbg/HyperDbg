@@ -443,7 +443,7 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     if (Synchronize)
     {
-        for (size_t i = 0; i < ProcessorsCount; i++)
+        for (SIZE_T i = 0; i < ProcessorsCount; i++)
         {
             if (DbgState->CoreId != i)
             {

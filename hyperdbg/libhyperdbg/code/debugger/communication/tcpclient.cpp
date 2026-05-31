@@ -17,23 +17,23 @@
  * @param Ip
  * @param Port
  * @param ConnectSocketArg
- * @return int
+ * @return INT
  */
-int
+INT
 CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketArg)
 {
     WSADATA          wsaData;
     SOCKET           ConnectSocket = INVALID_SOCKET;
     struct addrinfo *result = NULL, *ptr = NULL, hints;
-    int              iResult;
+    INT              IResult;
 
     //
     // Initialize Winsock
     //
-    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != 0)
+    IResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (IResult != 0)
     {
-        ShowMessages("err, WSAStartup failed (%x)\n", iResult);
+        ShowMessages("err, WSAStartup failed (%x)\n", IResult);
         return 1;
     }
 
@@ -45,10 +45,10 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
     //
     // Resolve the server address and port
     //
-    iResult = getaddrinfo(Ip, Port, &hints, &result);
-    if (iResult != 0)
+    IResult = getaddrinfo(Ip, Port, &hints, &result);
+    if (IResult != 0)
     {
-        ShowMessages("getaddrinfo failed (%x)\n", iResult);
+        ShowMessages("getaddrinfo failed (%x)\n", IResult);
         WSACleanup();
         return 1;
     }
@@ -72,8 +72,8 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
         //
         // Connect to server.
         //
-        iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
-        if (iResult == SOCKET_ERROR)
+        IResult = connect(ConnectSocket, ptr->ai_addr, (INT)ptr->ai_addrlen);
+        if (IResult == SOCKET_ERROR)
         {
             closesocket(ConnectSocket);
             ConnectSocket = INVALID_SOCKET;
@@ -105,18 +105,18 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
  * @param ConnectSocket
  * @param sendbuf
  * @param buflen
- * @return int
+ * @return INT
  */
-int
-CommunicationClientSendMessage(SOCKET ConnectSocket, const char * sendbuf, int buflen)
+INT
+CommunicationClientSendMessage(SOCKET ConnectSocket, const CHAR * sendbuf, INT buflen)
 {
-    int iResult;
+    INT IResult;
 
     //
     // Send an initial buffer
     //
-    iResult = send(ConnectSocket, sendbuf, buflen, 0);
-    if (iResult == SOCKET_ERROR)
+    IResult = send(ConnectSocket, sendbuf, buflen, 0);
+    if (IResult == SOCKET_ERROR)
     {
         ShowMessages("err, send failed (%x)\n", WSAGetLastError());
         closesocket(ConnectSocket);
@@ -131,18 +131,18 @@ CommunicationClientSendMessage(SOCKET ConnectSocket, const char * sendbuf, int b
  * @brief shutdown the connection as a client
  *
  * @param ConnectSocket
- * @return int
+ * @return INT
  */
-int
+INT
 CommunicationClientShutdownConnection(SOCKET ConnectSocket)
 {
-    int iResult;
+    INT IResult;
 
     //
     // shutdown the connection since no more data will be sent
     //
-    iResult = shutdown(ConnectSocket, SD_SEND);
-    if (iResult == SOCKET_ERROR)
+    IResult = shutdown(ConnectSocket, SD_SEND);
+    if (IResult == SOCKET_ERROR)
     {
         //
         // We comment this line because the connection might be removed;
@@ -167,12 +167,12 @@ CommunicationClientShutdownConnection(SOCKET ConnectSocket)
  * @param RecvBuf
  * @param MaxBuffLen
  * @param BuffLenRecvd
- * @return int
+ * @return INT
  */
-int
+INT
 CommunicationClientReceiveMessage(SOCKET ConnectSocket, CHAR * RecvBuf, UINT32 MaxBuffLen, PUINT32 BuffLenRecvd)
 {
-    int Result;
+    INT Result;
 
     //
     // Receive until the peer closes the connection
@@ -210,9 +210,9 @@ CommunicationClientReceiveMessage(SOCKET ConnectSocket, CHAR * RecvBuf, UINT32 M
  * @brief cleanup the connection as client
  *
  * @param ConnectSocket
- * @return int
+ * @return INT
  */
-int
+INT
 CommunicationClientCleanup(SOCKET ConnectSocket)
 {
     //

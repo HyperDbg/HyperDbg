@@ -101,7 +101,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     IoDeleteDevice(DriverObject->DeviceObject);
 
     //
-    // Unloading VMM and Debugger
+    // Unloading Log Tracer
     //
     LoaderUninitializeLogTracer();
 }
@@ -155,10 +155,15 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     }
 
     //
-    // Initialize the vmm and the debugger
+    // Initialize HyperLog and Log Tracer
     //
-    if (LoaderInitVmmAndDebugger())
+    if (LoaderInitHyperLog())
     {
+        //
+        // Set the variable so next CreateFile won't call log initializer again
+        //
+        g_HandleInUse = TRUE;
+
         Irp->IoStatus.Status      = STATUS_SUCCESS;
         Irp->IoStatus.Information = 0;
         IoCompleteRequest(Irp, IO_NO_INCREMENT);

@@ -14,15 +14,6 @@
 //
 // Global Variables
 //
-extern UINT64 g_CpuidAverage;
-extern UINT64 g_CpuidStandardDeviation;
-extern UINT64 g_CpuidMedian;
-
-extern UINT64 g_RdtscAverage;
-extern UINT64 g_RdtscStandardDeviation;
-extern UINT64 g_RdtscMedian;
-
-extern BOOLEAN                  g_TransparentResultsMeasured;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -244,7 +235,7 @@ HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsPr
     ULONG                                        ReturnedLength;
     DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE  HideRequest        = {0};
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE FinalRequestBuffer = 0;
-    size_t                                       RequestBufferSize  = 0;
+    SIZE_T                                       RequestBufferSize  = 0;
 
     //
     // Check if debugger is loaded or not

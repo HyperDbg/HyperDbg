@@ -570,7 +570,8 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_HYPERTRACE_NOT_INITIALIZED:
-        ShowMessages("err, the HyperTrace module is not initialized (%x)\n",
+        ShowMessages("err, the HyperTrace module is not loaded and initialized, "
+                     "use the 'load trace' command to load the HyperTrace module  (%x)\n",
                      Error);
         break;
 
@@ -615,6 +616,16 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_HYPERTRACE_IS_LOADED:
+        ShowMessages("err, HyperTrace is already loaded, please unload HyperTrace module using the "
+                     "'unload' command and then load the 'VMM' module. Then you can load HyperTrace "
+                     "after loading the VMM as it is because HyperTrace behaves differently to sync "
+                     "with VMM modules; it needs to have this notion that it is running within the "
+                     "hypervisor, so that is why it needs to be initialized again if the VMM module "
+                     "is loaded (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);
@@ -644,7 +655,7 @@ DebuggerGetNtoskrnlBase()
 
     for (UINT32 i = 0; i < Modules->NumberOfModules; i++)
     {
-        if (!strcmp((const char *)Modules->Modules[i].FullPathName + Modules->Modules[i].OffsetToFileName,
+        if (!strcmp((const CHAR *)Modules->Modules[i].FullPathName + Modules->Modules[i].OffsetToFileName,
                     "ntoskrnl.exe"))
         {
             NtoskrnlBase = (UINT64)Modules->Modules[i].ImageBase;
@@ -925,7 +936,7 @@ InterpretScript(vector<CommandToken> * CommandTokens,
     //
     // Run script engine handler
     //
-    PVOID CodeBuffer = ScriptEngineParseWrapper((char *)TargetBracketString.c_str(), TRUE);
+    PVOID CodeBuffer = ScriptEngineParseWrapper((CHAR *)TargetBracketString.c_str(), TRUE);
 
     if (CodeBuffer == NULL)
     {
@@ -1001,11 +1012,11 @@ InterpretConditionsAndCodes(vector<CommandToken> * CommandTokens,
 
     string       Temp;
     vector<CHAR> ParsedBytes;
-    vector<int>  IndexesToRemove;
+    vector<INT>  IndexesToRemove;
     UCHAR *      FinalBuffer;
     UINT32       AssembledByteCount;
-    int          NewIndexToRemove = 0;
-    int          Index            = 0;
+    INT          NewIndexToRemove = 0;
+    INT          Index            = 0;
 
     for (auto Section : *CommandTokens)
     {
@@ -1102,7 +1113,7 @@ InterpretConditionsAndCodes(vector<CommandToken> * CommandTokens,
             //
             // * FinalBuffer *
             //
-            FinalBuffer = (unsigned char *)malloc(AssembledByteCount);
+            FinalBuffer = (UCHAR *)malloc(AssembledByteCount);
 
             if (FinalBuffer == NULL)
             {
@@ -1225,12 +1236,12 @@ InterpretOutput(vector<CommandToken> * CommandTokens,
     BOOLEAN IsTextVisited       = FALSE;
     string  TargetBracketString = "";
 
-    vector<int> IndexesToRemove;
+    vector<INT> IndexesToRemove;
     string      Token;
-    int         NewIndexToRemove = 0;
-    int         Index            = 0;
-    char        Delimiter        = ',';
-    size_t      Pos              = 0;
+    INT         NewIndexToRemove = 0;
+    INT         Index            = 0;
+    CHAR        Delimiter        = ',';
+    SIZE_T      Pos              = 0;
 
     for (auto Section : *CommandTokens)
     {
@@ -1755,10 +1766,10 @@ InterpretGeneralEventAndActionsFields(
     UINT32                                RequestBuffer = 0;
     PLIST_ENTRY                           TempList;
     BOOLEAN                               OutputSourceFound;
-    vector<int>                           IndexesToRemove;
+    vector<INT>                           IndexesToRemove;
     vector<UINT64>                        ListOfValidSourceTags;
-    int                                   NewIndexToRemove = 0;
-    int                                   Index            = 0;
+    INT                                   NewIndexToRemove = 0;
+    INT                                   Index            = 0;
 
     //
     // Create a command string to show in the history
@@ -1816,7 +1827,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Disassemble the buffer
     //
-    HyperDbgDisassembler64((unsigned char *)ConditionBufferAddress, 0x0,
+    HyperDbgDisassembler64((UCHAR *)ConditionBufferAddress, 0x0,
                            ConditionBufferLength);
 
     ShowMessages("}\n\n");
@@ -1856,7 +1867,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Disassemble the buffer
     //
-    HyperDbgDisassembler64((unsigned char *)CodeBufferAddress, 0x0,
+    HyperDbgDisassembler64((UCHAR *)CodeBufferAddress, 0x0,
                            CodeBufferLength);
 
     ShowMessages("}\n\n");

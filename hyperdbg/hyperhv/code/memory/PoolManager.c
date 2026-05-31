@@ -252,7 +252,7 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
 BOOLEAN
 PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention)
 {
-    for (size_t i = 0; i < Count; i++)
+    for (SIZE_T i = 0; i < Count; i++)
     {
         POOL_TABLE * SinglePool = NULL;
 

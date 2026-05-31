@@ -36,7 +36,7 @@ AssembleData::ParseAssemblyData()
     // split assembly line by ';'
     //
     std::vector<std::string> AssemblyInstructions;
-    size_t                   Pos       = 0;
+    SIZE_T                   Pos       = 0;
     std::string              Delimiter = ";";
     while ((Pos = RawAsm.find(Delimiter)) != std::string::npos)
     {
@@ -59,11 +59,11 @@ AssembleData::ParseAssemblyData()
     {
         std::string Expr {};
         UINT64      ExprAddr {};
-        size_t      Start {};
+        SIZE_T      Start {};
 
         while ((Start = InstructionLine.find('<', Start)) != std::string::npos)
         {
-            size_t End = InstructionLine.find('>', Start);
+            SIZE_T End = InstructionLine.find('>', Start);
             if (End != std::string::npos)
             {
                 std::string Expr = InstructionLine.substr(Start + 1, End - Start - 1);
@@ -160,7 +160,7 @@ AssembleData::Assemble(UINT64 StartAddr, ks_arch Arch, INT Mode, INT Syntax)
         {
             ShowMessages("generated assembly: %lu (decimal) bytes, %lu (decimal) statements ==>> ", (int)BytesCount, (int)StatementCount);
 
-            size_t i;
+            SIZE_T i;
             ShowMessages("%s = ", AsmFixed.c_str());
             for (i = 0; i < BytesCount; i++)
             {

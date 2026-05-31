@@ -48,7 +48,7 @@ CommandLmHelp()
  * @return wstring
  */
 std::wstring
-CommandLmConvertWow64CompatibilityPaths(const wchar_t * LocalFilePath)
+CommandLmConvertWow64CompatibilityPaths(const WCHAR * LocalFilePath)
 {
     std::wstring filePath(LocalFilePath);
 
@@ -56,7 +56,7 @@ CommandLmConvertWow64CompatibilityPaths(const wchar_t * LocalFilePath)
     std::transform(filePath.begin(), filePath.end(), filePath.begin(), ::tolower);
 
     // Replace "\windows\system32" with "\windows\syswow64"
-    size_t pos = filePath.find(L":\\windows\\system32");
+    SIZE_T pos = filePath.find(L":\\windows\\system32");
     if (pos != std::string::npos)
     {
         filePath.replace(pos, 18, L":\\Windows\\SysWOW64");
@@ -80,7 +80,7 @@ CommandLmConvertWow64CompatibilityPaths(const wchar_t * LocalFilePath)
  * @return BOOLEAN
  */
 BOOLEAN
-CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
+CommandLmShowUserModeModule(UINT32 ProcessId, const CHAR * SearchModule)
 {
     BOOLEAN                         Status;
     ULONG                           ReturnedLength;
@@ -89,8 +89,8 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
     PUSERMODE_LOADED_MODULE_DETAILS ModuleDetailsRequest = NULL;
     PUSERMODE_LOADED_MODULE_SYMBOLS Modules              = NULL;
     USERMODE_LOADED_MODULE_DETAILS  ModuleCountRequest   = {0};
-    size_t                          CharSize             = 0;
-    wchar_t *                       WcharBuff            = NULL;
+    SIZE_T                          CharSize             = 0;
+    WCHAR *                         WcharBuff            = NULL;
     wstring                         SearchModuleString;
 
     //
@@ -189,7 +189,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
             if (SearchModule != NULL)
             {
                 CharSize  = strlen(SearchModule) + 1;
-                WcharBuff = (wchar_t *)malloc(CharSize * 2);
+                WcharBuff = (WCHAR *)malloc(CharSize * 2);
 
                 if (WcharBuff == NULL)
                 {
@@ -203,7 +203,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
                 SearchModuleString.assign(WcharBuff, wcslen(WcharBuff));
             }
 
-            for (size_t i = 0; i < ModulesCount; i++)
+            for (SIZE_T i = 0; i < ModulesCount; i++)
             {
                 //
                 // Check if we need to search for the module or not
@@ -213,7 +213,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
                     //
                     // Convert FullPathName to string
                     //
-                    std::wstring FullPathName((wchar_t *)Modules[i].FilePath);
+                    std::wstring FullPathName((WCHAR *)Modules[i].FilePath);
 
                     if (FindCaseInsensitiveW(FullPathName, SearchModuleString, 0) == std::wstring::npos)
                     {
@@ -271,7 +271,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
  * @return BOOLEAN
  */
 BOOLEAN
-CommandLmShowKernelModeModule(const char * SearchModule)
+CommandLmShowKernelModeModule(const CHAR * SearchModule)
 {
     PRTL_PROCESS_MODULES ModulesInfo = NULL;
     string               SearchModuleString;
@@ -302,7 +302,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
             //
             // Convert FullPathName to string
             //
-            std::string FullPathName((char *)CurrentModule->FullPathName);
+            std::string FullPathName((CHAR *)CurrentModule->FullPathName);
 
             if (FindCaseInsensitive(FullPathName, SearchModuleString, 0) == std::string::npos)
             {
@@ -317,7 +317,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
         ShowMessages("%x\t", CurrentModule->ImageSize);
 
         auto   PathName    = CurrentModule->FullPathName + CurrentModule->OffsetToFileName;
-        UINT32 PathNameLen = (UINT32)strlen((const char *)PathName);
+        UINT32 PathNameLen = (UINT32)strlen((const CHAR *)PathName);
 
         ShowMessages("%s\t", PathName);
 
@@ -362,8 +362,8 @@ CommandLm(vector<CommandToken> CommandTokens, string Command)
     BOOLEAN OnlyShowKernelModules = FALSE;
     BOOLEAN OnlyShowUserModules   = FALSE;
     UINT32  TargetPid             = NULL;
-    char    Search[MAX_PATH]      = {0};
-    char *  SearchString          = NULL;
+    CHAR    Search[MAX_PATH]      = {0};
+    CHAR *  SearchString          = NULL;
 
     //
     // Interpret command specific details (if any)

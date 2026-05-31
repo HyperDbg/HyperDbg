@@ -196,7 +196,7 @@ CommandLbrParseFilterOperation(vector<CommandToken> CommandTokens, HYPERTRACE_LB
     LbrRequest->LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER;
     LbrRequest->LbrFilterOptions = 0; // no options = capture everything
 
-    for (size_t i = 2; i < CommandTokens.size(); i++)
+    for (SIZE_T i = 2; i < CommandTokens.size(); i++)
     {
         if (CompareLowerCaseStrings(CommandTokens.at(i), "kernel"))
         {

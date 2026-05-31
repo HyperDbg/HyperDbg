@@ -45,7 +45,7 @@ typedef struct _RTL_USER_PROCESS_PARAMETERS
  * @brief Random windows type
  *
  */
-typedef void(__stdcall * PPS_POST_PROCESS_INIT_ROUTINE)(void); // not exported
+typedef VOID(__stdcall * PPS_POST_PROCESS_INIT_ROUTINE)(VOID); // not exported
 
 /**
  * @brief PEB 64-bit

@@ -157,7 +157,7 @@ DebuggerInitialize()
     //
     // Initialize the local and temp variables
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         CurrentDebuggerState = &g_DbgState[i];
 
@@ -207,12 +207,6 @@ DebuggerInitialize()
     {
         return FALSE;
     }
-
-    //
-    // Initialize the HyperTrace (if supported by the processor)
-    // By default, the debugger module initialize it for a hypervisor environment
-    //
-    LoaderInitHyperTrace(TRUE);
 
     //
     // Pre-allocate pools for possible EPT hooks
@@ -1002,7 +996,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT                                 Event,
         //
         // Copy the memory of script to our non-paged pool
         //
-        RtlCopyMemory((void *)Action->ScriptConfiguration.ScriptBuffer, (const void *)InTheCaseOfRunScript->ScriptBuffer, InTheCaseOfRunScript->ScriptLength);
+        RtlCopyMemory((PVOID)Action->ScriptConfiguration.ScriptBuffer, (const PVOID)InTheCaseOfRunScript->ScriptBuffer, InTheCaseOfRunScript->ScriptLength);
 
         //
         // Set other fields
@@ -1825,7 +1819,7 @@ DebuggerGetEventByTag(UINT64 Tag)
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
     {
         TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
@@ -1869,7 +1863,7 @@ DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
     {
         TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
@@ -1926,7 +1920,7 @@ DebuggerTerminateAllEvents(BOOLEAN InputFromVmxRoot)
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
     {
         TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
@@ -1978,7 +1972,7 @@ DebuggerRemoveAllEvents(BOOLEAN PoolManagerAllocatedMemory)
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
     {
         TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
@@ -2492,7 +2486,7 @@ DebuggerRemoveEventFromEventList(UINT64 Tag)
     //
     // We have to iterate through all events
     //
-    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
     {
         TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;

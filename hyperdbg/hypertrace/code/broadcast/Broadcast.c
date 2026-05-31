@@ -2,7 +2,7 @@
  * @file Broadcast.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Broadcasting functions
- *
+ * @details
  * @version 0.19
  * @date 2026-04-19
  *
@@ -55,6 +55,8 @@ BroadcastFlushLbrOnAllCores()
 
 /**
  * @brief Routines to filter LBR option on all cores
+ *
+ * @param LbrFilterOptions A bitmask of filter options to apply to the LBR branches
  *
  * @return VOID
  */

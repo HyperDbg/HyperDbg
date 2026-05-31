@@ -93,7 +93,7 @@ NamedPipeServerWaitForClientConntection(HANDLE PipeHandle)
  * @return UINT32
  */
 UINT32
-NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int MaximumReadBufferLength)
+NamedPipeServerReadClientMessage(HANDLE PipeHandle, CHAR * BufferToSave, INT MaximumReadBufferLength)
 {
     DWORD cbBytes;
 
@@ -129,8 +129,8 @@ NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int Max
 
 BOOLEAN
 NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
-                                   char * BufferToSend,
-                                   int    BufferSize)
+                                   CHAR * BufferToSend,
+                                   INT    BufferSize)
 {
     DWORD cbBytes;
 
@@ -289,7 +289,7 @@ NamedPipeClientCreatePipeOverlappedIo(LPCSTR PipeName)
  * @return BOOLEAN
  */
 BOOLEAN
-NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSize)
+NamedPipeClientSendMessage(HANDLE PipeHandle, CHAR * BufferToSend, INT BufferSize)
 {
     //
     // We are done connecting to the server pipe,
@@ -328,7 +328,7 @@ NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSiz
 // Read the count of read buffer
 //
 UINT32
-NamedPipeClientReadMessage(HANDLE PipeHandle, char * BufferToRead, int MaximumSizeOfBuffer)
+NamedPipeClientReadMessage(HANDLE PipeHandle, CHAR * BufferToRead, INT MaximumSizeOfBuffer)
 {
     DWORD cbBytes;
 
@@ -376,17 +376,17 @@ NamedPipeClientClosePipe(HANDLE PipeHandle)
 /**
  * @brief and example of how to use named pipe as a server
  *
- * @return int
+ * @return INT
  */
-int
+INT
 NamedPipeServerExample()
 {
     HANDLE    PipeHandle;
     BOOLEAN   SentMessageResult;
     UINT32    ReadBytes;
-    const int BufferSize               = 1024;
-    char      BufferToRead[BufferSize] = {0};
-    char      BufferToSend[BufferSize] = "test message to send from server !!!";
+    const INT BufferSize               = 1024;
+    CHAR      BufferToRead[BufferSize] = {0};
+    CHAR      BufferToSend[BufferSize] = "test message to send from server !!!";
 
     PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
                                            BufferSize,
@@ -447,16 +447,16 @@ NamedPipeServerExample()
 /**
  * @brief and example of how to use named pipe as a client
  *
- * @return int
+ * @return INT
  */
-int
+INT
 NamedPipeClientExample()
 {
     HANDLE    PipeHandle;
     BOOLEAN   SentMessageResult;
     UINT32    ReadBytes;
-    const int BufferSize         = 1024;
-    char      Buffer[BufferSize] = "test message to send from client !!!";
+    const INT BufferSize         = 1024;
+    CHAR      Buffer[BufferSize] = "test message to send from client !!!";
 
     PipeHandle = NamedPipeClientCreatePipe("\\\\.\\Pipe\\HyperDbgTests");
 

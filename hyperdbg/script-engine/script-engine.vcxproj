@@ -135,8 +135,8 @@ exit /b 0
     <ClInclude Include="header\pch.h" />
     <ClInclude Include="header\scanner.h" />
     <ClInclude Include="header\script-engine.h" />
+    <ClInclude Include="header\script_include.h" />
     <ClInclude Include="header\type.h" />
-    <ClInclude Include="script_include.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common.c" />
@@ -149,8 +149,8 @@ exit /b 0
     </ClCompile>
     <ClCompile Include="code\scanner.c" />
     <ClCompile Include="code\script-engine.c" />
+    <ClCompile Include="code\script_include.c" />
     <ClCompile Include="code\type.c" />
-    <ClCompile Include="script_include.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

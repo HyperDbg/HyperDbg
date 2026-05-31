@@ -146,20 +146,20 @@ SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRich
         //
         // Extract Product ID (bytes 2-3 of entry, little-endian)
         //
-        WORD ProdID = ((unsigned char)RichHeaderPtr[i + 3] << 8) | (unsigned char)RichHeaderPtr[i + 2];
+        WORD ProdID = ((UCHAR)RichHeaderPtr[i + 3] << 8) | (UCHAR)RichHeaderPtr[i + 2];
 
         //
         // Extract Build ID (bytes 0-1 of entry, little-endian)
         //
-        WORD BuildID = ((unsigned char)RichHeaderPtr[i + 1] << 8) | (unsigned char)RichHeaderPtr[i];
+        WORD BuildID = ((UCHAR)RichHeaderPtr[i + 1] << 8) | (UCHAR)RichHeaderPtr[i];
 
         //
         // Extract Use Count (bytes 4-7 of entry, little-endian 32-bit)
         //
-        DWORD UseCount = ((unsigned char)RichHeaderPtr[i + 7] << 24) |
-                         ((unsigned char)RichHeaderPtr[i + 6] << 16) |
-                         ((unsigned char)RichHeaderPtr[i + 5] << 8) |
-                         (unsigned char)RichHeaderPtr[i + 4];
+        DWORD UseCount = ((UCHAR)RichHeaderPtr[i + 7] << 24) |
+                         ((UCHAR)RichHeaderPtr[i + 6] << 16) |
+                         ((UCHAR)RichHeaderPtr[i + 5] << 8) |
+                         (UCHAR)RichHeaderPtr[i + 4];
 
         //
         // Store the parsed entry (adjust index: i/8 gives entry number, -2 for header offset)
@@ -190,10 +190,10 @@ SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRich
  * @param Index Offset where "Rich" signature was found
  * @param DataPtr Pointer to the beginning of the PE file data
  *
- * @return int Size of the Rich header in bytes, or 0 if DanS signature not found
+ * @return INT Size of the Rich header in bytes, or 0 if DanS signature not found
  *
  */
-int
+INT
 DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
 {
     //
@@ -204,8 +204,8 @@ DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
     //
     // Start searching backwards from just before the "Rich" signature
     //
-    int IndexPointer   = Index - 4;
-    int RichHeaderSize = 0;
+    INT IndexPointer   = Index - 4;
+    INT RichHeaderSize = 0;
 
     //
     // Search backwards for the DanS signature that marks the beginning
@@ -253,15 +253,15 @@ DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
  */
 
 VOID
-PeHexDump(CHAR * Ptr, int Size, int SecAddress)
+PeHexDump(CHAR * Ptr, INT Size, INT SecAddress)
 {
-    int i = 1, Temp = 0;
+    INT i = 1, Temp = 0;
 
     //
     // Buffer to store the character dump displayed at the
     // right side
     //
-    wchar_t Buf[18];
+    WCHAR Buf[18];
     ShowMessages("\n\n%x: |", SecAddress);
 
     Buf[Temp]      = ' '; // initial space
@@ -946,5 +946,5 @@ PeGetSyscallNumber(LPCSTR NtFunctionName)
     // since usually the syscall handler is less than 30 bytes,
     // and we want to avoid disassembling another function
     //
-    return HyperDbgGetImmediateValueOnEaxForSyscallNumber((unsigned char *)TargetFunc, 30, TRUE);
+    return HyperDbgGetImmediateValueOnEaxForSyscallNumber((UCHAR *)TargetFunc, 30, TRUE);
 }

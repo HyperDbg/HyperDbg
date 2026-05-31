@@ -16,13 +16,13 @@ using namespace std;
 /**
  * @brief get the difference clock cycles between two rdtsc(s)
  *
- * @return unsigned long long
+ * @return UINT64
  */
-unsigned long long
+UINT64
 TransparentModeRdtscDiffVmexit()
 {
-    unsigned long long ret, ret2;
-    int                cpuid_result[4] = {0};
+    UINT64 Ret, Ret2;
+    INT    CpuidResult[4] = {0};
 
     //
     // GCC
@@ -33,7 +33,7 @@ TransparentModeRdtscDiffVmexit()
     //
     // Win32
     //
-    ret = CpuReadTsc();
+    Ret = CpuReadTsc();
 
     /* vm exit forced here. it uses: eax = 0; cpuid; */
 
@@ -45,7 +45,7 @@ TransparentModeRdtscDiffVmexit()
     //
     // WIN32
     //
-    CpuCpuId(cpuid_result, 0);
+    CpuCpuId(CpuidResult, 0);
 
     //
     // GCC
@@ -56,44 +56,32 @@ TransparentModeRdtscDiffVmexit()
     //
     // WIN32
     //
-    ret2 = CpuReadTsc();
+    Ret2 = CpuReadTsc();
 
-    return ret2 - ret;
+    return Ret2 - Ret;
 }
 
 /**
  * @brief get the difference clock cycles between rdtsc+cpuid+rdtsc
  *
- * @return unsigned long long
+ * @return UINT64
  */
-unsigned long long
+UINT64
 TransparentModeRdtscVmexitTracing()
 {
-    unsigned long long ret, ret2;
-
-    //
-    // GCC
-    //
-    // __asm__ volatile("rdtsc" : "=a" (eax), "=d" (edx));
-    // ret = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
+    UINT64 Ret, Ret2;
 
     //
     // WIN32
     //
-    ret = CpuReadTsc();
-
-    //
-    // GCC
-    //
-    // __asm__ volatile("rdtsc" : "=a"(eax), "=d"(edx));
-    // ret2 = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
+    Ret = CpuReadTsc();
 
     //
     // WIN32
     //
-    ret2 = CpuReadTsc();
+    Ret2 = CpuReadTsc();
 
-    return ret2 - ret;
+    return Ret2 - Ret;
 }
 
 /**
@@ -103,9 +91,9 @@ TransparentModeRdtscVmexitTracing()
  * @param Average a pointer to save average on it
  * @param StandardDeviation a pointer to standard deviation average on it
  * @param Median a pointer to save median on it
- * @return int
+ * @return INT
  */
-int
+INT
 TransparentModeCpuidTimeStampCounter(UINT64 * Average,
                                      UINT64 * StandardDeviation,
                                      UINT64 * Median)
@@ -145,9 +133,9 @@ TransparentModeCpuidTimeStampCounter(UINT64 * Average,
  * @param Average a pointer to save average on it
  * @param StandardDeviation a pointer to standard deviation average on it
  * @param Median a pointer to save median on it
- * @return int
+ * @return INT
  */
-int
+INT
 TransparentModeRdtscEmulationDetection(UINT64 * Average,
                                        UINT64 * StandardDeviation,
                                        UINT64 * Median)

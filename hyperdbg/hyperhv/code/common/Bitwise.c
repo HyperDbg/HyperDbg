@@ -15,35 +15,35 @@
  * @brief Check whether the bit is set or not
  *
  * @param BitNumber
- * @param addr
- * @return int
+ * @param Addr
+ * @return INT
  */
-int
-TestBit(int BitNumber, unsigned long * addr)
+INT
+TestBit(INT BitNumber, ULONG * Addr)
 {
-    return (BITMAP_ENTRY(BitNumber, addr) >> BITMAP_SHIFT(BitNumber)) & 1;
+    return (BITMAP_ENTRY(BitNumber, Addr) >> BITMAP_SHIFT(BitNumber)) & 1;
 }
 
 /**
  * @brief unset the bit
  *
  * @param BitNumber
- * @param addr
+ * @param Addr
  */
-void
-ClearBit(int BitNumber, unsigned long * addr)
+VOID
+ClearBit(INT BitNumber, ULONG * Addr)
 {
-    BITMAP_ENTRY(BitNumber, addr) &= ~(1UL << BITMAP_SHIFT(BitNumber));
+    BITMAP_ENTRY(BitNumber, Addr) &= ~(1UL << BITMAP_SHIFT(BitNumber));
 }
 
 /**
  * @brief set the bit
  *
  * @param BitNumber
- * @param addr
+ * @param Addr
  */
-void
-SetBit(int BitNumber, unsigned long * addr)
+VOID
+SetBit(INT BitNumber, ULONG * Addr)
 {
-    BITMAP_ENTRY(BitNumber, addr) |= (1UL << BITMAP_SHIFT(BitNumber));
+    BITMAP_ENTRY(BitNumber, Addr) |= (1UL << BITMAP_SHIFT(BitNumber));
 }

@@ -17,6 +17,18 @@
 PROCESSOR_DEBUGGING_STATE * g_DbgState;
 
 /**
+ * @brief Shows whether the hyperlog module is initialized or not
+ *
+ */
+BOOLEAN g_HyperLogInitialized;
+
+/**
+ * @brief Shows whether the hypertrace module is initialized or not
+ *
+ */
+BOOLEAN g_HyperTraceInitialized;
+
+/**
  * @brief Event to show whether the user debugger is waiting for a command or not
  *
  */

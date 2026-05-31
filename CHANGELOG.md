@@ -16,9 +16,14 @@ New release of the HyperDbg Debugger.
 - Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdmp))
 - Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_print))
 - Added mock application for compiling SDK for Linux
-- Add '!help' alias for the '.help' command
+- Added '!help' alias for the '.help' command
+- Added 'vm' alias for the 'load' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
 - Added **lbr_check()** and **lbr_restore()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_check))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore))
 - Added **lbr_restore_by_filter(filter)** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore_by_filter))
+- Added the 'kd' module in the 'load' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
+- Added the 'trace' module in the 'load' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
+- Exported SDK API for detecting CPU vendors
+- Exported SDK APIs for loading the 'kd' and the 'trace' modules
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
@@ -28,6 +33,7 @@ New release of the HyperDbg Debugger.
 - All CPU-related intrinsic instructions are ported to platform-independent files to support Linux
 - HyperDbg SDK now compiles on Linux (GCC) for both user-mode and kernel-mode
 - Fix the 'wrmsr' command IOCTL checks by receiving output the buffer ([link](https://docs.hyperdbg.org/commands/debugging-commands/wrmsr))
+- Extensive refactoring of codes (doxygen, variables, function names)
 
 ## [0.18.1.0] - 2026-04-09
 New release of the HyperDbg Debugger.

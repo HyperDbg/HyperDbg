@@ -1,3 +1,15 @@
+/**
+ * @file type.c
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ *
+ * @brief Routines for handling variable types
+ * @details
+ * @version 0.1
+ * @date 2020-10-22
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #include "pch.h"
 
 VARIABLE_TYPE * VARIABLE_TYPE_UNKNOWN = &(VARIABLE_TYPE) {TY_UNKNOWN};
@@ -20,9 +32,10 @@ VARIABLE_TYPE * VARIABLE_TYPE_DOUBLE  = &(VARIABLE_TYPE) {TY_DOUBLE, 8, 8};
 VARIABLE_TYPE * VARIABLE_TYPE_LDOUBLE = &(VARIABLE_TYPE) {TY_LDOUBLE, 16, 16};
 
 /**
- * @brief Return a variable type
+ * @brief Return a variable type based on the token stack
  *
- * @param str
+ * @param PtokenStack the token stack containing type tokens
+ * @return VARIABLE_TYPE * pointer to the resolved variable type
  */
 VARIABLE_TYPE *
 HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack)
@@ -164,18 +177,25 @@ HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack)
     return Result;
 }
 
+/**
+ * @brief Returns the common variable type between two types
+ *
+ * @param Ty1 the first variable type
+ * @param Ty2 the second variable type
+ * @return VARIABLE_TYPE * pointer to the common variable type
+ */
 VARIABLE_TYPE *
 GetCommonVariableType(VARIABLE_TYPE * Ty1, VARIABLE_TYPE * Ty2)
 {
-    //if (Ty1->Kind == TY_ARRAY)
+    // if (Ty1->Kind == TY_ARRAY)
     //{
-    //    return Ty1;
-    //}
+    //     return Ty1;
+    // }
 
-    //if (Ty2->Kind == TY_ARRAY)
+    // if (Ty2->Kind == TY_ARRAY)
     //{
-    //    return Ty2;
-    //}
+    //     return Ty2;
+    // }
 
     return VARIABLE_TYPE_LONG;
 }

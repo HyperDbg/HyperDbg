@@ -105,7 +105,7 @@ typedef struct _DEBUGGER_PROCESS_THREAD_INFORMATION
 {
     union
     {
-        UINT64 asUInt;
+        UINT64 AsUInt;
 
         struct
         {

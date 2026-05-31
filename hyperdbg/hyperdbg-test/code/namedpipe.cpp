@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief Create a named pipe server
+ * @brief Connect and transfer buffers via named pipe
  *
  * @return UINT32
  */
@@ -204,14 +204,14 @@ NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize, UINT32 Input
  * @return BOOLEAN
  */
 BOOLEAN
-NamedPipeServerWaitForClientConntection(HANDLE PipeHandle)
+NamedPipeServerWaitForClientConnection(HANDLE PipeHandle)
 {
     //
     // Wait for the client to connect
     //
-    BOOL bClientConnected = ConnectNamedPipe(PipeHandle, NULL);
+    BOOLEAN ClientConnected = ConnectNamedPipe(PipeHandle, NULL);
 
-    if (FALSE == bClientConnected)
+    if (FALSE == ClientConnected)
     {
         printf("err, occurred while connecting to the client (%x)\n",
                GetLastError());
@@ -234,9 +234,9 @@ NamedPipeServerWaitForClientConntection(HANDLE PipeHandle)
  * @return UINT32
  */
 UINT32
-NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int MaximumReadBufferLength)
+NamedPipeServerReadClientMessage(HANDLE PipeHandle, CHAR * BufferToSave, INT32 MaximumReadBufferLength)
 {
-    DWORD cbBytes;
+    DWORD BytesTransferred;
 
     //
     // We are connected to the client.
@@ -248,13 +248,13 @@ NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int Max
     //
     // Read client message
     //
-    BOOL bResult = ReadFile(PipeHandle,              // handle to pipe
-                            BufferToSave,            // buffer to receive data
-                            MaximumReadBufferLength, // size of buffer
-                            &cbBytes,                // number of bytes read
-                            NULL);                   // not overlapped I/O
+    BOOLEAN Result = ReadFile(PipeHandle,              // handle to pipe
+                              BufferToSave,            // buffer to receive data
+                              MaximumReadBufferLength, // size of buffer
+                              &BytesTransferred,       // number of bytes read
+                              NULL);                   // not overlapped I/O
 
-    if ((!bResult) || (0 == cbBytes))
+    if ((!Result) || (0 == BytesTransferred))
     {
         printf("err, occurred while reading from the client (%x)\n",
                GetLastError());
@@ -265,29 +265,37 @@ NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int Max
     //
     // Number of bytes that the client sends to us
     //
-    return cbBytes;
+    return BytesTransferred;
 }
 
+/**
+ * @brief Send a message to the client over named pipe
+ *
+ * @param PipeHandle Handle of the named pipe
+ * @param BufferToSend Buffer containing the message to send
+ * @param BufferSize Size of the buffer to send
+ * @return BOOLEAN TRUE if successful, FALSE otherwise
+ */
 BOOLEAN
 NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
-                                   char * BufferToSend,
-                                   int    BufferSize)
+                                   CHAR * BufferToSend,
+                                   INT32  BufferSize)
 {
-    DWORD cbBytes;
+    DWORD BytesTransferred;
 
     //
     // Reply to client
     //
-    BOOLEAN bResult =
-        WriteFile(PipeHandle,   // handle to pipe
-                  BufferToSend, // buffer to write from
-                  BufferSize,   // number of bytes to write, include the NULL
-                  &cbBytes,     // number of bytes written
-                  NULL);        // not overlapped I/O
+    BOOLEAN Result =
+        WriteFile(PipeHandle,        // handle to pipe
+                  BufferToSend,      // buffer to write from
+                  BufferSize,        // number of bytes to write, include the NULL
+                  &BytesTransferred, // number of bytes written
+                  NULL);             // not overlapped I/O
 
-    if ((!bResult) || (BufferSize != cbBytes))
+    if ((!Result) || (BufferSize != (INT32)BytesTransferred))
     {
-        printf("Error occurred while writing to the client (%x)\n",
+        printf("err, occurred while writing to the client (%x)\n",
                GetLastError());
         CloseHandle(PipeHandle);
         return FALSE;
@@ -363,15 +371,15 @@ NamedPipeClientCreatePipe(LPCSTR PipeName)
 }
 
 /**
- * @brief send client message over named pipe
+ * @brief Send client message over named pipe
  *
- * @param PipeHandle
- * @param BufferToSend
- * @param BufferSize
- * @return BOOLEAN
+ * @param PipeHandle Handle of the named pipe
+ * @param BufferToSend Buffer containing the message to send
+ * @param BufferSize Size of the buffer to send
+ * @return BOOLEAN TRUE if successful, FALSE otherwise
  */
 BOOLEAN
-NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSize)
+NamedPipeClientSendMessage(HANDLE PipeHandle, CHAR * BufferToSend, INT32 BufferSize)
 {
     //
     // We are done connecting to the server pipe,
@@ -380,19 +388,19 @@ NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSiz
     // on handle - hPipe
     //
 
-    DWORD cbBytes;
+    DWORD BytesTransferred;
 
     //
     // Send the message to server
     //
-    BOOL bResult =
-        WriteFile(PipeHandle,   // handle to pipe
-                  BufferToSend, // buffer to write from
-                  BufferSize,   // number of bytes to write, include the NULL
-                  &cbBytes,     // number of bytes written
-                  NULL);        // not overlapped I/O
+    BOOLEAN Result =
+        WriteFile(PipeHandle,        // handle to pipe
+                  BufferToSend,      // buffer to write from
+                  BufferSize,        // number of bytes to write, include the NULL
+                  &BytesTransferred, // number of bytes written
+                  NULL);             // not overlapped I/O
 
-    if ((!bResult) || (BufferSize != cbBytes))
+    if ((!Result) || (BufferSize != (INT32)BytesTransferred))
     {
         printf("err, occurred while writing to the server (%x)\n",
                GetLastError());
@@ -410,35 +418,40 @@ NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSiz
     }
 }
 
-//
-// Read the count of read buffer
-//
+/**
+ * @brief Read a message from the server over named pipe
+ *
+ * @param PipeHandle Handle of the named pipe
+ * @param BufferToRead Buffer to store the received message
+ * @param MaximumSizeOfBuffer Maximum size of the receive buffer
+ * @return UINT32 number of bytes read, or 0 on failure
+ */
 UINT32
-NamedPipeClientReadMessage(HANDLE PipeHandle, char * BufferToRead, int MaximumSizeOfBuffer)
+NamedPipeClientReadMessage(HANDLE PipeHandle, CHAR * BufferToRead, INT32 MaximumSizeOfBuffer)
 {
-    DWORD cbBytes;
+    DWORD BytesTransferred;
 
     //
     // Read server response
     //
-    BOOL bResult = ReadFile(PipeHandle,          // handle to pipe
-                            BufferToRead,        // buffer to receive data
-                            MaximumSizeOfBuffer, // size of buffer
-                            &cbBytes,            // number of bytes read
-                            NULL);               // not overlapped I/O
+    BOOLEAN Result = ReadFile(PipeHandle,          // handle to pipe
+                              BufferToRead,        // buffer to receive data
+                              MaximumSizeOfBuffer, // size of buffer
+                              &BytesTransferred,   // number of bytes read
+                              NULL);               // not overlapped I/O
 
-    if ((!bResult) || (0 == cbBytes))
+    if ((!Result) || (0 == BytesTransferred))
     {
         printf("err, occurred while reading from the server (%x)\n",
                GetLastError());
         CloseHandle(PipeHandle);
-        return NULL; // Error
+        return 0; // Error
     }
 
     //
     // Success
     //
-    return cbBytes;
+    return BytesTransferred;
 }
 
 /**
@@ -460,19 +473,19 @@ NamedPipeClientClosePipe(HANDLE PipeHandle)
 ////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief and example of how to use named pipe as a server
+ * @brief An example of how to use named pipe as a server
  *
- * @return int
+ * @return INT32
  */
-int
+INT32
 NamedPipeServerExample()
 {
-    HANDLE    PipeHandle;
-    BOOLEAN   SentMessageResult;
-    UINT32    ReadBytes;
-    const int BufferSize               = 1024;
-    char      BufferToRead[BufferSize] = {0};
-    char      BufferToSend[BufferSize] = "test message to send from server !!!";
+    HANDLE      PipeHandle;
+    BOOLEAN     SentMessageResult;
+    UINT32      ReadBytes;
+    const INT32 BufferSize               = 1024;
+    CHAR        BufferToRead[BufferSize] = {0};
+    CHAR        BufferToSend[BufferSize] = "test message to send from server !!!";
 
     printf("create name pipe\n");
     PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
@@ -489,7 +502,7 @@ NamedPipeServerExample()
     printf("success!\n");
     printf("wait for the client connection\n");
 
-    if (!NamedPipeServerWaitForClientConntection(PipeHandle))
+    if (!NamedPipeServerWaitForClientConnection(PipeHandle))
     {
         //
         // Error in connection
@@ -516,7 +529,7 @@ NamedPipeServerExample()
     SentMessageResult = NamedPipeServerSendMessageToClient(
         PipeHandle,
         BufferToSend,
-        (int)strlen(BufferToSend) + 1);
+        (INT32)strlen(BufferToSend) + 1);
 
     if (!SentMessageResult)
     {
@@ -538,20 +551,19 @@ NamedPipeServerExample()
 ////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief and example of how to use named pipe as a client
+ * @brief An example of how to use named pipe as a client
  *
- * @return int
+ * @return INT32
  */
-int
+INT32
 NamedPipeClientExample()
 {
-    HANDLE    PipeHandle;
-    BOOLEAN   SentMessageResult;
-    UINT32    ReadBytes;
-    const int BufferSize         = 1024;
-    char      Buffer[BufferSize] = "test message to send from client !!!";
-
-    PipeHandle = NamedPipeClientCreatePipe("\\\\.\\Pipe\\HyperDbgTests");
+    HANDLE      PipeHandle;
+    BOOLEAN     SentMessageResult;
+    UINT32      ReadBytes;
+    const INT32 BufferSize         = 1024;
+    CHAR        Buffer[BufferSize] = "test message to send from client !!!";
+    PipeHandle                     = NamedPipeClientCreatePipe("\\\\.\\Pipe\\HyperDbgTests");
 
     if (!PipeHandle)
     {
@@ -562,7 +574,7 @@ NamedPipeClientExample()
     }
 
     SentMessageResult =
-        NamedPipeClientSendMessage(PipeHandle, Buffer, (int)strlen(Buffer) + 1);
+        NamedPipeClientSendMessage(PipeHandle, Buffer, (INT32)strlen(Buffer) + 1);
 
     if (!SentMessageResult)
     {

@@ -102,7 +102,7 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
     //
     // Show the results (if any)
     //
-    for (size_t i = 0; i < MaximumSearchResults; i++)
+    for (SIZE_T i = 0; i < MaximumSearchResults; i++)
     {
         CurrentValue = ResultsBuffer[i];
 

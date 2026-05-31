@@ -53,7 +53,7 @@ IsDirExists(const std::string & DirPath)
 BOOLEAN
 CreateDirectoryRecursive(const std::string & Path)
 {
-    size_t Pos = 0;
+    SIZE_T Pos = 0;
     do
     {
         Pos = Path.find_first_of("\\/", Pos + 1);
@@ -70,36 +70,37 @@ CreateDirectoryRecursive(const std::string & Path)
 /**
  * @brief Split path and arguments and handle strings between quotes
  *
- * @param Qargs
- * @param Command
+ * @param Qargs the vector to store the result of split
+ * @param Command the command string to split
  * @return VOID
  */
 VOID
 SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command)
 {
-    int  Len = (int)Command.length();
-    bool Qot = false, Sqot = false;
-    int  ArgLen;
+    int     Len  = (int)Command.length();
+    BOOLEAN Qot  = FALSE;
+    BOOLEAN Sqot = FALSE;
+    int     ArgLen;
 
     for (int i = 0; i < Len; i++)
     {
-        int start = i;
+        INT Start = i;
         if (Command[i] == '\"')
         {
-            Qot = true;
+            Qot = TRUE;
         }
         else if (Command[i] == '\'')
-            Sqot = true;
+            Sqot = TRUE;
 
         if (Qot)
         {
             i++;
-            start++;
+            Start++;
             while (i < Len && Command[i] != '\"')
                 i++;
             if (i < Len)
-                Qot = false;
-            ArgLen = i - start;
+                Qot = FALSE;
+            ArgLen = i - Start;
             i++;
         }
         else if (Sqot)
@@ -108,18 +109,18 @@ SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command)
             while (i < Len && Command[i] != '\'')
                 i++;
             if (i < Len)
-                Sqot = false;
-            ArgLen = i - start;
+                Sqot = FALSE;
+            ArgLen = i - Start;
             i++;
         }
         else
         {
             while (i < Len && Command[i] != ' ')
                 i++;
-            ArgLen = i - start;
+            ArgLen = i - Start;
         }
 
-        string Temp = Command.substr(start, ArgLen);
+        string Temp = Command.substr(Start, ArgLen);
         if (!Temp.empty() && Temp != " ")
         {
             Qargs.push_back(Temp);
@@ -149,21 +150,21 @@ SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command)
 const std::vector<std::string>
 Split(const std::string & s, const char & c)
 {
-    string         buff {""};
-    vector<string> v;
+    string         Buff {""};
+    vector<string> V;
 
     for (auto n : s)
     {
         if (n != c)
-            buff += n;
-        else if (n == c && !buff.empty())
+            Buff += n;
+        else if (n == c && !Buff.empty())
         {
-            v.push_back(buff);
-            buff.clear();
+            V.push_back(Buff);
+            Buff.clear();
         }
     }
-    if (!buff.empty())
-        v.push_back(buff);
+    if (!Buff.empty())
+        V.push_back(Buff);
 
-    return v;
+    return V;
 }

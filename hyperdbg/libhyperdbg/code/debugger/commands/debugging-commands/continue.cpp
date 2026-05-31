@@ -11,14 +11,6 @@
  */
 #include "pch.h"
 
-//
-// Global Variables
-//
-extern BOOLEAN                  g_BreakPrintingOutput;
-extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
-extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
-
 /**
  * @brief help of the continue command
  *

@@ -25,7 +25,7 @@ ModeBasedExecHookDisableUserModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML4s
     //
-    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     {
         //
         // We only set the top-level PML4 for intercepting user-mode execution
@@ -36,7 +36,7 @@ ModeBasedExecHookDisableUserModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML3s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
         EptTable->PML3[i].UserModeExecute = TRUE;
     }
@@ -44,9 +44,9 @@ ModeBasedExecHookDisableUserModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML2s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
-        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        for (SIZE_T j = 0; j < VMM_EPT_PML2E_COUNT; j++)
         {
             EptTable->PML2[i][j].UserModeExecute = TRUE;
         }
@@ -77,7 +77,7 @@ ModeBasedExecHookDisableKernelModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML4s
     //
-    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     {
         EptTable->PML4[i].UserModeExecute = TRUE;
 
@@ -90,7 +90,7 @@ ModeBasedExecHookDisableKernelModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML3s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
         EptTable->PML3[i].UserModeExecute = TRUE;
     }
@@ -98,9 +98,9 @@ ModeBasedExecHookDisableKernelModeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML2s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
-        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        for (SIZE_T j = 0; j < VMM_EPT_PML2E_COUNT; j++)
         {
             EptTable->PML2[i][j].UserModeExecute = TRUE;
         }
@@ -123,7 +123,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML4s
     //
-    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     {
         //
         // We only set the top-level PML4 for intercepting user-mode execution
@@ -134,7 +134,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML3s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
         EptTable->PML3[i].UserModeExecute = TRUE;
     }
@@ -142,9 +142,9 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML2s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
-        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        for (SIZE_T j = 0; j < VMM_EPT_PML2E_COUNT; j++)
         {
             EptTable->PML2[i][j].UserModeExecute = TRUE;
 
@@ -163,7 +163,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
                 //
                 // Set execute access for PML1s
                 //
-                for (size_t k = 0; k < VMM_EPT_PML1E_COUNT; k++)
+                for (SIZE_T k = 0; k < VMM_EPT_PML1E_COUNT; k++)
                 {
                     Pml1Entries[k].UserModeExecute = TRUE;
                 }
@@ -246,7 +246,7 @@ ModeBasedExecHookInitialize()
     //
     // Enable EPT user-mode execution bit for the target EPTP
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         ModeBasedExecHookEnableUsermodeExecution(g_GuestState[i].EptPageTable);
     }

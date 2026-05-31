@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file VmxRegions.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implement allocations for VMX Regions (VMXON Region, VMCS, MSR Bitmap and etc.)
@@ -281,7 +281,7 @@ VmxAllocateInvalidMsrBimap()
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
-            SetBit(i, (unsigned long *)InvalidMsrBitmap);
+            SetBit(i, (ULONG *)InvalidMsrBitmap);
         }
     }
 

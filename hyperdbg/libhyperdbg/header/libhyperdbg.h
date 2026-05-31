@@ -16,25 +16,37 @@
 //////////////////////////////////////////////////
 
 INT
-HyperDbgCreateHandleFromVmmModule();
+HyperDbgInitHyperTraceModule();
 
 INT
 HyperDbgUnloadVmm();
 
 INT
-HyperDbgInstallVmmDriver();
+HyperDbgInstallKdDriver();
 
 INT
-HyperDbgUninstallVmmDriver();
+HyperDbgUninstallKdDriver();
+
+INT
+HyperDbgLoadKdModule();
 
 INT
 HyperDbgLoadVmmModule();
+
+INT
+HyperDbgLoadHyperTraceModule();
 
 INT
 HyperDbgStopVmmDriver();
 
 INT
 HyperDbgInterpreter(CHAR * Command);
+
+INT
+HyperDbgScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[]);
+
+GENERIC_PROCESSOR_VENDOR
+HyperDbgGetProcessorVendor();
 
 BOOLEAN
 HyperDbgTestCommandParser(CHAR *   Command,
@@ -46,20 +58,5 @@ HyperDbgTestCommandParser(CHAR *   Command,
 VOID
 HyperDbgTestCommandParserShowTokens(CHAR * Command);
 
-INT
-ScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[]);
-
 VOID
 HyperDbgShowSignature();
-
-VOID
-SetTextMessageCallback(PVOID Handler);
-
-PVOID
-SetTextMessageCallbackUsingSharedBuffer(PVOID Handler);
-
-VOID
-UnsetTextMessageCallback();
-
-BOOLEAN
-SetDebugPrivilege();

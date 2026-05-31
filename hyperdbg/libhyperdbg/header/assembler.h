@@ -15,13 +15,13 @@
 class AssembleData
 {
 public:
-    std::string     AsmRaw {};
-    std::string     AsmFixed {};
-    size_t          StatementCount {};
-    size_t          BytesCount {};
-    unsigned char * EncodedBytes {};
-    vector<UINT64>  EncBytesIntVec {};
-    ks_err          KsErr {};
+    std::string    AsmRaw {};
+    std::string    AsmFixed {};
+    SIZE_T         StatementCount {};
+    SIZE_T         BytesCount {};
+    UCHAR *        EncodedBytes {};
+    vector<UINT64> EncBytesIntVec {};
+    ks_err         KsErr {};
 
     AssembleData() = default;
 

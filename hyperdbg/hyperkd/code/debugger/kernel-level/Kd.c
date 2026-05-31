@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Kd.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
@@ -24,7 +24,7 @@ KdInitializeKernelDebugger()
     //
     // Allocate DPC routine
     //
-    // for (size_t i = 0; i < CoreCount; i++)
+    // for (SIZE_T i = 0; i < CoreCount; i++)
     // {
     //     g_DbgState[i].KdDpcObject = PlatformMemAllocateNonPagedPool(sizeof(KDPC));
     //
@@ -443,7 +443,7 @@ KdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLen
         //
         // Add hardware debug breakpoints on all core on vm-entry
         //
-        for (size_t i = 0; i < ProcessorsCount; i++)
+        for (SIZE_T i = 0; i < ProcessorsCount; i++)
         {
             g_DbgState[i].HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
         }
@@ -643,7 +643,7 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     // Unlock all the cores
     //
     ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         SpinlockUnlock(&g_DbgState[i].Lock);
     }
@@ -930,14 +930,14 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(PROCESSOR_DEBUGGING_STATE * DbgState)
  * @brief Tries to get the lock and won't return until successfully get the lock
  *
  * @param DbgState The state of the debugger on the current core
- * @param LONG Lock variable
+ * @param Lock The lock variable
  *
  * @return VOID
  */
 VOID
 KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile LONG * Lock)
 {
-    unsigned wait = 1;
+    UINT32 Wait = 1;
 
     //
     // *** Lock handling breaks ***
@@ -945,7 +945,7 @@ KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile
 
     while (!SpinlockTryLock(Lock))
     {
-        for (unsigned i = 0; i < wait; ++i)
+        for (UINT32 i = 0; i < Wait; ++i)
         {
             CpuPause();
         }
@@ -984,13 +984,13 @@ KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile
         // clamp it to the MaxWait.
         //
 
-        if (wait * 2 > 65536)
+        if (Wait * 2 > 65536)
         {
-            wait = 65536;
+            Wait = 65536;
         }
         else
         {
-            wait = wait * 2;
+            Wait = Wait * 2;
         }
     }
 }
@@ -1560,7 +1560,7 @@ KdQueryRflagTrapState()
             g_TrapFlagState.NumberOfItems,
             g_TrapFlagState.NumberOfItems);
 
-    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
+    for (SIZE_T i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
     {
         LogInfo("g_TrapFlagState.ThreadInformation[%d].ProcessId = %x | ThreadId = %x",
                 i,
@@ -1584,7 +1584,7 @@ KdCheckAllCoresAreLocked()
     //
     // Query core debugging Lock info
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (!SpinlockCheckLock(&g_DbgState[i].Lock))
         {
@@ -1647,7 +1647,7 @@ KdQuerySystemState()
     //
     Log("================================================ Debugging Lock Info ================================================\n");
 
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (SpinlockCheckLock(&g_DbgState[i].Lock))
         {
@@ -1665,7 +1665,7 @@ KdQuerySystemState()
     //
     Log("\n================================================ NMI Receiver State =======+=========================================\n");
 
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (g_DbgState[i].NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
         {

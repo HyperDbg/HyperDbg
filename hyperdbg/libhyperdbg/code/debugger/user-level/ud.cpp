@@ -37,7 +37,7 @@ UdInitializeUserDebugger()
         //
         // Initialize the handle table
         //
-        for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++)
+        for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++)
         {
             g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
             g_UserSyncronizationObjectsHandleTable[i].EventHandle      = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -75,7 +75,7 @@ UdUninitializeUserDebugger()
         //
         // Initialize the handle table
         //
-        for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++)
+        for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++)
         {
             if (g_UserSyncronizationObjectsHandleTable[i].EventHandle != NULL)
             {
@@ -1074,7 +1074,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
         //
         // Append the optional buffer to the command packet buffer
         //
-        memcpy((VOID *)((UINT8 *)CommandPacket + sizeof(DEBUGGER_UD_COMMAND_PACKET)), OptionalBuffer, OptionalBufferSize);
+        memcpy((PVOID)((UINT8 *)CommandPacket + sizeof(DEBUGGER_UD_COMMAND_PACKET)), OptionalBuffer, OptionalBufferSize);
     }
 
     //
@@ -1115,7 +1115,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
         // Append the optional buffer to the command packet buffer
         //
         memcpy(OptionalBuffer,
-               (VOID *)((UINT8 *)CommandPacket + sizeof(DEBUGGER_UD_COMMAND_PACKET)),
+               (PVOID)((UINT8 *)CommandPacket + sizeof(DEBUGGER_UD_COMMAND_PACKET)),
                OptionalBufferSize);
     }
 
@@ -1259,7 +1259,7 @@ UdSendStepPacketToDebuggee(UINT64                           ProcessDetailToken,
         // instruction or not, if yes we have to compute the length of call
         //
         if (HyperDbgCheckWhetherTheCurrentInstructionIsCall(
-                (unsigned char *)&g_ActiveProcessDebuggingState.InstructionBytesOnRip[0],
+                (UCHAR *)&g_ActiveProcessDebuggingState.InstructionBytesOnRip[0],
                 MAXIMUM_INSTR_SIZE,
                 g_ActiveProcessDebuggingState.Is32Bit ? FALSE : TRUE, // equals to !g_IsRunningInstruction32Bit
                 &CallInstructionSize))
@@ -1499,7 +1499,7 @@ UdShowListActiveDebuggingProcessesAndThreads()
             //
             // Show list of active processes and threads
             //
-            for (size_t i = 0; i < QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses; i++)
+            for (SIZE_T i = 0; i < QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses; i++)
             {
                 if (AddressOfThreadsAndProcessDetails[i].IsProcess)
                 {

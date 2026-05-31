@@ -15,7 +15,6 @@
 // Global Variables
 //
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN                  g_IsSerialConnectedToRemoteDebugger;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**

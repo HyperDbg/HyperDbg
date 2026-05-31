@@ -18,6 +18,7 @@
  *        The returned config is value-typed; HyperTracePtFilter's slow
  *        path copies it into every per-CPU slot via
  *        HyperTracePtSeedConfigOnAllCpus.
+ * @return VOID
  */
 static VOID
 HyperTracePtBuildConfig(const HYPERTRACE_PT_OPERATION_PACKETS * Req,
@@ -62,7 +63,8 @@ HyperTracePtBuildConfig(const HYPERTRACE_PT_OPERATION_PACKETS * Req,
  * @brief Push a fully-formed PT_TRACE_CONFIG into every active per-CPU
  *        slot. Used by the Enable path so PtAllocateAllCpuBuffers picks up
  *        the right BufferSize on every core. Runs at PASSIVE_LEVEL —
- *        does NOT start or stop tracing (callers handle that via DPC).
+ *        does NOT start or stop tracing (callers handle that via DPC)
+ * @return VOID
  */
 static VOID
 HyperTracePtSeedConfigOnAllCpus(const PT_TRACE_CONFIG * Cfg)
@@ -84,7 +86,7 @@ HyperTracePtSeedConfigOnAllCpus(const PT_TRACE_CONFIG * Cfg)
 /**
  * @brief Enable PT tracing for HyperTrace
  *
- * @param PtOperationRequest
+ * @param PtOperationRequest Pointer to the HyperTrace PT operation request packet
  *
  * @return BOOLEAN
  */
@@ -147,7 +149,7 @@ HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest)
 /**
  * @brief Disable PT tracing for HyperTrace
  *
- * @param PtOperationRequest
+ * @param PtOperationRequest Pointer to the HyperTrace PT operation request packet
  *
  * @return BOOLEAN
  */

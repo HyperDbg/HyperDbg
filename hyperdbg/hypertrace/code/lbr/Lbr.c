@@ -124,7 +124,7 @@ LbrCheckAndReadArchitecturalLbrDetails()
     xcpuidex(CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION, 0x00, &a, &b, &c, &d);
 
     //
-    // Assign LBR leafs to sturcture for easier access
+    // Assign LBR leafs to structure for easier access
     //
     Eax1c.AsUInt = a;
     Ebx1c.AsUInt = b;
@@ -1145,7 +1145,7 @@ LbrSave()
  * @return VOID
  */
 VOID
-LbrGetArchBranchTypet(UINT32 BrType, CHAR * BrTypeName)
+LbrGetArchBranchType(UINT32 BrType, CHAR * BrTypeName)
 {
     if (BrType == LBR_BR_TYPE_COND)
     {
@@ -1236,7 +1236,7 @@ LbrPrint()
             //
             // Get the branch type name for better readability when printing
             //
-            LbrGetArchBranchTypet(BrType, BrTypeName);
+            LbrGetArchBranchType(BrType, BrTypeName);
 
             //
             // Architectural LBR

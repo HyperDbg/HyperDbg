@@ -43,13 +43,22 @@ IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_unload_vmm();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_install_vmm_driver();
+hyperdbg_u_install_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_uninstall_vmm_driver();
+hyperdbg_u_uninstall_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_stop_vmm_driver();
+
+IMPORT_EXPORT_LIBHYPERDBG GENERIC_PROCESSOR_VENDOR
+hyperdbg_u_get_processor_vendor();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_load_kd_module();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_load_hypertrace_module();
 
 //
 // Testing parser

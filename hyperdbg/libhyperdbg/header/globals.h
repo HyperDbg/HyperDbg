@@ -12,6 +12,28 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//	          Module Loading Status             //
+//////////////////////////////////////////////////
+
+/**
+ * @brief shows whether the kernel debugger (KD) module is loaded or not
+ *
+ */
+BOOLEAN g_IsKdModuleLoaded = FALSE;
+
+/**
+ * @brief shows whether the VMM module is loaded or not
+ *
+ */
+BOOLEAN g_IsVmmModuleLoaded = FALSE;
+
+/**
+ * @brief shows whether the HyperTrace module is loaded or not
+ *
+ */
+BOOLEAN g_IsHyperTraceModuleLoaded = FALSE;
+
+//////////////////////////////////////////////////
 //	            Feature Indicators              //
 //////////////////////////////////////////////////
 
@@ -342,14 +364,6 @@ UINT64 * g_ScriptStackBuffer;
 BOOLEAN g_IsCommandListInitialized = FALSE;
 
 /**
- * @brief this variable is used to indicate that modules
- * are loaded so we make sure to later use a trace of
- * loading in 'unload' command (used in Debugger VMM)
- *
- */
-BOOLEAN g_IsDebuggerModulesLoaded = FALSE;
-
-/**
  * @brief State of active debugging thread
  *
  */
@@ -558,11 +572,6 @@ BOOLEAN g_IsInstrumentingInstructions = FALSE;
  * @brief Shows the kernel base address
  */
 UINT64 g_KernelBaseAddress;
-
-/**
- * @brief Is privileges already adjusted
- */
-BOOLEAN g_PrivilegesAlreadyAdjusted = FALSE;
 
 //////////////////////////////////////////////////
 //			     	 Settings			        //

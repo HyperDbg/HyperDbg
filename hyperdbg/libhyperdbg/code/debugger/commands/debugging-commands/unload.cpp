@@ -15,7 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
@@ -34,6 +34,7 @@ CommandUnloadHelp()
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : unload vmm\n");
+    ShowMessages("\t\te.g : unload vm\n");
     ShowMessages("\t\te.g : unload remove vmm\n");
 }
 
@@ -59,8 +60,9 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
     //
     // Check for the module
     //
-    if ((CommandTokens.size() == 2 && CompareLowerCaseStrings(CommandTokens.at(1), "vmm")) ||
-        (CommandTokens.size() == 3 && CompareLowerCaseStrings(CommandTokens.at(2), "vmm") && CompareLowerCaseStrings(CommandTokens.at(1), "remove")))
+    if ((CommandTokens.size() == 2 && (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") || CompareLowerCaseStrings(CommandTokens.at(1), "vm"))) ||
+        (CommandTokens.size() == 3 && (CompareLowerCaseStrings(CommandTokens.at(2), "vmm") || CompareLowerCaseStrings(CommandTokens.at(2), "vm")) &&
+         CompareLowerCaseStrings(CommandTokens.at(1), "remove")))
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {
@@ -79,7 +81,7 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
             return;
         }
 
-        if (g_IsDebuggerModulesLoaded)
+        if (g_IsKdModuleLoaded)
         {
             HyperDbgUnloadVmm();
         }
@@ -105,7 +107,7 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
             //
             // Uninstall the driver
             //
-            if (HyperDbgUninstallVmmDriver())
+            if (HyperDbgUninstallKdDriver())
             {
                 ShowMessages("err, failed to uninstall the driver\n");
                 return;

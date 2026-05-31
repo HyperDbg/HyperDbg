@@ -52,7 +52,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
     UINT32                                      TargetDevice     = 0;
     UINT32                                      TargetFunction   = 0;
 
-    const char * PciHeaderTypes[] = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
+    const CHAR * PciHeaderTypes[] = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
 
     if (CommandTokens.size() < 4 || CommandTokens.size() > 5)
     {
@@ -150,8 +150,8 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
             //
             // For some reason, MSVC refuses to initialize these at top of case
             //
-            const char * PciHeaderTypeAsString[]  = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
-            const char * PciMmioBarTypeAsString[] = {"32-bit Wide",
+            const CHAR * PciHeaderTypeAsString[]  = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
+            const CHAR * PciMmioBarTypeAsString[] = {"32-bit Wide",
                                                      "Reserved",
                                                      "64-bit Wide",
                                                      "Reserved"};
@@ -345,7 +345,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
                     //
                     for (UINT8 j = 0; j < 16; j++)
                     {
-                        char c = (char)*(cs + j);
+                        CHAR c = (CHAR) * (cs + j);
                         if (c >= 32 && c <= 126)
                         {
                             ShowMessages("%c", c);
