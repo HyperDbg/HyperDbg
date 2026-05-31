@@ -85,7 +85,7 @@ CPU_LBR_MAP CPU_LBR_MAPS[] = {
 BOOLEAN
 LbrCheckAndReadArchitecturalLbrDetails()
 {
-    ULONG A, B, C, D;
+    ULONG a, b, c, d;
 
     CPUID_EAX_07 Edx07 = {0};
 
@@ -97,9 +97,9 @@ LbrCheckAndReadArchitecturalLbrDetails()
     // Check for Architectural LBR support
     //
     //
-    xcpuidex(CPUID_STRUCTURED_EXTENDED_FEATURE_FLAGS, 0x00, &A, &B, &C, &D);
+    xcpuidex(CPUID_STRUCTURED_EXTENDED_FEATURE_FLAGS, 0x00, &a, &b, &c, &d);
 
-    Edx07.Edx.AsUInt = D;
+    Edx07.Edx.AsUInt = d;
 
     //
     // CPUID.07H.00H:EDX[19] == 1 means arch LBR is supported
@@ -121,7 +121,7 @@ LbrCheckAndReadArchitecturalLbrDetails()
     //
     // Being here means the CPU supports architectural LBR, we can read the LBR capabilities from CPUID 0x1c leaf
     //
-    xcpuidex(CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION, 0x00, &A, &B, &C, &D);
+    xcpuidex(CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION, 0x00, &a, &b, &c, &d);
 
     //
     // Assign LBR leafs to structure for easier access

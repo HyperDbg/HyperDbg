@@ -687,9 +687,9 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
  * @brief Frees the memory allocated by Temp
  *
  * @param Temp the token representing the temporary variable
- * @return void
+ * @return VOID
  */
-void
+VOID
 FreeTemp(PSCRIPT_ENGINE_TOKEN Temp)
 {
     INT Id = (INT)DecimalToInt(Temp->Value);

@@ -1354,12 +1354,12 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
                 //
                 // Obtain the lengths of all the strings and substring
                 //
-                ULONG tempSize = (ULONG)wcslen(NewVendorString) * sizeof(WCHAR);
+                ULONG TempSize = (ULONG)wcslen(NewVendorString) * sizeof(WCHAR);
 
                 ULONG MatchedStringLen = (ULONG)wcslen(HV_REGKEYS[i]) * sizeof(WCHAR);
-                ULONG oldLength        = *((PBYTE)Buf + DataLenOffset);
+                ULONG OldLength        = *((PBYTE)Buf + DataLenOffset);
 
-                ULONG NewStringSize = oldLength - MatchedStringLen + tempSize;
+                ULONG NewStringSize = OldLength - MatchedStringLen + TempSize;
 
                 //
                 // Check if the buffer size allows the modification, in case of expansion
