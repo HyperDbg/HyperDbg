@@ -187,15 +187,15 @@ HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack)
 VARIABLE_TYPE *
 GetCommonVariableType(VARIABLE_TYPE * Ty1, VARIABLE_TYPE * Ty2)
 {
-    //if (Ty1->Kind == TY_ARRAY)
+    // if (Ty1->Kind == TY_ARRAY)
     //{
-    //    return Ty1;
-    //}
+    //     return Ty1;
+    // }
 
-    //if (Ty2->Kind == TY_ARRAY)
+    // if (Ty2->Kind == TY_ARRAY)
     //{
-    //    return Ty2;
-    //}
+    //     return Ty2;
+    // }
 
     return VARIABLE_TYPE_LONG;
 }

@@ -80,7 +80,7 @@ SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command)
     int     Len  = (int)Command.length();
     BOOLEAN Qot  = FALSE;
     BOOLEAN Sqot = FALSE;
-    int  ArgLen;
+    int     ArgLen;
 
     for (int i = 0; i < Len; i++)
     {

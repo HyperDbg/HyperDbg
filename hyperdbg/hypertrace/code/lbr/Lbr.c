@@ -85,7 +85,7 @@ CPU_LBR_MAP CPU_LBR_MAPS[] = {
 BOOLEAN
 LbrCheckAndReadArchitecturalLbrDetails()
 {
-    ULONG a, b, c, d;
+    ULONG A, B, C, D;
 
     CPUID_EAX_07 Edx07 = {0};
 
@@ -97,9 +97,9 @@ LbrCheckAndReadArchitecturalLbrDetails()
     // Check for Architectural LBR support
     //
     //
-    xcpuidex(CPUID_STRUCTURED_EXTENDED_FEATURE_FLAGS, 0x00, &a, &b, &c, &d);
+    xcpuidex(CPUID_STRUCTURED_EXTENDED_FEATURE_FLAGS, 0x00, &A, &B, &C, &D);
 
-    Edx07.Edx.AsUInt = d;
+    Edx07.Edx.AsUInt = D;
 
     //
     // CPUID.07H.00H:EDX[19] == 1 means arch LBR is supported
@@ -121,14 +121,14 @@ LbrCheckAndReadArchitecturalLbrDetails()
     //
     // Being here means the CPU supports architectural LBR, we can read the LBR capabilities from CPUID 0x1c leaf
     //
-    xcpuidex(CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION, 0x00, &a, &b, &c, &d);
+    xcpuidex(CPUID_ARCH_LAST_BRANCH_RECORD_INFORMATION, 0x00, &A, &B, &C, &D);
 
     //
-    // Assign LBR leafs to sturcture for easier access
+    // Assign LBR leafs to structure for easier access
     //
-    Eax1c.AsUInt = a;
-    Ebx1c.AsUInt = b;
-    Ecx1c.AsUInt = c;
+    Eax1c.AsUInt = A;
+    Ebx1c.AsUInt = B;
+    Ecx1c.AsUInt = C;
 
     //
     // Store the CPUID.1CH leaf information in a global structure for later use
@@ -136,7 +136,7 @@ LbrCheckAndReadArchitecturalLbrDetails()
     g_Cpuid28Leafs.Eax = Eax1c;
     g_Cpuid28Leafs.Ebx = Ebx1c;
     g_Cpuid28Leafs.Ecx = Ecx1c;
-    g_Cpuid28Leafs.Edx = d;
+    g_Cpuid28Leafs.Edx = D;
 
     //
     // Read LBR capacity from CPUID.1CH.00H:EAX[7:0]
@@ -176,14 +176,14 @@ LbrCheckAndReadArchitecturalLbrDetails()
 BOOLEAN
 LbrCheckAndReadLegacyLbrDetails()
 {
-    ULONG     a, b, c, d;
+    ULONG     A, B, C, D;
     ULONG     Family, Model;
     ULONGLONG i;
 
-    xcpuid(1, &a, &b, &c, &d);
+    xcpuid(1, &A, &B, &C, &D);
 
-    Family = ((a >> 8) & 0xF) + ((a >> 20) & 0xFF);
-    Model  = ((a >> 4) & 0xF) | ((a >> 12) & 0xF0);
+    Family = ((A >> 8) & 0xF) + ((A >> 20) & 0xFF);
+    Model  = ((A >> 4) & 0xF) | ((A >> 12) & 0xF0);
 
     for (i = 0; i < sizeof(CPU_LBR_MAPS) / sizeof(CPU_LBR_MAPS[0]); ++i)
     {
@@ -908,7 +908,7 @@ LbrStart(UINT64 FilterOptions)
 
     if (g_LbrCapacity == 0)
     {
-        LogInfo("Err, LBR aborting, CPU model not supported\n");
+        LogError("Err, LBR aborting, CPU model not supported\n");
         return FALSE;
     }
 
@@ -1145,7 +1145,7 @@ LbrSave()
  * @return VOID
  */
 VOID
-LbrGetArchBranchTypet(UINT32 BrType, CHAR * BrTypeName)
+LbrGetArchBranchType(UINT32 BrType, CHAR * BrTypeName)
 {
     if (BrType == LBR_BR_TYPE_COND)
     {
@@ -1236,7 +1236,7 @@ LbrPrint()
             //
             // Get the branch type name for better readability when printing
             //
-            LbrGetArchBranchTypet(BrType, BrTypeName);
+            LbrGetArchBranchType(BrType, BrTypeName);
 
             //
             // Architectural LBR

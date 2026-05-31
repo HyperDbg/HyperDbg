@@ -38,7 +38,7 @@
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="script_include.h">
+    <ClInclude Include="header\script_include.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -67,7 +67,7 @@
     <ClCompile Include="code\pch.c">
       <Filter>code</Filter>
     </ClCompile>
-    <ClCompile Include="script_include.c">
+    <ClCompile Include="code\script_include.c">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>

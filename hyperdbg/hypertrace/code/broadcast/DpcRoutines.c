@@ -2,7 +2,7 @@
  * @file DpcRoutines.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief DPC routines
- *
+ * @details
  * @version 0.19
  * @date 2026-04-19
  *
@@ -14,10 +14,10 @@
 /**
  * @brief Broadcast enabling LBR
  *
- * @param Dpc
- * @param DeferredContext
- * @param SystemArgument1
- * @param SystemArgument2
+ * @param Dpc The DPC object (unused)
+ * @param DeferredContext Context data passed to the DPC (unused)
+ * @param SystemArgument1 First system argument used for DPC synchronization
+ * @param SystemArgument2 Second system argument used for DPC synchronization
  * @return BOOLEAN
  */
 BOOLEAN
@@ -69,10 +69,10 @@ DpcRoutineEnableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
 /**
  * @brief Broadcast disabling LBR
  *
- * @param Dpc
- * @param DeferredContext
- * @param SystemArgument1
- * @param SystemArgument2
+ * @param Dpc The DPC object (unused)
+ * @param DeferredContext Context data passed to the DPC (unused)
+ * @param SystemArgument1 First system argument used for DPC synchronization
+ * @param SystemArgument2 Second system argument used for DPC synchronization
  * @return BOOLEAN
  */
 BOOLEAN
@@ -123,10 +123,10 @@ DpcRoutineDisableLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, P
 /**
  * @brief Broadcast flushing LBR
  *
- * @param Dpc
- * @param DeferredContext
- * @param SystemArgument1
- * @param SystemArgument2
+ * @param Dpc The DPC object (unused)
+ * @param DeferredContext Context data passed to the DPC (unused)
+ * @param SystemArgument1 First system argument used for DPC synchronization
+ * @param SystemArgument2 Second system argument used for DPC synchronization
  * @return BOOLEAN
  */
 BOOLEAN
@@ -151,10 +151,10 @@ DpcRoutineFlushLbr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVO
 /**
  * @brief Broadcast updating LBR filter options
  *
- * @param Dpc
- * @param DeferredContext
- * @param SystemArgument1
- * @param SystemArgument2
+ * @param Dpc The DPC object (unused)
+ * @param DeferredContext Context data passed to the DPC, used as the LBR filter options bitmask
+ * @param SystemArgument1 First system argument used for DPC synchronization
+ * @param SystemArgument2 Second system argument used for DPC synchronization
  * @return BOOLEAN
  */
 BOOLEAN

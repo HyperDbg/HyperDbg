@@ -13,7 +13,7 @@
 /**
  * @brief Example of performing PT trace
  *
- * @return BOOLEAN
+ * @return VOID
  */
 VOID
 HyperTracePtExample()
@@ -23,7 +23,7 @@ HyperTracePtExample()
 /**
  * @brief Enable PT tracing for HyperTrace
  *
- * @param PtOperationRequest
+ * @param PtOperationRequest Pointer to the HyperTrace PT operation request packet
  *
  * @return BOOLEAN
  */
@@ -64,7 +64,7 @@ HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest)
 /**
  * @brief Disable PT tracing for HyperTrace
  *
- * @param PtOperationRequest
+ * @param PtOperationRequest Pointer to the HyperTrace PT operation request packet
  *
  * @return BOOLEAN
  */

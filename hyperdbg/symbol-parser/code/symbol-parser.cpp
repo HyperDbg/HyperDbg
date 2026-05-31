@@ -86,8 +86,8 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
 {
     string Token;
     char   ModuleName[_MAX_FNAME] = {0};
-    int    Index = 0;
-    char   Ch    = '\0';
+    int    Index                  = 0;
+    char   Ch                     = '\0';
 
     if (!g_IsLoadedModulesInitialized || SearchMask == NULL)
     {
@@ -209,8 +209,8 @@ SymGetFieldOffsetFromModule(UINT64 Base, WCHAR * TypeName, WCHAR * FieldName, UI
     //
     const DWORD SizeOfStruct =
         sizeof(SYMBOL_INFOW) + ((MAX_SYM_NAME - 1) * sizeof(wchar_t));
-    UINT8   SymbolInfoBuffer[SizeOfStruct];
-    auto    SymbolInfo = PSYMBOL_INFOW(SymbolInfoBuffer);
+    UINT8 SymbolInfoBuffer[SizeOfStruct];
+    auto  SymbolInfo = PSYMBOL_INFOW(SymbolInfoBuffer);
 
     //
     // Initialize the fields that need initialization
@@ -336,8 +336,8 @@ SymGetDataTypeSizeFromModule(UINT64 Base, WCHAR * TypeName, UINT64 * TypeSize)
     //
     const DWORD SizeOfStruct =
         sizeof(SYMBOL_INFOW) + ((MAX_SYM_NAME - 1) * sizeof(wchar_t));
-    UINT8   SymbolInfoBuffer[SizeOfStruct];
-    auto    SymbolInfo = PSYMBOL_INFOW(SymbolInfoBuffer);
+    UINT8 SymbolInfoBuffer[SizeOfStruct];
+    auto  SymbolInfo = PSYMBOL_INFOW(SymbolInfoBuffer);
 
     //
     // Initialize the fields that need initialization
@@ -533,9 +533,9 @@ UINT32
 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName)
 {
     DWORD                         FileSize                        = 0;
-    int    Index = 0;
-    char   Ch    = '\0';
-    char   ModuleName[_MAX_FNAME]          = {0};
+    int                           Index                           = 0;
+    char                          Ch                              = '\0';
+    char                          ModuleName[_MAX_FNAME]          = {0};
     char                          AlternateModuleName[_MAX_FNAME] = {0};
     PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails                   = NULL;
 

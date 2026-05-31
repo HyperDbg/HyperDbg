@@ -14,8 +14,8 @@
 /**
  * @brief Hide debugger on transparent-mode (activate transparent-mode)
  *
- * @param HyperevadeCallbacks
- * @param TransparentModeRequest
+ * @param HyperevadeCallbacks Pointer to the HyperEvade callbacks structure
+ * @param TransparentModeRequest Pointer to the transparent debugger mode request
  *
  * @return BOOLEAN
  */
@@ -58,8 +58,8 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
         //
         // Choose a random genuine vendor string to replace hypervisor vendor data
         //
-        TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = TransparentGetRand() %
-                                                  (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
+        g_TransparentGenuineVendorStringIndex = TransparentGetRand() %
+                                                (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
 #endif
 
         //
@@ -125,7 +125,7 @@ TransparentGetRand()
  * @brief Add name or process id of the target process to the list
  * of processes that HyperDbg should apply transparent-mode on them
  *
- * @param Measurements
+ * @param Measurements Pointer to the debugger hide and transparent mode request structure
  * @return BOOLEAN
  */
 BOOLEAN
@@ -189,8 +189,8 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
         //
         // Move the process name string to the end of the buffer
         //
-        RtlCopyBytes((void *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
-                     (const void *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
+        RtlCopyBytes((VOID *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
+                     (CONST VOID *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
                      Measurements->LengthOfProcessName);
 
         //

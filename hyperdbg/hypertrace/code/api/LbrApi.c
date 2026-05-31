@@ -14,19 +14,19 @@
 /**
  * @brief Example of performing LBR trace
  *
- * @return BOOLEAN
+ * @return VOID
  */
 VOID
 HyperTraceLbrExamplePerformTrace()
 {
     if (LbrStart(LBR_SELECT_WITHOUT_FILTER))
     {
-        for (volatile int i = 0; i < 50; i++)
+        for (volatile INT i = 0; i < 50; i++)
         {
             if (i % 2)
             {
-                int a = i * 2;
-                a += 5;
+                INT A = i * 2;
+                A += 5;
             }
             else
             {
@@ -45,7 +45,7 @@ HyperTraceLbrExamplePerformTrace()
 /**
  * @brief Query the state of LBR save and load VM exit and entry controls
  *
- * @param CoreId
+ * @param CoreId The index of the processor core to query
  *
  * @return BOOLEAN
  */
@@ -60,8 +60,8 @@ HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId)
 /**
  * @brief Set the kernel status in the HyperTrace LBR operation request structure
  *
- * @param HyperTraceLbrOperationRequest
- * @param Status
+ * @param HyperTraceLbrOperationRequest Pointer to the HyperTrace LBR operation request packet
+ * @param Status The kernel status code to write into the request
  *
  * @return VOID
  */
@@ -79,8 +79,8 @@ HyperTraceLbrSetKernelStatus(
 /**
  * @brief Set the kernel status in the HyperTrace LBR dump operation request structure
  *
- * @param HyperTraceLbrDumpOperationRequest
- * @param Status
+ * @param HyperTraceLbrDumpOperationRequest Pointer to the HyperTrace LBR dump operation request packet
+ * @param Status The kernel status code to write into the request
  *
  * @return VOID
  */

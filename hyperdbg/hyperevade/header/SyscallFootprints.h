@@ -81,17 +81,17 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
  * @brief SSDT structure
  *
  */
-typedef struct _SSDTStruct
+typedef struct _SSDT_STRUCT
 {
-    LONG * pServiceTable;
-    PVOID  pCounterTable;
+    LONG * ServiceTable;
+    PVOID  CounterTable;
 #ifdef _WIN64
     UINT64 NumberOfServices;
 #else
     ULONG NumberOfServices;
 #endif
-    PCHAR pArgumentTable;
-} SSDTStruct, *PSSDTStruct;
+    PCHAR ArgumentTable;
+} SSDT_STRUCT, *PSSDT_STRUCT;
 
 /**
  * @brief Module entry
@@ -128,7 +128,7 @@ typedef NTSTATUS(NTAPI * ZWQUERYSYSTEMINFORMATION)(
     IN ULONG                    SystemInformationLength,
     OUT PULONG ReturnLength     OPTIONAL);
 
-NTSTATUS(*NtCreateFileOrig)
+NTSTATUS(*g_NtCreateFileOrig)
 (
     PHANDLE            FileHandle,
     ACCESS_MASK        DesiredAccess,
@@ -150,7 +150,7 @@ NTSTATUS(*NtCreateFileOrig)
  * @brief A variable holding the randomly chosen index for the genuine vendor list.
  *        This is used for transparent vendor spoofing
  */
-static WORD TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = 0;
+static WORD g_TransparentGenuineVendorStringIndex = 0;
 
 /**
  * @brief System call numbers information
@@ -241,7 +241,7 @@ static const PWCHAR TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[] = {
  * @brief A list of common Hypervisor specific process executables
  *
  */
-static const PWCH HV_Processes[] = {
+static const PWCH HV_PROCESSES[] = {
     L"hyperdbg-cli.exe",
     L"vboxservice.exe",
     L"vmsrvc.exe",
@@ -559,11 +559,12 @@ static const PWCH HV_REGKEYS[] = {
 
 };
 
-//
-// @brief A list of registry keys which might contain hypervisor vendor information in their data
-//
-// NOTE: This is not a complete list, there are a lot of generic keys that also can have the identifiable data
-//
+/**
+ * @brief A list of registry keys which might contain hypervisor vendor information in their data
+ *
+ * @details NOTE: This is not a complete list, there are a lot of generic keys that also can have the identifiable data
+ *
+ */
 static const PWCH TRANSPARENT_DETECTABLE_REGISTRY_KEYS[] = {
     L"AcpiData",
     L"SMBiosData",

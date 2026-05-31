@@ -501,32 +501,32 @@ GetToken(char * c, char * str)
             }
 
             if (WasFound)
+            {
+                RemoveToken(&Token);
+                char HexStr[20] = {0};
+                sprintf(HexStr, "%llx", Address);
+                Token = NewToken(HEX, HexStr);
+            }
+            else
+            {
+                if (HasBang)
+                {
+                    Token->Type = UNKNOWN;
+                    return Token;
+                }
+                else
+                {
+                    if (GetGlobalIdentifierVal(Token) != -1)
                     {
-                        RemoveToken(&Token);
-                        char HexStr[20] = {0};
-                        sprintf(HexStr, "%llx", Address);
-                        Token = NewToken(HEX, HexStr);
+                        Token->Type         = GLOBAL_ID;
+                        Token->VariableType = GetGlobalIdentifierVariableType(Token);
                     }
                     else
                     {
-                        if (HasBang)
-                        {
-                            Token->Type = UNKNOWN;
-                            return Token;
-                        }
-                        else
-                        {
-                            if (GetGlobalIdentifierVal(Token) != -1)
-                            {
-                                Token->Type         = GLOBAL_ID;
-                                Token->VariableType = GetGlobalIdentifierVariableType(Token);
-                            }
-                            else
-                            {
-                                Token->Type = GLOBAL_UNRESOLVED_ID;
-                            }
-                        }
+                        Token->Type = GLOBAL_UNRESOLVED_ID;
                     }
+                }
+            }
         }
         else
         {
