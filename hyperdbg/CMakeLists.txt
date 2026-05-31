@@ -5,7 +5,12 @@ set(CMAKE_CXX_STANDARD 23)
 enable_language(ASM_MASM)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+if(LINUX)
+
+  add_subdirectory(script-engine)
+    message(STATUS "Building on Linux")
+elseif(WIN32)
+    message(STATUS "Building on Windows")
 find_package(WDK REQUIRED)
 
 	include_directories(
@@ -55,7 +60,6 @@ add_subdirectory(symbol-parser)
 target_link_libraries(symbol-parser pdbex)
 
 
-add_subdirectory(script-engine)
 target_link_libraries(script-engine symbol-parser)
 
 link_directories(libraries/zydis/user libraries/keystone/release-lib)
@@ -64,6 +68,21 @@ target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone)
 
 
 add_subdirectory(hyperdbg-test)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+
+add_subdirectory(symbol-parser)
+target_link_libraries(symbol-parser pdbex)
+
+
+add_subdirectory(script-engine)
+target_link_libraries(script-engine symbol-parser)
+
+link_directories(libraries/zydis/user libraries/keystone/release-lib)
+add_subdirectory(libhyperdbg)
+target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone)
+endif()
+
 
 add_subdirectory(hyperdbg-cli)
 target_link_libraries(hyperdbg-cli libhyperdbg)
