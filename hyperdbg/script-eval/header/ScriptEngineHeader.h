@@ -39,11 +39,5 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
                     UINT64 *                         Indx,
                     SYMBOL *                         ErrorOperator);
 
-UINT64
-GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId);
-
-VOID
-ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR * BufferForName);
-
 VOID
 ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR * BufferForName);

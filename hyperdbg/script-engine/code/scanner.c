@@ -16,7 +16,7 @@
  *
  * @param c
  * @param str
- * @return PTOKEN
+ * @return PSCRIPT_ENGINE_TOKEN
  */
 PSCRIPT_ENGINE_TOKEN
 GetToken(char * c, char * str)
@@ -51,16 +51,16 @@ GetToken(char * c, char * str)
                 else if (*c == 'x')
                 {
                     char ByteString[] = "000";
-                    int  len          = (int)strlen(ByteString);
+                    INT  Len          = (INT)strlen(ByteString);
                     int  i            = 0;
-                    for (; i < len; i++)
+                    for (; i < Len; i++)
                     {
                         *c = sgetc(str);
                         if (!IsHex(*c))
                             break;
 
                         RotateLeftStringOnce(ByteString);
-                        ByteString[len - 1] = *c;
+                        ByteString[Len - 1] = *c;
                     }
 
                     if (i == 0 || i == 3)
@@ -72,8 +72,8 @@ GetToken(char * c, char * str)
                     else
                     {
                         InputIdx--;
-                        char num = (char)strtol(ByteString, NULL, 16);
-                        AppendByte(Token, num);
+                        CHAR Num = (CHAR)strtol(ByteString, NULL, 16);
+                        AppendByte(Token, Num);
                     }
                 }
                 else if (*c == '"')
@@ -501,32 +501,32 @@ GetToken(char * c, char * str)
             }
 
             if (WasFound)
-            {
-                RemoveToken(&Token);
-                char str[20] = {0};
-                sprintf(str, "%llx", Address);
-                Token = NewToken(HEX, str);
-            }
-            else
-            {
-                if (HasBang)
-                {
-                    Token->Type = UNKNOWN;
-                    return Token;
-                }
-                else
-                {
-                    if (GetGlobalIdentifierVal(Token) != -1)
                     {
-                        Token->Type         = GLOBAL_ID;
-                        Token->VariableType = GetGlobalIdentifierVariableType(Token);
+                        RemoveToken(&Token);
+                        char HexStr[20] = {0};
+                        sprintf(HexStr, "%llx", Address);
+                        Token = NewToken(HEX, HexStr);
                     }
                     else
                     {
-                        Token->Type = GLOBAL_UNRESOLVED_ID;
+                        if (HasBang)
+                        {
+                            Token->Type = UNKNOWN;
+                            return Token;
+                        }
+                        else
+                        {
+                            if (GetGlobalIdentifierVal(Token) != -1)
+                            {
+                                Token->Type         = GLOBAL_ID;
+                                Token->VariableType = GetGlobalIdentifierVariableType(Token);
+                            }
+                            else
+                            {
+                                Token->Type = GLOBAL_UNRESOLVED_ID;
+                            }
+                        }
                     }
-                }
-            }
         }
         else
         {
@@ -662,16 +662,16 @@ GetToken(char * c, char * str)
                     else if (*c == 'x')
                     {
                         char ByteString[] = "00000";
-                        int  len          = (int)strlen(ByteString);
+                        INT  Len          = (INT)strlen(ByteString);
                         int  i            = 0;
-                        for (; i < len; i++)
+                        for (; i < Len; i++)
                         {
                             *c = sgetc(str);
                             if (!IsHex(*c))
                                 break;
 
                             RotateLeftStringOnce(ByteString);
-                            ByteString[len - 1] = *c;
+                            ByteString[Len - 1] = *c;
                         }
 
                         if (i == 0 || i == 5)
@@ -683,8 +683,8 @@ GetToken(char * c, char * str)
                         else
                         {
                             InputIdx--;
-                            wchar_t num = (wchar_t)strtol(ByteString, NULL, 16);
-                            AppendWchar(Token, num);
+                            WCHAR Num = (WCHAR)strtol(ByteString, NULL, 16);
+                            AppendWchar(Token, Num);
                         }
                     }
                     else if (*c == '"')
@@ -729,7 +729,7 @@ GetToken(char * c, char * str)
         }
         else if ((*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F') || (*c == '_') || (*c == '!'))
         {
-            uint8_t NotHex = 0;
+            UINT8 NotHex = 0;
             do
             {
                 if (*c != '`')
@@ -847,9 +847,9 @@ GetToken(char * c, char * str)
                     if (WasFound)
                     {
                         RemoveToken(&Token);
-                        char str[20] = {0};
-                        sprintf(str, "%llx", Address);
-                        Token = NewToken(HEX, str);
+                        char HexStr[20] = {0};
+                        sprintf(HexStr, "%llx", Address);
+                        Token = NewToken(HEX, HexStr);
                     }
                     else
                     {
@@ -922,9 +922,9 @@ GetToken(char * c, char * str)
                 if (WasFound)
                 {
                     RemoveToken(&Token);
-                    char str[20] = {0};
-                    sprintf(str, "%llx", Address);
-                    Token = NewToken(HEX, str);
+                    char HexStr[20] = {0};
+                    sprintf(HexStr, "%llx", Address);
+                    Token = NewToken(HEX, HexStr);
                 }
                 else
                 {
@@ -970,7 +970,7 @@ GetToken(char * c, char * str)
  *
  * @param str
  * @param c
- * @return PTOKEN
+ * @return PSCRIPT_ENGINE_TOKEN
  */
 PSCRIPT_ENGINE_TOKEN
 Scan(char * str, char * c)
@@ -1033,10 +1033,10 @@ Scan(char * str, char * c)
 }
 
 /**
- * @brief returns last character of string
+ * @brief Returns the next character in the input string
  *
  * @param str
- * @return last character
+ * @return CHAR the next character at the current position in the string
  */
 char
 sgetc(char * str)
@@ -1118,7 +1118,7 @@ IsVariableType(char * str)
 }
 
 /**
- * @brief eck if string is Id or not
+ * @brief Check if string is Id or not
  *
  * @param str
  * @return char

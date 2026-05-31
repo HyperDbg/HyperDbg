@@ -43,7 +43,7 @@ Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discu
 - Adding support for [Hardware Performance Counters (HPC)](https://en.wikipedia.org/wiki/Hardware_performance_counter).
 - Any other interesting tasks you might find!
 
--~~Adding routines to activate and use Last Branch Record (LBR) and Branch Trace Store (BTS).~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/lbr" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/lbrdump" target="_blank">link</a>]
+- ~~Adding routines to activate and use Last Branch Record (LBR) and Branch Trace Store (BTS).~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/lbr" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/lbrdump" target="_blank">link</a>]
 - ~~Creating commands to inspect and read details of PCIe devices.~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/pcitree" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/pcicam" target="_blank">link</a>]
 - ~~Mitigating the anti-hypervisor method described [here](https://howtohypervise.blogspot.com/2019/01/a-common-missight-in-most-hypervisors.html).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/497)]
 - ~~Fixing the problem with [XSETBV instruction freezing](https://github.com/HyperDbg/HyperDbg/issues/429).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/491)]

@@ -96,16 +96,16 @@ NewUnknownToken(void);
 PSCRIPT_ENGINE_TOKEN
 NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value);
 
-void
+VOID
 RemoveToken(PSCRIPT_ENGINE_TOKEN * Token);
 
-void
+VOID
 PrintToken(PSCRIPT_ENGINE_TOKEN Token);
 
-void
-AppendByte(PSCRIPT_ENGINE_TOKEN Token, char c);
+VOID
+AppendByte(PSCRIPT_ENGINE_TOKEN Token, CHAR c);
 
-void
+VOID
 AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c);
 
 PSCRIPT_ENGINE_TOKEN
@@ -114,8 +114,8 @@ CopyToken(PSCRIPT_ENGINE_TOKEN Token);
 PSCRIPT_ENGINE_TOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
-void
-    FreeTemp(PSCRIPT_ENGINE_ERROR_TYPE);
+VOID
+    FreeTemp(PSCRIPT_ENGINE_TOKEN Temp);
 
 VARIABLE_TYPE *
 HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack);
@@ -130,10 +130,10 @@ GetCommonVariableType(VARIABLE_TYPE * Ty1, VARIABLE_TYPE * Ty2);
 PSCRIPT_ENGINE_TOKEN_LIST
 NewTokenList(void);
 
-void
+VOID
 RemoveTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList);
 
-void
+VOID
 PrintTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList);
 
 PSCRIPT_ENGINE_TOKEN_LIST
@@ -191,7 +191,7 @@ IsBinary(char c);
 char
 IsOctal(char c);
 
-void
+VOID
 SetType(unsigned long long * Val, unsigned char Type);
 
 unsigned long long
@@ -209,7 +209,7 @@ OctalToInt(char * str);
 unsigned long long
 BinaryToInt(char * str);
 
-void
+VOID
 RotateLeftStringOnce(char * str);
 
 ////////////////////////////////////////////////////
@@ -271,7 +271,7 @@ char
 IsOneOperandOperator(PSCRIPT_ENGINE_TOKEN Operator);
 
 /**
- *
+ * @brief User-defined function linked list node
  */
 typedef struct _USER_DEFINED_FUNCTION_NODE
 {
@@ -288,7 +288,7 @@ typedef struct _USER_DEFINED_FUNCTION_NODE
 } USER_DEFINED_FUNCTION_NODE, *PUSER_DEFINED_FUNCTION_NODE;
 
 /**
- *
+ * @brief Include file linked list node
  */
 typedef struct _INCLUDE_NODE
 {

@@ -1,9 +1,21 @@
+/**
+ * @file type.h
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ *
+ * @brief Variable type definitions for the script engine
+ * @details
+ * @version 0.1
+ * @date 2020-10-22
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #pragma once
 
 #ifndef TYPE_H
 #    define TYPE_H
 
-typedef enum
+typedef enum _VARIABLE_TYPE_KIND
 {
     TY_UNKNOWN,
     TY_VOID,
@@ -24,15 +36,15 @@ typedef enum
     TY_UNION,
 } VARIABLE_TYPE_KIND;
 
-typedef struct VARIABLE_TYPE
+typedef struct _VARIABLE_TYPE
 {
-    VARIABLE_TYPE_KIND     Kind;
-    int                    Size;  // sizeof() value
-    int                    Align; // alignment
-    BOOLEAN                IsUnsigned;
-    struct VARIABLE_TYPE * Base;
-    int                    ArrayLen;
-} VARIABLE_TYPE;
+    VARIABLE_TYPE_KIND      Kind;
+    int                     Size;  // sizeof() value
+    int                     Align; // alignment
+    BOOLEAN                 IsUnsigned;
+    struct _VARIABLE_TYPE * Base;
+    int                     ArrayLen;
+} VARIABLE_TYPE, *PVARIABLE_TYPE;
 
 extern VARIABLE_TYPE * VARIABLE_TYPE_UNKNOWN;
 

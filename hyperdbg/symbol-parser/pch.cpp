@@ -1,5 +1,5 @@
 /**
- * @file pch.c
+ * @file pch.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  *
  * @details Pre-compiled headers

@@ -60,10 +60,10 @@ ShowMessages(const char * Fmt, ...)
     {
         char TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
         va_start(ArgList, Fmt);
-        int sprintfresult = vsprintf_s(TempMessage, Fmt, ArgList);
+        INT SprintfResult = vsprintf_s(TempMessage, Fmt, ArgList);
         va_end(ArgList);
 
-        if (sprintfresult != -1)
+        if (SprintfResult != -1)
         {
             //
             // There is another handler
@@ -75,7 +75,8 @@ ShowMessages(const char * Fmt, ...)
 
 /**
  * @brief Interpret and find module base, based on module name
- * @param SearchMask
+ * @param SearchMask the search mask to find module
+ * @param SetModuleNameGlobally whether to set module name globally
  *
  * @return PSYMBOL_LOADED_MODULE_DETAILS NULL means error or not found,
  * otherwise it returns the instance of loaded module based on search mask
@@ -85,8 +86,8 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
 {
     string Token;
     char   ModuleName[_MAX_FNAME] = {0};
-    int    Index                  = 0;
-    char   Ch                     = NULL;
+    int    Index = 0;
+    char   Ch    = '\0';
 
     if (!g_IsLoadedModulesInitialized || SearchMask == NULL)
     {
@@ -208,7 +209,7 @@ SymGetFieldOffsetFromModule(UINT64 Base, WCHAR * TypeName, WCHAR * FieldName, UI
     //
     const DWORD SizeOfStruct =
         sizeof(SYMBOL_INFOW) + ((MAX_SYM_NAME - 1) * sizeof(wchar_t));
-    uint8_t SymbolInfoBuffer[SizeOfStruct];
+    UINT8   SymbolInfoBuffer[SizeOfStruct];
     auto    SymbolInfo = PSYMBOL_INFOW(SymbolInfoBuffer);
 
     //
@@ -243,7 +244,7 @@ SymGetFieldOffsetFromModule(UINT64 Base, WCHAR * TypeName, WCHAR * FieldName, UI
     //
     // Allocate enough memory to receive the children ids
     //
-    auto FindChildrenParamsBacking = std::make_unique<uint8_t[]>(
+    auto FindChildrenParamsBacking = std::make_unique<UINT8[]>(
         sizeof(_TI_FINDCHILDREN_PARAMS) + ((ChildrenCount - 1) * sizeof(ULONG)));
     auto FindChildrenParams =
         (_TI_FINDCHILDREN_PARAMS *)FindChildrenParamsBacking.get();
@@ -335,7 +336,7 @@ SymGetDataTypeSizeFromModule(UINT64 Base, WCHAR * TypeName, UINT64 * TypeSize)
     //
     const DWORD SizeOfStruct =
         sizeof(SYMBOL_INFOW) + ((MAX_SYM_NAME - 1) * sizeof(wchar_t));
-    uint8_t SymbolInfoBuffer[SizeOfStruct];
+    UINT8   SymbolInfoBuffer[SizeOfStruct];
     auto    SymbolInfo = PSYMBOL_INFOW(SymbolInfoBuffer);
 
     //
@@ -532,9 +533,9 @@ UINT32
 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName)
 {
     DWORD                         FileSize                        = 0;
-    int                           Index                           = 0;
-    char                          Ch                              = NULL;
-    char                          ModuleName[_MAX_FNAME]          = {0};
+    int    Index = 0;
+    char   Ch    = '\0';
+    char   ModuleName[_MAX_FNAME]          = {0};
     char                          AlternateModuleName[_MAX_FNAME] = {0};
     PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails                   = NULL;
 
@@ -795,7 +796,7 @@ SymUnloadAllSymbols()
 /**
  * @brief Convert function name to address
  *
- * @param FunctionName
+ * @param FunctionOrVariableName the name of the function or variable to convert
  * @param WasFound
  *
  * @return UINT64
@@ -831,7 +832,7 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
     //
     // Check if '!' is present in the function or variable name
     //
-    size_t FoundIndex = TempName.find('!');
+    SIZE_T FoundIndex = TempName.find('!');
     if (FoundIndex != std::string::npos)
     {
         ExtractedModuleName = TempName.substr(0, FoundIndex);
@@ -981,7 +982,7 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     // Convert TypeName to wide-char, it's because SymGetTypeInfo supports
     // wide-char
     //
-    const size_t TypeNameSize = strlen(TypeName) + 1;
+    const SIZE_T TypeNameSize = strlen(TypeName) + 1;
     WCHAR *      TypeNameW    = (WCHAR *)malloc(sizeof(wchar_t) * TypeNameSize);
 
     if (TypeNameW == NULL)
@@ -997,7 +998,7 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     // Convert FieldName to wide-char, it's because SymGetTypeInfo supports
     // wide-char
     //
-    const size_t FieldNameSize = strlen(FieldName) + 1;
+    const SIZE_T FieldNameSize = strlen(FieldName) + 1;
     WCHAR *      FieldNameW    = (WCHAR *)malloc(sizeof(wchar_t) * FieldNameSize);
 
     if (FieldNameW == NULL)
@@ -1021,9 +1022,8 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
 /**
  * @brief Get the size of structures from the symbols
  *
- * @param TypeName
- * @param FieldName
- * @param FieldOffset
+ * @param TypeName the type (structure) name to query
+ * @param TypeSize pointer to receive the size of the data type
  *
  * @return BOOLEAN Whether the module is found successfully or not
  */
@@ -1070,7 +1070,7 @@ SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
     // Convert FieldName to wide-char, it's because SymGetTypeInfo supports
     // wide-char
     //
-    const size_t TypeNameSize = strlen(TypeName) + 1;
+    const SIZE_T TypeNameSize = strlen(TypeName) + 1;
     WCHAR *      TypeNameW    = (WCHAR *)malloc(sizeof(wchar_t) * TypeNameSize);
 
     if (TypeNameW == NULL)
@@ -1284,9 +1284,9 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
     //
     // Open the file
     //
-    HANDLE hFile = CreateFileA(FileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    HANDLE HFile = CreateFileA(FileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
-    if (hFile == INVALID_HANDLE_VALUE)
+    if (HFile == INVALID_HANDLE_VALUE)
     {
         ShowMessages("err, unable to open symbol file (%x)\n", GetLastError());
         return FALSE;
@@ -1295,7 +1295,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
     //
     // Obtain the size of the file
     //
-    FileSize = GetFileSize(hFile, NULL);
+    FileSize = GetFileSize(HFile, NULL);
 
     if (FileSize == INVALID_FILE_SIZE)
     {
@@ -1309,7 +1309,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
     //
     // Close the file
     //
-    if (!CloseHandle(hFile))
+    if (!CloseHandle(HFile))
     {
         ShowMessages("err, unable to close symbol file (%x)\n", GetLastError());
 
@@ -1680,11 +1680,12 @@ SymTagStr(ULONG Tag)
  *
  * @param LocalFilePath
  * @param ResultPath
+ * @param ResultPathSize the size of the result path buffer
  *
  * @return BOOLEAN
  */
 BOOLEAN
-SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize)
+SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, SIZE_T ResultPathSize)
 {
     HRESULT           Result;
     BOOL              Ret;
@@ -1745,6 +1746,7 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t Re
  * @brief Convert redirection of 32-bit compatibility path
  *
  * @param LocalFilePath
+ * @param Wow64ConvertedPath the converted path for Wow64 compatibility
  *
  * @return VOID
  */
@@ -1757,17 +1759,17 @@ SymConvertWow64CompatibilityPaths(const char * LocalFilePath, std::string & Wow6
     std::transform(FilePath.begin(), FilePath.end(), FilePath.begin(), ::tolower);
 
     // Replace "\windows\system32" with "\windows\syswow64"
-    size_t pos = FilePath.find(":\\windows\\system32");
-    if (pos != std::string::npos)
+    SIZE_T Pos = FilePath.find(":\\windows\\system32");
+    if (Pos != std::string::npos)
     {
-        FilePath.replace(pos, 18, ":\\windows\\syswow64");
+        FilePath.replace(Pos, 18, ":\\windows\\syswow64");
     }
 
     // Replace "\program files" with "\program files (x86)"
-    pos = FilePath.find(":\\program files");
-    if (pos != std::string::npos)
+    Pos = FilePath.find(":\\program files");
+    if (Pos != std::string::npos)
     {
-        FilePath.replace(pos, 15, ":\\program files (x86)");
+        FilePath.replace(Pos, 15, ":\\program files (x86)");
     }
 
     //
@@ -1883,7 +1885,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
     //
     // Split each module and details
     //
-    for (size_t i = 0; i < StoredLength / sizeof(MODULE_SYMBOL_DETAIL); i++)
+    for (SIZE_T i = 0; i < StoredLength / sizeof(MODULE_SYMBOL_DETAIL); i++)
     {
         //
         // Check for abort
@@ -2064,13 +2066,12 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
 /**
  * @brief download pdb file
  *
- * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
- * this buffer will be allocated by this function and needs to be freed by caller
- * @param StoredLength The length that stored on the BufferToStoreDetails
- * @param SymPath The path of symbols
- * @param IsSilentLoad Download without any message
+ * @param SymName the name of the symbol (pdb file name)
+ * @param GUID the GUID and age string identifying the symbol version
+ * @param SymPath the symbol search path
+ * @param IsSilentLoad download without any message
  *
- * return BOOLEAN
+ * @return BOOLEAN
  */
 BOOLEAN
 SymbolPdbDownload(std::string SymName, const std::string & GUID, const std::string & SymPath, BOOLEAN IsSilentLoad)
@@ -2126,7 +2127,7 @@ SymbolPdbDownload(std::string SymName, const std::string & GUID, const std::stri
  * @brief In the case of pressing CTRL+C, it sets a flag
  * to abort the execution of the 'reload'ing and the 'download'ing
  *
- * return VOID
+ * @return VOID
  */
 VOID
 SymbolAbortLoading()
@@ -2237,7 +2238,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //
     // Fill the parameter with char array
     //
-    for (size_t i = 3; i < SizeOfArgv; i++)
+    for (SIZE_T i = 3; i < SizeOfArgv; i++)
     {
         ArgvArray[i] = (char *)SplitedSymPath.at(i - 3).c_str();
     }

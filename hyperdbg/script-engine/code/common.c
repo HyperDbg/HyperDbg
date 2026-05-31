@@ -14,7 +14,7 @@
 /**
  * @brief Allocates a new token
  *
- * @return Token
+ * @return PSCRIPT_ENGINE_TOKEN the allocated new unknown token
  */
 PSCRIPT_ENGINE_TOKEN
 NewUnknownToken()
@@ -61,9 +61,9 @@ NewUnknownToken()
 /**
  * @brief Allocates a new token with given type and value
  *
- * @param Type
- * @param Value
- * @return Token
+ * @param Type the type of the token
+ * @param Value the value string of the token
+ * @return PSCRIPT_ENGINE_TOKEN the allocated new token
  */
 PSCRIPT_ENGINE_TOKEN
 NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
@@ -110,6 +110,7 @@ NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
  * @brief Removes allocated memory of a token
  *
  * @param Token
+ * @return void
  */
 void
 RemoveToken(PSCRIPT_ENGINE_TOKEN * Token)
@@ -122,9 +123,10 @@ RemoveToken(PSCRIPT_ENGINE_TOKEN * Token)
 
 /**
  * @brief Prints token
- * @detail prints value and type of token
+ * @details prints value and type of token
  *
- * @param Token
+ * @param Token the token to print
+ * @return void
  */
 void
 PrintToken(PSCRIPT_ENGINE_TOKEN Token)
@@ -234,7 +236,8 @@ PrintToken(PSCRIPT_ENGINE_TOKEN Token)
  * @brief Appends char to the token value
  *
  * @param Token
- * @param char
+ * @param c the character to append
+ * @return void
  */
 void
 AppendByte(PSCRIPT_ENGINE_TOKEN Token, char c)
@@ -275,7 +278,8 @@ AppendByte(PSCRIPT_ENGINE_TOKEN Token, char c)
  * @brief Appends wchar_t to the token value
  *
  * @param Token
- * @param char
+ * @param c the wide character to append
+ * @return void
  */
 void
 AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c)
@@ -315,7 +319,8 @@ AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c)
 /**
  * @brief Copies a PTOKEN
  *
- * @return PTOKEN
+ * @param Token the token to copy
+ * @return PSCRIPT_ENGINE_TOKEN the copied token
  */
 PSCRIPT_ENGINE_TOKEN
 CopyToken(PSCRIPT_ENGINE_TOKEN Token)
@@ -351,9 +356,9 @@ CopyToken(PSCRIPT_ENGINE_TOKEN Token)
 }
 
 /**
- * allocates a new SCRIPT_ENGINE_TOKEN_LIST
+ * @brief Allocates a new SCRIPT_ENGINE_TOKEN_LIST
  *
- * @return SCRIPT_ENGINE_TOKEN_LIST
+ * @return PSCRIPT_ENGINE_TOKEN_LIST the allocated token list
  */
 PSCRIPT_ENGINE_TOKEN_LIST
 NewTokenList(void)
@@ -391,6 +396,7 @@ NewTokenList(void)
  * @brief Removes allocated memory of a SCRIPT_ENGINE_TOKEN_LIST
  *
  * @param TokenList
+ * @return void
  */
 void
 RemoveTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
@@ -411,6 +417,7 @@ RemoveTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
  * @brief Prints each Token inside a TokenList
  *
  * @param TokenList
+ * @return void
  */
 void
 PrintTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
@@ -426,9 +433,9 @@ PrintTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 /**
  * @brief Adds Token to the last empty position of TokenList
  *
- * @param Token
- * @param TokenList
- * @return TokenList
+ * @param TokenList the token list to push into
+ * @param Token the token to add
+ * @return PSCRIPT_ENGINE_TOKEN_LIST
  */
 PSCRIPT_ENGINE_TOKEN_LIST
 Push(PSCRIPT_ENGINE_TOKEN_LIST TokenList, PSCRIPT_ENGINE_TOKEN Token)
@@ -489,7 +496,7 @@ Push(PSCRIPT_ENGINE_TOKEN_LIST TokenList, PSCRIPT_ENGINE_TOKEN Token)
  * @brief Removes last Token of a TokenList and returns it
  *
  * @param TokenList
- @ @return Token
+ * @return PSCRIPT_ENGINE_TOKEN
  */
 PSCRIPT_ENGINE_TOKEN
 Pop(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
@@ -510,7 +517,7 @@ Pop(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
  * @brief Returns last Token of a TokenList
  *
  * @param TokenList
- * @return Token
+ * @return PSCRIPT_ENGINE_TOKEN
  */
 PSCRIPT_ENGINE_TOKEN
 Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
@@ -526,10 +533,11 @@ Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 }
 
 /**
- * @brief
+ * @brief Returns the token at a specific index from the top of the token list
  *
- * @param TokenList Index
- * @return Token
+ * @param TokenList the token list to index into
+ * @param Index the zero-based index from the top
+ * @return PSCRIPT_ENGINE_TOKEN
  */
 PSCRIPT_ENGINE_TOKEN
 TopIndexed(PSCRIPT_ENGINE_TOKEN_LIST TokenList, int Index)
@@ -544,7 +552,7 @@ TopIndexed(PSCRIPT_ENGINE_TOKEN_LIST TokenList, int Index)
 /**
  * @brief Checks whether input char belongs to hexadecimal digit-set or not
  *
- * @param char
+ * @param c the character to check
  * @return char
  */
 char
@@ -559,7 +567,7 @@ IsHex(char c)
 /**
  * @brief Checks whether input char belongs to decimal digit-set or not
  *
- * @param char
+ * @param c the character to check
  * @return char
  */
 char
@@ -574,7 +582,7 @@ IsDecimal(char c)
 /**
  * @brief Checks whether input char belongs to alphabet set or not
  *
- * @param char
+ * @param c the character to check
  * @return char
  */
 char
@@ -591,7 +599,7 @@ IsLetter(char c)
 /**
  * @brief Checks whether input char is underscore (_) or not
  *
- * @param char
+ * @param c the character to check
  * @return char
  */
 char
@@ -608,8 +616,8 @@ IsUnderscore(char c)
 /**
  * @brief Checks whether input char belongs to binary digit-set or not
  *
- * @param char
- * @return bool
+ * @param c the character to check
+ * @return char
  */
 char
 IsBinary(char c)
@@ -625,7 +633,7 @@ IsBinary(char c)
 /**
  * @brief Checks whether input char belongs to octal digit-set or not
  *
- * @param char
+ * @param c the character to check
  * @return char
  */
 char
@@ -640,8 +648,8 @@ IsOctal(char c)
 /**
  * @brief Allocates a new temporary variable and returns it
  *
- * @param Error
- * @return PTOKEN
+ * @param Error the error type pointer
+ * @return PSCRIPT_ENGINE_TOKEN
  */
 PSCRIPT_ENGINE_TOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
@@ -678,22 +686,23 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 /**
  * @brief Frees the memory allocated by Temp
  *
- * @param Temp
+ * @param Temp the token representing the temporary variable
+ * @return void
  */
 void
 FreeTemp(PSCRIPT_ENGINE_TOKEN Temp)
 {
-    int id = (int)DecimalToInt(Temp->Value);
+    INT Id = (INT)DecimalToInt(Temp->Value);
     if (Temp->Type == TEMP || Temp->Type == DEFERENCE_TEMP)
     {
-        CurrentUserDefinedFunction->TempMap[id] = 0;
+        CurrentUserDefinedFunction->TempMap[Id] = 0;
     }
 }
 
 /**
  * @brief Checks whether this Token type is OneOpFunc1
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -713,7 +722,7 @@ IsType1Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is OneOpFunc2
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -733,7 +742,7 @@ IsType2Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is OperatorsTwoOperandList
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -753,7 +762,7 @@ IsTwoOperandOperator(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is OperatorsOneOperandList
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -773,7 +782,7 @@ IsOneOperandOperator(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is VarArgFunc1
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -793,7 +802,7 @@ IsType4Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is ZeroOpFunc1
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -813,7 +822,7 @@ IsType5Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is TwoOpFunc1
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -833,7 +842,7 @@ IsType6Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is TwoOpFunc2
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -853,7 +862,7 @@ IsType7Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is ThreeOpFunc1
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -873,7 +882,7 @@ IsType8Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is OneOpFunc3
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -893,7 +902,7 @@ IsType9Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is TwoOpFunc3
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -913,7 +922,7 @@ IsType10Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is ThreeOpFunc3
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -933,7 +942,7 @@ IsType11Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is OneOpFunc4
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -953,7 +962,7 @@ IsType12Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is TwoOpFunc4
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -973,7 +982,7 @@ IsType13Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is ThreeOpFunc2
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -993,7 +1002,7 @@ IsType14Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is ThreeOpFunc4
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -1013,7 +1022,7 @@ IsType15Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is ZeroOpFunc2
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -1033,7 +1042,7 @@ IsType16Func(PSCRIPT_ENGINE_TOKEN Operator)
 /**
  * @brief Checks whether this Token type is assignment operator
  *
- * @param Operator
+ * @param Operator the token to check
  * @return char
  */
 char
@@ -1054,7 +1063,7 @@ IsAssignmentOperator(PSCRIPT_ENGINE_TOKEN Operator)
  * @brief Checks whether this Token is noneterminal
  * NoneTerminal token starts with capital letter
  *
- * @param Token
+ * @param Token the token to check
  * @return char
  */
 char
@@ -1070,7 +1079,7 @@ IsNoneTerminal(PSCRIPT_ENGINE_TOKEN Token)
  * @brief Checks whether this Token is semantic rule
  * SemanticRule token starts with '@'
  *
- * @param Token
+ * @param Token the token to check
  * @return char
  */
 char
@@ -1085,8 +1094,8 @@ IsSemanticRule(PSCRIPT_ENGINE_TOKEN Token)
 /**
  * @brief Gets the Non Terminal Id object
  *
- * @param Token
- * @return int
+ * @param Token the token to get the non-terminal ID of
+ * @return int the non-terminal ID or INVALID
  */
 int
 GetNonTerminalId(PSCRIPT_ENGINE_TOKEN Token)
@@ -1102,8 +1111,8 @@ GetNonTerminalId(PSCRIPT_ENGINE_TOKEN Token)
 /**
  * @brief Gets the Terminal Id object
  *
- * @param Token
- * @return int
+ * @param Token the token to get the terminal ID of
+ * @return int the terminal ID or INVALID
  */
 int
 GetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
@@ -1211,8 +1220,8 @@ GetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
 /**
  * @brief Gets the Non Terminal Id object
  *
- * @param Token
- * @return int
+ * @param Token the token to get the non-terminal ID of
+ * @return int the non-terminal ID or INVALID
  */
 int
 LalrGetNonTerminalId(PSCRIPT_ENGINE_TOKEN Token)
@@ -1228,8 +1237,8 @@ LalrGetNonTerminalId(PSCRIPT_ENGINE_TOKEN Token)
 /**
  * @brief Gets the Terminal Id object
  *
- * @param Token
- * @return int
+ * @param Token the token to get the terminal ID of
+ * @return int the terminal ID or INVALID
  */
 int
 LalrGetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
@@ -1330,8 +1339,8 @@ LalrGetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
 /**
  * @brief Checks whether the value and type of Token1 and Token2 are the same
  *
- * @param Token1
- * @param Token2
+ * @param Token1 the first token to compare
+ * @param Token2 the second token to compare
  * @return char
  */
 char
@@ -1377,6 +1386,7 @@ IsEqual(const PSCRIPT_ENGINE_TOKEN Token1, const PSCRIPT_ENGINE_TOKEN Token2)
  *
  * @param Val
  * @param Type
+ * @return void
  */
 void
 SetType(unsigned long long * Val, unsigned char Type)
@@ -1387,14 +1397,14 @@ SetType(unsigned long long * Val, unsigned char Type)
 /**
  * @brief Converts an decimal string to a integer
  *
- * @param str
+ * @param str the decimal string to convert
  * @return unsigned long long int
  */
 unsigned long long
 DecimalToInt(char * str)
 {
     unsigned long long Acc = 0;
-    size_t             Len;
+    SIZE_T             Len;
 
     Len = strlen(str);
     for (int i = 0; i < Len; i++)
@@ -1408,14 +1418,14 @@ DecimalToInt(char * str)
 /**
  * @brief Converts an decimal string to a signed integer
  *
- * @param str
+ * @param str the decimal string to convert
  * @return unsigned long long
  */
 unsigned long long
 DecimalToSignedInt(char * str)
 {
     long long Acc = 0;
-    size_t    Len;
+    SIZE_T    Len;
 
     if (str[0] == '-')
     {
@@ -1442,31 +1452,31 @@ DecimalToSignedInt(char * str)
 /**
  * @brief Converts an hexadecimal string to integer
  *
- * @param str
+ * @param str the hexadecimal string to convert
  * @return unsigned long long
  */
 unsigned long long
 HexToInt(char * str)
 {
-    char               temp;
-    size_t             len = strlen(str);
+    CHAR               Temp;
+    SIZE_T             Len = strlen(str);
     unsigned long long Acc = 0;
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < Len; i++)
     {
         Acc <<= 4;
         if (str[i] >= '0' && str[i] <= '9')
         {
-            temp = str[i] - '0';
+            Temp = str[i] - '0';
         }
         else if (str[i] >= 'a' && str[i] <= 'f')
         {
-            temp = str[i] - 'a' + 10;
+            Temp = str[i] - 'a' + 10;
         }
         else
         {
-            temp = str[i] - 'A' + 10;
+            Temp = str[i] - 'A' + 10;
         }
-        Acc += temp;
+        Acc += Temp;
     }
 
     return Acc;
@@ -1475,13 +1485,13 @@ HexToInt(char * str)
 /**
  * @brief Converts an octal string to integer
  *
- * @param str
+ * @param str the octal string to convert
  * @return unsigned long long
  */
 unsigned long long
 OctalToInt(char * str)
 {
-    size_t             Len;
+    SIZE_T             Len;
     unsigned long long Acc = 0;
 
     Len = strlen(str);
@@ -1497,13 +1507,13 @@ OctalToInt(char * str)
 /**
  * @brief Converts a binary string to integer
  *
- * @param str
+ * @param str the binary string to convert
  * @return unsigned long long
  */
 unsigned long long
 BinaryToInt(char * str)
 {
-    size_t             Len;
+    SIZE_T             Len;
     unsigned long long Acc = 0;
 
     Len = strlen(str);
@@ -1519,16 +1529,17 @@ BinaryToInt(char * str)
 /**
  * @brief Rotate a character array to the left by one time
  *
- * @param str
+ * @param str the string to rotate
+ * @return void
  */
 void
 RotateLeftStringOnce(char * str)
 {
-    int  length = (int)strlen(str);
-    char temp   = str[0];
-    for (int i = 0; i < (length - 1); i++)
+    INT  Length = (INT)strlen(str);
+    CHAR Temp   = str[0];
+    for (int i = 0; i < (Length - 1); i++)
     {
         str[i] = str[i + 1];
     }
-    str[length - 1] = temp;
+    str[Length - 1] = Temp;
 }
