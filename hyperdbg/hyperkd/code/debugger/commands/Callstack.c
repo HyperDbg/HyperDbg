@@ -59,7 +59,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
     //
     // Walkthrough the stack
     //
-    for (size_t i = 0; i < FrameIndex; i++)
+    for (SIZE_T i = 0; i < FrameIndex; i++)
     {
         //
         // Compute the current stack position address

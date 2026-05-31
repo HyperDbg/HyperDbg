@@ -86,7 +86,7 @@ ThreadHolderIsAnyPausedThreadInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
         PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
             if (ThreadHolder->Threads[i].ThreadId != NULL_ZERO && ThreadHolder->Threads[i].IsPaused)
             {
@@ -118,7 +118,7 @@ ThreadHolderUnpauseAllThreadsInProcess(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
         PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
             if (ThreadHolder->Threads[i].ThreadId != NULL_ZERO && ThreadHolder->Threads[i].IsPaused)
             {
@@ -165,7 +165,7 @@ ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT
         PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
             if (ThreadHolder->Threads[i].ThreadId == ThreadId)
             {
@@ -213,7 +213,7 @@ ThreadHolderGetProcessFirstThreadDetailsByProcessId(UINT32 ProcessId)
         PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
             if (ThreadHolder->Threads[i].ThreadId != NULL_ZERO)
             {
@@ -262,7 +262,7 @@ ThreadHolderGetProcessDebuggingDetailsByThreadId(UINT32 ThreadId)
             PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
                 CONTAINING_RECORD(TempList2, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-            for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+            for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
             {
                 if (ThreadHolder->Threads[i].ThreadId == ThreadId)
                 {
@@ -305,7 +305,7 @@ ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGI
         PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
             if (ThreadHolder->Threads[i].ThreadId == ThreadId)
             {
@@ -337,7 +337,7 @@ ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGI
         PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
         {
             if (ThreadHolder->Threads[i].ThreadId == NULL_ZERO)
             {
@@ -415,7 +415,7 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
         //
         // Apply the command
         //
-        for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
+        for (SIZE_T i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
         {
             if (ThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
             {
@@ -454,12 +454,12 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
             PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
                 CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-            for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+            for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
             {
                 if (ThreadHolder->Threads[i].ThreadId != NULL_ZERO &&
                     ThreadHolder->Threads[i].IsPaused)
                 {
-                    for (size_t j = 0; j < MAX_USER_ACTIONS_FOR_THREADS; j++)
+                    for (SIZE_T j = 0; j < MAX_USER_ACTIONS_FOR_THREADS; j++)
                     {
                         if (ThreadHolder->Threads[i].UdAction[j].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
                         {
@@ -554,7 +554,7 @@ ThreadHolderQueryCountOfActiveDebuggingThreadsAndProcesses()
             PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
                 CONTAINING_RECORD(TempList2, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-            for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+            for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
             {
                 if (ThreadHolder->Threads[i].IsPaused)
                 {
@@ -631,7 +631,7 @@ ThreadHolderQueryDetailsOfActiveDebuggingThreadsAndProcesses(
             PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
                 CONTAINING_RECORD(TempList2, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
 
-            for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+            for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
             {
                 if (ThreadHolder->Threads[i].IsPaused)
                 {
