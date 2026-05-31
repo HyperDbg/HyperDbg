@@ -98,7 +98,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // The mask of F8 is used because we want to mask out the bottom
         // three bits (which are most often used for register selection)
         //
-        const unsigned char RmMask = 0xF8;
+        const UCHAR RmMask = 0xF8;
 
         //
         // 7-byte format:
@@ -223,7 +223,7 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
     //
     // Print callstack frames
     //
-    for (size_t i = 0; i < FrameCount; i++)
+    for (SIZE_T i = 0; i < FrameCount; i++)
     {
         IsCall = FALSE;
 
@@ -233,7 +233,7 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
             // Check if it's call or just a simple code address
             //
             if (CallstackFrames[i].IsExecutable && CallstackReturnAddressToCallingAddress(
-                                                       (unsigned char *)&CallstackFrames[i].InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE],
+                                                       (UCHAR *)&CallstackFrames[i].InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE],
                                                        &CallLength))
             {
                 //

@@ -477,7 +477,7 @@ SetupPathForFileName(const CHAR *                                  FileName,
     HANDLE  FileHandle;
     DWORD   FileLocLen = 0;
     HMODULE ProcHandle = GetModuleHandle(NULL);
-    char *  Pos;
+    CHAR *  Pos;
 
     //
     // Get the current directory.

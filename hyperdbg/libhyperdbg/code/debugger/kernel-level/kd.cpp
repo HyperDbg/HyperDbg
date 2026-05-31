@@ -97,7 +97,7 @@ KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
 BOOLEAN
 KdCompareBufferWithString(CHAR * Buffer, const CHAR * CompareBuffer)
 {
-    int Result;
+    INT Result;
 
     Result = strcmp(Buffer, CompareBuffer);
 
@@ -1289,7 +1289,7 @@ KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength, UINT32 P
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBreakingAgain)
+KdSendUserInputPacketToDebuggee(const CHAR * Sendbuf, INT Len, BOOLEAN IgnoreBreakingAgain)
 {
     PDEBUGGEE_USER_INPUT_PACKET UserInputPacket;
     UINT32                      SizeOfStruct = 0;
@@ -1555,7 +1555,7 @@ BOOLEAN
 KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    char   ReadData    = NULL; /* temperory Character */
+    CHAR   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
 
@@ -1645,7 +1645,7 @@ BOOLEAN
 KdReceivePacketFromDebugger(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    char   ReadData    = NULL; /* temperory Character */
+    CHAR   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
 
@@ -2170,7 +2170,7 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     // Initialize the handle table
     //
-    for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
     {
         g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
         g_KernelSyncronizationObjectsHandleTable[i].EventHandle =
@@ -2370,7 +2370,7 @@ StartAgain:
 
             // ShowMessages("the answer to the PING request is received: %s\n", ReceivedPingBuildVersionBuffer);
 
-            if (strcmp((const char *)BuildSignature, ReceivedPingBuildVersionBuffer) == 0)
+            if (strcmp((const CHAR *)BuildSignature, ReceivedPingBuildVersionBuffer) == 0)
             {
                 //
                 // Build version matched
@@ -2429,7 +2429,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
     BOOL                       Status;             /* Status */
     DCB                        SerialParams = {0}; /* Initializing DCB structure */
     COMMTIMEOUTS               Timeouts     = {0}; /* Initializing timeouts structure */
-    char                       PortNo[20]   = {0}; /* contain friendly name */
+    CHAR                       PortNo[20]   = {0}; /* contain friendly name */
     BOOLEAN                    StatusIoctl;
     ULONG                      ReturnedLength;
     PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest;
@@ -3466,7 +3466,7 @@ KdUninitializeConnection()
     //
     // Close synchronization objects
     //
-    for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
     {
         if (g_KernelSyncronizationObjectsHandleTable[i].EventHandle != NULL)
         {

@@ -55,7 +55,7 @@ typedef struct ZydisSymbol_
     /**
      * @brief The symbol name.
      */
-    const char * name;
+    const CHAR * name;
 } ZydisSymbol;
 
 ZydisFormatterFunc default_print_address_absolute;
@@ -120,13 +120,13 @@ DisassembleBuffer(ZydisDecoder * decoder,
                   ZyanU64        runtime_address,
                   ZyanU8 *       data,
                   ZyanUSize      length,
-                  uint32_t       maximum_instr,
+                  UINT32         maximum_instr,
                   BOOLEAN        is_x86_64,
                   BOOLEAN        show_of_branch_is_taken,
                   PRFLAGS        rflags)
 {
     ZydisFormatter formatter;
-    int            instr_decoded   = 0;
+    INT            InstrDecoded    = 0;
     UINT64         UsedBaseAddress = NULL;
 
     if (g_DisassemblerSyntax == 1)
@@ -160,7 +160,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
 
     ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
+    CHAR                    buffer[256];
 
     while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(decoder, data, length, &instruction, operands)))
     {
@@ -192,7 +192,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
         //
         // Show the memory for this instruction
         //
-        for (size_t i = 0; i < instruction.length; i++)
+        for (SIZE_T i = 0; i < instruction.length; i++)
         {
             ZyanU8 MemoryContent = data[i];
             ShowMessages(" %02X", MemoryContent);
@@ -203,7 +203,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
 #define PaddingLength 12
         if (instruction.length < PaddingLength)
         {
-            for (size_t i = 0; i < PaddingLength - instruction.length; i++)
+            for (SIZE_T i = 0; i < PaddingLength - instruction.length; i++)
             {
                 ShowMessages("   ");
             }
@@ -253,9 +253,9 @@ DisassembleBuffer(ZydisDecoder * decoder,
         data += instruction.length;
         length -= instruction.length;
         runtime_address += instruction.length;
-        instr_decoded++;
+        InstrDecoded++;
 
-        if (instr_decoded == maximum_instr)
+        if (InstrDecoded == maximum_instr)
         {
             return;
         }
@@ -265,9 +265,9 @@ DisassembleBuffer(ZydisDecoder * decoder,
 /**
  * @brief Zydis test
  *
- * @return int
+ * @return INT
  */
-int
+INT
 ZydisTest()
 {
     if (ZydisGetVersion() != ZYDIS_VERSION)
@@ -327,15 +327,15 @@ ZydisTest()
  * @param Rflags in the case ShowBranchIsTakenOrNot is true, we use this
  * variable to show the result of jump
  *
- * @return int
+ * @return INT
  */
-int
-HyperDbgDisassembler64(unsigned char * BufferToDisassemble,
-                       UINT64          BaseAddress,
-                       UINT64          Size,
-                       UINT32          MaximumInstrDecoded,
-                       BOOLEAN         ShowBranchIsTakenOrNot,
-                       PRFLAGS         Rflags)
+INT
+HyperDbgDisassembler64(UCHAR * BufferToDisassemble,
+                       UINT64  BaseAddress,
+                       UINT64  Size,
+                       UINT32  MaximumInstrDecoded,
+                       BOOLEAN ShowBranchIsTakenOrNot,
+                       PRFLAGS Rflags)
 {
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
@@ -367,15 +367,15 @@ HyperDbgDisassembler64(unsigned char * BufferToDisassemble,
  * @param Rflags in the case ShowBranchIsTakenOrNot is true, we use this
  * variable to show the result of jump
  *
- * @return int
+ * @return INT
  */
-int
-HyperDbgDisassembler32(unsigned char * BufferToDisassemble,
-                       UINT64          BaseAddress,
-                       UINT64          Size,
-                       UINT32          MaximumInstrDecoded,
-                       BOOLEAN         ShowBranchIsTakenOrNot,
-                       PRFLAGS         Rflags)
+INT
+HyperDbgDisassembler32(UCHAR * BufferToDisassemble,
+                       UINT64  BaseAddress,
+                       UINT64  Size,
+                       UINT32  MaximumInstrDecoded,
+                       BOOLEAN ShowBranchIsTakenOrNot,
+                       PRFLAGS Rflags)
 {
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
@@ -407,16 +407,16 @@ HyperDbgDisassembler32(unsigned char * BufferToDisassemble,
  * @return DEBUGGER_NEXT_INSTRUCTION_FINDER_STATUS
  */
 DEBUGGER_CONDITIONAL_JUMP_STATUS
-HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
-                               UINT64          BuffLength,
-                               RFLAGS          Rflags,
-                               BOOLEAN         Isx86_64)
+HyperDbgIsConditionalJumpTaken(UCHAR * BufferToDisassemble,
+                               UINT64  BuffLength,
+                               RFLAGS  Rflags,
+                               BOOLEAN Isx86_64)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
     ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    UINT64                  CurrentRip    = 0;
-    int                     instr_decoded = 0;
+    UINT64                  CurrentRip   = 0;
+    INT                     InstrDecoded = 0;
     ZydisDecodedInstruction instruction;
     UINT32                  MaximumInstrDecoded = 1;
 
@@ -753,18 +753,18 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
  */
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsCall(
-    unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
-    BOOLEAN         Isx86_64,
-    PUINT32         CallLength)
+    UCHAR * BufferToDisassemble,
+    UINT64  BuffLength,
+    BOOLEAN Isx86_64,
+    PUINT32 CallLength)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
     ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    UINT64                  CurrentRip    = 0;
-    int                     instr_decoded = 0;
+    UINT64                  CurrentRip   = 0;
+    INT                     InstrDecoded = 0;
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
+    CHAR                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
 
     //
@@ -854,15 +854,15 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
  */
 UINT32
 HyperDbgLengthDisassemblerEngine(
-    unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
-    BOOLEAN         Isx86_64)
+    UCHAR * BufferToDisassemble,
+    UINT64  BuffLength,
+    BOOLEAN Isx86_64)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
     ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    UINT64                  CurrentRip    = 0;
-    int                     instr_decoded = 0;
+    UINT64                  CurrentRip   = 0;
+    INT                     InstrDecoded = 0;
     ZydisDecodedInstruction instruction;
     UINT32                  MaximumInstrDecoded = 1;
 
@@ -981,18 +981,18 @@ ZydisFormatterPrintAddressAbsoluteForTrackingInstructions(const ZydisFormatter *
  */
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
-    unsigned char * BufferToDisassemble,
-    UINT64          CurrentRip,
-    UINT32          BuffLength,
-    BOOLEAN         Isx86_64,
-    PBOOLEAN        IsRet)
+    UCHAR *  BufferToDisassemble,
+    UINT64   CurrentRip,
+    UINT32   BuffLength,
+    BOOLEAN  Isx86_64,
+    PBOOLEAN IsRet)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
     ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    int                     instr_decoded = 0;
+    INT                     InstrDecoded = 0;
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
+    CHAR                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
@@ -1093,17 +1093,17 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
  */
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsRet(
-    unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
-    BOOLEAN         Isx86_64)
+    UCHAR * BufferToDisassemble,
+    UINT64  BuffLength,
+    BOOLEAN Isx86_64)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
     ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    UINT64                  CurrentRip    = 0;
-    int                     instr_decoded = 0;
+    UINT64                  CurrentRip   = 0;
+    INT                     InstrDecoded = 0;
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
+    CHAR                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
@@ -1182,17 +1182,17 @@ HyperDbgCheckWhetherTheCurrentInstructionIsRet(
  */
 UINT32
 HyperDbgGetImmediateValueOnEaxForSyscallNumber(
-    unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
-    BOOLEAN         Isx86_64)
+    UCHAR * BufferToDisassemble,
+    UINT64  BuffLength,
+    BOOLEAN Isx86_64)
 {
     ZydisDecoder            decoder;
     ZydisFormatter          formatter;
     ZydisDecodedOperand     operands[ZYDIS_MAX_OPERAND_COUNT];
-    UINT64                  CurrentRip    = 0;
-    int                     instr_decoded = 0;
+    UINT64                  CurrentRip   = 0;
+    INT                     InstrDecoded = 0;
     ZydisDecodedInstruction instruction;
-    char                    buffer[256];
+    CHAR                    buffer[256];
     UINT32                  MaximumInstrDecoded = 1;
 
     if (ZydisGetVersion() != ZYDIS_VERSION)

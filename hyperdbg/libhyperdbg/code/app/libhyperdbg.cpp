@@ -504,7 +504,7 @@ HyperDbgLoadKdModule()
 GENERIC_PROCESSOR_VENDOR
 HyperDbgGetProcessorVendor()
 {
-    char CpuId[13] = {0};
+    CHAR CpuId[13] = {0};
 
     //
     // Read the vendor string

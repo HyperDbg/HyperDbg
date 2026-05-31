@@ -81,10 +81,10 @@ BOOLEAN
 CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
                                          PAGE_FAULT_EXCEPTION * PageFaultErrorCode)
 {
-    std::unordered_set<char> AllowedChars = {'p', 'w', 'u', 'f', 'k', 's', 'h', 'g'};
-    std::unordered_set<char> FoundChars;
+    std::unordered_set<CHAR> AllowedChars = {'p', 'w', 'u', 'f', 'k', 's', 'h', 'g'};
+    std::unordered_set<CHAR> FoundChars;
 
-    for (char c : ModeString)
+    for (CHAR c : ModeString)
     {
         if (AllowedChars.count(c) == 0)
         {
@@ -99,7 +99,7 @@ CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
             //
             // Found a character more than once
             //
-            return false;
+            return FALSE;
         }
 
         FoundChars.insert(c);
@@ -108,7 +108,7 @@ CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
     //
     // All checks passed, let's interpret the page-fault code
     //
-    for (char c : ModeString)
+    for (CHAR c : ModeString)
     {
         if (c == 'p')
         {

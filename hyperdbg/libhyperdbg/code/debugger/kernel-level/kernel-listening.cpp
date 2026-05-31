@@ -1196,8 +1196,8 @@ StartAgain:
             if (PcidevinfoPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 // For some reason, MSVC refuses to initialize these at top of case
-                const char * PciHeaderTypeAsString[]  = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
-                const char * PciMmioBarTypeAsString[] = {"32-bit Wide",
+                const CHAR * PciHeaderTypeAsString[]  = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
+                const CHAR * PciMmioBarTypeAsString[] = {"32-bit Wide",
                                                          "Reserved",
                                                          "64-bit Wide",
                                                          "Reserved"};
@@ -1378,7 +1378,7 @@ StartAgain:
                         // Replace non-printable characters with "."
                         for (UINT8 j = 0; j < 16; j++)
                         {
-                            char c = (char)*(cs + j);
+                            CHAR c = (CHAR) * (cs + j);
                             if (c >= 32 && c <= 126)
                             {
                                 ShowMessages("%c", c);
@@ -1439,7 +1439,7 @@ ListeningSerialPortInDebuggee()
 StartAgain:
 
     BOOL Status; /* Status */
-    char SerialBuffer[MaxSerialPacketSize] = {
+    CHAR SerialBuffer[MaxSerialPacketSize] = {
         0};                                         /* Buffer to send and receive data */
     DWORD                   EventMask       = 0;    /* Event mask to trigger */
     char                    ReadData        = NULL; /* temperory Character */

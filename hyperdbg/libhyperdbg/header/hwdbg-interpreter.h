@@ -26,13 +26,13 @@ HwdbgInterpreterFillFileFromMemory(
     HWDBG_INSTANCE_INFORMATION * InstanceInfo,
     const TCHAR *                FileName,
     UINT32 *                     MemoryBuffer,
-    size_t                       BufferSize,
+    SIZE_T                       BufferSize,
     HWDBG_ACTION_ENUMS           RequestedAction);
 
 BOOLEAN
 HwdbgInterpreterFillMemoryFromFile(const TCHAR * FileName,
                                    UINT32 *      MemoryBuffer,
-                                   size_t        BufferSize);
+                                   SIZE_T        BufferSize);
 
 SIZE_T
 HwdbgComputeNumberOfFlipFlopsNeeded(
@@ -48,7 +48,7 @@ HwdbgInterpreterSendPacketAndBufferToHwdbg(HWDBG_INSTANCE_INFORMATION * Instance
                                            UINT32                       BufferLength);
 
 BOOLEAN
-HwdbgReadInstanceInfoFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize);
+HwdbgReadInstanceInfoFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, SIZE_T BufferSize);
 
 BOOLEAN
 HwdbgWriteTestInstanceInfoRequestIntoFile(HWDBG_INSTANCE_INFORMATION * InstanceInfo,

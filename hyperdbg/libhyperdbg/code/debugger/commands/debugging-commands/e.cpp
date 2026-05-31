@@ -231,7 +231,7 @@ HyperDbgWriteMemory(PVOID                     DestinationAddress,
     //
     // Copy requested memory in 64bit chunks
     //
-    for (size_t i = 0; i < NumberOfBytes; i++)
+    for (SIZE_T i = 0; i < NumberOfBytes; i++)
     {
         TargetBuffer[i] = BufferToEdit[i];
     }

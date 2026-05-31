@@ -86,7 +86,7 @@ ReadIrpBasedBuffer()
     //
     // allocate buffer for transferring messages
     //
-    char * OutputBuffer = (char *)malloc(UsermodeBufferSize);
+    CHAR * OutputBuffer = (CHAR *)malloc(UsermodeBufferSize);
 
     try
     {
@@ -355,7 +355,7 @@ ReadIrpBasedBuffer()
  * @return DWORD Device Handle
  */
 DWORD WINAPI
-IrpBasedBufferThread(void * data)
+IrpBasedBufferThread(PVOID Data)
 {
     //
     // Do stuff.  This will be the first function called on the new

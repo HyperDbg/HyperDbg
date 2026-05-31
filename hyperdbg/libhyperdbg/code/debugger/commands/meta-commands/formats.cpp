@@ -42,10 +42,10 @@ CommandFormatsHelp()
 VOID
 CommandFormatsShowResults(UINT64 U64Value)
 {
-    time_t       t;
-    struct tm *  tmp;
-    char         MY_TIME[50];
-    unsigned int Character;
+    time_t      t;
+    struct tm * tmp;
+    CHAR        MY_TIME[50];
+    UINT32      Character;
 
     time(&t);
 
@@ -75,10 +75,10 @@ CommandFormatsShowResults(UINT64 U64Value)
     //
     // iterate through 8, 8 bits (8*6)
     //
-    unsigned char * TempCharacter = (unsigned char *)&U64Value;
-    for (size_t j = 0; j < sizeof(UINT64); j++)
+    UCHAR * TempCharacter = (UCHAR *)&U64Value;
+    for (SIZE_T j = 0; j < sizeof(UINT64); j++)
     {
-        Character = (unsigned int)TempCharacter[j];
+        Character = (UINT32)TempCharacter[j];
 
         if (isprint(Character))
         {

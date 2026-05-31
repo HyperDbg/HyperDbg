@@ -81,11 +81,11 @@ UnsetTextMessageCallback()
  * @return VOID
  */
 VOID
-ShowMessages(const char * Fmt, ...)
+ShowMessages(const CHAR * Fmt, ...)
 {
     va_list ArgList;
     va_list Args;
-    char    TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
+    CHAR    TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
 
     if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger && !g_IsSerialConnectedToRemoteDebugger)
     {
@@ -103,7 +103,7 @@ ShowMessages(const char * Fmt, ...)
 
     va_start(ArgList, Fmt);
 
-    int SprintfResult = vsprintf_s(TempMessage, Fmt, ArgList);
+    INT SprintfResult = vsprintf_s(TempMessage, Fmt, ArgList);
 
     va_end(ArgList);
 

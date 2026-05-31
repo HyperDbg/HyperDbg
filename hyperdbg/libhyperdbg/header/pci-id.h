@@ -1,6 +1,6 @@
 /**
  * @file pci-id.h
- * @author Björn Ruytenberg (bjorn@bjornweb.nl)
+ * @author Bjï¿½rn Ruytenberg (bjorn@bjornweb.nl)
  * @brief PCI ID-related data structures
  * @details
  * @version 0.12
@@ -18,14 +18,14 @@ typedef struct SubDevice
 {
     UINT16             SubVendorId;
     UINT16             SubDeviceId;
-    char               SubSystemName[PCI_NAME_STR_LENGTH];
+    CHAR               SubSystemName[PCI_NAME_STR_LENGTH];
     struct SubDevice * Next;
 } SubDevice;
 
 typedef struct Device
 {
     UINT16          DeviceId;
-    char            DeviceName[PCI_NAME_STR_LENGTH];
+    CHAR            DeviceName[PCI_NAME_STR_LENGTH];
     SubDevice *     SubDevices;
     struct Device * Next;
 } Device;
@@ -33,7 +33,7 @@ typedef struct Device
 typedef struct Vendor
 {
     UINT16   VendorId;
-    char     VendorName[PCI_NAME_STR_LENGTH];
+    CHAR     VendorName[PCI_NAME_STR_LENGTH];
     Device * Devices;
 } Vendor;
 

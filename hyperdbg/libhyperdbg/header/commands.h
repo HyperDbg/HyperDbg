@@ -40,84 +40,84 @@ CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & Opti
 VOID
 CpuReadVendorString(CHAR * Result);
 
-int
+INT
 ReadCpuDetails();
 
 VOID
-ShowMessages(const char * Fmt, ...);
+ShowMessages(const CHAR * Fmt, ...);
 
 string
 SeparateTo64BitValue(UINT64 Value);
 
-void
-ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+VOID
+ShowMemoryCommandDB(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
-void
-ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+VOID
+ShowMemoryCommandDD(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
-void
-ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+VOID
+ShowMemoryCommandDC(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
-void
-ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+VOID
+ShowMemoryCommandDQ(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 VOID
 CommandPteShowResults(UINT64 TargetVa, PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteRead);
 
 DEBUGGER_CONDITIONAL_JUMP_STATUS
-HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
-                               UINT64          BuffLength,
-                               RFLAGS          Rflags,
-                               BOOLEAN         Isx86_64);
+HyperDbgIsConditionalJumpTaken(UCHAR * BufferToDisassemble,
+                               UINT64  BuffLength,
+                               RFLAGS  Rflags,
+                               BOOLEAN Isx86_64);
 
-int
-HyperDbgDisassembler64(unsigned char * BufferToDisassemble,
-                       UINT64          BaseAddress,
-                       UINT64          Size,
-                       UINT32          MaximumInstrDecoded,
-                       BOOLEAN         ShowBranchIsTakenOrNot,
-                       PRFLAGS         Rflags);
+INT
+HyperDbgDisassembler64(UCHAR * BufferToDisassemble,
+                       UINT64  BaseAddress,
+                       UINT64  Size,
+                       UINT32  MaximumInstrDecoded,
+                       BOOLEAN ShowBranchIsTakenOrNot,
+                       PRFLAGS Rflags);
 
-int
-HyperDbgDisassembler32(unsigned char * BufferToDisassemble,
-                       UINT64          BaseAddress,
-                       UINT64          Size,
-                       UINT32          MaximumInstrDecoded,
-                       BOOLEAN         ShowBranchIsTakenOrNot,
-                       PRFLAGS         Rflags);
+INT
+HyperDbgDisassembler32(UCHAR * BufferToDisassemble,
+                       UINT64  BaseAddress,
+                       UINT64  Size,
+                       UINT32  MaximumInstrDecoded,
+                       BOOLEAN ShowBranchIsTakenOrNot,
+                       PRFLAGS Rflags);
 
 UINT32
 HyperDbgLengthDisassemblerEngine(
-    unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
-    BOOLEAN         Isx86_64);
+    UCHAR * BufferToDisassemble,
+    UINT64  BuffLength,
+    BOOLEAN Isx86_64);
 
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsCall(
-    unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
-    BOOLEAN         Isx86_64,
-    PUINT32         CallLength);
+    UCHAR * BufferToDisassemble,
+    UINT64  BuffLength,
+    BOOLEAN Isx86_64,
+    PUINT32 CallLength);
 
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsCallOrRet(
-    unsigned char * BufferToDisassemble,
-    UINT64          CurrentRip,
-    UINT32          BuffLength,
-    BOOLEAN         Isx86_64,
-    PBOOLEAN        IsRet);
+    UCHAR *  BufferToDisassemble,
+    UINT64   CurrentRip,
+    UINT32   BuffLength,
+    BOOLEAN  Isx86_64,
+    PBOOLEAN IsRet);
 
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsRet(
-    unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
-    BOOLEAN         Isx86_64);
+    UCHAR * BufferToDisassemble,
+    UINT64  BuffLength,
+    BOOLEAN Isx86_64);
 
 UINT32
 HyperDbgGetImmediateValueOnEaxForSyscallNumber(
-    unsigned char * BufferToDisassemble,
-    UINT64          BuffLength,
-    BOOLEAN         Isx86_64);
+    UCHAR * BufferToDisassemble,
+    UINT64  BuffLength,
+    BOOLEAN Isx86_64);
 
 VOID
 HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,

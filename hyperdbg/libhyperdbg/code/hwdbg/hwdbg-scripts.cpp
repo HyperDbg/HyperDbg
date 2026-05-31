@@ -36,7 +36,7 @@ HwdbgScriptPrintScriptBuffer(CHAR * ScriptBuffer, UINT32 ScriptBufferSize)
                  ScriptBufferSize * 8 // Converted to bits
     );
 
-    for (size_t i = 0; i < ScriptBufferSize; i++)
+    for (SIZE_T i = 0; i < ScriptBufferSize; i++)
     {
         ShowMessages("%02X ", (UINT8)ScriptBuffer[i]);
     }
@@ -60,11 +60,11 @@ HwdbgScriptPrintScriptBuffer(CHAR * ScriptBuffer, UINT32 ScriptBufferSize)
 BOOLEAN
 HwdbgScriptCompressScriptBuffer(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
                                 SYMBOL *                     ScriptBuffer,
-                                size_t                       ScriptBufferSize,
+                                SIZE_T                       ScriptBufferSize,
                                 UINT32                       NumberOfStagesForScript,
                                 HWDBG_SHORT_SYMBOL **        NewScriptBuffer,
-                                size_t *                     NewCompressedBufferSize,
-                                size_t *                     NumberOfBytesPerChunk)
+                                SIZE_T *                     NewCompressedBufferSize,
+                                SIZE_T *                     NumberOfBytesPerChunk)
 {
     //
     // Now, converting the script based on supported script variable length
@@ -148,12 +148,12 @@ HwdbgScriptCompressScriptBuffer(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
  */
 VOID
 HwdbgScriptPrintFinalScriptBufferAndHardwareDetails(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
-                                                    size_t                       NewCompressedBufferSize,
+                                                    SIZE_T                       NewCompressedBufferSize,
                                                     UINT32                       NumberOfStagesForScript,
                                                     UINT32                       NumberOfOperandsForScript,
                                                     HWDBG_SHORT_SYMBOL *         NewScriptBuffer,
-                                                    size_t                       NumberOfNeededFlipFlopsInTargetDevice,
-                                                    size_t                       NumberOfBytesPerChunk,
+                                                    SIZE_T                       NumberOfNeededFlipFlopsInTargetDevice,
+                                                    SIZE_T                       NumberOfBytesPerChunk,
                                                     UINT32                       NumberOfOperandsImplemented)
 {
     ShowMessages("\n---------------------------------------------------------\n");
@@ -169,7 +169,7 @@ HwdbgScriptPrintFinalScriptBufferAndHardwareDetails(HWDBG_INSTANCE_INFORMATION *
                  NumberOfNeededFlipFlopsInTargetDevice,
                  NumberOfBytesPerChunk);
 
-    for (size_t i = 0; i < NewCompressedBufferSize; i++)
+    for (SIZE_T i = 0; i < NewCompressedBufferSize; i++)
     {
         ShowMessages("%02X ", (UINT8)((CHAR *)NewScriptBuffer)[i]);
     }
@@ -193,7 +193,7 @@ HwdbgScriptWriteScriptConfigurationPacketIntoFile(HWDBG_INSTANCE_INFORMATION * I
                                                   UINT32                       NumberOfStagesForScript,
                                                   UINT32                       NumberOfOperandsImplemented,
                                                   HWDBG_SHORT_SYMBOL *         NewScriptBuffer,
-                                                  size_t                       NewCompressedBufferSize)
+                                                  SIZE_T                       NewCompressedBufferSize)
 {
     TCHAR TestFilePath[MAX_PATH] = {0};
 
@@ -237,9 +237,9 @@ HwdbgScriptCreateHwdbgScript(CHAR *        ScriptBuffer,
     UINT32               NumberOfStagesForScript               = 0;
     UINT32               NumberOfOperandsImplemented           = 0;
     UINT32               NumberOfOperandsForScript             = 0;
-    size_t               NewCompressedBufferSize               = 0;
-    size_t               NumberOfNeededFlipFlopsInTargetDevice = 0;
-    size_t               NumberOfBytesPerChunk                 = 0;
+    SIZE_T               NewCompressedBufferSize               = 0;
+    SIZE_T               NumberOfNeededFlipFlopsInTargetDevice = 0;
+    SIZE_T               NumberOfBytesPerChunk                 = 0;
     HWDBG_SHORT_SYMBOL * NewScriptBuffer                       = NULL;
 
     //
@@ -344,7 +344,7 @@ HwdbgScriptGetScriptBufferFromRawString(string   ScriptString,
     //
     // Run script engine handler
     //
-    ResultingCodeBuffer = ScriptEngineParseWrapper((char *)ScriptString.c_str(), TRUE);
+    ResultingCodeBuffer = ScriptEngineParseWrapper((CHAR *)ScriptString.c_str(), TRUE);
 
     if (ResultingCodeBuffer == NULL)
     {

@@ -297,7 +297,7 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
             //
             // Show list of active processes and threads
             //
-            for (size_t i = 0; i < QueryCountOfActiveThreadsOrProcessesRequest.Count; i++)
+            for (SIZE_T i = 0; i < QueryCountOfActiveThreadsOrProcessesRequest.Count; i++)
             {
                 //
                 // Details of process/thread should be shown

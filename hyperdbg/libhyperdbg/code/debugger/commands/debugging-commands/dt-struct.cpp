@@ -314,13 +314,13 @@ CommandDtAndStructConvertHyperDbgArgsToPdbex(vector<CommandToken> ExtraArgs,
  */
 BOOLEAN
 CommandDtShowDataBasedOnSymbolTypes(
-    const char * TypeName,
+    const CHAR * TypeName,
     UINT64       Address,
     BOOLEAN      IsStruct,
     PVOID        BufferAddress,
     UINT32       TargetPid,
     BOOLEAN      IsPhysicalAddress,
-    const char * AdditionalParameters)
+    const CHAR * AdditionalParameters)
 {
     UINT64                      StructureSize       = 0;
     BOOLEAN                     ResultOfFindingSize = FALSE;

@@ -246,7 +246,7 @@ const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
 /**
  * @brief Reads the CPU vendor string
  *
- * @return char *
+ * @return VOID
  */
 VOID
 CpuReadVendorString(CHAR * Result)
