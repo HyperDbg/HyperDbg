@@ -76,11 +76,39 @@ HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationReq
 //                 PT Functions 	    		//
 //////////////////////////////////////////////////
 
-BOOLEAN
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTracePtDisable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtPause(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtResume(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtSize(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtDump(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtFlush(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
 
 //
 // Perform operations related to HyperTrace PT based on the request type and parameters
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
 HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+//
+// Map every per-CPU PT main output + overflow buffer into the calling
+// user process. See HYPERTRACE_PT_MMAP_PACKETS for the lifetime contract.
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtMmap(HYPERTRACE_PT_MMAP_PACKETS * Req);

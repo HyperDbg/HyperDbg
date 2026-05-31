@@ -27,3 +27,27 @@ BroadcastFlushLbrOnAllCores();
 
 VOID
 BroadcastFilterLbrOptionsOnAllCores(UINT64 LbrFilterOptions);
+
+VOID
+BroadcastEnablePtOnAllCores();
+
+VOID
+BroadcastDisablePtOnAllCores();
+
+VOID
+BroadcastPausePtOnAllCores();
+
+VOID
+BroadcastResumePtOnAllCores();
+
+VOID
+BroadcastSizePtOnAllCores(UINT64 * Sizes);
+
+VOID
+BroadcastDumpPtOnAllCores();
+
+VOID
+BroadcastFlushPtOnAllCores();
+
+VOID
+BroadcastFilterPtOnAllCores(PT_FILTER_OPTIONS * FilterOptions);

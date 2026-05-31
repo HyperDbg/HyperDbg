@@ -174,3 +174,153 @@ DpcRoutineFilterLbrOptions(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgume
 
     return TRUE;
 }
+
+/**
+ * @brief Broadcast enabling PT
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return BOOLEAN
+ */
+BOOLEAN
+DpcRoutineEnablePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Enable PT on the current core. PT in the current implementation is
+    // controlled via direct MSR writes from kernel context; if PT is later
+    // wired into VMCS save/load controls, the corresponding hypervisor
+    // helpers should be invoked here similar to DpcRoutineEnableLbr.
+    //
+    PtStart();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast disabling PT
+ */
+BOOLEAN
+DpcRoutineDisablePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    PtStop();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast pausing PT
+ */
+BOOLEAN
+DpcRoutinePausePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    PtPause();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast resuming PT
+ */
+BOOLEAN
+DpcRoutineResumePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    PtResume();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast snapshotting per-CPU PT output position.
+ *
+ *        DeferredContext is a UINT64 array (one slot per active CPU);
+ *        each per-core DPC writes its own core's byte count and never
+ *        touches another slot, so no synchronisation is required.
+ */
+BOOLEAN
+DpcRoutineSizePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UINT64 * Sizes = (UINT64 *)DeferredContext;
+    UINT32   Core  = KeGetCurrentProcessorNumberEx(NULL);
+
+    UNREFERENCED_PARAMETER(Dpc);
+
+    if (Sizes != NULL && Core < PT_MAX_CPUS_FOR_MMAP)
+        Sizes[Core] = PtSize();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast dumping PT state
+ */
+BOOLEAN
+DpcRoutineDumpPt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    PtDump();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast flushing PT state
+ */
+BOOLEAN
+DpcRoutineFlushPt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+
+    PtFlush();
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}
+
+/**
+ * @brief Broadcast applying a PT filter to all cores.
+ *
+ *        DeferredContext carries the PT_FILTER_OPTIONS * supplied by the
+ *        broadcaster; PtFilter writes the user-tunable fields into the
+ *        current CPU's per-CPU PT_TRACE_CONFIG and reprograms PT MSRs.
+ */
+BOOLEAN
+DpcRoutineFilterPt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+
+    PtFilter((const PT_FILTER_OPTIONS *)DeferredContext);
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+    return TRUE;
+}

@@ -24,6 +24,11 @@
 #include "SDK/headers/LbrDefinitions.h"
 
 //
+// Intel Processor Trace
+//
+#include "SDK/headers/PtDefinitions.h"
+
+//
 // Request Packets
 //
 #include "SDK/headers/RequestStructures.h"
