@@ -21,7 +21,7 @@ HyperTraceLbrExamplePerformTrace()
 {
     if (LbrStart(LBR_SELECT_WITHOUT_FILTER))
     {
-        for (volatile INT i = 0; i < 50; i++)
+        for (volatile int i = 0; i < 50; i++)
         {
             if (i % 2)
             {

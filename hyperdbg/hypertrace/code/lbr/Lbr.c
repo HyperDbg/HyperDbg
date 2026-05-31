@@ -126,9 +126,9 @@ LbrCheckAndReadArchitecturalLbrDetails()
     //
     // Assign LBR leafs to structure for easier access
     //
-    Eax1c.AsUInt = A;
-    Ebx1c.AsUInt = B;
-    Ecx1c.AsUInt = C;
+    Eax1c.AsUInt = a;
+    Ebx1c.AsUInt = b;
+    Ecx1c.AsUInt = c;
 
     //
     // Store the CPUID.1CH leaf information in a global structure for later use
@@ -136,7 +136,7 @@ LbrCheckAndReadArchitecturalLbrDetails()
     g_Cpuid28Leafs.Eax = Eax1c;
     g_Cpuid28Leafs.Ebx = Ebx1c;
     g_Cpuid28Leafs.Ecx = Ecx1c;
-    g_Cpuid28Leafs.Edx = D;
+    g_Cpuid28Leafs.Edx = d;
 
     //
     // Read LBR capacity from CPUID.1CH.00H:EAX[7:0]
@@ -176,14 +176,14 @@ LbrCheckAndReadArchitecturalLbrDetails()
 BOOLEAN
 LbrCheckAndReadLegacyLbrDetails()
 {
-    ULONG     A, B, C, D;
+    ULONG     a, b, c, d;
     ULONG     Family, Model;
     ULONGLONG i;
 
-    xcpuid(1, &A, &B, &C, &D);
+    xcpuid(1, &a, &b, &c, &d);
 
-    Family = ((A >> 8) & 0xF) + ((A >> 20) & 0xFF);
-    Model  = ((A >> 4) & 0xF) | ((A >> 12) & 0xF0);
+    Family = ((a >> 8) & 0xF) + ((a >> 20) & 0xFF);
+    Model  = ((a >> 4) & 0xF) | ((a >> 12) & 0xF0);
 
     for (i = 0; i < sizeof(CPU_LBR_MAPS) / sizeof(CPU_LBR_MAPS[0]); ++i)
     {
@@ -908,7 +908,7 @@ LbrStart(UINT64 FilterOptions)
 
     if (g_LbrCapacity == 0)
     {
-        LogError("Err, LBR aborting, CPU model not supported\n");
+        LogInfo("Err, LBR aborting, CPU model not supported\n");
         return FALSE;
     }
 
