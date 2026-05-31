@@ -405,7 +405,7 @@ HyperTracePtFlush(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
 BOOLEAN
 HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
 {
-    PT_FILTER_OPTIONS FilterOptions       = {0};
+    PT_FILTER_OPTIONS FilterOptions = {0};
     BOOLEAN           WasEnabled    = g_ProcessorTraceEnabled;
     BOOLEAN           BufferChanged = FALSE;
     UINT64            ExistingSize  = 0;

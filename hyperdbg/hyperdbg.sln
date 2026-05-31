@@ -62,6 +62,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "headers", "headers", "{D67D
 		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
 		include\SDK\headers\LbrDefinitions.h = include\SDK\headers\LbrDefinitions.h
 		include\SDK\headers\Pcie.h = include\SDK\headers\Pcie.h
+		include\SDK\headers\PtDefinitions.h = include\SDK\headers\PtDefinitions.h
 		include\SDK\Headers\RequestStructures.h = include\SDK\Headers\RequestStructures.h
 		include\SDK\Headers\ScriptEngineCommonDefinitions.h = include\SDK\Headers\ScriptEngineCommonDefinitions.h
 		include\SDK\Headers\Symbols.h = include\SDK\Headers\Symbols.h

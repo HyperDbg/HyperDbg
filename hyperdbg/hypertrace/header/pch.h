@@ -68,6 +68,14 @@
 #include "platform/kernel/header/PlatformEvent.h"
 
 //
+// Definition of tracing types and structures (Processor Trace).
+// Pt.h must come before broadcast/Broadcast.h because Broadcast.h
+// references PT_FILTER_OPTIONS in its function signatures.
+//
+#include "pt/Pt.h"
+#include "api/PtApi.h"
+
+//
 // DPC and broadcasting function headers
 //
 #include "broadcast/DpcRoutines.h"
@@ -104,26 +112,6 @@
 //
 #include "lbr/Lbr.h"
 #include "api/LbrApi.h"
-
-//
-// Definition of tracing types and structures (Processor Trace).
-// Pt.h must come before broadcast/Broadcast.h because Broadcast.h
-// references PT_FILTER_OPTIONS in its function signatures.
-//
-#include "pt/Pt.h"
-#include "api/PtApi.h"
-
-//
-// DPC and broadcasting function headers
-//
-#include "broadcast/Dpc.h"
-#include "broadcast/DpcRoutines.h"
-#include "broadcast/Broadcast.h"
-
-//
-// Unload function (to be called when the driver is unloaded)
-//
-#include "common/UnloadDll.h"
 
 //
 // Export functions
