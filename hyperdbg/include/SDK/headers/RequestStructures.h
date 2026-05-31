@@ -1350,19 +1350,53 @@ typedef enum _HYPERTRACE_PT_OPERATION_REQUEST_TYPE
 {
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_ENABLE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DISABLE,
-    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SAVE,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_PAUSE,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_RESUME,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SIZE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DUMP,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FLUSH,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FILTER,
 
 } HYPERTRACE_PT_OPERATION_REQUEST_TYPE;
 
 /**
  * @brief The structure of HyperTrace PT result packet in HyperDbg
  *
+ *        Configuration fields (TraceUser/TraceKernel/TargetCr3/BufferSize/
+ *        NumAddrRanges/AddrRanges) are populated by the caller for ENABLE
+ *        and FILTER operations. For other operations they are ignored.
+ *
+ *        BufferSize must be a power of two multiple of 4 KB (4KB ... 128MB).
+ *        Pass 0 to keep the existing per-CPU value (default 2 MB on first
+ *        enable).
+ *
+ *        For SIZE operations the kernel fills NumCpus and BytesPerCpu[]
+ *        with each CPU's current PT output position, i.e. how many bytes
+ *        of valid trace data are currently sitting in that CPU's main +
+ *        overflow buffer; the rest of the packet is unused on output.
  */
 typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
 {
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE PtOperationType;
     UINT32                               KernelStatus;
+
+    //
+    // Filter / config (used by FILTER and ENABLE)
+    //
+    UINT32        TraceUser;     /* Boolean: trace CPL > 0                 */
+    UINT32        TraceKernel;   /* Boolean: trace CPL == 0                */
+    UINT64        TargetCr3;     /* CR3 to filter by (0 = no filter)       */
+    UINT64        BufferSize;    /* Output buffer size (0 = keep current)  */
+    UINT32        NumAddrRanges; /* Number of valid AddrRanges entries     */
+    UINT32        Reserved;      /* Padding to keep the array 8-aligned    */
+    PT_ADDR_RANGE AddrRanges[PT_MAX_ADDR_RANGES];
+
+    //
+    // SIZE output: per-CPU bytes-written snapshot
+    //
+    UINT32 NumCpus;                            /* CPUs populated in BytesPerCpu */
+    UINT32 Reserved2;                          /* Padding to 8-align the array  */
+    UINT64 BytesPerCpu[PT_MAX_CPUS_FOR_MMAP];
 
 } HYPERTRACE_PT_OPERATION_PACKETS, *PHYPERTRACE_PT_OPERATION_PACKETS;
 
@@ -1372,6 +1406,42 @@ typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
  */
 #define SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS \
     sizeof(HYPERTRACE_PT_OPERATION_PACKETS)
+
+// ==============================================================================================
+
+/**
+ * @brief Result packet for the HyperTrace PT mmap surface.
+ *
+ *        On success KernelStatus is DEBUGGER_OPERATION_WAS_SUCCESSFUL,
+ *        NumCpus gives the number of CPUs that were mapped, and
+ *        Cpus[0..NumCpus) hand back a single { UserVa, Size } per CPU.
+ *        Each Size covers the main output buffer immediately followed
+ *        by the 4 KB overflow page as one contiguous byte stream.
+ *
+ *        Mapping contract (cooperative single-process):
+ *          - The IOCTL maps into the address space of the process that
+ *            calls DeviceIoControl. The returned user VAs are not
+ *            portable across processes.
+ *          - Mapping is tied to the PT enable cycle. PT disable / flush
+ *            tears the mapping down; the caller must not touch the
+ *            user VAs afterwards.
+ *          - Calling the IOCTL twice within the same enable cycle
+ *            returns the existing mapping (idempotent).
+ */
+typedef struct _HYPERTRACE_PT_MMAP_PACKETS
+{
+    UINT32              KernelStatus;
+    UINT32              NumCpus;
+    PT_USER_BUFFER_DESC Cpus[PT_MAX_CPUS_FOR_MMAP];
+
+} HYPERTRACE_PT_MMAP_PACKETS, *PHYPERTRACE_PT_MMAP_PACKETS;
+
+/**
+ * @brief Debugger size of HYPERTRACE_PT_MMAP_PACKETS
+ *
+ */
+#define SIZEOF_HYPERTRACE_PT_MMAP_PACKETS \
+    sizeof(HYPERTRACE_PT_MMAP_PACKETS)
 
 // ==============================================================================================
 

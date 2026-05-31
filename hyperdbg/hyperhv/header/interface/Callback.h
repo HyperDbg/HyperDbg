@@ -57,7 +57,7 @@ VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
 // HyperTrace Callbacks
 //
 BOOLEAN
-HyperTraceCallbackLbrIsSupported(UINT32 * Capacity);
+HyperTraceCallbackLbrIsSupported(UINT32 * Capacity, BOOLEAN * IsArchLbr);
 
 //
 // Debugging Callbacks
