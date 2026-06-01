@@ -29,3 +29,12 @@
 #else
 #    error "This code cannot compile on non-Windows, non-Linux, and non-BSD platforms"
 #endif
+
+
+
+// Windows source annotation language (SAL) not present in Linux, so defining them here for the compiler
+#ifdef HYPERDBG_ENV_LINUX
+#  define _In_
+#  define _Out_
+#  define _Inout_
+#endif
