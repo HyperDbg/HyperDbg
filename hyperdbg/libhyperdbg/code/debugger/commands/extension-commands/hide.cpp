@@ -217,7 +217,7 @@ CommandHideFillSystemCalls(SYSTEM_CALL_NUMBERS_INFORMATION * SyscallNumberDetail
         Result = FALSE;
     }
 
-    return TRUE;
+    return Result;
 }
 
 /**
@@ -265,6 +265,12 @@ HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsPr
         //
         HideRequest.LengthOfProcessName = (UINT32)strlen(ProcessName) + 1;
         RequestBufferSize               = sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE) + HideRequest.LengthOfProcessName;
+    }
+
+    if (!CommandHideFillSystemCalls(&HideRequest.SystemCallNumbersInformation))
+    {
+        ShowMessages("warning, failed to resolve one or more syscall numbers for transparent-mode\n");
+        return FALSE;
     }
 
     //
@@ -365,7 +371,7 @@ CommandHide(vector<CommandToken> CommandTokens, string Command)
     UINT32  TargetPid;
     BOOLEAN TrueIfProcessIdAndFalseIfProcessName;
 
-#if ActivateHyperEvadeProject == TRUE
+#if ActivateHyperEvadeProject != TRUE
 
     ShowMessages("warning, the !hide command (hyperevade project) is in the Beta phase and is not yet well-tested, "
                  "so it is disabled in this version. If you want to test, you can enable it "

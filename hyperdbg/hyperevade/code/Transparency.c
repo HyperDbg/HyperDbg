@@ -54,7 +54,7 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
         RtlCopyBytes(&g_SystemCallNumbersInformation,
                      &TransparentModeRequest->SystemCallNumbersInformation,
                      sizeof(SYSTEM_CALL_NUMBERS_INFORMATION));
-#if DISABLE_HYPERDBG_HYPEREVADE == FALSE
+#if ActivateHyperEvadeProject == TRUE
         //
         // Choose a random genuine vendor string to replace hypervisor vendor data
         //

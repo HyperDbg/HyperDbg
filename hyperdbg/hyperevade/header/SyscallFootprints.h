@@ -161,7 +161,7 @@ SYSTEM_CALL_NUMBERS_INFORMATION g_SystemCallNumbersInformation;
 //				   Constants        			//
 //////////////////////////////////////////////////
 
-#if DISABLE_HYPERDBG_HYPEREVADE == FALSE
+#if ActivateHyperEvadeProject == TRUE
 
 /**
  * @brief A list of windows processes, for which to ignore systemcall requests
