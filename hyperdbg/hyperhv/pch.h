@@ -176,7 +176,7 @@
 //
 #include "SDK/modules/HyperLog.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
-#include "components/interface/HyperLogCallback.h"
+#include "components/callback/header/HyperLogCallback.h"
 
 //
 // Transparent-mode (hyperevade) headers

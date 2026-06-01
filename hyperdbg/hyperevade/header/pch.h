@@ -61,7 +61,7 @@
 //
 // Hyperlog headers
 //
-#include "components/interface/HyperLogCallback.h"
+#include "components/callback/header/HyperLogCallback.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
 
 //

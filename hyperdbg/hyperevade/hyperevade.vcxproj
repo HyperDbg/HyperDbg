@@ -100,7 +100,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
+    <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c" />
     <ClCompile Include="..\include\components\optimizations\code\AvlTree.c" />
     <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c" />
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
@@ -114,7 +114,7 @@
     <ClCompile Include="code\VmxFootprints.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
+    <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\SyscallFootprints.h" />
