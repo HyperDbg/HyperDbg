@@ -10,12 +10,21 @@
  */
 #pragma once
 
-#ifdef HYPERDBG_LIBHYPERDBG
-#    define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllexport)
+#ifdef _WIN32
+    // MSVC (Windows)
+#   ifdef HYPERDBG_LIBHYPERDBG
+#       define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllexport)
+#   else
+#       define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllimport)
+#   endif
 #else
-#    define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllimport)
+    // GCC/Clang (Linux)
+#   ifdef HYPERDBG_LIBHYPERDBG
+#       define IMPORT_EXPORT_LIBHYPERDBG __attribute__((visibility("default")))
+#   else
+#       define IMPORT_EXPORT_LIBHYPERDBG
+#   endif
 #endif
-
 //
 // Header file of libhyperdbg
 // Imports

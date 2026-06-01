@@ -10,10 +10,20 @@
  */
 #pragma once
 
-#ifdef HYPERDBG_SYMBOL_PARSER
-#    define IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER __declspec(dllexport)
+#ifdef _WIN32
+    // MSVC (Windows)
+#   ifdef HYPERDBG_SYMBOL_PARSER
+#       define IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER __declspec(dllexport)
+#   else
+#       define IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER __declspec(dllimport)
+#   endif
 #else
-#    define IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER __declspec(dllimport)
+    // GCC/Clang (Linux)
+#   ifdef HYPERDBG_SYMBOL_PARSER
+#       define IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER __attribute__((visibility("default")))
+#   else
+#       define IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER
+#   endif
 #endif
 
 //
