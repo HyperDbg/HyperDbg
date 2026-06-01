@@ -1,6 +1,6 @@
 /**
  * @file PtDefinitions.h
- * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Masoud Rahimi Jafari (Masoodrahimy1379@gmail.com)
  * @brief Intel Processor Trace (PT) related data structures and hardware
  *        definitions shared between the kernel and user-mode components.
  * @details

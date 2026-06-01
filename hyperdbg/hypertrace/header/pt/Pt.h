@@ -1,6 +1,6 @@
 /**
  * @file Pt.h
- * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Masoud Rahimi Jafari (Masoodrahimy1379@gmail.com)
  * @brief Header for Processor Trace (PT) tracing routines for HyperTrace module
  * @details Engine that programs Intel PT MSRs from VMX root or kernel context.
  *          Buffer / ToPA management is kept here; user-visible PT structures

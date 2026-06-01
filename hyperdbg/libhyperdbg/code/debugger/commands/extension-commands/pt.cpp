@@ -1,6 +1,6 @@
 /**
  * @file pt.cpp
- * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Masoud Rahimi Jafari (Masoodrahimy1379@gmail.com)
  * @brief !pt command
  * @details
  * @version 0.19

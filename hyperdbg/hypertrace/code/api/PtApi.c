@@ -1,6 +1,6 @@
 /**
  * @file PtApi.c
- * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Masoud Rahimi Jafari (Masoodrahimy1379@gmail.com)
  * @brief Tracing routines for HyperTrace module (Intel Processor Trace)
  * @details
  * @version 0.19
