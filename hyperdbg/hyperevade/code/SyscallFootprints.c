@@ -11,6 +11,8 @@
  */
 #include "pch.h"
 
+#if ActivateHyperEvadeProject != TRUE
+
 /**
  * @brief Handle The triggered hook on KiSystemCall64 system call handler
  * when the Transparency mode is disabled
@@ -50,7 +52,7 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
     UNREFERENCED_PARAMETER(Params);
 }
 
-#if DISABLE_HYPERDBG_HYPEREVADE == FALSE
+#else  // ActivateHyperEvadeProject != TRUE
 
 /**
  * @brief Handle The triggered hook on KiSystemCall64 system call handler
@@ -1968,4 +1970,4 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
                 Params->OptionalParam4);
     }
 }
-#endif
+#endif // ActivateHyperEvadeProject != TRUE

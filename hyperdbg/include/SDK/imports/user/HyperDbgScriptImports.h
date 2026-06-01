@@ -10,10 +10,20 @@
  */
 #pragma once
 
-#ifdef HYPERDBG_SCRIPT_ENGINE
-#    define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __declspec(dllexport)
+#ifdef _WIN32
+    // MSVC (Windows)
+#   ifdef HYPERDBG_SCRIPT_ENGINE
+#       define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __declspec(dllexport)
+#   else
+#       define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __declspec(dllimport)
+#   endif
 #else
-#    define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __declspec(dllimport)
+    // GCC/Clang (Linux)
+#   ifdef HYPERDBG_SCRIPT_ENGINE
+#       define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __attribute__((visibility("default")))
+#   else
+#       define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE
+#   endif
 #endif
 
 //

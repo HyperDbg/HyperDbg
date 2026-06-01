@@ -10,11 +10,15 @@
  *
  */
 
+#ifdef _WIN32
 #include <Windows.h>
-#include <string>
 #include <conio.h>
+#endif
+
+#include <string>
 #include <iostream>
 #include <vector>
+#include <cstring>
 
 #include "SDK/HyperDbgSdk.h"
 #include "SDK/imports/user/HyperDbgLibImports.h"
@@ -38,7 +42,9 @@ main(int argc, char * argv[])
     //
     // Set console output code page to UTF-8
     //
+#ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
+#endif
 
     printf("HyperDbg Debugger [version: %s, build: %s]\n", CompleteVersion, BuildVersion);
     printf("Please visit https://docs.hyperdbg.org for more information...\n");
