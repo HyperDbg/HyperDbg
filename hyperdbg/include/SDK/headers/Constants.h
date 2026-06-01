@@ -78,7 +78,7 @@
 
 #ifdef __cplusplus // because it's not valid in C
 
-const unsigned char BuildDateTime[] = {
+const UCHAR BuildDateTime[] = {
     BUILD_YEAR_CH0,
     BUILD_YEAR_CH1,
     BUILD_YEAR_CH2,
@@ -108,9 +108,9 @@ const unsigned char BuildDateTime[] = {
 // Complete version as a string
 #    define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "\0"
 
-const unsigned char CompleteVersion[] = HYPERDBG_COMPLETE_VERSION;
+const UCHAR CompleteVersion[] = HYPERDBG_COMPLETE_VERSION;
 
-const unsigned char BuildVersion[] = {
+const UCHAR BuildVersion[] = {
     BUILD_YEAR_CH0,
     BUILD_YEAR_CH1,
     BUILD_YEAR_CH2,
@@ -127,7 +127,7 @@ const unsigned char BuildVersion[] = {
 
     '\0'};
 
-const unsigned char BuildSignature[] = {
+const UCHAR BuildSignature[] = {
     TOSTRING(VERSION_MAJOR)[0],
     '.',
     TOSTRING(VERSION_MINOR)[0],

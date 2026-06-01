@@ -29,7 +29,7 @@ LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
                                         BOOLEAN      IsImmediateMessage,
                                         BOOLEAN      ShowCurrentSystemTime,
                                         BOOLEAN      Priority,
-                                        const char * Fmt,
+                                        const CHAR * Fmt,
                                         ...)
 {
     BOOLEAN Result;

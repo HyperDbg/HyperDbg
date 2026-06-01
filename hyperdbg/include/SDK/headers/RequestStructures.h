@@ -161,13 +161,13 @@ typedef struct _REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST
  */
 typedef struct _DEBUGGER_DT_COMMAND_OPTIONS
 {
-    const char * TypeName;
+    const CHAR * TypeName;
     UINT64       SizeOfTypeName;
     UINT64       Address;
     BOOLEAN      IsStruct;
     PVOID        BufferAddress;
     UINT32       TargetPid;
-    const char * AdditionalParameters;
+    const CHAR * AdditionalParameters;
 
 } DEBUGGER_DT_COMMAND_OPTIONS, *PDEBUGGER_DT_COMMAND_OPTIONS;
 

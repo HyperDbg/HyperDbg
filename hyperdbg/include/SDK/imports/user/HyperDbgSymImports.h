@@ -31,19 +31,19 @@ IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER VOID
 SymbolAbortLoading();
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER UINT64
-SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
+SymConvertNameToAddress(const CHAR * FunctionOrVariableName, PBOOLEAN WasFound);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER UINT32
-SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
+SymLoadFileSymbol(UINT64 BaseAddress, const CHAR * PdbFileName, const CHAR * CustomModuleName);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER UINT32
 SymUnloadAllSymbols();
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER UINT32
-SymUnloadModuleSymbol(char * ModuleName);
+SymUnloadModuleSymbol(CHAR * ModuleName);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER UINT32
-SymSearchSymbolForMask(const char * SearchMask);
+SymSearchSymbolForMask(const CHAR * SearchMask);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
 SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
@@ -52,39 +52,39 @@ IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
 SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
-SymCreateSymbolTableForDisassembler(void * CallbackFunction);
+SymCreateSymbolTableForDisassembler(PVOID CallbackFunction);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
-SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize);
+SymConvertFileToPdbPath(const CHAR * LocalFilePath, CHAR * ResultPath, SIZE_T ResultPathSize);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
-SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
-                                            char *       PdbFilePath,
-                                            char *       GuidAndAgeDetails,
+SymConvertFileToPdbFileAndGuidAndAgeDetails(const CHAR * LocalFilePath,
+                                            CHAR *       PdbFilePath,
+                                            CHAR *       GuidAndAgeDetails,
                                             BOOLEAN      Is32BitModule);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
 SymbolInitLoad(PVOID        BufferToStoreDetails,
                UINT32       StoredLength,
                BOOLEAN      DownloadIfAvailable,
-               const char * SymbolPath,
+               const CHAR * SymbolPath,
                BOOLEAN      IsSilentLoad);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
-SymShowDataBasedOnSymbolTypes(const char * TypeName,
+SymShowDataBasedOnSymbolTypes(const CHAR * TypeName,
                               UINT64       Address,
                               BOOLEAN      IsStruct,
                               PVOID        BufferAddress,
-                              const char * AdditionalParameters);
+                              const CHAR * AdditionalParameters);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
-SymQuerySizeof(_In_ const char * StructNameOrTypeName, _Out_ UINT32 * SizeOfField);
+SymQuerySizeof(_In_ const CHAR * StructNameOrTypeName, _Out_ UINT32 * SizeOfField);
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
-SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
-                                 _In_ const char * FiledOfStructName,
+SymCastingQueryForFiledsAndTypes(_In_ const CHAR * StructName,
+                                 _In_ const CHAR * FiledOfStructName,
                                  _Out_ PBOOLEAN    IsStructNamePointerOrNot,
                                  _Out_ PBOOLEAN    IsFiledOfStructNamePointerOrNot,
-                                 _Out_ char **     NewStructOrTypeName,
+                                 _Out_ CHAR **     NewStructOrTypeName,
                                  _Out_ UINT32 *    OffsetOfFieldFromTop,
                                  _Out_ UINT32 *    SizeOfField);
 

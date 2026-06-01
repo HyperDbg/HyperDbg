@@ -21,10 +21,10 @@
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_VMM NTSTATUS
-VmFuncVmxVmcall(unsigned long long VmcallNumber,
-                unsigned long long OptionalParam1,
-                unsigned long long OptionalParam2,
-                unsigned long long OptionalParam3);
+VmFuncVmxVmcall(UINT64 VmcallNumber,
+                UINT64 OptionalParam1,
+                UINT64 OptionalParam2,
+                UINT64 OptionalParam3);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncPerformRipIncrement(UINT32 CoreId);
@@ -284,7 +284,7 @@ IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleWcsncmp(const WCHAR * Address1, const WCHAR * Address2, SIZE_T Num);
 
 IMPORT_EXPORT_VMM INT32
-VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
+VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncApicStoreLocalApicFields(PLAPIC_PAGE LocalApicBuffer, PBOOLEAN IsUsingX2APIC);

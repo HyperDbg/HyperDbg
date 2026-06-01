@@ -26,15 +26,15 @@
 #include "pch.h"
 
 /**
- * @brief The maximum wait before PAUSE
+ * @brief The maximum Wait before PAUSE
  *
  */
-static unsigned MaxWait = 65536;
+static UINT32 g_MaxWait = 65536;
 
 /**
  * @brief Tries to get the lock otherwise returns
  *
- * @param LONG Lock variable
+ * @param Lock Lock variable
  * @return BOOLEAN If it was successful on getting the lock
  */
 BOOLEAN
@@ -46,32 +46,33 @@ SpinlockTryLock(volatile LONG * Lock)
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
  *
- * @param LONG Lock variable
+ * @param Lock Lock variable
+ * @return VOID
  */
-void
+VOID
 SpinlockLock(volatile LONG * Lock)
 {
-    unsigned wait = 1;
+    UINT32 Wait = 1;
 
     while (!SpinlockTryLock(Lock))
     {
-        for (unsigned i = 0; i < wait; ++i)
+        for (UINT32 i = 0; i < Wait; ++i)
         {
             _mm_pause();
         }
 
         //
-        // Don't call "pause" too many times. If the wait becomes too big,
+        // Don't call "pause" too many times. If the Wait becomes too big,
         // clamp it to the MaxWait.
         //
 
-        if (wait * 2 > MaxWait)
+        if (Wait * 2 > g_MaxWait)
         {
-            wait = MaxWait;
+            Wait = g_MaxWait;
         }
         else
         {
-            wait = wait * 2;
+            Wait = Wait * 2;
         }
     }
 }
@@ -83,34 +84,35 @@ SpinlockLock(volatile LONG * Lock)
  * @param Destination A pointer to the destination value
  * @param Exchange The exchange value
  * @param Comperand The value to compare to Destination
+ * @return VOID
  */
-void
+VOID
 SpinlockInterlockedCompareExchange(
     LONG volatile * Destination,
     LONG            Exchange,
     LONG            Comperand)
 {
-    unsigned wait = 1;
+    UINT32 Wait = 1;
 
     while (InterlockedCompareExchange(Destination, Exchange, Comperand) != Comperand)
     {
-        for (unsigned i = 0; i < wait; ++i)
+        for (UINT32 i = 0; i < Wait; ++i)
         {
             _mm_pause();
         }
 
         //
-        // Don't call "pause" too many times. If the wait becomes too big,
+        // Don't call "pause" too many times. If the Wait becomes too big,
         // clamp it to the MaxWait.
         //
 
-        if (wait * 2 > MaxWait)
+        if (Wait * 2 > g_MaxWait)
         {
-            wait = MaxWait;
+            Wait = g_MaxWait;
         }
         else
         {
-            wait = wait * 2;
+            Wait = Wait * 2;
         }
     }
 }
@@ -118,33 +120,34 @@ SpinlockInterlockedCompareExchange(
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
  *
- * @param LONG Lock variable
- * @param LONG MaxWait Maximum wait (pause) count
+ * @param Lock Lock variable
+ * @param MaximumWait Maximum wait (pause) count
+ * @return VOID
  */
-void
-SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait)
+VOID
+SpinlockLockWithCustomWait(volatile LONG * Lock, UINT32 MaximumWait)
 {
-    unsigned wait = 1;
+    UINT32 Wait = 1;
 
     while (!SpinlockTryLock(Lock))
     {
-        for (unsigned i = 0; i < wait; ++i)
+        for (UINT32 i = 0; i < Wait; ++i)
         {
             _mm_pause();
         }
 
         //
-        // Don't call "pause" too many times. If the wait becomes too big,
+        // Don't call "pause" too many times. If the Wait becomes too big,
         // clamp it to the MaxWait.
         //
 
-        if (wait * 2 > MaximumWait)
+        if (Wait * 2 > MaximumWait)
         {
-            wait = MaximumWait;
+            Wait = MaximumWait;
         }
         else
         {
-            wait = wait * 2;
+            Wait = Wait * 2;
         }
     }
 }
@@ -152,9 +155,10 @@ SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait)
 /**
  * @brief Release the lock
  *
- * @param LONG Lock variable
+ * @param Lock Lock variable
+ * @return VOID
  */
-void
+VOID
 SpinlockUnlock(volatile LONG * Lock)
 {
     *Lock = 0;
@@ -163,7 +167,8 @@ SpinlockUnlock(volatile LONG * Lock)
 /**
  * @brief Check the lock without changing the state
  *
- * @param LONG Lock variable
+ * @param Lock Lock variable
+ * @return BOOLEAN Whether the lock is acquired or not
  */
 BOOLEAN
 SpinlockCheckLock(volatile LONG * Lock)
