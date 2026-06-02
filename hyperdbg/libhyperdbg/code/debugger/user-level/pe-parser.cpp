@@ -13,6 +13,186 @@
 
 #include "header/pe-image-reader.h"
 
+static const char *
+PeGetSubsystemName(WORD Subsystem)
+{
+    switch (Subsystem)
+    {
+    case IMAGE_SUBSYSTEM_NATIVE:
+        return "Device Driver(Native windows Process)";
+    case IMAGE_SUBSYSTEM_WINDOWS_GUI:
+        return "Windows GUI";
+    case IMAGE_SUBSYSTEM_WINDOWS_CUI:
+        return "Windows CLI";
+    case IMAGE_SUBSYSTEM_WINDOWS_CE_GUI:
+        return "Windows CE GUI";
+    default:
+        return "Unknown";
+    }
+}
+
+static VOID
+PeShowDllCharacteristics(WORD DllCharacteristics)
+{
+    BOOLEAN AnyFlag = FALSE;
+
+    struct DLL_CHARACTERISTIC_NAME
+    {
+        WORD         Flag;
+        const char * Name;
+    };
+
+    static const DLL_CHARACTERISTIC_NAME CommonDllCharacteristics[] = {
+        {IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA, "High Entropy VA"},
+        {IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE, "Dynamic Base"},
+        {IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY, "Force Integrity"},
+        {IMAGE_DLLCHARACTERISTICS_NX_COMPAT, "NX Compatible"},
+        {IMAGE_DLLCHARACTERISTICS_NO_ISOLATION, "No Isolation"},
+        {IMAGE_DLLCHARACTERISTICS_NO_SEH, "No SEH"},
+        {IMAGE_DLLCHARACTERISTICS_NO_BIND, "No Bind"},
+        {IMAGE_DLLCHARACTERISTICS_APPCONTAINER, "AppContainer"},
+        {IMAGE_DLLCHARACTERISTICS_WDM_DRIVER, "WDM Driver"},
+        {IMAGE_DLLCHARACTERISTICS_GUARD_CF, "Guard CF"},
+        {IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE, "Terminal Server Aware"},
+    };
+
+    for (UINT32 i = 0; i < RTL_NUMBER_OF(CommonDllCharacteristics); i++)
+    {
+        if ((DllCharacteristics & CommonDllCharacteristics[i].Flag) == CommonDllCharacteristics[i].Flag)
+        {
+            ShowMessages("%s%s", AnyFlag ? ", " : "", CommonDllCharacteristics[i].Name);
+            AnyFlag = TRUE;
+        }
+    }
+
+    if (!AnyFlag)
+    {
+        ShowMessages("None");
+    }
+}
+
+static VOID
+PeShowEntrypointFileOffset(PPE_IMAGE_READER Reader, DWORD AddressOfEntryPoint)
+{
+    SIZE_T FileOffset = 0;
+
+    if (PeImageReaderRvaToFileOffset(Reader, AddressOfEntryPoint, 1, &FileOffset))
+    {
+        ShowMessages("\n%-36s%#llx", "Entrypoint file offset :", (UINT64)FileOffset);
+    }
+    else
+    {
+        ShowMessages("\n%-36s%s", "Entrypoint file offset :", "not mapped");
+    }
+}
+
+static const char *
+PeGetDataDirectoryName(UINT32 Index)
+{
+    static const char * DirectoryNames[IMAGE_NUMBEROF_DIRECTORY_ENTRIES] = {
+        "Export Table",
+        "Import Table",
+        "Resource Table",
+        "Exception Table",
+        "Certificate Table",
+        "Base Relocation Table",
+        "Debug",
+        "Architecture",
+        "Global Ptr",
+        "TLS Table",
+        "Load Config Table",
+        "Bound Import",
+        "Import Address Table",
+        "Delay Import Descriptor",
+        "CLR Runtime Header",
+        "Reserved",
+    };
+
+    if (Index < RTL_NUMBER_OF(DirectoryNames))
+    {
+        return DirectoryNames[Index];
+    }
+
+    return "Unknown";
+}
+
+static VOID
+PeShowDataDirectories(PPE_IMAGE_READER             Reader,
+                      const IMAGE_DATA_DIRECTORY * Directories,
+                      DWORD                        NumberOfRvaAndSizes)
+{
+    ShowMessages("\n\nData directories\n----------------");
+    ShowMessages("\n%-36s%u", "Number of RVA and sizes :", NumberOfRvaAndSizes);
+
+    for (UINT32 Index = 0; Index < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; Index++)
+    {
+        const char * Name         = PeGetDataDirectoryName(Index);
+        const char * AddressLabel = Index == IMAGE_DIRECTORY_ENTRY_SECURITY ? "file offset" : "RVA";
+
+        if (Index >= NumberOfRvaAndSizes)
+        {
+            ShowMessages("\n[%2u] %-27s %s", Index, Name, "not declared");
+            continue;
+        }
+
+        const IMAGE_DATA_DIRECTORY * Directory = &Directories[Index];
+        if (Directory->VirtualAddress == 0 || Directory->Size == 0)
+        {
+            ShowMessages("\n[%2u] %-27s %s %#x, size %#x, %s",
+                         Index,
+                         Name,
+                         AddressLabel,
+                         Directory->VirtualAddress,
+                         Directory->Size,
+                         "empty");
+            continue;
+        }
+
+        const BYTE * Pointer    = NULL;
+        SIZE_T       FileOffset = 0;
+
+        if (Index == IMAGE_DIRECTORY_ENTRY_SECURITY)
+        {
+            BOOLEAN HasBounds = PeImageReaderGetPointerAtOffset(Reader,
+                                                                Directory->VirtualAddress,
+                                                                Directory->Size,
+                                                                &Pointer);
+
+            ShowMessages("\n[%2u] %-27s file offset %#x, size %#x, %s",
+                         Index,
+                         Name,
+                         Directory->VirtualAddress,
+                         Directory->Size,
+                         HasBounds ? "valid bounds" : "invalid bounds");
+            if (HasBounds)
+            {
+                ShowMessages(", mapped file offset %#llx", (UINT64)Directory->VirtualAddress);
+            }
+
+            continue;
+        }
+
+        if (PeImageReaderRvaToFileOffset(Reader, Directory->VirtualAddress, Directory->Size, &FileOffset))
+        {
+            ShowMessages("\n[%2u] %-27s RVA %#x, size %#x, mapped, mapped file offset %#llx",
+                         Index,
+                         Name,
+                         Directory->VirtualAddress,
+                         Directory->Size,
+                         (UINT64)FileOffset);
+        }
+        else
+        {
+            ShowMessages("\n[%2u] %-27s RVA %#x, size %#x, %s",
+                         Index,
+                         Name,
+                         Directory->VirtualAddress,
+                         Directory->Size,
+                         "not mapped");
+        }
+    }
+}
+
 /**
  * @brief Locates the Rich header signature in a PE file
  *
@@ -322,7 +502,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
 {
     RICH_HEADER_INFO             PeFileRichHeaderInfo {0};
     RICH_HEADER                  PeFileRichHeader {0};
-    BOOLEAN                      Result = FALSE, RichFound = FALSE;
+    BOOLEAN                      Result = FALSE, RichFound = FALSE, SectionFound = FALSE;
     HANDLE                       MapObjectHandle = NULL, FileHandle = INVALID_HANDLE_VALUE; // File Mapping Object
     UINT32                       NumberOfSections;                                          // Number of sections
     LPVOID                       BaseAddr = NULL;                                           // Pointer to the base memory of mapped file
@@ -337,6 +517,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     LARGE_INTEGER                FileSize;
     CHAR                         Key[4];
     INT                          RichHeaderOffset;
+    time_t                       TimeDateStamp;
 
     //
     // Open the EXE File
@@ -614,9 +795,10 @@ SkipRichHeader:
     //
     // Determine Time Stamp
     //
+    TimeDateStamp = Header.TimeDateStamp;
     ShowMessages("\n%-36s%s",
                  "Time Stamp :",
-                 ctime((const time_t *)&(Header.TimeDateStamp)));
+                 ctime(&TimeDateStamp));
 
     //
     // Determine number of sections
@@ -626,6 +808,9 @@ SkipRichHeader:
     ShowMessages("\n%-36s%d",
                  "Size of optional header :",
                  Header.SizeOfOptionalHeader);
+    ShowMessages("\n%-36s%#x", "Raw machine value :", Header.Machine);
+    ShowMessages("\n%-36s%#x", "Pointer to symbol table :", Header.PointerToSymbolTable);
+    ShowMessages("\n%-36s%#x", "Raw characteristics value :", Header.Characteristics);
 
     ShowMessages("\n\nDumping PE Optional Header "
                  "Info....\n-----------------------------------");
@@ -640,13 +825,17 @@ SkipRichHeader:
         ShowMessages("\n%-36s%#x",
                      "Address of Entry Point : ",
                      OpHeader32.AddressOfEntryPoint);
+        ShowMessages("\n%-36s%#x", "Raw optional header magic :", OpHeader32.Magic);
+        PeShowEntrypointFileOffset(&Reader, OpHeader32.AddressOfEntryPoint);
         ShowMessages("\n%-36s%#llx", "Base Address of the Image : ", OpHeader32.ImageBase);
-        ShowMessages("\n%-36s%s", "SubSystem type : ", OpHeader32.Subsystem == 1 ? "Device Driver(Native windows Process)" : OpHeader32.Subsystem == 2 ? "Windows GUI"
-                                                                                                                         : OpHeader32.Subsystem == 3   ? "Windows CLI"
-                                                                                                                         : OpHeader32.Subsystem == 3   ? "Windows CLI"
-                                                                                                                         : OpHeader32.Subsystem == 9   ? "Windows CE GUI"
-                                                                                                                                                       : "Unknown");
+        ShowMessages("\n%-36s%s", "SubSystem type : ", PeGetSubsystemName(OpHeader32.Subsystem));
         ShowMessages("\n%-36s%s", "Given file is a : ", OpHeader32.Magic == 0x20b ? "PE32+(64)" : "PE32");
+        ShowMessages("\n%-36s%#x", "File Alignment :", OpHeader32.FileAlignment);
+        ShowMessages("\n%-36s%#x", "Size of Image :", OpHeader32.SizeOfImage);
+        ShowMessages("\n%-36s%#x", "Size of Headers :", OpHeader32.SizeOfHeaders);
+        ShowMessages("\n%-36s%#x", "Raw DLL characteristics value :", OpHeader32.DllCharacteristics);
+        ShowMessages("\n%-36s", "DLL characteristics flags :");
+        PeShowDllCharacteristics(OpHeader32.DllCharacteristics);
         ShowMessages("\n%-36s%d", "Size of code segment(.text) : ", OpHeader32.SizeOfCode);
         ShowMessages("\n%-36s%#x",
                      "Base address of code segment(RVA) :",
@@ -662,6 +851,7 @@ SkipRichHeader:
         ShowMessages("\n%-36s%#x", "Section Alignment :", OpHeader32.SectionAlignment);
         ShowMessages("\n%-36s%d", "Major Linker Version : ", OpHeader32.MajorLinkerVersion);
         ShowMessages("\n%-36s%d", "Minor Linker Version : ", OpHeader32.MinorLinkerVersion);
+        PeShowDataDirectories(&Reader, OpHeader32.DataDirectory, OpHeader32.NumberOfRvaAndSizes);
     }
     else
     {
@@ -673,13 +863,17 @@ SkipRichHeader:
         ShowMessages("\n%-36s%#x",
                      "Address of Entry Point : ",
                      OpHeader64.AddressOfEntryPoint);
+        ShowMessages("\n%-36s%#x", "Raw optional header magic :", OpHeader64.Magic);
+        PeShowEntrypointFileOffset(&Reader, OpHeader64.AddressOfEntryPoint);
         ShowMessages("\n%-36s%#llx", "Base Address of the Image : ", OpHeader64.ImageBase);
-        ShowMessages("\n%-36s%s", "SubSystem type : ", OpHeader64.Subsystem == 1 ? "Device Driver(Native windows Process)" : OpHeader64.Subsystem == 2 ? "Windows GUI"
-                                                                                                                         : OpHeader64.Subsystem == 3   ? "Windows CLI"
-                                                                                                                         : OpHeader64.Subsystem == 3   ? "Windows CLI"
-                                                                                                                         : OpHeader64.Subsystem == 9   ? "Windows CE GUI"
-                                                                                                                                                       : "Unknown");
+        ShowMessages("\n%-36s%s", "SubSystem type : ", PeGetSubsystemName(OpHeader64.Subsystem));
         ShowMessages("\n%-36s%s", "Given file is a : ", OpHeader64.Magic == 0x20b ? "PE32+(64)" : "PE32");
+        ShowMessages("\n%-36s%#x", "File Alignment :", OpHeader64.FileAlignment);
+        ShowMessages("\n%-36s%#x", "Size of Image :", OpHeader64.SizeOfImage);
+        ShowMessages("\n%-36s%#x", "Size of Headers :", OpHeader64.SizeOfHeaders);
+        ShowMessages("\n%-36s%#x", "Raw DLL characteristics value :", OpHeader64.DllCharacteristics);
+        ShowMessages("\n%-36s", "DLL characteristics flags :");
+        PeShowDllCharacteristics(OpHeader64.DllCharacteristics);
         ShowMessages("\n%-36s%d", "Size of code segment(.text) : ", OpHeader64.SizeOfCode);
         ShowMessages("\n%-36s%#x",
                      "Base address of code segment(RVA) :",
@@ -691,6 +885,7 @@ SkipRichHeader:
         ShowMessages("\n%-36s%#x", "Section Alignment :", OpHeader64.SectionAlignment);
         ShowMessages("\n%-36s%d", "Major Linker Version : ", OpHeader64.MajorLinkerVersion);
         ShowMessages("\n%-36s%d", "Minor Linker Version : ", OpHeader64.MinorLinkerVersion);
+        PeShowDataDirectories(&Reader, OpHeader64.DataDirectory, OpHeader64.NumberOfRvaAndSizes);
     }
 
     ShowMessages("\n\nDumping Sections Header "
@@ -704,9 +899,21 @@ SkipRichHeader:
 
     for (UINT32 i = 0; i < NumberOfSections; i++, SecHeader++)
     {
-        CHAR SectionName[IMAGE_SIZEOF_SHORT_NAME + 1];
+        CHAR         SectionName[IMAGE_SIZEOF_SHORT_NAME + 1];
+        const BYTE * Pointer       = NULL;
+        const CHAR * RawDataBounds = "empty";
 
         PeImageReaderGetSectionName(SecHeader, SectionName, sizeof(SectionName));
+
+        if (SecHeader->SizeOfRawData != 0)
+        {
+            RawDataBounds = PeImageReaderGetPointerAtOffset(&Reader,
+                                                            SecHeader->PointerToRawData,
+                                                            SecHeader->SizeOfRawData,
+                                                            &Pointer)
+                                ? "valid"
+                                : "invalid";
+        }
 
         ShowMessages("\n\nSection Info (%d of %d)", i + 1, NumberOfSections);
 
@@ -722,6 +929,11 @@ SkipRichHeader:
         ShowMessages("\n%-36s%#x",
                      "Pointer to Raw Data : ",
                      SecHeader->PointerToRawData);
+        ShowMessages("\n%-36s%s", "Raw data bounds :", RawDataBounds);
+        if (SecHeader->SizeOfRawData != 0 && SecHeader->Misc.VirtualSize > SecHeader->SizeOfRawData)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "virtual size is larger than raw data");
+        }
         ShowMessages("\n%-36s%#x",
                      "Pointer to Relocations : ",
                      SecHeader->PointerToRelocations);
@@ -757,14 +969,11 @@ SkipRichHeader:
         {
             if (!_strcmpi(SectionToShow, SectionName))
             {
+                SectionFound = TRUE;
+
                 if (SecHeader->SizeOfRawData != 0)
                 {
-                    const BYTE * Pointer = NULL;
-
-                    if (!PeImageReaderGetPointerAtOffset(&Reader,
-                                                         SecHeader->PointerToRawData,
-                                                         SecHeader->SizeOfRawData,
-                                                         &Pointer))
+                    if (Pointer == NULL)
                     {
                         ShowMessages("\nerr, invalid section raw data\n");
                         continue;
@@ -785,6 +994,11 @@ SkipRichHeader:
                 }
             }
         }
+    }
+
+    if (SectionToShow != NULL && !SectionFound)
+    {
+        ShowMessages("\nerr, section '%s' was not found\n", SectionToShow);
     }
 
     ShowMessages("\n==============================================================="
