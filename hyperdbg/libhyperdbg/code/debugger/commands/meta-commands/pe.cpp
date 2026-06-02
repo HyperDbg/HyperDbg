@@ -21,10 +21,10 @@ using namespace std;
 VOID
 CommandPeHelp()
 {
-    ShowMessages(".pe : parses portable executable (PE) files and dump sections.\n\n");
+    ShowMessages(".pe : parses portable executable (PE) files, displays header metadata, and dumps sections.\n\n");
 
-    ShowMessages("syntax : \t.pe [header] [FilePath (string)]\n");
-    ShowMessages("syntax : \t.pe [section] [SectionName (string)] [FilePath (string)]\n");
+    ShowMessages("syntax : \t.pe header <file>\n");
+    ShowMessages("syntax : \t.pe section <section> <file>\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pe header c:\\reverse\\myfile.exe\n");
