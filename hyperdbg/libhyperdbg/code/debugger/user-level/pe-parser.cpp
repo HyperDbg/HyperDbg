@@ -129,6 +129,54 @@ PeAddDword(DWORD Left, DWORD Right, DWORD * Result)
 }
 
 static BOOLEAN
+PeAddUlonglong(ULONGLONG Left, ULONGLONG Right, ULONGLONG * Result)
+{
+    if (Result == NULL || Right > (~((ULONGLONG)0) - Left))
+    {
+        return FALSE;
+    }
+
+    *Result = Left + Right;
+    return TRUE;
+}
+
+typedef struct _PE_RAW_SECTION_RANGE
+{
+    ULONGLONG                    Start;
+    ULONGLONG                    End;
+    const IMAGE_SECTION_HEADER * Section;
+} PE_RAW_SECTION_RANGE, *PPE_RAW_SECTION_RANGE;
+
+static INT
+PeCompareRawSectionRange(const VOID * Left, const VOID * Right)
+{
+    const PE_RAW_SECTION_RANGE * LeftRange  = (const PE_RAW_SECTION_RANGE *)Left;
+    const PE_RAW_SECTION_RANGE * RightRange = (const PE_RAW_SECTION_RANGE *)Right;
+
+    if (LeftRange->Start < RightRange->Start)
+    {
+        return -1;
+    }
+
+    if (LeftRange->Start > RightRange->Start)
+    {
+        return 1;
+    }
+
+    if (LeftRange->End < RightRange->End)
+    {
+        return -1;
+    }
+
+    if (LeftRange->End > RightRange->End)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+static BOOLEAN
 PeRvaContainsRange(DWORD RangeRva, DWORD RangeSize, DWORD Rva, DWORD Size)
 {
     DWORD RangeEnd = 0;
@@ -669,6 +717,10 @@ PeShowDataDirectories(PPE_IMAGE_READER             Reader,
 {
     ShowMessages("\n\nData directories\n----------------");
     ShowMessages("\n%-36s%u", "Number of RVA and sizes :", NumberOfRvaAndSizes);
+    if (NumberOfRvaAndSizes > IMAGE_NUMBEROF_DIRECTORY_ENTRIES)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "number of RVA and sizes exceeds PE directory table");
+    }
 
     for (UINT32 Index = 0; Index < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; Index++)
     {
@@ -736,6 +788,205 @@ PeShowDataDirectories(PPE_IMAGE_READER             Reader,
                          Directory->Size,
                          "not mapped");
         }
+    }
+}
+
+static VOID
+PeShowOverlayAndWarnings(PPE_IMAGE_READER             Reader,
+                         WORD                         Machine,
+                         WORD                         OptionalHeaderMagic,
+                         DWORD                        AddressOfEntryPoint,
+                         DWORD                        SizeOfImage,
+                         DWORD                        SizeOfHeaders,
+                         const IMAGE_DATA_DIRECTORY * Directories,
+                         DWORD                        NumberOfRvaAndSizes)
+{
+    ULONGLONG OverlayOffset     = SizeOfHeaders < Reader->ImageSize ? SizeOfHeaders : Reader->ImageSize;
+    BOOLEAN   OverlayUnreliable = FALSE;
+
+    ShowMessages("\n\nOverlay and warnings\n--------------------");
+
+    if ((ULONGLONG)SizeOfHeaders > (ULONGLONG)Reader->ImageSize)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "size of headers is larger than file size");
+    }
+
+    if (OptionalHeaderMagic == IMAGE_NT_OPTIONAL_HDR64_MAGIC && Machine == IMAGE_FILE_MACHINE_I386)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "PE32+ optional header with i386 machine type");
+    }
+    else if (OptionalHeaderMagic == IMAGE_NT_OPTIONAL_HDR32_MAGIC &&
+             (Machine == IMAGE_FILE_MACHINE_AMD64 || Machine == IMAGE_FILE_MACHINE_IA64))
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "PE32 optional header with 64-bit machine type");
+    }
+
+    for (UINT32 i = 0; i < Reader->FileHeader->NumberOfSections; i++)
+    {
+        CHAR                         SectionName[IMAGE_SIZEOF_SHORT_NAME + 1];
+        const IMAGE_SECTION_HEADER * Section     = &Reader->SectionHeaders[i];
+        DWORD                        VirtualSpan = Section->Misc.VirtualSize > Section->SizeOfRawData ? Section->Misc.VirtualSize : Section->SizeOfRawData;
+        DWORD                        VirtualEnd  = 0;
+
+        PeImageReaderGetSectionName(Section, SectionName, sizeof(SectionName));
+
+        if (VirtualSpan != 0)
+        {
+            if (!PeAddDword(Section->VirtualAddress, VirtualSpan, &VirtualEnd))
+            {
+                ShowMessages("\n%-36ssection '%s' RVA range overflows", "Warning :", SectionName);
+            }
+            else if (SizeOfImage != 0 && VirtualEnd > SizeOfImage)
+            {
+                ShowMessages("\n%-36ssection '%s' RVA range exceeds SizeOfImage", "Warning :", SectionName);
+            }
+        }
+
+        if (Section->SizeOfRawData != 0)
+        {
+            ULONGLONG RawStart = Section->PointerToRawData;
+            ULONGLONG RawEnd   = 0;
+
+            if (!PeAddUlonglong(RawStart, Section->SizeOfRawData, &RawEnd))
+            {
+                ShowMessages("\n%-36ssection '%s' raw data range overflows", "Warning :", SectionName);
+                OverlayUnreliable = TRUE;
+            }
+            else if (RawStart > (ULONGLONG)Reader->ImageSize || RawEnd > (ULONGLONG)Reader->ImageSize)
+            {
+                ShowMessages("\n%-36ssection '%s' raw data is outside file", "Warning :", SectionName);
+                OverlayUnreliable = TRUE;
+            }
+            else if (RawEnd > OverlayOffset)
+            {
+                OverlayOffset = RawEnd;
+            }
+        }
+    }
+
+    if (Reader->FileHeader->NumberOfSections > 1)
+    {
+        PE_RAW_SECTION_RANGE * Ranges = (PE_RAW_SECTION_RANGE *)malloc(sizeof(PE_RAW_SECTION_RANGE) * Reader->FileHeader->NumberOfSections);
+        UINT32                 Count  = 0;
+
+        if (Ranges == NULL)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "raw section overlap check skipped, allocation failed");
+        }
+        else
+        {
+            for (UINT32 i = 0; i < Reader->FileHeader->NumberOfSections; i++)
+            {
+                const IMAGE_SECTION_HEADER * Section = &Reader->SectionHeaders[i];
+                ULONGLONG                    End;
+
+                if (Section->SizeOfRawData == 0 ||
+                    !PeAddUlonglong(Section->PointerToRawData, Section->SizeOfRawData, &End) ||
+                    Section->PointerToRawData > Reader->ImageSize || End > Reader->ImageSize)
+                {
+                    continue;
+                }
+
+                Ranges[Count].Start   = Section->PointerToRawData;
+                Ranges[Count].End     = End;
+                Ranges[Count].Section = Section;
+                Count++;
+            }
+
+            if (Count > 1)
+            {
+                UINT32 MaxEndIndex = 0;
+
+                qsort(Ranges, Count, sizeof(Ranges[0]), PeCompareRawSectionRange);
+
+                for (UINT32 i = 1; i < Count; i++)
+                {
+                    if (Ranges[i].Start < Ranges[MaxEndIndex].End)
+                    {
+                        CHAR LeftName[IMAGE_SIZEOF_SHORT_NAME + 1];
+                        CHAR RightName[IMAGE_SIZEOF_SHORT_NAME + 1];
+
+                        PeImageReaderGetSectionName(Ranges[MaxEndIndex].Section, LeftName, sizeof(LeftName));
+                        PeImageReaderGetSectionName(Ranges[i].Section, RightName, sizeof(RightName));
+                        ShowMessages("\n%-36sraw data overlap detected between '%s' and '%s'; additional overlaps may be omitted",
+                                     "Warning :",
+                                     LeftName,
+                                     RightName);
+                    }
+
+                    if (Ranges[i].End > Ranges[MaxEndIndex].End)
+                    {
+                        MaxEndIndex = i;
+                    }
+                }
+            }
+
+            free(Ranges);
+        }
+    }
+
+    if (AddressOfEntryPoint != 0)
+    {
+        BOOLEAN                      EntrypointFound   = FALSE;
+        const IMAGE_SECTION_HEADER * EntrypointSection = NULL;
+
+        for (UINT32 i = 0; i < Reader->FileHeader->NumberOfSections; i++)
+        {
+            const IMAGE_SECTION_HEADER * Section     = &Reader->SectionHeaders[i];
+            DWORD                        VirtualSpan = Section->Misc.VirtualSize > Section->SizeOfRawData ? Section->Misc.VirtualSize : Section->SizeOfRawData;
+            DWORD                        VirtualEnd  = 0;
+
+            if (VirtualSpan == 0 || !PeAddDword(Section->VirtualAddress, VirtualSpan, &VirtualEnd))
+            {
+                continue;
+            }
+
+            if (AddressOfEntryPoint >= Section->VirtualAddress && AddressOfEntryPoint < VirtualEnd)
+            {
+                EntrypointFound   = TRUE;
+                EntrypointSection = Section;
+                break;
+            }
+        }
+
+        if (!EntrypointFound)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "entrypoint is outside all sections");
+        }
+        else if ((EntrypointSection->Characteristics & IMAGE_SCN_MEM_EXECUTE) == 0)
+        {
+            CHAR SectionName[IMAGE_SIZEOF_SHORT_NAME + 1];
+
+            PeImageReaderGetSectionName(EntrypointSection, SectionName, sizeof(SectionName));
+            ShowMessages("\n%-36sentrypoint section '%s' is not executable", "Warning :", SectionName);
+        }
+    }
+
+    if (OverlayUnreliable)
+    {
+        ShowMessages("\n%-36s%s", "Overlay :", "not computed because section raw data is invalid");
+    }
+    else if ((ULONGLONG)Reader->ImageSize > OverlayOffset)
+    {
+        ULONGLONG OverlaySize = (ULONGLONG)Reader->ImageSize - OverlayOffset;
+
+        ShowMessages("\n%-36s%#llx", "Overlay offset :", OverlayOffset);
+        ShowMessages("\n%-36s%#llx", "Overlay size :", OverlaySize);
+
+        if (Directories != NULL && NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_SECURITY)
+        {
+            const IMAGE_DATA_DIRECTORY * SecurityDirectory = &Directories[IMAGE_DIRECTORY_ENTRY_SECURITY];
+
+            if (SecurityDirectory->VirtualAddress != 0 && SecurityDirectory->Size != 0 &&
+                (ULONGLONG)SecurityDirectory->VirtualAddress >= OverlayOffset)
+            {
+                ShowMessages("\n%-36s%s", "Info :", "overlay includes certificate data; not necessarily suspicious");
+            }
+        }
+    }
+    else
+    {
+        ShowMessages("\n%-36s%s", "Overlay :", "none");
     }
 }
 
@@ -2000,6 +2251,15 @@ SkipRichHeader:
             }
         }
     }
+
+    PeShowOverlayAndWarnings(&Reader,
+                             Header.Machine,
+                             Is32Bit ? OpHeader32.Magic : OpHeader64.Magic,
+                             Is32Bit ? OpHeader32.AddressOfEntryPoint : OpHeader64.AddressOfEntryPoint,
+                             Is32Bit ? OpHeader32.SizeOfImage : OpHeader64.SizeOfImage,
+                             Is32Bit ? OpHeader32.SizeOfHeaders : OpHeader64.SizeOfHeaders,
+                             Is32Bit ? OpHeader32.DataDirectory : OpHeader64.DataDirectory,
+                             Is32Bit ? OpHeader32.NumberOfRvaAndSizes : OpHeader64.NumberOfRvaAndSizes);
 
     if (SectionToShow != NULL && !SectionFound)
     {
