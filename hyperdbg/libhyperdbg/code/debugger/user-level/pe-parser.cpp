@@ -116,6 +116,141 @@ PeGetDataDirectoryName(UINT32 Index)
     return "Unknown";
 }
 
+static BOOLEAN
+PeAddDword(DWORD Left, DWORD Right, DWORD * Result)
+{
+    if (Result == NULL || Right > MAXDWORD - Left)
+    {
+        return FALSE;
+    }
+
+    *Result = Left + Right;
+    return TRUE;
+}
+
+static BOOLEAN
+PeRvaContainsRange(DWORD RangeRva, DWORD RangeSize, DWORD Rva, DWORD Size)
+{
+    DWORD RangeEnd = 0;
+    DWORD RvaEnd   = 0;
+
+    if (!PeAddDword(RangeRva, RangeSize, &RangeEnd) || !PeAddDword(Rva, Size, &RvaEnd))
+    {
+        return FALSE;
+    }
+
+    return Rva >= RangeRva && RvaEnd <= RangeEnd;
+}
+
+static BOOLEAN
+PeGetPointerAtRva(PPE_IMAGE_READER Reader, DWORD Rva, DWORD Length, const BYTE ** Pointer)
+{
+    SIZE_T FileOffset = 0;
+
+    if (!PeImageReaderRvaToFileOffset(Reader, Rva, Length, &FileOffset))
+    {
+        return FALSE;
+    }
+
+    return PeImageReaderGetPointerAtOffset(Reader, FileOffset, Length, Pointer);
+}
+
+typedef enum _PE_ASCII_STRING_STATUS
+{
+    PeAsciiStringInvalid,
+    PeAsciiStringOk,
+    PeAsciiStringTruncated,
+} PE_ASCII_STRING_STATUS;
+
+static PE_ASCII_STRING_STATUS
+PeReadAsciiStringAtRva(PPE_IMAGE_READER Reader, DWORD Rva, DWORD MaxLength, CHAR * Buffer, SIZE_T BufferSize)
+{
+    if (Buffer == NULL || BufferSize == 0 || MaxLength == 0)
+    {
+        return PeAsciiStringInvalid;
+    }
+
+    Buffer[0] = '\0';
+
+    SIZE_T OutputIndex = 0;
+    for (DWORD Index = 0; Index < MaxLength; Index++)
+    {
+        DWORD        CharacterRva = 0;
+        const BYTE * Character    = NULL;
+
+        if (!PeAddDword(Rva, Index, &CharacterRva) || !PeGetPointerAtRva(Reader, CharacterRva, 1, &Character))
+        {
+            return PeAsciiStringInvalid;
+        }
+
+        if (*Character == '\0')
+        {
+            return PeAsciiStringOk;
+        }
+
+        if (OutputIndex + 1 < BufferSize)
+        {
+            Buffer[OutputIndex++] = (*Character >= 0x20 && *Character <= 0x7e) ? (CHAR)*Character : '.';
+            Buffer[OutputIndex]   = '\0';
+        }
+    }
+
+    return PeAsciiStringTruncated;
+}
+
+static const char *
+PeAsciiStatusName(PE_ASCII_STRING_STATUS Status)
+{
+    switch (Status)
+    {
+    case PeAsciiStringInvalid:
+        return "invalid mapping";
+    case PeAsciiStringTruncated:
+        return "truncated or unterminated";
+    default:
+        return "readable";
+    }
+}
+
+static BOOLEAN
+PeReadWordAtRva(PPE_IMAGE_READER Reader, DWORD Rva, WORD * Value)
+{
+    const BYTE * Pointer = NULL;
+
+    if (Value == NULL || !PeGetPointerAtRva(Reader, Rva, sizeof(WORD), &Pointer))
+    {
+        return FALSE;
+    }
+
+    CopyMemory(Value, Pointer, sizeof(*Value));
+    return TRUE;
+}
+
+static BOOLEAN
+PeReadThunkAtRva(PPE_IMAGE_READER Reader, DWORD Rva, BOOLEAN Is32Bit, ULONGLONG * Value)
+{
+    const BYTE * Pointer = NULL;
+    DWORD        Size    = Is32Bit ? sizeof(DWORD) : sizeof(ULONGLONG);
+
+    if (Value == NULL || !PeGetPointerAtRva(Reader, Rva, Size, &Pointer))
+    {
+        return FALSE;
+    }
+
+    if (Is32Bit)
+    {
+        DWORD Value32 = 0;
+        CopyMemory(&Value32, Pointer, sizeof(Value32));
+        *Value = Value32;
+    }
+    else
+    {
+        CopyMemory(Value, Pointer, sizeof(*Value));
+    }
+
+    return TRUE;
+}
+
 static VOID
 PeShowDataDirectories(PPE_IMAGE_READER             Reader,
                       const IMAGE_DATA_DIRECTORY * Directories,
@@ -190,6 +325,436 @@ PeShowDataDirectories(PPE_IMAGE_READER             Reader,
                          Directory->Size,
                          "not mapped");
         }
+    }
+}
+
+static VOID
+PeShowImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ImportDirectory, BOOLEAN Is32Bit)
+{
+    const DWORD MaxImportDescriptors = 0x1000;
+    const DWORD MaxTotalImports      = 0x2000;
+    const DWORD MaxDllNameLength     = 0x200;
+    const DWORD MaxImportNameLength  = 0x200;
+
+    ShowMessages("\n\nImports\n-------");
+
+    if (ImportDirectory->VirtualAddress == 0 || ImportDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Import directory :", "empty");
+        return;
+    }
+
+    const BYTE * DirectoryPointer = NULL;
+    if (!PeGetPointerAtRva(Reader, ImportDirectory->VirtualAddress, sizeof(IMAGE_IMPORT_DESCRIPTOR), &DirectoryPointer))
+    {
+        ShowMessages("\n%-36s%s", "Import directory :", "not mapped");
+        return;
+    }
+
+    DWORD DescriptorCount = ImportDirectory->Size / sizeof(IMAGE_IMPORT_DESCRIPTOR);
+    if (DescriptorCount == 0)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "import directory is smaller than one descriptor");
+        return;
+    }
+
+    BOOLEAN DescriptorCapped = FALSE;
+    if (DescriptorCount > MaxImportDescriptors)
+    {
+        DescriptorCount  = MaxImportDescriptors;
+        DescriptorCapped = TRUE;
+    }
+
+    DWORD   TotalImports       = 0;
+    BOOLEAN FoundTerminator    = FALSE;
+    BOOLEAN TotalImportsCapped = FALSE;
+
+    for (DWORD DescriptorIndex = 0; DescriptorIndex < DescriptorCount; DescriptorIndex++)
+    {
+        DWORD DescriptorRva = 0;
+
+        if (!PeAddDword(ImportDirectory->VirtualAddress,
+                        DescriptorIndex * (DWORD)sizeof(IMAGE_IMPORT_DESCRIPTOR),
+                        &DescriptorRva))
+        {
+            break;
+        }
+
+        const IMAGE_IMPORT_DESCRIPTOR * Descriptor = NULL;
+        if (!PeGetPointerAtRva(Reader,
+                               DescriptorRva,
+                               sizeof(IMAGE_IMPORT_DESCRIPTOR),
+                               (const BYTE **)&Descriptor))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "import descriptor is not mapped");
+            break;
+        }
+
+        if (Descriptor->OriginalFirstThunk == 0 && Descriptor->TimeDateStamp == 0 && Descriptor->ForwarderChain == 0 &&
+            Descriptor->Name == 0 && Descriptor->FirstThunk == 0)
+        {
+            FoundTerminator = TRUE;
+            break;
+        }
+
+        CHAR                   DllName[MaxDllNameLength + 1] = {0};
+        PE_ASCII_STRING_STATUS DllNameStatus                 = PeReadAsciiStringAtRva(Reader,
+                                                                                      Descriptor->Name,
+                                                                                      MaxDllNameLength,
+                                                                                      DllName,
+                                                                                      sizeof(DllName));
+        if (DllNameStatus != PeAsciiStringOk)
+        {
+            ShowMessages("\n[%u] DLL name %s", DescriptorIndex, PeAsciiStatusName(DllNameStatus));
+            ShowMessages("\n%-36s%s", "Warning :", "skipping imports for descriptor with unreadable DLL name");
+            continue;
+        }
+
+        ShowMessages("\n[%u] DLL name %s", DescriptorIndex, DllName);
+
+        DWORD LookupThunkRva = Descriptor->OriginalFirstThunk != 0 ? Descriptor->OriginalFirstThunk : Descriptor->FirstThunk;
+        if (LookupThunkRva == 0 || Descriptor->FirstThunk == 0)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "import thunk array is empty");
+            continue;
+        }
+
+        DWORD ThunkSize = Is32Bit ? sizeof(DWORD) : sizeof(ULONGLONG);
+        for (DWORD ThunkIndex = 0; TotalImports < MaxTotalImports; ThunkIndex++)
+        {
+            DWORD LookupEntryRva = 0;
+            DWORD IatEntryRva    = 0;
+            if (!PeAddDword(LookupThunkRva, ThunkIndex * ThunkSize, &LookupEntryRva) ||
+                !PeAddDword(Descriptor->FirstThunk, ThunkIndex * ThunkSize, &IatEntryRva))
+            {
+                ShowMessages("\n%-36s%s", "Warning :", "import thunk RVA overflow");
+                break;
+            }
+
+            ULONGLONG ThunkValue = 0;
+            if (!PeReadThunkAtRva(Reader, LookupEntryRva, Is32Bit, &ThunkValue))
+            {
+                ShowMessages("\n%-36s%#x", "Warning, invalid thunk RVA :", LookupEntryRva);
+                break;
+            }
+
+            if (ThunkValue == 0)
+            {
+                break;
+            }
+
+            ULONGLONG OrdinalFlag = Is32Bit ? IMAGE_ORDINAL_FLAG32 : IMAGE_ORDINAL_FLAG64;
+            if ((ThunkValue & OrdinalFlag) != 0)
+            {
+                ShowMessages("\n    [%u] ordinal %u thunk RVA %#x", ThunkIndex, (UINT32)(ThunkValue & 0xffff), IatEntryRva);
+                TotalImports++;
+                continue;
+            }
+
+            if (ThunkValue > MAXDWORD)
+            {
+                ShowMessages("\n%-36s%#llx", "Warning, invalid import name RVA :", (UINT64)ThunkValue);
+                TotalImports++;
+                continue;
+            }
+
+            DWORD NameRva = (DWORD)ThunkValue;
+            WORD  Hint    = 0;
+            if (!PeReadWordAtRva(Reader, NameRva, &Hint))
+            {
+                ShowMessages("\n%-36s%#x", "Warning, invalid import hint RVA :", NameRva);
+                TotalImports++;
+                continue;
+            }
+
+            DWORD ImportNameRva = 0;
+            if (!PeAddDword(NameRva, sizeof(WORD), &ImportNameRva))
+            {
+                ShowMessages("\n%-36s%#x", "Warning, invalid import name RVA :", NameRva);
+                TotalImports++;
+                continue;
+            }
+
+            CHAR                   ImportName[MaxImportNameLength + 1] = {0};
+            PE_ASCII_STRING_STATUS ImportNameStatus                    = PeReadAsciiStringAtRva(Reader,
+                                                                                                ImportNameRva,
+                                                                                                MaxImportNameLength,
+                                                                                                ImportName,
+                                                                                                sizeof(ImportName));
+            if (ImportNameStatus != PeAsciiStringOk)
+            {
+                ShowMessages("\n%-36s%#x, %s", "Warning, invalid import name RVA :", ImportNameRva, PeAsciiStatusName(ImportNameStatus));
+                TotalImports++;
+                continue;
+            }
+
+            ShowMessages("\n    [%u] hint %#x name %s thunk RVA %#x", ThunkIndex, Hint, ImportName, IatEntryRva);
+            TotalImports++;
+        }
+
+        if (TotalImports >= MaxTotalImports)
+        {
+            TotalImportsCapped = TRUE;
+            break;
+        }
+    }
+
+    if (!FoundTerminator)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "import descriptor terminator not found before bound or cap");
+    }
+
+    if (DescriptorCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, descriptor cap reached :", MaxImportDescriptors);
+    }
+
+    if (TotalImportsCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, import cap reached :", MaxTotalImports);
+    }
+}
+
+static BOOLEAN
+PeValidateExportTable(PPE_IMAGE_READER Reader, DWORD TableRva, DWORD Count, DWORD EntrySize, const BYTE ** Pointer)
+{
+    DWORD TableSize = 0;
+
+    if (Count == 0)
+    {
+        *Pointer = NULL;
+        return TRUE;
+    }
+
+    if (EntrySize != 0 && Count > MAXDWORD / EntrySize)
+    {
+        return FALSE;
+    }
+
+    TableSize = Count * EntrySize;
+    return PeGetPointerAtRva(Reader, TableRva, TableSize, Pointer);
+}
+
+static VOID
+PeShowExportEntry(PPE_IMAGE_READER             Reader,
+                  const IMAGE_DATA_DIRECTORY * ExportDirectory,
+                  DWORD                        Index,
+                  DWORD                        Ordinal,
+                  const CHAR *                 Name,
+                  DWORD                        FunctionRva)
+{
+    const DWORD MaxForwarderLength = 0x1000;
+
+    if (PeRvaContainsRange(ExportDirectory->VirtualAddress, ExportDirectory->Size, FunctionRva, 1))
+    {
+        DWORD ForwarderRemaining = ExportDirectory->Size - (FunctionRva - ExportDirectory->VirtualAddress);
+        DWORD ForwarderMaxLength = ForwarderRemaining < MaxForwarderLength ? ForwarderRemaining : MaxForwarderLength;
+
+        CHAR                   Forwarder[MaxForwarderLength + 1] = {0};
+        PE_ASCII_STRING_STATUS ForwarderStatus                   = PeReadAsciiStringAtRva(Reader,
+                                                                                          FunctionRva,
+                                                                                          ForwarderMaxLength,
+                                                                                          Forwarder,
+                                                                                          sizeof(Forwarder));
+        if (ForwarderStatus == PeAsciiStringOk)
+        {
+            ShowMessages("\n[%u] ordinal %u name %s forwarder %s", Index, Ordinal, Name, Forwarder);
+        }
+        else
+        {
+            ShowMessages("\n[%u] ordinal %u name %s forwarder %s", Index, Ordinal, Name, PeAsciiStatusName(ForwarderStatus));
+        }
+
+        return;
+    }
+
+    ShowMessages("\n[%u] ordinal %u name %s RVA %#x", Index, Ordinal, Name, FunctionRva);
+}
+
+static VOID
+PeShowExports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ExportDirectory)
+{
+    const DWORD MaxExports          = 0x2000;
+    const DWORD MaxDllNameLength    = 0x200;
+    const DWORD MaxExportNameLength = 0x200;
+
+    ShowMessages("\n\nExports\n-------");
+
+    if (ExportDirectory->VirtualAddress == 0 || ExportDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Export directory :", "empty");
+        return;
+    }
+
+    if (!PeRvaContainsRange(ExportDirectory->VirtualAddress,
+                            ExportDirectory->Size,
+                            ExportDirectory->VirtualAddress,
+                            sizeof(IMAGE_EXPORT_DIRECTORY)))
+    {
+        ShowMessages("\n%-36s%s", "Export directory :", "invalid bounds");
+        return;
+    }
+
+    const IMAGE_EXPORT_DIRECTORY * Directory = NULL;
+    if (!PeGetPointerAtRva(Reader,
+                           ExportDirectory->VirtualAddress,
+                           sizeof(IMAGE_EXPORT_DIRECTORY),
+                           (const BYTE **)&Directory))
+    {
+        ShowMessages("\n%-36s%s", "Export directory :", "not mapped");
+        return;
+    }
+
+    CHAR                   DllName[MaxDllNameLength + 1] = {0};
+    PE_ASCII_STRING_STATUS DllNameStatus                 = PeReadAsciiStringAtRva(Reader,
+                                                                                  Directory->Name,
+                                                                                  MaxDllNameLength,
+                                                                                  DllName,
+                                                                                  sizeof(DllName));
+    ShowMessages("\n%-36s%s", "DLL name :", DllNameStatus == PeAsciiStringOk ? DllName : PeAsciiStatusName(DllNameStatus));
+    ShowMessages("\n%-36s%u", "Ordinal base :", Directory->Base);
+    ShowMessages("\n%-36s%u", "Address table count :", Directory->NumberOfFunctions);
+    ShowMessages("\n%-36s%u", "Name pointer count :", Directory->NumberOfNames);
+
+    const BYTE * AddressTablePointer     = NULL;
+    const BYTE * NamePointerTablePointer = NULL;
+    const BYTE * OrdinalTablePointer     = NULL;
+
+    BOOLEAN AddressTableValid     = PeValidateExportTable(Reader,
+                                                          Directory->AddressOfFunctions,
+                                                          Directory->NumberOfFunctions,
+                                                          sizeof(DWORD),
+                                                          &AddressTablePointer);
+    BOOLEAN NamePointerTableValid = PeValidateExportTable(Reader,
+                                                          Directory->AddressOfNames,
+                                                          Directory->NumberOfNames,
+                                                          sizeof(DWORD),
+                                                          &NamePointerTablePointer);
+    BOOLEAN OrdinalTableValid     = PeValidateExportTable(Reader,
+                                                          Directory->AddressOfNameOrdinals,
+                                                          Directory->NumberOfNames,
+                                                          sizeof(WORD),
+                                                          &OrdinalTablePointer);
+
+    if (!AddressTableValid)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "export address table is not mapped");
+        return;
+    }
+
+    if (!NamePointerTableValid)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "export name pointer table is not mapped");
+    }
+
+    if (!OrdinalTableValid)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "export ordinal table is not mapped");
+    }
+
+    DWORD   NamedCount  = Directory->NumberOfNames;
+    BOOLEAN NamedCapped = FALSE;
+    if (NamedCount > MaxExports)
+    {
+        NamedCount  = MaxExports;
+        NamedCapped = TRUE;
+    }
+
+    DWORD   FunctionCount  = Directory->NumberOfFunctions;
+    BOOLEAN FunctionCapped = FALSE;
+    if (FunctionCount > MaxExports)
+    {
+        FunctionCount  = MaxExports;
+        FunctionCapped = TRUE;
+    }
+
+    BYTE NamedAddressIndexes[MaxExports] = {0};
+
+    if (NamePointerTableValid && OrdinalTableValid)
+    {
+        for (DWORD NameIndex = 0; NameIndex < NamedCount; NameIndex++)
+        {
+            DWORD NameRva      = 0;
+            WORD  AddressIndex = 0;
+
+            CopyMemory(&NameRva, NamePointerTablePointer + (NameIndex * sizeof(DWORD)), sizeof(NameRva));
+            CopyMemory(&AddressIndex, OrdinalTablePointer + (NameIndex * sizeof(WORD)), sizeof(AddressIndex));
+
+            if (AddressIndex >= Directory->NumberOfFunctions)
+            {
+                ShowMessages("\n%-36s%u", "Warning, invalid export ordinal index :", AddressIndex);
+                continue;
+            }
+
+            DWORD FunctionRva = 0;
+            CopyMemory(&FunctionRva, AddressTablePointer + (AddressIndex * sizeof(DWORD)), sizeof(FunctionRva));
+
+            CHAR                   ExportName[MaxExportNameLength + 1] = {0};
+            PE_ASCII_STRING_STATUS ExportNameStatus                    = PeReadAsciiStringAtRva(Reader,
+                                                                                                NameRva,
+                                                                                                MaxExportNameLength,
+                                                                                                ExportName,
+                                                                                                sizeof(ExportName));
+            if (ExportNameStatus != PeAsciiStringOk)
+            {
+                ShowMessages("\n%-36s%#x, %s", "Warning, invalid export name RVA :", NameRva, PeAsciiStatusName(ExportNameStatus));
+                continue;
+            }
+
+            DWORD DisplayOrdinal = 0;
+            if (!PeAddDword(Directory->Base, AddressIndex, &DisplayOrdinal))
+            {
+                ShowMessages("\n%-36s%u", "Warning, invalid export ordinal index :", AddressIndex);
+                continue;
+            }
+
+            if (AddressIndex < FunctionCount)
+            {
+                NamedAddressIndexes[AddressIndex] = TRUE;
+            }
+
+            PeShowExportEntry(Reader,
+                              ExportDirectory,
+                              NameIndex,
+                              DisplayOrdinal,
+                              ExportName,
+                              FunctionRva);
+        }
+    }
+
+    for (DWORD AddressIndex = 0; AddressIndex < FunctionCount; AddressIndex++)
+    {
+        if (NamedAddressIndexes[AddressIndex])
+        {
+            continue;
+        }
+
+        DWORD FunctionRva = 0;
+        CopyMemory(&FunctionRva, AddressTablePointer + (AddressIndex * sizeof(DWORD)), sizeof(FunctionRva));
+
+        DWORD DisplayOrdinal = 0;
+        if (!PeAddDword(Directory->Base, AddressIndex, &DisplayOrdinal))
+        {
+            ShowMessages("\n%-36s%u", "Warning, invalid export ordinal index :", AddressIndex);
+            continue;
+        }
+
+        PeShowExportEntry(Reader,
+                          ExportDirectory,
+                          AddressIndex,
+                          DisplayOrdinal,
+                          "<ordinal-only>",
+                          FunctionRva);
+    }
+
+    if (NamedCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, named export cap reached :", MaxExports);
+    }
+
+    if (FunctionCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, export cap reached :", MaxExports);
     }
 }
 
@@ -514,6 +1079,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     IMAGE_OPTIONAL_HEADER64      OpHeader64;                                                // Optional Header of PE files present in NT Header structure
     const IMAGE_SECTION_HEADER * SecHeader;                                                 // Section Header or Section Table Header
     PE_IMAGE_READER              Reader;
+    IMAGE_DATA_DIRECTORY         EmptyDirectory = {0};
     LARGE_INTEGER                FileSize;
     CHAR                         Key[4];
     INT                          RichHeaderOffset;
@@ -852,6 +1418,11 @@ SkipRichHeader:
         ShowMessages("\n%-36s%d", "Major Linker Version : ", OpHeader32.MajorLinkerVersion);
         ShowMessages("\n%-36s%d", "Minor Linker Version : ", OpHeader32.MinorLinkerVersion);
         PeShowDataDirectories(&Reader, OpHeader32.DataDirectory, OpHeader32.NumberOfRvaAndSizes);
+        PeShowImports(&Reader,
+                      OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_IMPORT ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT] : &EmptyDirectory,
+                      TRUE);
+        PeShowExports(&Reader,
+                      OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_EXPORT ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT] : &EmptyDirectory);
     }
     else
     {
@@ -886,6 +1457,11 @@ SkipRichHeader:
         ShowMessages("\n%-36s%d", "Major Linker Version : ", OpHeader64.MajorLinkerVersion);
         ShowMessages("\n%-36s%d", "Minor Linker Version : ", OpHeader64.MinorLinkerVersion);
         PeShowDataDirectories(&Reader, OpHeader64.DataDirectory, OpHeader64.NumberOfRvaAndSizes);
+        PeShowImports(&Reader,
+                      OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_IMPORT ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT] : &EmptyDirectory,
+                      FALSE);
+        PeShowExports(&Reader,
+                      OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_EXPORT ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT] : &EmptyDirectory);
     }
 
     ShowMessages("\n\nDumping Sections Header "
