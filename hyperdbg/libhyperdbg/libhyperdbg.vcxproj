@@ -127,6 +127,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\components\pe\header\pe-image-reader.h" />
     <ClInclude Include="..\include\platform\user\header\platform-intrinsics.h" />
     <ClInclude Include="..\include\platform\user\header\windows-only\windows-privilege.h" />
     <ClInclude Include="..\include\platform\user\header\Windows.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\pe\code\pe-image-reader.cpp" />
     <ClCompile Include="..\include\platform\user\code\platform-intrinsics.c" />
     <ClCompile Include="..\include\platform\user\code\windows-only\windows-privilege.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />

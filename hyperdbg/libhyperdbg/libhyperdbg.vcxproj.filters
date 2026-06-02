@@ -90,6 +90,18 @@
     <Filter Include="header\platform\windows-only">
       <UniqueIdentifier>{8e3c36aa-4263-4c94-9910-884ad9652921}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\components">
+      <UniqueIdentifier>{5b7dcc48-4010-40db-973f-bf46eb1e810b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\pe">
+      <UniqueIdentifier>{b6d17c7a-e6e7-490b-b581-c6a06d0d61a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components">
+      <UniqueIdentifier>{a5552ded-23bb-45ad-85c2-d8d85a5b4e49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\pe">
+      <UniqueIdentifier>{da7e68cc-540c-4efc-b4de-c23b4b13e2ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -190,6 +202,9 @@
     </ClInclude>
     <ClInclude Include="..\include\platform\user\header\windows-only\windows-privilege.h">
       <Filter>header\platform\windows-only</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\pe\header\pe-image-reader.h">
+      <Filter>header\components\pe</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -633,6 +648,9 @@
     </ClCompile>
     <ClCompile Include="..\include\platform\user\code\windows-only\windows-privilege.c">
       <Filter>code\platform\windows-only</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\pe\code\pe-image-reader.cpp">
+      <Filter>code\components\pe</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

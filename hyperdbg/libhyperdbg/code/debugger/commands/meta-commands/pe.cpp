@@ -11,8 +11,6 @@
  */
 #include "pch.h"
 
-using namespace std;
-
 /**
  * @brief help of the .pe command
  *
@@ -21,10 +19,11 @@ using namespace std;
 VOID
 CommandPeHelp()
 {
-    ShowMessages(".pe : parses portable executable (PE) files and dump sections.\n\n");
+    ShowMessages(".pe : parses portable executable (PE) files, displays header metadata, and dumps sections.\n\n");
 
     ShowMessages("syntax : \t.pe [header] [FilePath (string)]\n");
     ShowMessages("syntax : \t.pe [section] [SectionName (string)] [FilePath (string)]\n");
+    ShowMessages("\n.pe section dumps are capped at 1 MiB per matching section and 4 MiB total.\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pe header c:\\reverse\\myfile.exe\n");
@@ -62,7 +61,16 @@ CommandPe(vector<CommandToken> CommandTokens, string Command)
     {
         if (CommandTokens.size() == 3)
         {
-            ShowMessages("please specify a valid PE file\n\n");
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+            CommandPeHelp();
+            return;
+        }
+
+        if (CommandTokens.size() != 4)
+        {
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandPeHelp();
             return;
         }
@@ -71,6 +79,14 @@ CommandPe(vector<CommandToken> CommandTokens, string Command)
     }
     else if (CompareLowerCaseStrings(CommandTokens.at(1), "header"))
     {
+        if (CommandTokens.size() != 3)
+        {
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+            CommandPeHelp();
+            return;
+        }
+
         ShowDumpOfSection = FALSE;
         TempFilePath      = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2));
     }
