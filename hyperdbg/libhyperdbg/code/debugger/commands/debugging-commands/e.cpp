@@ -69,6 +69,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
                    UINT64 *                       BufferToEdit)
 {
     BOOL                   Status;
+    DWORD                  BytesReturned;
     BOOLEAN                StatusReturn = FALSE;
     DEBUGGER_EDIT_MEMORY * FinalBuffer;
     DEBUGGER_EDIT_MEMORY   EditMemoryRequest = {0};
@@ -147,7 +148,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
             FinalSize,                   // Input buffer length
             FinalBuffer,                 // Output Buffer from driver.
             SIZEOF_DEBUGGER_EDIT_MEMORY, // Length of output buffer in bytes.
-            NULL,                        // Bytes placed in buffer.
+            &BytesReturned,              // Bytes placed in buffer.
             NULL                         // synchronous call
         );
 

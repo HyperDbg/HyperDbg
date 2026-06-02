@@ -162,6 +162,7 @@ INT
 HyperDbgInitHyperTraceModule()
 {
     BOOL                            Status;
+    DWORD                           BytesReturned;
     DEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTracePacket = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
@@ -175,7 +176,7 @@ HyperDbgInitHyperTraceModule()
                              SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, // Length of input buffer in bytes.
                              &InitHyperTracePacket,                  // Output Buffer from driver.
                              SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, // Length of output buffer in bytes.
-                             NULL,                                   // Bytes placed in buffer.
+                             &BytesReturned,                         // Bytes placed in buffer.
                              NULL                                    // synchronous call
     );
 
@@ -210,6 +211,7 @@ INT
 HyperDbgInitVmmModule()
 {
     BOOL                     Status;
+    DWORD                    BytesReturned;
     DEBUGGER_INIT_VMM_PACKET InitVmmPacket = {0};
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
@@ -228,7 +230,7 @@ HyperDbgInitVmmModule()
                              SIZEOF_DEBUGGER_INIT_VMM_PACKET, // Length of input buffer in bytes.
                              &InitVmmPacket,                  // Output Buffer from driver.
                              SIZEOF_DEBUGGER_INIT_VMM_PACKET, // Length of output buffer in bytes.
-                             NULL,                            // Bytes placed in buffer.
+                             &BytesReturned,                  // Bytes placed in buffer.
                              NULL                             // synchronous call
     );
 
@@ -305,7 +307,7 @@ HyperDbgCreateHandleFromKdModule()
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL, /// lpSecurityAttirbutes
         OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+        FILE_ATTRIBUTE_NORMAL,
         NULL); /// lpTemplateFile
 
     if (g_DeviceHandle == INVALID_HANDLE_VALUE)
@@ -357,7 +359,8 @@ HyperDbgCreateHandleFromKdModule()
 INT
 HyperDbgUnloadVmm()
 {
-    BOOL Status;
+    BOOL  Status;
+    DWORD BytesReturned;
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
@@ -378,7 +381,7 @@ HyperDbgUnloadVmm()
                                                   // as the driver is x64 and has 64 bit values)
                              NULL,                // Output Buffer from driver.
                              0,                   // Length of output buffer in bytes.
-                             NULL,                // Bytes placed in buffer.
+                             &BytesReturned,      // Bytes placed in buffer.
                              NULL                 // synchronous call
     );
 
@@ -404,7 +407,7 @@ HyperDbgUnloadVmm()
                                                              // driver is x64 and has 64 bit values)
         NULL,                                                // Output Buffer from driver.
         0,                                                   // Length of output buffer in bytes.
-        NULL,                                                // Bytes placed in buffer.
+        &BytesReturned,                                      // Bytes placed in buffer.
         NULL                                                 // synchronous call
     );
 

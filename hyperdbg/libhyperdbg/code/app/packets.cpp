@@ -42,12 +42,9 @@ ReadIrpBasedBuffer()
     RegisterEvent.Type   = IRP_BASED;
 
     //
-    // Create another handle to be used in for reading kernel messages,
-    // it is because I noticed that if I use a same handle for IRP Pending
-    // and other IOCTLs then if I complete that IOCTL then both of the current
-    // IOCTL and the Pending IRP are completed and return to user mode,
-    // even if it's odd but that what happens, so this way we can solve it
-    // if you know why this problem happens, then contact me !
+    // Keep the packet reader on a dedicated synchronous handle. It blocks on
+    // a pending IOCTL while the main debugger handle continues sending other
+    // synchronous IOCTLs.
     //
     Handle = CreateFileA(
         "\\\\.\\HyperDbgDebuggerDevice",
@@ -55,7 +52,7 @@ ReadIrpBasedBuffer()
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL, /// lpSecurityAttirbutes
         OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+        FILE_ATTRIBUTE_NORMAL,
         NULL); /// lpTemplateFile
 
     if (Handle == INVALID_HANDLE_VALUE)
