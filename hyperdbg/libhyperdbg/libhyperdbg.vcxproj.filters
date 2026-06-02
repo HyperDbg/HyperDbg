@@ -146,6 +146,9 @@
     <ClInclude Include="header\pe-parser.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\pe-image-reader.h">
+      <Filter>header</Filter>
+    </ClInclude>
     <ClInclude Include="header\ud.h">
       <Filter>header</Filter>
     </ClInclude>
@@ -461,6 +464,9 @@
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\pe-image-reader.cpp">
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\commands\meta-commands\pe.cpp">

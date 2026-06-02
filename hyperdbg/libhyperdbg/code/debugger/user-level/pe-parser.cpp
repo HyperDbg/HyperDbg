@@ -11,6 +11,8 @@
  */
 #include "pch.h"
 
+#include "header/pe-image-reader.h"
+
 /**
  * @brief Locates the Rich header signature in a PE file
  *
@@ -25,7 +27,7 @@
  * @note The XOR key is used to decode the actual Rich header entries
  **/
 INT
-FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[])
+FindRichHeader(PIMAGE_DOS_HEADER DosHeader, DWORD FileSize, CHAR Key[])
 {
     //
     // Get base address for offset calculations
@@ -36,6 +38,15 @@ FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[])
     // Get PE header offset - this defines our search boundary
     //
     DWORD Offset = DosHeader->e_lfanew;
+
+    if (FileSize < sizeof(IMAGE_DOS_HEADER) ||
+        DosHeader->e_magic != IMAGE_DOS_SIGNATURE ||
+        Offset < sizeof(IMAGE_DOS_HEADER) ||
+        Offset > FileSize ||
+        Offset < 8)
+    {
+        return 0;
+    }
 
     //
     // Search for "Rich" signature
@@ -210,7 +221,7 @@ DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
     //
     // Search backwards for the DanS signature that marks the beginning
     //
-    while (true)
+    while (IndexPointer >= 0)
     {
         char TmpChar[4];
 
@@ -236,11 +247,11 @@ DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
         //
         if (TmpChar[1] == 0x61 && TmpChar[0] == 0x44)
         {
-            break;
+            return RichHeaderSize;
         }
     }
 
-    return RichHeaderSize;
+    return 0;
 }
 
 /**
@@ -309,19 +320,23 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
                                 const CHAR *  SectionToShow,
                                 BOOLEAN       Is32Bit)
 {
-    RICH_HEADER_INFO        PeFileRichHeaderInfo {0};
-    RICH_HEADER             PeFileRichHeader {0};
-    BOOLEAN                 Result = FALSE, RichFound = FALSE;
-    HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
-    UINT32                  NumberOfSections;            // Number of sections
-    LPVOID                  BaseAddr;                    // Pointer to the base memory of mapped file
-    PIMAGE_DOS_HEADER       DosHeader;                   // Pointer to DOS Header
-    PIMAGE_NT_HEADERS32     NtHeader32 = NULL;           // Pointer to NT Header 32 bit
-    PIMAGE_NT_HEADERS64     NtHeader64 = NULL;           // Pointer to NT Header 64 bit
-    IMAGE_FILE_HEADER       Header;                      // Pointer to image file header of NT Header
-    IMAGE_OPTIONAL_HEADER32 OpHeader32;                  // Optional Header of PE files present in NT Header structure
-    IMAGE_OPTIONAL_HEADER64 OpHeader64;                  // Optional Header of PE files present in NT Header structure
-    PIMAGE_SECTION_HEADER   SecHeader;                   // Section Header or Section Table Header
+    RICH_HEADER_INFO             PeFileRichHeaderInfo {0};
+    RICH_HEADER                  PeFileRichHeader {0};
+    BOOLEAN                      Result = FALSE, RichFound = FALSE;
+    HANDLE                       MapObjectHandle = NULL, FileHandle = INVALID_HANDLE_VALUE; // File Mapping Object
+    UINT32                       NumberOfSections;                                          // Number of sections
+    LPVOID                       BaseAddr = NULL;                                           // Pointer to the base memory of mapped file
+    PIMAGE_DOS_HEADER            DosHeader;                                                 // Pointer to DOS Header
+    PIMAGE_NT_HEADERS32          NtHeader32 = NULL;                                         // Pointer to NT Header 32 bit
+    PIMAGE_NT_HEADERS64          NtHeader64 = NULL;                                         // Pointer to NT Header 64 bit
+    IMAGE_FILE_HEADER            Header;                                                    // Pointer to image file header of NT Header
+    IMAGE_OPTIONAL_HEADER32      OpHeader32;                                                // Optional Header of PE files present in NT Header structure
+    IMAGE_OPTIONAL_HEADER64      OpHeader64;                                                // Optional Header of PE files present in NT Header structure
+    const IMAGE_SECTION_HEADER * SecHeader;                                                 // Section Header or Section Table Header
+    PE_IMAGE_READER              Reader;
+    LARGE_INTEGER                FileSize;
+    CHAR                         Key[4];
+    INT                          RichHeaderOffset;
 
     //
     // Open the EXE File
@@ -331,6 +346,12 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     if (FileHandle == INVALID_HANDLE_VALUE)
     {
         ShowMessages("err, could not open the file specified\n");
+        return FALSE;
+    }
+
+    if (!GetFileSizeEx(FileHandle, &FileSize) || FileSize.QuadPart < (LONGLONG)sizeof(IMAGE_DOS_HEADER))
+    {
+        CloseHandle(FileHandle);
         return FALSE;
     }
 
@@ -349,6 +370,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
 
     if (BaseAddr == NULL)
     {
+        CloseHandle(MapObjectHandle);
         CloseHandle(FileHandle);
         return FALSE;
     }
@@ -358,8 +380,24 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     //
     DosHeader = (PIMAGE_DOS_HEADER)BaseAddr; // 0x04000000
 
-    char Key[4];
-    int  RichHeaderOffset = FindRichHeader(DosHeader, Key);
+    if (DosHeader->e_magic != IMAGE_DOS_SIGNATURE ||
+        DosHeader->e_lfanew < sizeof(IMAGE_DOS_HEADER) ||
+        (LONGLONG)DosHeader->e_lfanew > FileSize.QuadPart ||
+        (LONGLONG)DosHeader->e_lfanew + (LONGLONG)(Is32Bit ? sizeof(IMAGE_NT_HEADERS32) : sizeof(IMAGE_NT_HEADERS64)) > FileSize.QuadPart)
+    {
+        ShowMessages("\nGiven File is not a valid PE file\n");
+        Result = FALSE;
+        goto Finished;
+    }
+
+    if (!PeImageReaderInitialize((const BYTE *)BaseAddr, (SIZE_T)FileSize.QuadPart, &Reader))
+    {
+        ShowMessages("\nGiven File is not a valid PE file\n");
+        Result = FALSE;
+        goto Finished;
+    }
+
+    RichHeaderOffset = FindRichHeader(DosHeader, (DWORD)FileSize.QuadPart, Key);
 
     if (RichHeaderOffset != 0)
     {
@@ -374,16 +412,24 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
         int RichHeaderSize = DecryptRichHeader(Key, RichHeaderOffset, DataPtr);
         int IndexPointer   = RichHeaderOffset - RichHeaderSize;
 
+        if (RichHeaderSize < 16 || ((RichHeaderSize - 16) % 8) != 0 || (RichHeaderSize - 16) / 8 == 0 || IndexPointer < 0)
+        {
+            delete[] DataPtr;
+            goto SkipRichHeader;
+        }
+
         char * richHeaderPtr = new char[RichHeaderSize];
         memcpy(richHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
         delete[] DataPtr;
 
         FindRichEntries(richHeaderPtr, RichHeaderSize, Key, &PeFileRichHeaderInfo);
-        PeFileRichHeader.Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo.Entries];
+        PeFileRichHeader.Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo.Entries + 1];
 
         SetRichEntries(RichHeaderSize, richHeaderPtr, &PeFileRichHeader);
         RichFound = TRUE;
     }
+
+SkipRichHeader:
 
     //
     // Check for Valid DOS file
@@ -653,30 +699,19 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     //
     // Retrieve a pointer to First Section Header(or Section Table Entry)
     //
-    if (Is32Bit)
-    {
-        SecHeader        = IMAGE_FIRST_SECTION(NtHeader32);
-        NumberOfSections = NtHeader32->FileHeader.NumberOfSections;
-    }
-    else
-    {
-        SecHeader        = IMAGE_FIRST_SECTION(NtHeader64);
-        NumberOfSections = NtHeader64->FileHeader.NumberOfSections;
-    }
+    SecHeader        = Reader.SectionHeaders;
+    NumberOfSections = Reader.FileHeader->NumberOfSections;
 
     for (UINT32 i = 0; i < NumberOfSections; i++, SecHeader++)
     {
-        if (Is32Bit)
-        {
-            ShowMessages("\n\nSection Info (%d of %d)", i + 1, NtHeader32->FileHeader.NumberOfSections);
-        }
-        else
-        {
-            ShowMessages("\n\nSection Info (%d of %d)", i + 1, NtHeader64->FileHeader.NumberOfSections);
-        }
+        CHAR SectionName[IMAGE_SIZEOF_SHORT_NAME + 1];
+
+        PeImageReaderGetSectionName(SecHeader, SectionName, sizeof(SectionName));
+
+        ShowMessages("\n\nSection Info (%d of %d)", i + 1, NumberOfSections);
 
         ShowMessages("\n---------------------");
-        ShowMessages("\n%-36s%s", "Section Header name : ", SecHeader->Name);
+        ShowMessages("\n%-36s%s", "Section Header name : ", SectionName);
         ShowMessages("\n%-36s%#x",
                      "ActualSize of code or data : ",
                      SecHeader->Misc.VirtualSize);
@@ -720,19 +755,30 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
         //
         if (SectionToShow != NULL)
         {
-            if (!_strcmpi(SectionToShow, (const char *)SecHeader->Name))
+            if (!_strcmpi(SectionToShow, SectionName))
             {
                 if (SecHeader->SizeOfRawData != 0)
                 {
+                    const BYTE * Pointer = NULL;
+
+                    if (!PeImageReaderGetPointerAtOffset(&Reader,
+                                                         SecHeader->PointerToRawData,
+                                                         SecHeader->SizeOfRawData,
+                                                         &Pointer))
+                    {
+                        ShowMessages("\nerr, invalid section raw data\n");
+                        continue;
+                    }
+
                     if (Is32Bit)
                     {
-                        PeHexDump((char *)((UINT64)DosHeader + SecHeader->PointerToRawData),
+                        PeHexDump((char *)Pointer,
                                   SecHeader->SizeOfRawData,
                                   OpHeader32.ImageBase + SecHeader->VirtualAddress);
                     }
                     else
                     {
-                        PeHexDump((char *)((UINT64)DosHeader + SecHeader->PointerToRawData),
+                        PeHexDump((char *)Pointer,
                                   SecHeader->SizeOfRawData,
                                   (int)(OpHeader64.ImageBase + SecHeader->VirtualAddress));
                     }
@@ -753,8 +799,30 @@ Finished:
     //
     // Unmap and close the handles
     //
-    UnmapViewOfFile(BaseAddr);
-    CloseHandle(MapObjectHandle);
+    if (PeFileRichHeaderInfo.PtrToBuffer != NULL)
+    {
+        delete[] PeFileRichHeaderInfo.PtrToBuffer;
+    }
+
+    if (PeFileRichHeader.Entries != NULL)
+    {
+        delete[] PeFileRichHeader.Entries;
+    }
+
+    if (BaseAddr != NULL)
+    {
+        UnmapViewOfFile(BaseAddr);
+    }
+
+    if (MapObjectHandle != NULL)
+    {
+        CloseHandle(MapObjectHandle);
+    }
+
+    if (FileHandle != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(FileHandle);
+    }
 
     return Result;
 }
@@ -769,13 +837,13 @@ Finished:
 BOOLEAN
 PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit)
 {
-    BOOLEAN                 Result = FALSE;
-    HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
-    LPVOID                  BaseAddr;                    // Pointer to the base memory of mapped file
-    PIMAGE_DOS_HEADER       DosHeader;                   // Pointer to DOS Header
-    PIMAGE_NT_HEADERS32     NtHeader32 = NULL;           // Pointer to NT Header 32 bit
-    IMAGE_OPTIONAL_HEADER32 OpHeader32;                  // Optional Header of PE files present in NT Header structure
-    IMAGE_FILE_HEADER       Header;                      // Pointer to image file header of NT Header
+    BOOLEAN             Result = FALSE;
+    HANDLE              MapObjectHandle, FileHandle; // File Mapping Object
+    LPVOID              BaseAddr;                    // Pointer to the base memory of mapped file
+    PIMAGE_DOS_HEADER   DosHeader;                   // Pointer to DOS Header
+    PIMAGE_NT_HEADERS32 NtHeader32 = NULL;           // Pointer to NT Header 32 bit
+    PE_IMAGE_READER     Reader;
+    LARGE_INTEGER       FileSize;
 
     //
     // Open the EXE File
@@ -786,6 +854,12 @@ PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit)
         ShowMessages("err, unable to read the file (%x)\n", GetLastError());
         return FALSE;
     };
+
+    if (!GetFileSizeEx(FileHandle, &FileSize) || FileSize.QuadPart < (LONGLONG)sizeof(IMAGE_DOS_HEADER))
+    {
+        CloseHandle(FileHandle);
+        return FALSE;
+    }
 
     //
     // Mapping Given EXE file to Memory
@@ -805,6 +879,7 @@ PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit)
 
     if (BaseAddr == NULL)
     {
+        CloseHandle(MapObjectHandle);
         CloseHandle(FileHandle);
 
         ShowMessages("err, unable to create map view of file (%x)\n", GetLastError());
@@ -824,6 +899,15 @@ PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit)
         Result = FALSE;
 
         ShowMessages("err, the selected file is not in a valid PE format\n");
+        goto Finished;
+    }
+
+    if (DosHeader->e_lfanew < sizeof(IMAGE_DOS_HEADER) ||
+        (LONGLONG)DosHeader->e_lfanew + (LONGLONG)sizeof(IMAGE_NT_HEADERS32) > FileSize.QuadPart)
+    {
+        Result = FALSE;
+
+        ShowMessages("err, invalid image NT header offset\n");
         goto Finished;
     }
 
@@ -847,21 +931,19 @@ PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit)
         goto Finished;
     }
 
-    //
-    // Info about Optional Header
-    //
-    OpHeader32 = NtHeader32->OptionalHeader;
+    if (!PeImageReaderInitialize((const BYTE *)BaseAddr, (SIZE_T)FileSize.QuadPart, &Reader))
+    {
+        Result = FALSE;
 
-    //
-    // Get the IMAGE FILE HEADER Structure
-    //
-    Header = NtHeader32->FileHeader;
+        ShowMessages("err, the selected file is not in a valid PE format\n");
+        goto Finished;
+    }
 
     //
     // Only few are determined (for remaining refer
     // to the above specification)
     //
-    switch (Header.Machine)
+    switch (Reader.FileHeader->Machine)
     {
     case IMAGE_FILE_MACHINE_I386:
         *Is32Bit = TRUE;
@@ -887,6 +969,7 @@ Finished:
     //
     UnmapViewOfFile(BaseAddr);
     CloseHandle(MapObjectHandle);
+    CloseHandle(FileHandle);
 
     return Result;
 }

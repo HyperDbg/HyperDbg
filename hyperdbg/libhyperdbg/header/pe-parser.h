@@ -50,7 +50,7 @@ UINT32
 PeGetSyscallNumber(LPCSTR NtFunctionName);
 
 INT
-FindRichHeader(PIMAGE_DOS_HEADER DosHeader, CHAR Key[]);
+FindRichHeader(PIMAGE_DOS_HEADER DosHeader, DWORD FileSize, CHAR Key[]);
 
 VOID
 SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRichHeader);
