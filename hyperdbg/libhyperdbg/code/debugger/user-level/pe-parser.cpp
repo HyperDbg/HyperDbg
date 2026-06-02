@@ -11,7 +11,37 @@
  */
 #include "pch.h"
 
+#include <limits.h>
+#include <new>
+#include <math.h>
+
 #include "header/pe-image-reader.h"
+
+typedef struct _RICH_HEADER_INFO
+{
+    int    Size;
+    char * PtrToBuffer;
+    int    Entries;
+} RICH_HEADER_INFO, *PRICH_HEADER_INFO;
+
+typedef struct _RICH_HEADER_ENTRY
+{
+    WORD  ProdID;
+    WORD  BuildID;
+    DWORD UseCount;
+} RICH_HEADER_ENTRY, *PRICH_HEADER_ENTRY;
+
+typedef struct _RICH_HEADER
+{
+    PRICH_HEADER_ENTRY Entries;
+} RICH_HEADER, *PRICH_HEADER;
+
+typedef struct _PE_RAW_SECTION_RANGE
+{
+    ULONGLONG                    Start;
+    ULONGLONG                    End;
+    const IMAGE_SECTION_HEADER * Section;
+} PE_RAW_SECTION_RANGE, *PPE_RAW_SECTION_RANGE;
 
 static const char *
 PeGetSubsystemName(WORD Subsystem)
@@ -139,13 +169,6 @@ PeAddUlonglong(ULONGLONG Left, ULONGLONG Right, ULONGLONG * Result)
     *Result = Left + Right;
     return TRUE;
 }
-
-typedef struct _PE_RAW_SECTION_RANGE
-{
-    ULONGLONG                    Start;
-    ULONGLONG                    End;
-    const IMAGE_SECTION_HEADER * Section;
-} PE_RAW_SECTION_RANGE, *PPE_RAW_SECTION_RANGE;
 
 static INT
 PeCompareRawSectionRange(const VOID * Left, const VOID * Right)
@@ -289,6 +312,24 @@ PeReadDwordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
     return Value;
 }
 
+static WORD
+PeReadWordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
+{
+    WORD Value = 0;
+
+    CopyMemory(&Value, Buffer + Offset, sizeof(Value));
+    return Value;
+}
+
+static BYTE
+PeReadByteFromBuffer(const BYTE * Buffer, SIZE_T Offset)
+{
+    BYTE Value = 0;
+
+    CopyMemory(&Value, Buffer + Offset, sizeof(Value));
+    return Value;
+}
+
 static ULONGLONG
 PeReadQwordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
 {
@@ -332,6 +373,431 @@ PeReadAsciiStringFromBuffer(const BYTE * StringPointer, DWORD MaxLength, CHAR * 
     return PeAsciiStringTruncated;
 }
 
+static PE_ASCII_STRING_STATUS
+PeReadAsciiStringInDirectory(PPE_IMAGE_READER             Reader,
+                             const IMAGE_DATA_DIRECTORY * Directory,
+                             DWORD                        Offset,
+                             DWORD                        MaxLength,
+                             CHAR *                       Buffer,
+                             SIZE_T                       BufferSize)
+{
+    DWORD StringRva = 0;
+
+    if (Directory == NULL || Offset >= Directory->Size || !PeAddDword(Directory->VirtualAddress, Offset, &StringRva))
+    {
+        return PeAsciiStringInvalid;
+    }
+
+    DWORD Remaining = Directory->Size - Offset;
+    return PeReadAsciiStringAtRva(Reader, StringRva, Remaining < MaxLength ? Remaining : MaxLength, Buffer, BufferSize);
+}
+
+static BOOLEAN
+PeComputeChecksum(PPE_IMAGE_READER Reader, SIZE_T ChecksumOffset, DWORD * Checksum)
+{
+    ULONGLONG Sum = 0;
+
+    if (Reader == NULL || Checksum == NULL || ChecksumOffset > Reader->ImageSize || sizeof(DWORD) > Reader->ImageSize - ChecksumOffset)
+    {
+        return FALSE;
+    }
+
+    for (SIZE_T Offset = 0; Offset < Reader->ImageSize; Offset += sizeof(WORD))
+    {
+        WORD Value = 0;
+
+        if (Offset >= ChecksumOffset && Offset < ChecksumOffset + sizeof(DWORD))
+        {
+            Value = 0;
+        }
+        else if (Offset + 1 < Reader->ImageSize)
+        {
+            CopyMemory(&Value, Reader->ImageBase + Offset, sizeof(Value));
+        }
+        else
+        {
+            Value = Reader->ImageBase[Offset];
+        }
+
+        Sum += Value;
+        Sum = (Sum & 0xffff) + (Sum >> 16);
+    }
+
+    Sum       = (Sum & 0xffff) + (Sum >> 16);
+    *Checksum = (DWORD)Sum + (DWORD)Reader->ImageSize;
+    return TRUE;
+}
+
+static VOID
+PeShowChecksum(PPE_IMAGE_READER Reader, DWORD HeaderChecksum, SIZE_T ChecksumOffset)
+{
+    const SIZE_T MaxChecksumBytes = 64 * 1024 * 1024;
+    DWORD        ComputedChecksum = 0;
+
+    ShowMessages("\n%-36s%#x", "Optional header checksum :", HeaderChecksum);
+    if (Reader != NULL && Reader->ImageSize > MaxChecksumBytes)
+    {
+        ShowMessages("\n%-36s%s", "Computed PE checksum :", "skipped, file is larger than local cap");
+        return;
+    }
+
+    if (PeComputeChecksum(Reader, ChecksumOffset, &ComputedChecksum))
+    {
+        ShowMessages("\n%-36s%#x (%s)", "Computed PE checksum :", ComputedChecksum, ComputedChecksum == HeaderChecksum ? "matches" : "differs");
+    }
+    else
+    {
+        ShowMessages("\n%-36s%s", "Computed PE checksum :", "not available");
+    }
+}
+
+static VOID
+PeShowCertificateTable(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * SecurityDirectory)
+{
+    const DWORD MaxCertificates = 0x1000;
+
+    ShowMessages("\n\nCertificate table\n-----------------");
+
+    if (SecurityDirectory->VirtualAddress == 0 || SecurityDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Certificate table :", "empty");
+        return;
+    }
+
+    const BYTE * DirectoryPointer = NULL;
+    if (!PeImageReaderGetPointerAtOffset(Reader, SecurityDirectory->VirtualAddress, SecurityDirectory->Size, &DirectoryPointer))
+    {
+        ShowMessages("\n%-36s%s", "Certificate table :", "invalid bounds");
+        return;
+    }
+
+    DWORD Offset = 0;
+    DWORD Count  = 0;
+    while (Offset < SecurityDirectory->Size && Count < MaxCertificates)
+    {
+        if (SecurityDirectory->Size - Offset < 8)
+        {
+            ShowMessages("\n%-36s%#llx", "Warning, truncated certificate at :", (UINT64)SecurityDirectory->VirtualAddress + Offset);
+            break;
+        }
+
+        const BYTE * Entry    = DirectoryPointer + Offset;
+        DWORD        Length   = PeReadDwordFromBuffer(Entry, 0);
+        WORD         Revision = PeReadWordFromBuffer(Entry, 4);
+        WORD         Type     = PeReadWordFromBuffer(Entry, 6);
+
+        ShowMessages("\n[%u] file offset %#llx length %#x revision %#x type %#x", Count, (UINT64)SecurityDirectory->VirtualAddress + Offset, Length, Revision, Type);
+
+        if (Length < 8)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "certificate length is smaller than header");
+            break;
+        }
+
+        if (Length > SecurityDirectory->Size - Offset)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "certificate entry extends past directory");
+            break;
+        }
+
+        DWORD AlignedLength = (Length + 7) & ~7u;
+        if (AlignedLength < Length || AlignedLength > SecurityDirectory->Size - Offset)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "certificate alignment extends past directory");
+            break;
+        }
+
+        Offset += AlignedLength;
+        Count++;
+    }
+
+    ShowMessages("\n%-36s%u", "Certificate entry count :", Count);
+    if (Count == MaxCertificates)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, certificate cap reached :", MaxCertificates);
+    }
+}
+
+static VOID
+PeShowBaseRelocations(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * RelocDirectory)
+{
+    const DWORD MaxBlocks        = 0x10000;
+    const DWORD MaxEntries       = 0x100000;
+    const DWORD MaxPrintedBlocks = 0x20;
+    DWORD       TypeCounts[16]   = {0};
+    DWORD       BlockCount       = 0;
+    ULONGLONG   EntryCount       = 0;
+    BOOLEAN     EntryCapped      = FALSE;
+
+    ShowMessages("\n\nBase relocations\n----------------");
+
+    if (RelocDirectory->VirtualAddress == 0 || RelocDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Base relocation table :", "empty");
+        return;
+    }
+
+    DWORD Offset = 0;
+    while (Offset < RelocDirectory->Size && BlockCount < MaxBlocks && EntryCount < MaxEntries)
+    {
+        DWORD BlockRva = 0;
+        if (!PeAddDword(RelocDirectory->VirtualAddress, Offset, &BlockRva) || RelocDirectory->Size - Offset < sizeof(IMAGE_BASE_RELOCATION))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "relocation block header is truncated");
+            break;
+        }
+
+        const BYTE * BlockPointer = NULL;
+        if (!PeGetPointerAtRva(Reader, BlockRva, sizeof(IMAGE_BASE_RELOCATION), &BlockPointer))
+        {
+            ShowMessages("\n%-36s%#x", "Warning, invalid relocation block RVA :", BlockRva);
+            break;
+        }
+
+        DWORD PageRva     = PeReadDwordFromBuffer(BlockPointer, 0);
+        DWORD SizeOfBlock = PeReadDwordFromBuffer(BlockPointer, 4);
+
+        if (SizeOfBlock < sizeof(IMAGE_BASE_RELOCATION))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "relocation block size is smaller than header");
+            break;
+        }
+
+        if (SizeOfBlock > RelocDirectory->Size - Offset)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "relocation block extends past directory");
+            break;
+        }
+
+        if (((SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) & 1) != 0)
+        {
+            ShowMessages("\n%-36s%#x", "Warning, odd relocation block size :", SizeOfBlock);
+        }
+
+        DWORD EntriesInBlock = (SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(WORD);
+        if (BlockCount < MaxPrintedBlocks)
+        {
+            ShowMessages("\n[%u] page RVA %#x block size %#x entries %u", BlockCount, PageRva, SizeOfBlock, EntriesInBlock);
+        }
+
+        DWORD EntriesRva = 0;
+        if (!PeAddDword(BlockRva, sizeof(IMAGE_BASE_RELOCATION), &EntriesRva))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "relocation entries RVA overflow");
+            break;
+        }
+
+        const BYTE * Entries = NULL;
+        if (EntriesInBlock != 0 && !PeGetPointerAtRva(Reader, EntriesRva, EntriesInBlock * sizeof(WORD), &Entries))
+        {
+            ShowMessages("\n%-36s%#x", "Warning, invalid relocation entries RVA :", EntriesRva);
+            break;
+        }
+
+        for (DWORD EntryIndex = 0; EntryIndex < EntriesInBlock && EntryCount < MaxEntries; EntryIndex++)
+        {
+            WORD Entry = PeReadWordFromBuffer(Entries, EntryIndex * sizeof(WORD));
+            WORD Type  = (Entry >> 12) & 0xf;
+
+            TypeCounts[Type]++;
+            EntryCount++;
+            if (EntryCount == MaxEntries)
+            {
+                EntryCapped = TRUE;
+                break;
+            }
+
+            if (Type == IMAGE_REL_BASED_HIGHADJ)
+            {
+                if (EntryIndex + 1 >= EntriesInBlock)
+                {
+                    ShowMessages("\n%-36s%s", "Warning :", "HIGHADJ relocation is missing its pair entry");
+                }
+                else
+                {
+                    EntryIndex++;
+                    EntryCount++;
+                }
+            }
+        }
+
+        if (EntryCount == MaxEntries)
+        {
+            EntryCapped = TRUE;
+        }
+
+        Offset += SizeOfBlock;
+        BlockCount++;
+    }
+
+    ShowMessages("\n%-36s%u", "Relocation block count :", BlockCount);
+    ShowMessages("\n%-36s%llu", "Relocation entry count :", EntryCount);
+    for (DWORD Type = 0; Type < RTL_NUMBER_OF(TypeCounts); Type++)
+    {
+        if (TypeCounts[Type] != 0)
+        {
+            ShowMessages("\n%-36s%u = %u", "Relocation type count :", Type, TypeCounts[Type]);
+        }
+    }
+
+    if (BlockCount == MaxBlocks)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, relocation block cap reached :", MaxBlocks);
+    }
+    if (EntryCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, relocation entry cap reached :", MaxEntries);
+    }
+    if (BlockCount > MaxPrintedBlocks)
+    {
+        ShowMessages("\n%-36s%#x", "Info, printed relocation blocks :", MaxPrintedBlocks);
+    }
+}
+
+static VOID
+PeShowBoundImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * BoundImportDirectory)
+{
+    const DWORD MaxDescriptors = 0x1000;
+    const DWORD MaxNameLength  = 0x200;
+
+    ShowMessages("\n\nBound imports\n-------------");
+
+    if (BoundImportDirectory->VirtualAddress == 0 || BoundImportDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Bound import directory :", "empty");
+        return;
+    }
+
+    DWORD Offset          = 0;
+    DWORD DescriptorCount = 0;
+    while (Offset < BoundImportDirectory->Size && DescriptorCount < MaxDescriptors)
+    {
+        DWORD DescriptorRva = 0;
+        if (!PeAddDword(BoundImportDirectory->VirtualAddress, Offset, &DescriptorRva) || BoundImportDirectory->Size - Offset < sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "bound import descriptor is truncated");
+            break;
+        }
+
+        const BYTE * Descriptor = NULL;
+        if (!PeGetPointerAtRva(Reader, DescriptorRva, sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR), &Descriptor))
+        {
+            ShowMessages("\n%-36s%#x", "Warning, invalid bound descriptor RVA :", DescriptorRva);
+            break;
+        }
+
+        DWORD TimeDateStamp            = PeReadDwordFromBuffer(Descriptor, 0);
+        WORD  OffsetModuleName         = PeReadWordFromBuffer(Descriptor, 4);
+        WORD  NumberOfModuleForwarders = PeReadWordFromBuffer(Descriptor, 6);
+
+        if (TimeDateStamp == 0 && OffsetModuleName == 0 && NumberOfModuleForwarders == 0)
+        {
+            break;
+        }
+
+        CHAR                   ModuleName[MaxNameLength + 1] = {0};
+        PE_ASCII_STRING_STATUS NameStatus                    = PeReadAsciiStringInDirectory(Reader,
+                                                                                            BoundImportDirectory,
+                                                                                            OffsetModuleName,
+                                                                                            MaxNameLength,
+                                                                                            ModuleName,
+                                                                                            sizeof(ModuleName));
+
+        ShowMessages("\n[%u] module %s timestamp %#x forwarder refs %u",
+                     DescriptorCount,
+                     NameStatus == PeAsciiStringOk ? ModuleName : PeAsciiStatusName(NameStatus),
+                     TimeDateStamp,
+                     NumberOfModuleForwarders);
+
+        DWORD DescriptorSpan = sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR) + (NumberOfModuleForwarders * (DWORD)sizeof(IMAGE_BOUND_FORWARDER_REF));
+        if (DescriptorSpan > BoundImportDirectory->Size - Offset)
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "bound import forwarder refs extend past directory");
+            break;
+        }
+
+        for (WORD ForwarderIndex = 0; ForwarderIndex < NumberOfModuleForwarders; ForwarderIndex++)
+        {
+            DWORD ForwarderOffset = Offset + sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR) + (ForwarderIndex * (DWORD)sizeof(IMAGE_BOUND_FORWARDER_REF));
+            DWORD ForwarderRva    = 0;
+
+            if (!PeAddDword(BoundImportDirectory->VirtualAddress, ForwarderOffset, &ForwarderRva))
+            {
+                ShowMessages("\n%-36s%s", "Warning :", "bound forwarder RVA overflow");
+                break;
+            }
+
+            const BYTE * Forwarder = NULL;
+            if (!PeGetPointerAtRva(Reader, ForwarderRva, sizeof(IMAGE_BOUND_FORWARDER_REF), &Forwarder))
+            {
+                ShowMessages("\n%-36s%#x", "Warning, invalid bound forwarder RVA :", ForwarderRva);
+                break;
+            }
+
+            DWORD ForwarderTimeDateStamp           = PeReadDwordFromBuffer(Forwarder, 0);
+            WORD  ForwarderOffsetModuleName        = PeReadWordFromBuffer(Forwarder, 4);
+            CHAR  ForwarderName[MaxNameLength + 1] = {0};
+
+            PE_ASCII_STRING_STATUS ForwarderNameStatus = PeReadAsciiStringInDirectory(Reader,
+                                                                                      BoundImportDirectory,
+                                                                                      ForwarderOffsetModuleName,
+                                                                                      MaxNameLength,
+                                                                                      ForwarderName,
+                                                                                      sizeof(ForwarderName));
+            ShowMessages("\n    [%u] forwarder %s timestamp %#x",
+                         ForwarderIndex,
+                         ForwarderNameStatus == PeAsciiStringOk ? ForwarderName : PeAsciiStatusName(ForwarderNameStatus),
+                         ForwarderTimeDateStamp);
+        }
+
+        Offset += DescriptorSpan;
+        DescriptorCount++;
+    }
+
+    ShowMessages("\n%-36s%u", "Bound import descriptor count :", DescriptorCount);
+    if (DescriptorCount == MaxDescriptors)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, bound import cap reached :", MaxDescriptors);
+    }
+}
+
+static ULONGLONG
+PeFnv1a64(const BYTE * Data, DWORD Size)
+{
+    ULONGLONG Hash = 14695981039346656037ull;
+
+    for (DWORD Index = 0; Index < Size; Index++)
+    {
+        Hash ^= Data[Index];
+        Hash *= 1099511628211ull;
+    }
+
+    return Hash;
+}
+
+static double
+PeCalculateEntropy(const BYTE * Data, DWORD Size)
+{
+    DWORD  Counts[256] = {0};
+    double Entropy     = 0.0;
+
+    for (DWORD Index = 0; Index < Size; Index++)
+    {
+        Counts[Data[Index]]++;
+    }
+
+    for (DWORD Index = 0; Index < RTL_NUMBER_OF(Counts); Index++)
+    {
+        if (Counts[Index] != 0)
+        {
+            double Probability = (double)Counts[Index] / (double)Size;
+            Entropy -= Probability * (log(Probability) / log(2.0));
+        }
+    }
+
+    return Entropy;
+}
+
 static BOOLEAN
 PeReadWordAtRva(PPE_IMAGE_READER Reader, DWORD Rva, WORD * Value)
 {
@@ -369,6 +835,810 @@ PeReadThunkAtRva(PPE_IMAGE_READER Reader, DWORD Rva, BOOLEAN Is32Bit, ULONGLONG 
     }
 
     return TRUE;
+}
+
+static VOID
+PeShowResourceTypeCount(DWORD TypeId, DWORD Count)
+{
+    const CHAR * TypeName = NULL;
+
+    switch (TypeId)
+    {
+    case 1:
+        TypeName = "cursor";
+        break;
+    case 2:
+        TypeName = "bitmap";
+        break;
+    case 3:
+        TypeName = "icon";
+        break;
+    case 4:
+        TypeName = "menu";
+        break;
+    case 5:
+        TypeName = "dialog";
+        break;
+    case 6:
+        TypeName = "string";
+        break;
+    case 7:
+        TypeName = "font directory";
+        break;
+    case 8:
+        TypeName = "font";
+        break;
+    case 9:
+        TypeName = "accelerator";
+        break;
+    case 10:
+        TypeName = "rcdata";
+        break;
+    case 11:
+        TypeName = "message table";
+        break;
+    case 12:
+        TypeName = "group cursor";
+        break;
+    case 14:
+        TypeName = "group icon";
+        break;
+    case 16:
+        TypeName = "version";
+        break;
+    case 24:
+        TypeName = "manifest";
+        break;
+    default:
+        TypeName = NULL;
+        break;
+    }
+
+    if (TypeName != NULL)
+    {
+        ShowMessages("\n%-36s%s (%u) = %u", "Resource type count :", TypeName, TypeId, Count);
+    }
+}
+
+static VOID
+PeShowResources(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ResourceDirectory)
+{
+    const DWORD MaxDepth          = 8;
+    const DWORD MaxNodes          = 0x4000;
+    const DWORD MaxEntries        = 0x10000;
+    const DWORD MaxVisitedOffsets = 0x4000;
+
+    typedef struct _RESOURCE_NODE
+    {
+        DWORD Offset;
+        DWORD Depth;
+        DWORD TypeId;
+    } RESOURCE_NODE;
+
+    RESOURCE_NODE * Stack                  = NULL;
+    DWORD *         Visited                = NULL;
+    DWORD           StackCount             = 0;
+    DWORD           VisitedCount           = 0;
+    DWORD           TypeCounts[25]         = {0};
+    DWORD           DirectoryCount         = 0;
+    DWORD           EntryCount             = 0;
+    DWORD           DeclaredDataEntryCount = 0;
+    DWORD           MappedDataEntryCount   = 0;
+    DWORD           InvalidEntryCount      = 0;
+    DWORD           NamedRootTypeCount     = 0;
+    ULONGLONG       DeclaredDataBytes      = 0;
+    ULONGLONG       MappedDataBytes        = 0;
+    BOOLEAN         NodeCapReached         = FALSE;
+    BOOLEAN         EntryCapReached        = FALSE;
+
+    ShowMessages("\n\nResources\n---------");
+
+    if (ResourceDirectory->VirtualAddress == 0 || ResourceDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Resource directory :", "empty");
+        return;
+    }
+
+    if (ResourceDirectory->Size < 16)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "resource directory is smaller than one header");
+        return;
+    }
+
+    Stack   = new (std::nothrow) RESOURCE_NODE[MaxNodes];
+    Visited = new (std::nothrow) DWORD[MaxVisitedOffsets];
+
+    if (Stack == NULL || Visited == NULL)
+    {
+        ShowMessages("\n%-36s%s", "Resource directory :", "memory allocation failed");
+        delete[] Stack;
+        delete[] Visited;
+        return;
+    }
+
+    ZeroMemory(Stack, sizeof(RESOURCE_NODE) * MaxNodes);
+    ZeroMemory(Visited, sizeof(DWORD) * MaxVisitedOffsets);
+
+    Stack[StackCount].Offset = 0;
+    Stack[StackCount].Depth  = 0;
+    Stack[StackCount].TypeId = 0;
+    StackCount++;
+
+    while (StackCount != 0)
+    {
+        RESOURCE_NODE Node = Stack[--StackCount];
+
+        if (DirectoryCount >= MaxNodes)
+        {
+            NodeCapReached = TRUE;
+            break;
+        }
+
+        if (Node.Depth > MaxDepth)
+        {
+            InvalidEntryCount++;
+            continue;
+        }
+
+        BOOLEAN Seen = FALSE;
+        for (DWORD Index = 0; Index < VisitedCount; Index++)
+        {
+            if (Visited[Index] == Node.Offset)
+            {
+                Seen = TRUE;
+                break;
+            }
+        }
+
+        if (Seen)
+        {
+            InvalidEntryCount++;
+            continue;
+        }
+
+        if (VisitedCount < MaxVisitedOffsets)
+        {
+            Visited[VisitedCount++] = Node.Offset;
+        }
+        else
+        {
+            NodeCapReached = TRUE;
+            break;
+        }
+
+        DWORD DirectoryRva = 0;
+        if (!PeAddDword(ResourceDirectory->VirtualAddress, Node.Offset, &DirectoryRva) ||
+            Node.Offset > ResourceDirectory->Size || ResourceDirectory->Size - Node.Offset < 16)
+        {
+            InvalidEntryCount++;
+            continue;
+        }
+
+        const BYTE * Directory = NULL;
+        if (!PeGetPointerAtRva(Reader, DirectoryRva, 16, &Directory))
+        {
+            InvalidEntryCount++;
+            continue;
+        }
+
+        WORD  NamedEntries = PeReadWordFromBuffer(Directory, 12);
+        WORD  IdEntries    = PeReadWordFromBuffer(Directory, 14);
+        DWORD EntryTotal   = (DWORD)NamedEntries + (DWORD)IdEntries;
+        DWORD EntryBytes   = 0;
+
+        if (EntryTotal > (MAXDWORD - 16) / 8 || !PeAddDword(16, EntryTotal * 8, &EntryBytes) ||
+            EntryBytes > ResourceDirectory->Size - Node.Offset)
+        {
+            InvalidEntryCount++;
+            continue;
+        }
+
+        DirectoryCount++;
+
+        const BYTE * Entries = NULL;
+        if (EntryTotal != 0 && !PeGetPointerAtRva(Reader, DirectoryRva, EntryBytes, &Entries))
+        {
+            InvalidEntryCount++;
+            continue;
+        }
+
+        for (DWORD EntryIndex = 0; EntryIndex < EntryTotal; EntryIndex++)
+        {
+            if (EntryCount >= MaxEntries)
+            {
+                EntryCapReached = TRUE;
+                break;
+            }
+
+            const BYTE * Entry        = Entries + 16 + (EntryIndex * 8);
+            DWORD        NameOrId     = PeReadDwordFromBuffer(Entry, 0);
+            DWORD        OffsetToData = PeReadDwordFromBuffer(Entry, 4);
+            DWORD        ChildOffset  = OffsetToData & 0x7fffffff;
+            DWORD        TypeId       = Node.TypeId;
+
+            EntryCount++;
+
+            if ((NameOrId & 0x80000000) != 0)
+            {
+                DWORD StringOffset = NameOrId & 0x7fffffff;
+                DWORD StringRva    = 0;
+
+                if (StringOffset > ResourceDirectory->Size || ResourceDirectory->Size - StringOffset < sizeof(WORD) ||
+                    !PeAddDword(ResourceDirectory->VirtualAddress, StringOffset, &StringRva))
+                {
+                    InvalidEntryCount++;
+                }
+                else
+                {
+                    const BYTE * String = NULL;
+                    if (!PeGetPointerAtRva(Reader, StringRva, sizeof(WORD), &String))
+                    {
+                        InvalidEntryCount++;
+                    }
+                    else
+                    {
+                        WORD  StringLength = PeReadWordFromBuffer(String, 0);
+                        DWORD StringBytes  = (DWORD)sizeof(WORD) + ((DWORD)StringLength * sizeof(WCHAR));
+
+                        if (StringBytes > ResourceDirectory->Size - StringOffset || !PeGetPointerAtRva(Reader, StringRva, StringBytes, &String))
+                        {
+                            InvalidEntryCount++;
+                        }
+                    }
+                }
+                if (Node.Depth == 0)
+                {
+                    NamedRootTypeCount++;
+                }
+            }
+            else if (Node.Depth == 0)
+            {
+                TypeId = NameOrId & 0xffff;
+                if (TypeId < RTL_NUMBER_OF(TypeCounts))
+                {
+                    TypeCounts[TypeId]++;
+                }
+            }
+
+            if ((OffsetToData & 0x80000000) != 0)
+            {
+                if (ChildOffset > ResourceDirectory->Size || ResourceDirectory->Size - ChildOffset < 16 || Node.Depth + 1 > MaxDepth)
+                {
+                    InvalidEntryCount++;
+                    continue;
+                }
+
+                if (StackCount >= MaxNodes)
+                {
+                    NodeCapReached = TRUE;
+                    continue;
+                }
+
+                Stack[StackCount].Offset = ChildOffset;
+                Stack[StackCount].Depth  = Node.Depth + 1;
+                Stack[StackCount].TypeId = TypeId;
+                StackCount++;
+            }
+            else
+            {
+                DWORD DataEntryRva = 0;
+                if (ChildOffset > ResourceDirectory->Size || ResourceDirectory->Size - ChildOffset < 16 ||
+                    !PeAddDword(ResourceDirectory->VirtualAddress, ChildOffset, &DataEntryRva))
+                {
+                    InvalidEntryCount++;
+                    continue;
+                }
+
+                const BYTE * DataEntry = NULL;
+                if (!PeGetPointerAtRva(Reader, DataEntryRva, 16, &DataEntry))
+                {
+                    InvalidEntryCount++;
+                    continue;
+                }
+
+                DWORD DataRva  = PeReadDwordFromBuffer(DataEntry, 0);
+                DWORD DataSize = PeReadDwordFromBuffer(DataEntry, 4);
+
+                BOOLEAN PayloadMapped = TRUE;
+                if (DataSize != 0)
+                {
+                    const BYTE * Payload = NULL;
+                    if (!PeGetPointerAtRva(Reader, DataRva, DataSize, &Payload))
+                    {
+                        InvalidEntryCount++;
+                        PayloadMapped = FALSE;
+                    }
+                }
+
+                DeclaredDataBytes += DataSize;
+                DeclaredDataEntryCount++;
+                if (PayloadMapped)
+                {
+                    MappedDataBytes += DataSize;
+                    MappedDataEntryCount++;
+                }
+            }
+        }
+
+        if (EntryCapReached)
+        {
+            break;
+        }
+    }
+
+    ShowMessages("\n%-36s%u", "Resource directory count :", DirectoryCount);
+    ShowMessages("\n%-36s%u", "Resource entry count :", EntryCount);
+    ShowMessages("\n%-36s%u", "Resource declared data entries :", DeclaredDataEntryCount);
+    ShowMessages("\n%-36s%u", "Resource mapped data entries :", MappedDataEntryCount);
+    ShowMessages("\n%-36s%u", "Resource invalid entry count :", InvalidEntryCount);
+    ShowMessages("\n%-36s%u", "Resource named root types :", NamedRootTypeCount);
+    ShowMessages("\n%-36s%#llx", "Resource declared data bytes :", DeclaredDataBytes);
+    ShowMessages("\n%-36s%#llx", "Resource mapped data bytes :", MappedDataBytes);
+
+    for (DWORD TypeId = 0; TypeId < RTL_NUMBER_OF(TypeCounts); TypeId++)
+    {
+        if (TypeCounts[TypeId] != 0)
+        {
+            PeShowResourceTypeCount(TypeId, TypeCounts[TypeId]);
+        }
+    }
+
+    if (NodeCapReached)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, resource node cap reached :", MaxNodes);
+    }
+    if (EntryCapReached)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, resource entry cap reached :", MaxEntries);
+    }
+
+    delete[] Stack;
+    delete[] Visited;
+}
+
+static VOID
+PeShowExceptions(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ExceptionDirectory, WORD Machine, BOOLEAN Is32Bit)
+{
+    const DWORD RuntimeFunctionSize = 12;
+    const DWORD MaxEntries          = 0x100000;
+    const DWORD MaxPrintedEntries   = 0x20;
+    const DWORD MaxWarnings         = 8;
+
+    ShowMessages("\n\nExceptions\n----------");
+
+    if (ExceptionDirectory->VirtualAddress == 0 || ExceptionDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Exception directory :", "empty");
+        return;
+    }
+
+    if (Machine != IMAGE_FILE_MACHINE_AMD64 || Is32Bit)
+    {
+        ShowMessages("\n%-36s%s", "Exception directory :", "present, x64 runtime-function decoding skipped for this machine");
+        ShowMessages("\n%-36s%#x", "Raw exception directory size :", ExceptionDirectory->Size);
+        return;
+    }
+
+    if (ExceptionDirectory->Size < RuntimeFunctionSize)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "exception directory is smaller than one runtime function entry");
+        return;
+    }
+
+    if ((ExceptionDirectory->Size % RuntimeFunctionSize) != 0)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, malformed exception size :", ExceptionDirectory->Size);
+    }
+
+    DWORD   EntryCount         = ExceptionDirectory->Size / RuntimeFunctionSize;
+    BOOLEAN EntryCapped        = FALSE;
+    DWORD   RangeWarnings      = 0;
+    DWORD   UnwindWarnings     = 0;
+    DWORD   SkippedNullEntries = 0;
+    DWORD   PrintedEntries     = 0;
+    if (EntryCount > MaxEntries)
+    {
+        EntryCount  = MaxEntries;
+        EntryCapped = TRUE;
+    }
+
+    ShowMessages("\n%-36s%u", "Runtime function count :", EntryCount);
+
+    for (DWORD EntryIndex = 0; EntryIndex < EntryCount; EntryIndex++)
+    {
+        DWORD EntryRva = 0;
+        if (!PeAddDword(ExceptionDirectory->VirtualAddress, EntryIndex * RuntimeFunctionSize, &EntryRva))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "runtime function entry RVA overflow");
+            break;
+        }
+
+        const BYTE * Entry = NULL;
+        if (!PeGetPointerAtRva(Reader, EntryRva, RuntimeFunctionSize, &Entry))
+        {
+            ShowMessages("\n%-36s%#x", "Warning, invalid runtime entry RVA :", EntryRva);
+            break;
+        }
+
+        DWORD BeginAddress = PeReadDwordFromBuffer(Entry, 0);
+        DWORD EndAddress   = PeReadDwordFromBuffer(Entry, 4);
+        DWORD UnwindRva    = PeReadDwordFromBuffer(Entry, 8);
+
+        if (BeginAddress == 0 && EndAddress == 0 && UnwindRva == 0)
+        {
+            SkippedNullEntries++;
+            continue;
+        }
+
+        if (BeginAddress >= EndAddress)
+        {
+            if (RangeWarnings < MaxWarnings && PrintedEntries < MaxPrintedEntries)
+            {
+                ShowMessages("\n%-36s%u", "Warning, invalid runtime range index :", EntryIndex);
+            }
+            RangeWarnings++;
+        }
+
+        const BYTE * Unwind       = NULL;
+        BOOLEAN      UnwindMapped = UnwindRva != 0 && PeGetPointerAtRva(Reader, UnwindRva, 4, &Unwind);
+        if (!UnwindMapped)
+        {
+            if (UnwindWarnings < MaxWarnings && PrintedEntries < MaxPrintedEntries)
+            {
+                ShowMessages("\n%-36s%#x", "Warning, invalid unwind RVA :", UnwindRva);
+            }
+            UnwindWarnings++;
+        }
+
+        if (PrintedEntries < MaxPrintedEntries)
+        {
+            if (UnwindMapped)
+            {
+                BYTE VersionAndFlags = PeReadByteFromBuffer(Unwind, 0);
+                BYTE Frame           = PeReadByteFromBuffer(Unwind, 3);
+
+                ShowMessages("\n[%u] begin %#x end %#x unwind %#x version %u flags %#x prolog %#x codes %u frame reg %u frame off %u",
+                             EntryIndex,
+                             BeginAddress,
+                             EndAddress,
+                             UnwindRva,
+                             VersionAndFlags & 0x7,
+                             VersionAndFlags >> 3,
+                             PeReadByteFromBuffer(Unwind, 1),
+                             PeReadByteFromBuffer(Unwind, 2),
+                             Frame & 0xf,
+                             Frame >> 4);
+            }
+            else
+            {
+                ShowMessages("\n[%u] begin %#x end %#x unwind %#x", EntryIndex, BeginAddress, EndAddress, UnwindRva);
+            }
+            PrintedEntries++;
+        }
+    }
+
+    if (EntryCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, exception entry cap reached :", MaxEntries);
+    }
+    if (EntryCount > MaxPrintedEntries)
+    {
+        ShowMessages("\n%-36s%u", "Info, printed exception entries :", PrintedEntries);
+    }
+    if (SkippedNullEntries != 0)
+    {
+        ShowMessages("\n%-36s%u", "Info, skipped null runtime entries :", SkippedNullEntries);
+    }
+    if (RangeWarnings > MaxWarnings)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, invalid range warnings shown :", MaxWarnings);
+    }
+    if (UnwindWarnings > MaxWarnings)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, invalid unwind warnings shown :", MaxWarnings);
+    }
+}
+
+static BOOLEAN
+PeResolveDelayImportAddress(ULONGLONG Address, BOOLEAN UsesRva, ULONGLONG ImageBase, DWORD * Rva)
+{
+    if (Rva == NULL)
+    {
+        return FALSE;
+    }
+
+    if (UsesRva)
+    {
+        if (Address > MAXDWORD)
+        {
+            return FALSE;
+        }
+
+        *Rva = (DWORD)Address;
+        return TRUE;
+    }
+
+    return PeVaToRva(Address, ImageBase, Rva);
+}
+
+static VOID
+PeShowDelayImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DelayImportDirectory, BOOLEAN Is32Bit, ULONGLONG ImageBase)
+{
+    const DWORD MaxDescriptors      = 0x1000;
+    const DWORD MaxTotalImports     = 0x2000;
+    const DWORD MaxDllNameLength    = 0x200;
+    const DWORD MaxImportNameLength = 0x200;
+    const DWORD DescriptorSize      = 32;
+
+    ShowMessages("\n\nDelay imports\n-------------");
+
+    if (DelayImportDirectory->VirtualAddress == 0 || DelayImportDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Delay import directory :", "empty");
+        return;
+    }
+
+    if (DelayImportDirectory->Size < DescriptorSize)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "delay import directory is smaller than one descriptor");
+        return;
+    }
+
+    DWORD DescriptorCount = DelayImportDirectory->Size / DescriptorSize;
+    if ((DelayImportDirectory->Size % DescriptorSize) != 0)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, malformed delay import size :", DelayImportDirectory->Size);
+    }
+
+    BOOLEAN DescriptorCapped = FALSE;
+    if (DescriptorCount > MaxDescriptors)
+    {
+        DescriptorCount  = MaxDescriptors;
+        DescriptorCapped = TRUE;
+    }
+
+    DWORD   TotalImports       = 0;
+    BOOLEAN FoundTerminator    = FALSE;
+    BOOLEAN TotalImportsCapped = FALSE;
+
+    for (DWORD DescriptorIndex = 0; DescriptorIndex < DescriptorCount; DescriptorIndex++)
+    {
+        DWORD DescriptorRva = 0;
+        if (!PeAddDword(DelayImportDirectory->VirtualAddress, DescriptorIndex * DescriptorSize, &DescriptorRva))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "delay import descriptor RVA overflow");
+            break;
+        }
+
+        const BYTE * Descriptor = NULL;
+        if (!PeGetPointerAtRva(Reader, DescriptorRva, DescriptorSize, &Descriptor))
+        {
+            ShowMessages("\n%-36s%#x", "Warning, invalid delay descriptor RVA :", DescriptorRva);
+            break;
+        }
+
+        DWORD Attributes     = PeReadDwordFromBuffer(Descriptor, 0);
+        DWORD NameValue      = PeReadDwordFromBuffer(Descriptor, 4);
+        DWORD IatValue       = PeReadDwordFromBuffer(Descriptor, 12);
+        DWORD IntValue       = PeReadDwordFromBuffer(Descriptor, 16);
+        DWORD BoundIatValue  = PeReadDwordFromBuffer(Descriptor, 20);
+        DWORD UnloadIatValue = PeReadDwordFromBuffer(Descriptor, 24);
+        DWORD TimeDateStamp  = PeReadDwordFromBuffer(Descriptor, 28);
+
+        if (Attributes == 0 && NameValue == 0 && PeReadDwordFromBuffer(Descriptor, 8) == 0 && IatValue == 0 && IntValue == 0 &&
+            BoundIatValue == 0 && UnloadIatValue == 0 && TimeDateStamp == 0)
+        {
+            FoundTerminator = TRUE;
+            break;
+        }
+
+        BOOLEAN UsesRva        = (Attributes & 1) != 0;
+        DWORD   NameRva        = 0;
+        DWORD   LookupThunkRva = 0;
+        DWORD   IatThunkRva    = 0;
+
+        if (!UsesRva)
+        {
+            ShowMessages("\n%-36s%s", "Info :", "delay import descriptor uses VA fields");
+        }
+
+        if (!PeResolveDelayImportAddress(NameValue, UsesRva, ImageBase, &NameRva))
+        {
+            ShowMessages("\n[%u] DLL name %s", DescriptorIndex, "invalid VA/RVA");
+            ShowMessages("\n%-36s%s", "Warning :", "skipping delay imports for descriptor with unreadable DLL name");
+            continue;
+        }
+
+        CHAR                   DllName[MaxDllNameLength + 1] = {0};
+        PE_ASCII_STRING_STATUS DllNameStatus                 = PeReadAsciiStringAtRva(Reader,
+                                                                                      NameRva,
+                                                                                      MaxDllNameLength,
+                                                                                      DllName,
+                                                                                      sizeof(DllName));
+        if (DllNameStatus != PeAsciiStringOk)
+        {
+            ShowMessages("\n[%u] DLL name %s", DescriptorIndex, PeAsciiStatusName(DllNameStatus));
+            ShowMessages("\n%-36s%s", "Warning :", "skipping delay imports for descriptor with unreadable DLL name");
+            continue;
+        }
+
+        ShowMessages("\n[%u] DLL name %s attributes %#x timestamp %#x", DescriptorIndex, DllName, Attributes, TimeDateStamp);
+
+        if (!PeResolveDelayImportAddress(IntValue != 0 ? IntValue : IatValue, UsesRva, ImageBase, &LookupThunkRva) ||
+            !PeResolveDelayImportAddress(IatValue, UsesRva, ImageBase, &IatThunkRva))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "delay import thunk VA/RVA is invalid");
+            continue;
+        }
+
+        DWORD ThunkSize = Is32Bit ? sizeof(DWORD) : sizeof(ULONGLONG);
+        for (DWORD ThunkIndex = 0; TotalImports < MaxTotalImports; ThunkIndex++)
+        {
+            DWORD LookupEntryRva = 0;
+            DWORD IatEntryRva    = 0;
+            if (!PeAddDword(LookupThunkRva, ThunkIndex * ThunkSize, &LookupEntryRva) ||
+                !PeAddDword(IatThunkRva, ThunkIndex * ThunkSize, &IatEntryRva))
+            {
+                ShowMessages("\n%-36s%s", "Warning :", "delay import thunk RVA overflow");
+                break;
+            }
+
+            ULONGLONG ThunkValue = 0;
+            if (!PeReadThunkAtRva(Reader, LookupEntryRva, Is32Bit, &ThunkValue))
+            {
+                ShowMessages("\n%-36s%#x", "Warning, invalid delay thunk RVA :", LookupEntryRva);
+                break;
+            }
+
+            if (ThunkValue == 0)
+            {
+                break;
+            }
+
+            ULONGLONG OrdinalFlag = Is32Bit ? IMAGE_ORDINAL_FLAG32 : IMAGE_ORDINAL_FLAG64;
+            if ((ThunkValue & OrdinalFlag) != 0)
+            {
+                ShowMessages("\n    [%u] ordinal %u thunk RVA %#x", ThunkIndex, (UINT32)(ThunkValue & 0xffff), IatEntryRva);
+                TotalImports++;
+                continue;
+            }
+
+            DWORD NameRvaFromThunk = 0;
+            if (!PeResolveDelayImportAddress(ThunkValue, UsesRva, ImageBase, &NameRvaFromThunk))
+            {
+                ShowMessages("\n%-36s%#llx", "Warning, invalid delay import name VA/RVA :", (UINT64)ThunkValue);
+                TotalImports++;
+                continue;
+            }
+
+            WORD Hint = 0;
+            if (!PeReadWordAtRva(Reader, NameRvaFromThunk, &Hint))
+            {
+                ShowMessages("\n%-36s%#x", "Warning, invalid delay import hint RVA :", NameRvaFromThunk);
+                TotalImports++;
+                continue;
+            }
+
+            DWORD ImportNameRva = 0;
+            if (!PeAddDword(NameRvaFromThunk, sizeof(WORD), &ImportNameRva))
+            {
+                ShowMessages("\n%-36s%#x", "Warning, invalid delay import name RVA :", NameRvaFromThunk);
+                TotalImports++;
+                continue;
+            }
+
+            CHAR                   ImportName[MaxImportNameLength + 1] = {0};
+            PE_ASCII_STRING_STATUS ImportNameStatus                    = PeReadAsciiStringAtRva(Reader,
+                                                                                                ImportNameRva,
+                                                                                                MaxImportNameLength,
+                                                                                                ImportName,
+                                                                                                sizeof(ImportName));
+            if (ImportNameStatus != PeAsciiStringOk)
+            {
+                ShowMessages("\n%-36s%#x, %s", "Warning, invalid delay import name RVA :", ImportNameRva, PeAsciiStatusName(ImportNameStatus));
+                TotalImports++;
+                continue;
+            }
+
+            ShowMessages("\n    [%u] hint %#x name %s thunk RVA %#x", ThunkIndex, Hint, ImportName, IatEntryRva);
+            TotalImports++;
+        }
+
+        if (TotalImports >= MaxTotalImports)
+        {
+            TotalImportsCapped = TRUE;
+            break;
+        }
+    }
+
+    if (!FoundTerminator)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "delay import descriptor terminator not found before bounds or cap");
+    }
+    if (DescriptorCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, delay descriptor cap reached :", MaxDescriptors);
+    }
+    if (TotalImportsCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, delay import cap reached :", MaxTotalImports);
+    }
+}
+
+static VOID
+PeShowClrDirectoryBounds(PPE_IMAGE_READER Reader, const BYTE * Header, DWORD AvailableSize, SIZE_T Offset, const CHAR * Label)
+{
+    if (Offset > AvailableSize || sizeof(IMAGE_DATA_DIRECTORY) > AvailableSize - Offset)
+    {
+        return;
+    }
+
+    DWORD Rva  = PeReadDwordFromBuffer(Header, Offset);
+    DWORD Size = PeReadDwordFromBuffer(Header, Offset + sizeof(DWORD));
+
+    ShowMessages("\n%-36sRVA %#x size %#x", Label, Rva, Size);
+    if (Rva != 0 && Size != 0)
+    {
+        const BYTE * Pointer = NULL;
+        ShowMessages(", %s", PeGetPointerAtRva(Reader, Rva, Size, &Pointer) ? "mapped" : "not mapped");
+    }
+}
+
+static VOID
+PeShowClrRuntime(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ClrDirectory)
+{
+    ShowMessages("\n\nCLR runtime\n-----------");
+
+    if (ClrDirectory->VirtualAddress == 0 || ClrDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "CLR runtime header :", "empty");
+        return;
+    }
+
+    if (ClrDirectory->Size < 0x48)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "CLR runtime header is smaller than required fields");
+        return;
+    }
+
+    const BYTE * Header = NULL;
+    if (!PeGetPointerAtRva(Reader, ClrDirectory->VirtualAddress, 0x48, &Header))
+    {
+        ShowMessages("\n%-36s%s", "CLR runtime header :", "not mapped");
+        return;
+    }
+
+    DWORD HeaderSize    = PeReadDwordFromBuffer(Header, 0);
+    DWORD AvailableSize = ClrDirectory->Size < HeaderSize ? ClrDirectory->Size : HeaderSize;
+
+    ShowMessages("\n%-36s%#x", "Header size :", HeaderSize);
+    if (HeaderSize < 0x48 || AvailableSize < 0x48)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "CLR runtime header is truncated");
+        return;
+    }
+
+    if (!PeGetPointerAtRva(Reader, ClrDirectory->VirtualAddress, AvailableSize, &Header))
+    {
+        ShowMessages("\n%-36s%s", "CLR runtime header :", "invalid bounds");
+        return;
+    }
+
+    WORD  MajorRuntimeVersion = PeReadWordFromBuffer(Header, 4);
+    WORD  MinorRuntimeVersion = PeReadWordFromBuffer(Header, 6);
+    DWORD Flags               = PeReadDwordFromBuffer(Header, 16);
+    DWORD EntryPoint          = PeReadDwordFromBuffer(Header, 20);
+
+    ShowMessages("\n%-36s%u.%u", "Runtime version :", MajorRuntimeVersion, MinorRuntimeVersion);
+    PeShowClrDirectoryBounds(Reader, Header, AvailableSize, 8, "Metadata directory :");
+    ShowMessages("\n%-36s%#x", "Flags :", Flags);
+    ShowMessages("\n%-36s%#x (%s)", "Entry point token/RVA :", EntryPoint, (Flags & 0x10) != 0 ? "native RVA" : "managed token");
+    PeShowClrDirectoryBounds(Reader, Header, AvailableSize, 24, "Resources directory :");
+    PeShowClrDirectoryBounds(Reader, Header, AvailableSize, 32, "Strong name directory :");
+    PeShowClrDirectoryBounds(Reader, Header, AvailableSize, 40, "Code manager table :");
+    PeShowClrDirectoryBounds(Reader, Header, AvailableSize, 48, "VTable fixups :");
+    PeShowClrDirectoryBounds(Reader, Header, AvailableSize, 56, "Export address table jumps :");
+    PeShowClrDirectoryBounds(Reader, Header, AvailableSize, 64, "Managed native header :");
 }
 
 static VOID
@@ -568,6 +1838,11 @@ PeShowDebug(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DebugDirectory
         return;
     }
 
+    if ((DebugDirectory->Size % sizeof(IMAGE_DEBUG_DIRECTORY)) != 0)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, malformed debug size :", DebugDirectory->Size);
+    }
+
     BOOLEAN EntryCapped = FALSE;
     if (EntryCount > MaxDebugEntries)
     {
@@ -644,6 +1919,100 @@ PeShowLoadConfigPointer(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset,
 }
 
 static VOID
+PeShowLoadConfigCount(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset, const CHAR * Label, BOOLEAN Is32Bit)
+{
+    SIZE_T FieldSize = Is32Bit ? sizeof(DWORD) : sizeof(ULONGLONG);
+
+    if (PeLoadConfigHasField(AvailableSize, Offset, FieldSize))
+    {
+        ShowMessages("\n%-36s%llu", Label, PeReadLoadConfigPointer(Config, Offset, Is32Bit));
+    }
+}
+
+static VOID
+PeShowLoadConfigGuardFlags(DWORD GuardFlags)
+{
+    BOOLEAN AnyFlag   = FALSE;
+    DWORD   KnownMask = 0;
+
+    struct GUARD_FLAG_NAME
+    {
+        DWORD        Flag;
+        const char * Name;
+    };
+
+    static const GUARD_FLAG_NAME GuardFlagNames[] = {
+        {0x00000100, "CF instrumented"},
+        {0x00000200, "CFW instrumented"},
+        {0x00000400, "CF function table present"},
+        {0x00000800, "Security cookie unused"},
+        {0x00001000, "Protect delayed load IAT"},
+        {0x00002000, "Delayed load IAT in its own section"},
+        {0x00004000, "Export suppression info present"},
+        {0x00008000, "Enable export suppression"},
+        {0x00010000, "Long jump table present"},
+        {0x00020000, "RF instrumented"},
+        {0x00040000, "RF enable"},
+        {0x00080000, "RF strict"},
+        {0x00100000, "Retpoline present"},
+        {0x00200000, "EH continuation table present"},
+        {0x00400000, "XFG enabled"},
+        {0x00800000, "CastGuard present"},
+        {0x01000000, "Memcpy function present"},
+    };
+
+    for (UINT32 Index = 0; Index < RTL_NUMBER_OF(GuardFlagNames); Index++)
+    {
+        KnownMask |= GuardFlagNames[Index].Flag;
+        if ((GuardFlags & GuardFlagNames[Index].Flag) == GuardFlagNames[Index].Flag)
+        {
+            ShowMessages("%s%s", AnyFlag ? ", " : "", GuardFlagNames[Index].Name);
+            AnyFlag = TRUE;
+        }
+    }
+
+    if (!AnyFlag)
+    {
+        ShowMessages(GuardFlags == 0 ? "None" : "No known guard flags");
+    }
+
+    DWORD UnknownMask = GuardFlags & ~KnownMask;
+    if (UnknownMask != 0)
+    {
+        ShowMessages(", unknown mask %#x", UnknownMask);
+    }
+}
+
+static VOID
+PeShowLoadConfigModernFields(const BYTE * Config, DWORD AvailableSize, BOOLEAN Is32Bit)
+{
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 104 : 160, "Guard address-taken IAT table :", Is32Bit);
+    PeShowLoadConfigCount(Config, AvailableSize, Is32Bit ? 108 : 168, "Guard address-taken IAT count :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 112 : 176, "Guard long jump target table :", Is32Bit);
+    PeShowLoadConfigCount(Config, AvailableSize, Is32Bit ? 116 : 184, "Guard long jump target count :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 120 : 192, "Dynamic value reloc table :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 124 : 200, "CHPE metadata pointer :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 128 : 208, "Guard RF failure routine :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 132 : 216, "Guard RF failure routine ptr :", Is32Bit);
+    PeShowLoadConfigDword(Config, AvailableSize, Is32Bit ? 136 : 224, "Dynamic value reloc offset :");
+    if (PeLoadConfigHasField(AvailableSize, Is32Bit ? 140 : 228, sizeof(WORD)))
+    {
+        ShowMessages("\n%-36s%#x", "Dynamic value reloc section :", PeReadWordFromBuffer(Config, Is32Bit ? 140 : 228));
+    }
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 144 : 232, "Guard RF verify stack ptr :", Is32Bit);
+    PeShowLoadConfigDword(Config, AvailableSize, Is32Bit ? 148 : 240, "Hot patch table offset :");
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 156 : 248, "Enclave config pointer :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 160 : 256, "Volatile metadata pointer :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 164 : 264, "Guard EH continuation table :", Is32Bit);
+    PeShowLoadConfigCount(Config, AvailableSize, Is32Bit ? 168 : 272, "Guard EH continuation count :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 172 : 280, "Guard XFG check pointer :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 176 : 288, "Guard XFG dispatch pointer :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 180 : 296, "Guard XFG table dispatch ptr :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 184 : 304, "CastGuard failure mode :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 188 : 312, "Guard memcpy pointer :", Is32Bit);
+}
+
+static VOID
 PeShowLoadConfig(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * LoadConfigDirectory, BOOLEAN Is32Bit)
 {
     ShowMessages("\n\nLoad config\n-----------");
@@ -702,12 +2071,19 @@ PeShowLoadConfig(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * LoadConfi
     PeShowLoadConfigDword(Config, AvailableSize, Is32Bit ? 44 : 72, "Process heap flags :");
     PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 60 : 88, "Security cookie :", Is32Bit);
     PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 64 : 96, "SE handler table :", Is32Bit);
-    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 68 : 104, "SE handler count :", Is32Bit);
+    PeShowLoadConfigCount(Config, AvailableSize, Is32Bit ? 68 : 104, "SE handler count :", Is32Bit);
     PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 72 : 112, "Guard CF check pointer :", Is32Bit);
     PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 76 : 120, "Guard CF dispatch pointer :", Is32Bit);
     PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 80 : 128, "Guard CF function table :", Is32Bit);
-    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 84 : 136, "Guard CF function count :", Is32Bit);
+    PeShowLoadConfigCount(Config, AvailableSize, Is32Bit ? 84 : 136, "Guard CF function count :", Is32Bit);
     PeShowLoadConfigDword(Config, AvailableSize, Is32Bit ? 88 : 144, "Guard flags :");
+    if (PeLoadConfigHasField(AvailableSize, Is32Bit ? 88 : 144, sizeof(DWORD)))
+    {
+        DWORD GuardFlags = PeReadDwordFromBuffer(Config, Is32Bit ? 88 : 144);
+        ShowMessages("\n%-36s", "Guard flag names :");
+        PeShowLoadConfigGuardFlags(GuardFlags);
+    }
+    PeShowLoadConfigModernFields(Config, AvailableSize, Is32Bit);
 }
 
 static VOID
@@ -772,7 +2148,7 @@ PeShowDataDirectories(PPE_IMAGE_READER             Reader,
 
         if (PeImageReaderRvaToFileOffset(Reader, Directory->VirtualAddress, Directory->Size, &FileOffset))
         {
-            ShowMessages("\n[%2u] %-27s RVA %#x, size %#x, mapped, mapped file offset %#llx",
+            ShowMessages("\n[%2u] %-27s RVA %#x, size %#x, mapped file offset %#llx",
                          Index,
                          Name,
                          Directory->VirtualAddress,
@@ -1163,7 +2539,7 @@ PeShowImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ImportDirect
 
     if (!FoundTerminator)
     {
-        ShowMessages("\n%-36s%s", "Warning :", "import descriptor terminator not found before bound or cap");
+        ShowMessages("\n%-36s%s", "Warning :", "import descriptor terminator not found before bounds or cap");
     }
 
     if (DescriptorCapped)
@@ -1428,38 +2804,51 @@ PeShowExports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ExportDirect
  * This function searches for the "Rich" signature string within the DOS stub area.
  *
  * @param DosHeader Pointer to the DOS header structure of the PE file
- * @param Key       Output buffer to store the 4-byte XOR key found after "Rich" signature
+ * @param SearchSize Capped number of bytes to search
+ * @param StartOffset Offset to start searching from
+ * @param Key Output buffer to store the 4-byte XOR key found after "Rich" signature
  *
  * @note The Rich header is located between the DOS header and PE header
  * @note The XOR key is used to decode the actual Rich header entries
  **/
-INT
-FindRichHeader(PIMAGE_DOS_HEADER DosHeader, DWORD FileSize, CHAR Key[])
+static INT
+FindRichHeader(PIMAGE_DOS_HEADER DosHeader, DWORD SearchSize, DWORD StartOffset, CHAR Key[])
 {
-    //
-    // Get base address for offset calculations
-    //
-    CHAR * BaseAddr = (CHAR *)DosHeader;
+    if (DosHeader == NULL || Key == NULL)
+    {
+        return -1;
+    }
 
     //
     // Get PE header offset - this defines our search boundary
     //
-    DWORD Offset = DosHeader->e_lfanew;
+    LONG Offset = DosHeader->e_lfanew;
 
-    if (FileSize < sizeof(IMAGE_DOS_HEADER) ||
+    if (SearchSize < sizeof(IMAGE_DOS_HEADER) ||
         DosHeader->e_magic != IMAGE_DOS_SIGNATURE ||
-        Offset < sizeof(IMAGE_DOS_HEADER) ||
-        Offset > FileSize ||
+        Offset < (LONG)sizeof(IMAGE_DOS_HEADER) ||
         Offset < 8)
     {
-        return 0;
+        return -1;
+    }
+
+    CHAR * BaseAddr    = (CHAR *)DosHeader;
+    DWORD  SearchLimit = (DWORD)Offset;
+    if (SearchLimit > SearchSize)
+    {
+        SearchLimit = SearchSize;
+    }
+
+    if (StartOffset + 8 < StartOffset || StartOffset + 8 > SearchLimit)
+    {
+        return -1;
     }
 
     //
     // Search for "Rich" signature
-    // We stop 4 bytes before the PE header to avoid reading beyond bounds
+    // We need 4 bytes for "Rich" and 4 bytes for the key before the PE header.
     //
-    for (DWORD i = 0; i < Offset - 4; ++i)
+    for (DWORD i = StartOffset; i + 8 <= SearchLimit; ++i)
     {
         //
         // Check for "Rich" signature (4 ASCII bytes)
@@ -1484,7 +2873,7 @@ FindRichHeader(PIMAGE_DOS_HEADER DosHeader, DWORD FileSize, CHAR Key[])
     //
     // Rich header signature not found
     //
-    return 0;
+    return -1;
 }
 
 /**
@@ -1504,12 +2893,25 @@ FindRichHeader(PIMAGE_DOS_HEADER DosHeader, DWORD FileSize, CHAR Key[])
  * @note Each entry represents one compilation tool (compiler, linker, assembler, etc.)
  *
  */
-VOID
+static BOOLEAN
 FindRichEntries(CHAR *            RichHeaderPtr,
                 INT               RichHeaderSize,
                 CHAR              Key[],
                 PRICH_HEADER_INFO PeFileRichHeaderInfo)
 {
+    if (RichHeaderPtr == NULL || Key == NULL || PeFileRichHeaderInfo == NULL ||
+        RichHeaderSize < 16 || ((RichHeaderSize - 16) % 8) != 0)
+    {
+        return FALSE;
+    }
+
+    INT EntryCount = (RichHeaderSize - 16) / 8;
+
+    if (EntryCount <= 0)
+    {
+        return FALSE;
+    }
+
     //
     // Decrypt the entire Rich header using XOR with the 4-byte key
     //
@@ -1524,6 +2926,20 @@ FindRichEntries(CHAR *            RichHeaderPtr,
         }
     }
 
+    if (RichHeaderPtr[0] != 'D' || RichHeaderPtr[1] != 'a' ||
+        RichHeaderPtr[2] != 'n' || RichHeaderPtr[3] != 'S')
+    {
+        return FALSE;
+    }
+
+    for (int i = 4; i < 16; i++)
+    {
+        if (RichHeaderPtr[i] != 0)
+        {
+            return FALSE;
+        }
+    }
+
     //
     // Initialize the Rich header info structure
     //
@@ -1533,7 +2949,9 @@ FindRichEntries(CHAR *            RichHeaderPtr,
     //
     // Calculate number of entries: subtract 16-byte header, divide by 8 bytes per entry
     //
-    PeFileRichHeaderInfo->Entries = (RichHeaderSize - 16) / 8;
+    PeFileRichHeaderInfo->Entries = EntryCount;
+
+    return TRUE;
 }
 
 /**
@@ -1553,13 +2971,26 @@ FindRichEntries(CHAR *            RichHeaderPtr,
  *
  * @warning Assumes the Rich header has been properly decrypted first
  */
-VOID
+static BOOLEAN
 SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRichHeader)
 {
+    if (RichHeaderPtr == NULL || PeFileRichHeader == NULL || PeFileRichHeader->Entries == NULL ||
+        RichHeaderSize < 16 || ((RichHeaderSize - 16) % 8) != 0)
+    {
+        return FALSE;
+    }
+
+    INT EntryCount = (RichHeaderSize - 16) / 8;
+
+    if (EntryCount <= 0)
+    {
+        return FALSE;
+    }
+
     //
     // Start at offset 16 to skip the header metadata, process 8-byte entries
     //
-    for (int i = 16; i < RichHeaderSize; i += 8)
+    for (int i = 16, EntryIndex = 0; i + 8 <= RichHeaderSize; i += 8, EntryIndex++)
     {
         //
         // Extract Product ID (bytes 2-3 of entry, little-endian)
@@ -1574,24 +3005,17 @@ SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRich
         //
         // Extract Use Count (bytes 4-7 of entry, little-endian 32-bit)
         //
-        DWORD UseCount = ((UCHAR)RichHeaderPtr[i + 7] << 24) |
-                         ((UCHAR)RichHeaderPtr[i + 6] << 16) |
-                         ((UCHAR)RichHeaderPtr[i + 5] << 8) |
-                         (UCHAR)RichHeaderPtr[i + 4];
+        DWORD UseCount = PeReadDwordFromBuffer((const BYTE *)RichHeaderPtr, i + 4);
 
         //
         // Store the parsed entry (adjust index: i/8 gives entry number, -2 for header offset)
         //
-        PeFileRichHeader->Entries[(i / 8) - 2] = {ProdID, BuildID, UseCount};
-
-        //
-        // Add null terminator entry if this is the last entry
-        //
-        if (i + 8 >= RichHeaderSize)
-        {
-            PeFileRichHeader->Entries[(i / 8) - 1] = {0x0000, 0x0000, 0x00000000};
-        }
+        PeFileRichHeader->Entries[EntryIndex] = {ProdID, BuildID, UseCount};
     }
+
+    PeFileRichHeader->Entries[EntryCount] = {0x0000, 0x0000, 0x00000000};
+
+    return TRUE;
 }
 
 /**
@@ -1611,13 +3035,13 @@ SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRich
  * @return INT Size of the Rich header in bytes, or 0 if DanS signature not found
  *
  */
-INT
-DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
+static INT
+DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr, INT DataSize)
 {
-    //
-    // Copy the XOR key from the 4 bytes immediately following "Rich"
-    //
-    memcpy(Key, DataPtr + (Index + 4), 4);
+    if (Key == NULL || DataPtr == NULL || DataSize < 16 || Index < 16 || Index + 4 > DataSize)
+    {
+        return 0;
+    }
 
     //
     // Start searching backwards from just before the "Rich" signature
@@ -1649,10 +3073,9 @@ DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
         RichHeaderSize += 4;
 
         //
-        // Check for DanS signature (0x44='D', 0x61='a' after decryption)
-        // Note: Checking bytes 1,0 due to little-endian storage
+        // Check for DanS signature after decryption.
         //
-        if (TmpChar[1] == 0x61 && TmpChar[0] == 0x44)
+        if (TmpChar[0] == 'D' && TmpChar[1] == 'a' && TmpChar[2] == 'n' && TmpChar[3] == 'S')
         {
             return RichHeaderSize;
         }
@@ -1670,17 +3093,23 @@ DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr)
  * @return VOID
  */
 
-VOID
-PeHexDump(CHAR * Ptr, INT Size, INT SecAddress)
+static VOID
+PeHexDump(CHAR * Ptr, SIZE_T Size, ULONGLONG SecAddress)
 {
-    INT i = 1, Temp = 0;
+    SIZE_T i    = 1;
+    INT    Temp = 0;
+
+    if (Ptr == NULL || Size == 0)
+    {
+        return;
+    }
 
     //
     // Buffer to store the character dump displayed at the
     // right side
     //
-    WCHAR Buf[18];
-    ShowMessages("\n\n%x: |", SecAddress);
+    CHAR Buf[18];
+    ShowMessages("\n\n%llx: |", SecAddress);
 
     Buf[Temp]      = ' '; // initial space
     Buf[Temp + 16] = ' '; // final space
@@ -1689,7 +3118,7 @@ PeHexDump(CHAR * Ptr, INT Size, INT SecAddress)
 
     for (; i <= Size; i++, Ptr++, Temp++)
     {
-        Buf[Temp] = !iswcntrl((*Ptr) & 0xff) ? (*Ptr) & 0xff : '.';
+        Buf[Temp] = !iscntrl((*Ptr) & 0xff) ? (*Ptr) & 0xff : '.';
         ShowMessages("%-3.2x", (*Ptr) & 0xff);
 
         if (i % 16 == 0)
@@ -1697,9 +3126,9 @@ PeHexDump(CHAR * Ptr, INT Size, INT SecAddress)
             //
             // print the character dump to the right
             //
-            _putws(Buf);
+            ShowMessages("%s\n", Buf);
             if (i + 1 <= Size)
-                ShowMessages("%x: ", SecAddress += 16);
+                ShowMessages("%llx: ", SecAddress += 16);
             Temp = 0;
         }
         if (i % 4 == 0)
@@ -1710,7 +3139,7 @@ PeHexDump(CHAR * Ptr, INT Size, INT SecAddress)
         Buf[Temp] = 0;
         for (; i % 16 != 0; i++)
             ShowMessages("%-3.2c", ' ');
-        _putws(Buf);
+        ShowMessages("%s\n", Buf);
     }
 }
 
@@ -1730,6 +3159,13 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     RICH_HEADER_INFO             PeFileRichHeaderInfo {0};
     RICH_HEADER                  PeFileRichHeader {0};
     BOOLEAN                      Result = FALSE, RichFound = FALSE, SectionFound = FALSE;
+    const DWORD                  MaxRichReadSize          = 1024 * 1024;
+    const INT                    MaxRichHeaderSize        = 256 * 1024;
+    const INT                    MaxRichHeaderEntries     = 0x4000;
+    const DWORD                  MaxSectionScanBytes      = 16 * 1024 * 1024;
+    const ULONGLONG              MaxTotalSectionScanBytes = 64 * 1024 * 1024;
+    const SIZE_T                 MaxSectionDumpBytes      = 1024 * 1024;
+    const ULONGLONG              MaxTotalSectionDumpBytes = 4 * 1024 * 1024;
     HANDLE                       MapObjectHandle = NULL, FileHandle = INVALID_HANDLE_VALUE; // File Mapping Object
     UINT32                       NumberOfSections;                                          // Number of sections
     LPVOID                       BaseAddr = NULL;                                           // Pointer to the base memory of mapped file
@@ -1744,7 +3180,11 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     IMAGE_DATA_DIRECTORY         EmptyDirectory = {0};
     LARGE_INTEGER                FileSize;
     CHAR                         Key[4];
-    INT                          RichHeaderOffset;
+    INT                          RichHeaderOffset          = -1;
+    const CHAR *                 RichHeaderStatus          = "not found";
+    BOOLEAN                      RichSearchCapped          = FALSE;
+    ULONGLONG                    RemainingSectionScanBytes = MaxTotalSectionScanBytes;
+    ULONGLONG                    RemainingSectionDumpBytes = MaxTotalSectionDumpBytes;
     time_t                       TimeDateStamp;
 
     //
@@ -1806,36 +3246,126 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
         goto Finished;
     }
 
-    RichHeaderOffset = FindRichHeader(DosHeader, (DWORD)FileSize.QuadPart, Key);
-
-    if (RichHeaderOffset != 0)
+    if (DosHeader->e_lfanew > 0 && (ULONGLONG)DosHeader->e_lfanew <= (ULONGLONG)MAXDWORD)
     {
-        char * DataPtr   = new char[DosHeader->e_lfanew];
-        DWORD  BytesRead = 0;
+        char *        DataPtr      = NULL;
+        DWORD         BytesRead    = 0;
+        DWORD         RichReadSize = (DWORD)DosHeader->e_lfanew;
+        DWORD         SearchOffset = 0;
+        BOOLEAN       HadCandidate = FALSE;
+        LARGE_INTEGER FileStart    = {0};
 
-        BOOL result = ReadFile(FileHandle, DataPtr, DosHeader->e_lfanew, &BytesRead, NULL);
-        if (!result || BytesRead != DosHeader->e_lfanew)
+        if (RichReadSize > MaxRichReadSize)
         {
-            ShowMessages("ReadFile failed or incomplete read");
+            RichReadSize     = MaxRichReadSize;
+            RichHeaderStatus = "not found in first 1 MiB";
+            RichSearchCapped = TRUE;
         }
-        int RichHeaderSize = DecryptRichHeader(Key, RichHeaderOffset, DataPtr);
-        int IndexPointer   = RichHeaderOffset - RichHeaderSize;
 
-        if (RichHeaderSize < 16 || ((RichHeaderSize - 16) % 8) != 0 || (RichHeaderSize - 16) / 8 == 0 || IndexPointer < 0)
+        if (RichReadSize >= 8)
         {
+            DataPtr = new (std::nothrow) char[RichReadSize];
+            if (DataPtr == NULL)
+            {
+                RichHeaderStatus = "allocation failed";
+                goto SkipRichHeader;
+            }
+
+            if (!SetFilePointerEx(FileHandle, FileStart, NULL, FILE_BEGIN))
+            {
+                RichHeaderStatus = "read failed";
+                delete[] DataPtr;
+                goto SkipRichHeader;
+            }
+
+            BOOL result = ReadFile(FileHandle, DataPtr, RichReadSize, &BytesRead, NULL);
+            if (!result || BytesRead != RichReadSize)
+            {
+                RichHeaderStatus = "read failed";
+                delete[] DataPtr;
+                goto SkipRichHeader;
+            }
+
+            for (;;)
+            {
+                char * richHeaderPtr = NULL;
+
+                RichHeaderOffset = FindRichHeader(DosHeader, RichReadSize, SearchOffset, Key);
+                if (RichHeaderOffset < 0)
+                {
+                    break;
+                }
+
+                HadCandidate     = TRUE;
+                RichHeaderStatus = RichSearchCapped ? "malformed candidate in first 1 MiB" : "malformed";
+
+                int RichHeaderSize = DecryptRichHeader(Key, RichHeaderOffset, DataPtr, (INT)RichReadSize);
+                int IndexPointer   = RichHeaderOffset - RichHeaderSize;
+
+                if (RichHeaderSize < 16 || RichHeaderSize > MaxRichHeaderSize || ((RichHeaderSize - 16) % 8) != 0 ||
+                    (RichHeaderSize - 16) / 8 == 0 || (RichHeaderSize - 16) / 8 > MaxRichHeaderEntries ||
+                    IndexPointer < 0 || RichHeaderSize > (INT)RichReadSize || IndexPointer > (INT)RichReadSize - RichHeaderSize)
+                {
+                    SearchOffset = (DWORD)RichHeaderOffset + 1;
+                    continue;
+                }
+
+                richHeaderPtr = new (std::nothrow) char[RichHeaderSize];
+                if (richHeaderPtr == NULL)
+                {
+                    RichHeaderStatus = "allocation failed";
+                    break;
+                }
+
+                memcpy(richHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
+
+                if (!FindRichEntries(richHeaderPtr, RichHeaderSize, Key, &PeFileRichHeaderInfo))
+                {
+                    delete[] richHeaderPtr;
+                    SearchOffset = (DWORD)RichHeaderOffset + 1;
+                    continue;
+                }
+
+                richHeaderPtr = NULL;
+
+                if (PeFileRichHeaderInfo.Entries > MaxRichHeaderEntries || PeFileRichHeaderInfo.Entries >= INT_MAX / (INT)sizeof(RICH_HEADER_ENTRY) - 1)
+                {
+                    delete[] PeFileRichHeaderInfo.PtrToBuffer;
+                    PeFileRichHeaderInfo = {0};
+                    SearchOffset         = (DWORD)RichHeaderOffset + 1;
+                    continue;
+                }
+
+                PeFileRichHeader.Entries = new (std::nothrow) RICH_HEADER_ENTRY[PeFileRichHeaderInfo.Entries + 1];
+                if (PeFileRichHeader.Entries == NULL)
+                {
+                    RichHeaderStatus = "allocation failed";
+                    delete[] PeFileRichHeaderInfo.PtrToBuffer;
+                    PeFileRichHeaderInfo = {0};
+                    break;
+                }
+
+                if (!SetRichEntries(RichHeaderSize, PeFileRichHeaderInfo.PtrToBuffer, &PeFileRichHeader))
+                {
+                    delete[] PeFileRichHeaderInfo.PtrToBuffer;
+                    PeFileRichHeaderInfo = {0};
+                    delete[] PeFileRichHeader.Entries;
+                    PeFileRichHeader.Entries = NULL;
+                    SearchOffset             = (DWORD)RichHeaderOffset + 1;
+                    continue;
+                }
+
+                RichFound = TRUE;
+                break;
+            }
+
+            if (!RichFound && !HadCandidate && (DWORD)DosHeader->e_lfanew <= MaxRichReadSize)
+            {
+                RichHeaderStatus = "not found";
+            }
+
             delete[] DataPtr;
-            goto SkipRichHeader;
         }
-
-        char * richHeaderPtr = new char[RichHeaderSize];
-        memcpy(richHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
-        delete[] DataPtr;
-
-        FindRichEntries(richHeaderPtr, RichHeaderSize, Key, &PeFileRichHeaderInfo);
-        PeFileRichHeader.Entries = new RICH_HEADER_ENTRY[PeFileRichHeaderInfo.Entries + 1];
-
-        SetRichEntries(RichHeaderSize, richHeaderPtr, &PeFileRichHeader);
-        RichFound = TRUE;
     }
 
 SkipRichHeader:
@@ -1900,7 +3430,7 @@ SkipRichHeader:
 
         for (int i = 0; i < PeFileRichHeaderInfo.Entries; i++)
         {
-            ShowMessages("0x%08X 0x%08X %10d\n",
+            ShowMessages("0x%08X 0x%08X %10u\n",
                          PeFileRichHeader.Entries[i].BuildID,
                          PeFileRichHeader.Entries[i].ProdID,
                          PeFileRichHeader.Entries[i].UseCount);
@@ -1910,7 +3440,7 @@ SkipRichHeader:
     }
     else
     {
-        ShowMessages("=========== Rich Header Not Found ===========\n");
+        ShowMessages("=========== Rich Header Not Shown (%s) ===========\n", RichHeaderStatus);
     }
 
     //
@@ -2061,6 +3591,9 @@ SkipRichHeader:
         ShowMessages("\n%-36s%#x", "File Alignment :", OpHeader32.FileAlignment);
         ShowMessages("\n%-36s%#x", "Size of Image :", OpHeader32.SizeOfImage);
         ShowMessages("\n%-36s%#x", "Size of Headers :", OpHeader32.SizeOfHeaders);
+        PeShowChecksum(&Reader,
+                       OpHeader32.CheckSum,
+                       (SIZE_T)(Reader.NtHeaders - Reader.ImageBase) + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER) + FIELD_OFFSET(IMAGE_OPTIONAL_HEADER32, CheckSum));
         ShowMessages("\n%-36s%#x", "Raw DLL characteristics value :", OpHeader32.DllCharacteristics);
         ShowMessages("\n%-36s", "DLL characteristics flags :");
         PeShowDllCharacteristics(OpHeader32.DllCharacteristics);
@@ -2080,6 +3613,24 @@ SkipRichHeader:
         ShowMessages("\n%-36s%d", "Major Linker Version : ", OpHeader32.MajorLinkerVersion);
         ShowMessages("\n%-36s%d", "Minor Linker Version : ", OpHeader32.MinorLinkerVersion);
         PeShowDataDirectories(&Reader, OpHeader32.DataDirectory, OpHeader32.NumberOfRvaAndSizes);
+        PeShowCertificateTable(&Reader,
+                               OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_SECURITY ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY] : &EmptyDirectory);
+        PeShowBaseRelocations(&Reader,
+                              OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_BASERELOC ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC] : &EmptyDirectory);
+        PeShowBoundImports(&Reader,
+                           OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT] : &EmptyDirectory);
+        PeShowResources(&Reader,
+                        OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_RESOURCE ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE] : &EmptyDirectory);
+        PeShowExceptions(&Reader,
+                         OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_EXCEPTION ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXCEPTION] : &EmptyDirectory,
+                         Header.Machine,
+                         TRUE);
+        PeShowDelayImports(&Reader,
+                           OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT] : &EmptyDirectory,
+                           TRUE,
+                           OpHeader32.ImageBase);
+        PeShowClrRuntime(&Reader,
+                         OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR] : &EmptyDirectory);
         PeShowTls(&Reader,
                   OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_TLS ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS] : &EmptyDirectory,
                   TRUE,
@@ -2113,6 +3664,9 @@ SkipRichHeader:
         ShowMessages("\n%-36s%#x", "File Alignment :", OpHeader64.FileAlignment);
         ShowMessages("\n%-36s%#x", "Size of Image :", OpHeader64.SizeOfImage);
         ShowMessages("\n%-36s%#x", "Size of Headers :", OpHeader64.SizeOfHeaders);
+        PeShowChecksum(&Reader,
+                       OpHeader64.CheckSum,
+                       (SIZE_T)(Reader.NtHeaders - Reader.ImageBase) + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER) + FIELD_OFFSET(IMAGE_OPTIONAL_HEADER64, CheckSum));
         ShowMessages("\n%-36s%#x", "Raw DLL characteristics value :", OpHeader64.DllCharacteristics);
         ShowMessages("\n%-36s", "DLL characteristics flags :");
         PeShowDllCharacteristics(OpHeader64.DllCharacteristics);
@@ -2128,6 +3682,24 @@ SkipRichHeader:
         ShowMessages("\n%-36s%d", "Major Linker Version : ", OpHeader64.MajorLinkerVersion);
         ShowMessages("\n%-36s%d", "Minor Linker Version : ", OpHeader64.MinorLinkerVersion);
         PeShowDataDirectories(&Reader, OpHeader64.DataDirectory, OpHeader64.NumberOfRvaAndSizes);
+        PeShowCertificateTable(&Reader,
+                               OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_SECURITY ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY] : &EmptyDirectory);
+        PeShowBaseRelocations(&Reader,
+                              OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_BASERELOC ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC] : &EmptyDirectory);
+        PeShowBoundImports(&Reader,
+                           OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT] : &EmptyDirectory);
+        PeShowResources(&Reader,
+                        OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_RESOURCE ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE] : &EmptyDirectory);
+        PeShowExceptions(&Reader,
+                         OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_EXCEPTION ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXCEPTION] : &EmptyDirectory,
+                         Header.Machine,
+                         FALSE);
+        PeShowDelayImports(&Reader,
+                           OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT] : &EmptyDirectory,
+                           FALSE,
+                           OpHeader64.ImageBase);
+        PeShowClrRuntime(&Reader,
+                         OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR] : &EmptyDirectory);
         PeShowTls(&Reader,
                   OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_TLS ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS] : &EmptyDirectory,
                   FALSE,
@@ -2186,6 +3758,26 @@ SkipRichHeader:
                      "Pointer to Raw Data : ",
                      SecHeader->PointerToRawData);
         ShowMessages("\n%-36s%s", "Raw data bounds :", RawDataBounds);
+        if (Pointer != NULL && SecHeader->SizeOfRawData != 0)
+        {
+            if (SecHeader->SizeOfRawData > MaxSectionScanBytes)
+            {
+                ShowMessages("\n%-36s%s", "Raw data entropy :", "skipped, section is larger than local cap");
+                ShowMessages("\n%-36s%s", "Raw data FNV-1a64 :", "skipped, section is larger than local cap");
+            }
+            else if ((ULONGLONG)SecHeader->SizeOfRawData > RemainingSectionScanBytes)
+            {
+                RemainingSectionScanBytes = 0;
+                ShowMessages("\n%-36s%s", "Raw data entropy :", "skipped, global scan budget exhausted");
+                ShowMessages("\n%-36s%s", "Raw data FNV-1a64 :", "skipped, global scan budget exhausted");
+            }
+            else
+            {
+                ShowMessages("\n%-36s%.4f", "Raw data entropy :", PeCalculateEntropy(Pointer, SecHeader->SizeOfRawData));
+                ShowMessages("\n%-36s%#llx", "Raw data FNV-1a64 :", PeFnv1a64(Pointer, SecHeader->SizeOfRawData));
+                RemainingSectionScanBytes -= SecHeader->SizeOfRawData;
+            }
+        }
         if (SecHeader->SizeOfRawData != 0 && SecHeader->Misc.VirtualSize > SecHeader->SizeOfRawData)
         {
             ShowMessages("\n%-36s%s", "Warning :", "virtual size is larger than raw data");
@@ -2229,24 +3821,63 @@ SkipRichHeader:
 
                 if (SecHeader->SizeOfRawData != 0)
                 {
+                    SIZE_T  DumpSize              = SecHeader->SizeOfRawData;
+                    BOOLEAN TruncatedBySectionCap = FALSE;
+                    BOOLEAN TruncatedByGlobalCap  = FALSE;
+
                     if (Pointer == NULL)
                     {
                         ShowMessages("\nerr, invalid section raw data\n");
                         continue;
                     }
 
+                    if (RemainingSectionDumpBytes == 0)
+                    {
+                        ShowMessages("\n%-36s%s", "Warning, section dump skipped :", "global dump budget exhausted");
+                        continue;
+                    }
+
+                    if (DumpSize > MaxSectionDumpBytes)
+                    {
+                        DumpSize              = MaxSectionDumpBytes;
+                        TruncatedBySectionCap = TRUE;
+                    }
+
+                    if ((ULONGLONG)DumpSize > RemainingSectionDumpBytes)
+                    {
+                        DumpSize             = (SIZE_T)RemainingSectionDumpBytes;
+                        TruncatedByGlobalCap = TRUE;
+                    }
+
+                    if (TruncatedBySectionCap)
+                    {
+                        ShowMessages("\n%-36s%#llx of %#x bytes",
+                                     "Warning, section dump truncated by section cap :",
+                                     (UINT64)DumpSize,
+                                     SecHeader->SizeOfRawData);
+                    }
+                    if (TruncatedByGlobalCap)
+                    {
+                        ShowMessages("\n%-36s%#llx of %#x bytes",
+                                     "Warning, section dump truncated by global cap :",
+                                     (UINT64)DumpSize,
+                                     SecHeader->SizeOfRawData);
+                    }
+
                     if (Is32Bit)
                     {
                         PeHexDump((char *)Pointer,
-                                  SecHeader->SizeOfRawData,
-                                  OpHeader32.ImageBase + SecHeader->VirtualAddress);
+                                  DumpSize,
+                                  (ULONGLONG)OpHeader32.ImageBase + SecHeader->VirtualAddress);
                     }
                     else
                     {
                         PeHexDump((char *)Pointer,
-                                  SecHeader->SizeOfRawData,
-                                  (int)(OpHeader64.ImageBase + SecHeader->VirtualAddress));
+                                  DumpSize,
+                                  OpHeader64.ImageBase + SecHeader->VirtualAddress);
                     }
+
+                    RemainingSectionDumpBytes -= DumpSize;
                 }
             }
         }

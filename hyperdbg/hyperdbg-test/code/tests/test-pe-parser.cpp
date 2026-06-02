@@ -23,9 +23,9 @@ PeOptionalHeaderOffset()
 }
 
 static SIZE_T
-PeSectionHeaderOffset()
+PeSectionHeaderOffset(SIZE_T OptionalHeaderSize)
 {
-    return PeOptionalHeaderOffset() + sizeof(IMAGE_OPTIONAL_HEADER64);
+    return PeOptionalHeaderOffset() + OptionalHeaderSize;
 }
 
 static VOID
@@ -64,7 +64,26 @@ BuildMinimalPe64(BYTE * Buffer)
 }
 
 static VOID
-SetOptionalHeaderSizeOfHeaders(BYTE * Buffer, DWORD SizeOfHeaders)
+BuildMinimalPe32(BYTE * Buffer)
+{
+    ZeroMemory(Buffer, PeFixtureSize);
+
+    WriteWord(Buffer, 0, IMAGE_DOS_SIGNATURE);
+    WriteDword(Buffer, offsetof(IMAGE_DOS_HEADER, e_lfanew), PeHeaderOffset);
+
+    WriteDword(Buffer, PeHeaderOffset, IMAGE_NT_SIGNATURE);
+    WriteWord(Buffer, PeHeaderOffset + sizeof(DWORD) + offsetof(IMAGE_FILE_HEADER, Machine), IMAGE_FILE_MACHINE_I386);
+    WriteWord(Buffer, PeHeaderOffset + sizeof(DWORD) + offsetof(IMAGE_FILE_HEADER, NumberOfSections), 1);
+    WriteWord(Buffer,
+              PeHeaderOffset + sizeof(DWORD) + offsetof(IMAGE_FILE_HEADER, SizeOfOptionalHeader),
+              sizeof(IMAGE_OPTIONAL_HEADER32));
+    WriteWord(Buffer,
+              PeHeaderOffset + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER),
+              IMAGE_NT_OPTIONAL_HDR32_MAGIC);
+}
+
+static VOID
+SetPe64OptionalHeaderSizeOfHeaders(BYTE * Buffer, DWORD SizeOfHeaders)
 {
     SIZE_T Offset = PeOptionalHeaderOffset() + offsetof(IMAGE_OPTIONAL_HEADER64, SizeOfHeaders);
 
@@ -72,15 +91,15 @@ SetOptionalHeaderSizeOfHeaders(BYTE * Buffer, DWORD SizeOfHeaders)
 }
 
 static IMAGE_SECTION_HEADER *
-GetFixtureSectionHeader(BYTE * Buffer)
+GetFixtureSectionHeader(BYTE * Buffer, SIZE_T OptionalHeaderSize)
 {
-    return (IMAGE_SECTION_HEADER *)(Buffer + PeSectionHeaderOffset());
+    return (IMAGE_SECTION_HEADER *)(Buffer + PeSectionHeaderOffset(OptionalHeaderSize));
 }
 
 static VOID
-ConfigureTextSection(BYTE * Buffer, DWORD VirtualAddress, DWORD VirtualSize, DWORD PointerToRawData, DWORD SizeOfRawData)
+ConfigureTextSection(BYTE * Buffer, SIZE_T OptionalHeaderSize, DWORD VirtualAddress, DWORD VirtualSize, DWORD PointerToRawData, DWORD SizeOfRawData)
 {
-    IMAGE_SECTION_HEADER * SectionHeader = GetFixtureSectionHeader(Buffer);
+    IMAGE_SECTION_HEADER * SectionHeader = GetFixtureSectionHeader(Buffer, OptionalHeaderSize);
 
     ZeroMemory(SectionHeader, sizeof(*SectionHeader));
     CopyMemory(SectionHeader->Name, ".text", sizeof(".text") - 1);
@@ -114,6 +133,23 @@ TestPeParser()
         }
     }
 
+    BuildMinimalPe32(Buffer);
+    TestNum++;
+    {
+        PE_IMAGE_READER Reader = {0};
+
+        if (PeImageReaderInitialize(Buffer, sizeof(Buffer), &Reader) && PeImageReaderIs32Bit(&Reader))
+        {
+            printf("[+] Test number %d Passed\n", TestNum);
+        }
+        else
+        {
+            printf("[-] Test number %d Failed\n", TestNum);
+            printf("[x] valid PE32 did not initialize as PE32\n");
+            return FALSE;
+        }
+    }
+
     BuildMinimalPe64(Buffer);
     WriteWord(Buffer, 0, 0);
     TestNum++;
@@ -133,8 +169,46 @@ TestPeParser()
     }
 
     BuildMinimalPe64(Buffer);
-    SetOptionalHeaderSizeOfHeaders(Buffer, 0x1c0);
-    ConfigureTextSection(Buffer, 0x1000, 0x50, 0x1c0, 0x40);
+    WriteWord(Buffer,
+              PeHeaderOffset + sizeof(DWORD) + offsetof(IMAGE_FILE_HEADER, SizeOfOptionalHeader),
+              sizeof(IMAGE_OPTIONAL_HEADER64) - 1);
+    TestNum++;
+    {
+        PE_IMAGE_READER Reader = {0};
+
+        if (!PeImageReaderInitialize(Buffer, sizeof(Buffer), &Reader))
+        {
+            printf("[+] Test number %d Passed\n", TestNum);
+        }
+        else
+        {
+            printf("[-] Test number %d Failed\n", TestNum);
+            printf("[x] truncated optional header initialized successfully\n");
+            return FALSE;
+        }
+    }
+
+    BuildMinimalPe64(Buffer);
+    WriteDword(Buffer, offsetof(IMAGE_DOS_HEADER, e_lfanew), PeFixtureSize);
+    TestNum++;
+    {
+        PE_IMAGE_READER Reader = {0};
+
+        if (!PeImageReaderInitialize(Buffer, sizeof(Buffer), &Reader))
+        {
+            printf("[+] Test number %d Passed\n", TestNum);
+        }
+        else
+        {
+            printf("[-] Test number %d Failed\n", TestNum);
+            printf("[x] invalid e_lfanew initialized successfully\n");
+            return FALSE;
+        }
+    }
+
+    BuildMinimalPe64(Buffer);
+    SetPe64OptionalHeaderSizeOfHeaders(Buffer, 0x1c0);
+    ConfigureTextSection(Buffer, sizeof(IMAGE_OPTIONAL_HEADER64), 0x1000, 0x50, 0x1c0, 0x40);
     TestNum++;
     {
         PE_IMAGE_READER Reader     = {0};
@@ -154,8 +228,49 @@ TestPeParser()
     }
 
     BuildMinimalPe64(Buffer);
-    SetOptionalHeaderSizeOfHeaders(Buffer, 0x1c0);
-    ConfigureTextSection(Buffer, 0x1000, 0x40, 0x300, 0x20);
+    SetPe64OptionalHeaderSizeOfHeaders(Buffer, 0x1c0);
+    TestNum++;
+    {
+        PE_IMAGE_READER Reader     = {0};
+        SIZE_T          FileOffset = 0;
+
+        if (PeImageReaderInitialize(Buffer, sizeof(Buffer), &Reader) &&
+            PeImageReaderRvaToFileOffset(&Reader, 0x20, 4, &FileOffset) && FileOffset == 0x20 &&
+            !PeImageReaderRvaToFileOffset(&Reader, 0x1be, 4, &FileOffset))
+        {
+            printf("[+] Test number %d Passed\n", TestNum);
+        }
+        else
+        {
+            printf("[-] Test number %d Failed\n", TestNum);
+            printf("[x] header RVA bounds were not enforced\n");
+            return FALSE;
+        }
+    }
+
+    TestNum++;
+    {
+        IMAGE_SECTION_HEADER SectionHeader = {0};
+        CHAR                 Name[9];
+
+        FillMemory(Name, sizeof(Name), 'X');
+        CopyMemory(SectionHeader.Name, "ABCDEFGH", IMAGE_SIZEOF_SHORT_NAME);
+        if (PeImageReaderGetSectionName(&SectionHeader, Name, sizeof(Name)) &&
+            strcmp(Name, "ABCDEFGH") == 0 && Name[IMAGE_SIZEOF_SHORT_NAME] == '\0')
+        {
+            printf("[+] Test number %d Passed\n", TestNum);
+        }
+        else
+        {
+            printf("[-] Test number %d Failed\n", TestNum);
+            printf("[x] 8-byte section name was not null-terminated\n");
+            return FALSE;
+        }
+    }
+
+    BuildMinimalPe64(Buffer);
+    SetPe64OptionalHeaderSizeOfHeaders(Buffer, 0x1c0);
+    ConfigureTextSection(Buffer, sizeof(IMAGE_OPTIONAL_HEADER64), 0x1000, 0x40, 0x300, 0x20);
     TestNum++;
     {
         PE_IMAGE_READER Reader     = {0};

@@ -25,6 +25,7 @@ CommandPeHelp()
 
     ShowMessages("syntax : \t.pe header <file>\n");
     ShowMessages("syntax : \t.pe section <section> <file>\n");
+    ShowMessages("\n.pe section dumps are capped at 1 MiB per matching section and 4 MiB total.\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : .pe header c:\\reverse\\myfile.exe\n");
@@ -62,7 +63,16 @@ CommandPe(vector<CommandToken> CommandTokens, string Command)
     {
         if (CommandTokens.size() == 3)
         {
-            ShowMessages("please specify a valid PE file\n\n");
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+            CommandPeHelp();
+            return;
+        }
+
+        if (CommandTokens.size() != 4)
+        {
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
             CommandPeHelp();
             return;
         }
@@ -71,6 +81,14 @@ CommandPe(vector<CommandToken> CommandTokens, string Command)
     }
     else if (CompareLowerCaseStrings(CommandTokens.at(1), "header"))
     {
+        if (CommandTokens.size() != 3)
+        {
+            ShowMessages("err, incorrect use of the '%s' command\n\n",
+                         GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+            CommandPeHelp();
+            return;
+        }
+
         ShowDumpOfSection = FALSE;
         TempFilePath      = GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2));
     }

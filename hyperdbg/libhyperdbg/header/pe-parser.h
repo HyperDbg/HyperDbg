@@ -12,29 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//				  Structures                    //
-//////////////////////////////////////////////////
-
-typedef struct _RICH_HEADER_INFO
-{
-    int    Size;
-    char * PtrToBuffer;
-    int    Entries;
-} RICH_HEADER_INFO, *PRICH_HEADER_INFO;
-
-typedef struct _RICH_HEADER_ENTRY
-{
-    WORD  ProdID;
-    WORD  BuildID;
-    DWORD UseCount;
-} RICH_HEADER_ENTRY, *PRICH_HEADER_ENTRY;
-
-typedef struct _RICH_HEADER
-{
-    PRICH_HEADER_ENTRY Entries;
-} RICH_HEADER, *PRICH_HEADER;
-
-//////////////////////////////////////////////////
 //					  Functions                 //
 //////////////////////////////////////////////////
 
@@ -48,18 +25,3 @@ PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit);
 
 UINT32
 PeGetSyscallNumber(LPCSTR NtFunctionName);
-
-INT
-FindRichHeader(PIMAGE_DOS_HEADER DosHeader, DWORD FileSize, CHAR Key[]);
-
-VOID
-SetRichEntries(INT RichHeaderSize, CHAR * RichHeaderPtr, PRICH_HEADER PeFileRichHeader);
-
-VOID
-FindRichEntries(CHAR *            RichHeaderPtr,
-                INT               RichHeaderSize,
-                CHAR              Key[],
-                PRICH_HEADER_INFO PeFileRichHeaderInfo);
-
-INT
-DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr);
