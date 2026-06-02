@@ -9,7 +9,11 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "platform/user/header/platform-lib-calls.h"
+#include "pch.h"
+
+#if defined(__linux__)
+#    include "../header/platform-lib-calls.h"
+#endif // defined(__linux__)
 
 /**
  * @brief Platform independent wrapper for vsprintf_s / vsnprintf
@@ -28,7 +32,7 @@ PlatformVsnprintf(char * Buffer, SIZE_T BufferSize, const char * Format, va_list
 #elif defined(__linux__)
     return vsnprintf(Buffer, BufferSize, Format, ArgList);
 #else
-#     error "Unsupported platform"
+#    error "Unsupported platform"
 #endif
 }
 
@@ -46,7 +50,7 @@ PlatformStrDup(const char * Str)
 #elif defined(__linux__)
     return strdup(Str);
 #else
-#     error "Unsupported platform"
+#    error "Unsupported platform"
 #endif
 }
 
@@ -64,6 +68,6 @@ PlatformZeroMemory(PVOID Buffer, SIZE_T Size)
 #elif defined(__linux__)
     memset(Buffer, 0, Size);
 #else
-#     error "Unsupported platform"
+#    error "Unsupported platform"
 #endif
 }

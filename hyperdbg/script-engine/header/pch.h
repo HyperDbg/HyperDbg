@@ -30,7 +30,7 @@
 // Windows Header Files
 //
 #ifdef _WIN32
-#include <windows.h>
+#    include <windows.h>
 #endif
 
 #include <ctype.h>
@@ -53,6 +53,11 @@
 #include "script-engine.h"
 #include "parse-table.h"
 #include "hardware.h"
+
+//
+// Platform-specific library calls
+//
+#include "platform/user/header/platform-lib-calls.h"
 
 //
 // Import/export definitions
