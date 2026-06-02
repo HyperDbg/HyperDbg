@@ -24,7 +24,7 @@ LoaderInitVmmAndReversingMachine()
     //
     // Allow to server IOCTL
     //
-    g_AllowIoctlFromUsermode = TRUE;
+    g_VmmInitialized = TRUE;
 
     //
     // Fill the callbacks for the message tracer
@@ -90,7 +90,7 @@ LoaderInitVmmAndReversingMachine()
     //
     // Not loaded
     //
-    g_AllowIoctlFromUsermode = FALSE;
+    g_VmmInitialized = FALSE;
 
     return FALSE;
 }

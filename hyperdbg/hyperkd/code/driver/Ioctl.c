@@ -95,106 +95,63 @@ IoctlCheckIoctlAllowed(ULONG Ioctl)
     ULONG IoctlFunction = CTL_CODE_FUNCTION(Ioctl);
 
     //
-    // First 10 IOCTLs are about loading and initializing modules
+    // First 100 IOCTLs are about loading and initializing modules
     //
-    if (IoctlFunction > IOCTL_START_CODE && IoctlFunction <= IOCTL_START_CODE + 0x10)
+    if (IoctlFunction > IOCTL_BASIC_IOCTL && IoctlFunction <= IOCTL_BASIC_IOCTL + 0x100)
     {
         //
-        // Allow these IOCTLs even if we don't allow IOCTL from user-mode, because they are used for loading and initializing the driver and its components
+        // Always allow these IOCTLs even if we don't allow IOCTL from user-mode, because they are used for loading and initializing the driver and its components
         //
         return TRUE;
     }
-
-    return g_AllowIoctlFromUsermode;
+    else if (IoctlFunction > IOCTL_KD_IOCTL && IoctlFunction <= IOCTL_KD_IOCTL + 0x100)
+    {
+        //
+        // Allow if the KD module is initialized
+        //
+        return g_KdInitialized;
+    }
+    else if (IoctlFunction > IOCTL_VMM_IOCTL && IoctlFunction <= IOCTL_VMM_IOCTL + 0x100)
+    {
+        //
+        // Allow if the VMM module is initialized
+        //
+        return g_VmmInitialized;
+    }
+    else if (IoctlFunction > IOCTL_HYPERTRACE_IOCTL && IoctlFunction <= IOCTL_HYPERTRACE_IOCTL + 0x100)
+    {
+        //
+        // Allow if the HyperTrace module is initialized
+        //
+        return g_HyperTraceInitialized;
+    }
+    else
+    {
+        //
+        // For other (unknown) IOCTLs, we don't allow them
+        //
+        return FALSE;
+    }
 }
 
 /**
- * @brief Driver IOCTL Dispatcher
+ * @brief IOCTL Dispatcher for Basic IOCTLs (initialization and event registration)
  *
- * @param DeviceObject
  * @param Irp
+ * @param IrpStack
+ * @param DoNotChangeInformation
  * @return NTSTATUS
  */
 NTSTATUS
-DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
+DrvDispatchBasicIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation)
 {
-    UNREFERENCED_PARAMETER(DeviceObject);
-
-    PIO_STACK_LOCATION                                      IrpStack;
-    PREGISTER_NOTIFY_BUFFER                                 RegisterEventRequest;
-    PDEBUGGER_READ_MEMORY                                   DebuggerReadMemRequest;
-    PDEBUGGER_READ_AND_WRITE_ON_MSR                         DebuggerReadOrWriteMsrRequest;
-    PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE            DebuggerHideAndUnhideRequest;
-    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS               DebuggerPteRequest;
-    PDEBUGGER_PAGE_IN_REQUEST                               DebuggerPageinRequest;
-    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET               PcitreeRequest;
-    PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET            PcidevinfoRequest;
-    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
-    PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
-    PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
-    PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
-    PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
-    PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
-    PDEBUGGER_INIT_VMM_PACKET                               InitVmmRequest;
-    PDEBUGGER_INIT_HYPERTRACE_PACKET                        InitHyperTraceRequest;
-    PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
-    PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
-    PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
-    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS             DebuggerQueryIdtRequest;
-    PDEBUGGEE_BP_PACKET                                     DebuggerBreakpointRequest;
-    PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
-    PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
-    PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
-    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET             GetInformationProcessRequest;
-    PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST           RevServiceRequest;
-    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET              GetInformationThreadRequest;
-    PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
-    PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
-    PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
-    PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggerSendBufferFromDebuggeeToDebuggerRequest;
-    PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS               DebuggerAttachOrDetachToThreadRequest;
-    PDEBUGGER_PREPARE_DEBUGGEE                              DebuggeeRequest;
-    PDEBUGGER_PAUSE_PACKET_RECEIVED                         DebuggerPauseKernelRequest;
-    PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
-    PSMI_OPERATION_PACKETS                                  SmiOperationRequest;
-    PHYPERTRACE_LBR_OPERATION_PACKETS                       HyperTraceLbrOperationRequest;
-    PHYPERTRACE_LBR_DUMP_PACKETS                            HyperTraceLbrdumpRequest;
-    PHYPERTRACE_PT_OPERATION_PACKETS                        HyperTracePtOperationRequest;
-    PVOID                                                   BufferToStoreThreadsAndProcessesDetails;
-    ULONG                                                   InBuffLength;  // Input buffer length
-    ULONG                                                   OutBuffLength; // Output buffer length
-    SIZE_T                                                  ReturnSize;
-    NTSTATUS                                                Status                 = STATUS_SUCCESS;
-    BOOLEAN                                                 DoNotChangeInformation = FALSE;
-    UINT32                                                  Ioctl                  = 0;
-
-    //
-    // Here's the best place to see if there is any allocation pending
-    // to be allcated as we're in PASSIVE_LEVEL
-    //
-    PoolManagerCheckAndPerformAllocationAndDeallocation();
-
-    //
-    // Get the current stack location of the IRP to access the parameters of the IOCTL request
-    //
-    IrpStack = IoGetCurrentIrpStackLocation(Irp);
-
-    //
-    // Get the IOCTL code from the parameters
-    //
-    Ioctl = IrpStack->Parameters.DeviceIoControl.IoControlCode;
-
-    //
-    // If we don't allow IOCTL from user-mode, we just complete the request with success, and return
-    //
-    if (!IoctlCheckIoctlAllowed(Ioctl))
-    {
-        Irp->IoStatus.Status      = STATUS_SUCCESS;
-        Irp->IoStatus.Information = 0;
-        IoCompleteRequest(Irp, IO_NO_INCREMENT);
-
-        return STATUS_SUCCESS;
-    }
+    PREGISTER_NOTIFY_BUFFER      RegisterEventRequest;
+    PDEBUGGER_INIT_VMM_PACKET    InitVmmRequest;
+    PDEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTraceRequest;
+    ULONG                        InBuffLength;
+    ULONG                        OutBuffLength;
+    NTSTATUS                     Status = STATUS_SUCCESS;
+    UINT32                       Ioctl  = IrpStack->Parameters.DeviceIoControl.IoControlCode;
 
     switch (Ioctl)
     {
@@ -232,7 +189,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_INIT_VMM_PACKET, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_INIT_VMM_PACKET, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -260,7 +217,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -310,12 +267,102 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
         break;
 
+    default:
+        LogError("Err, unknown IOCTL");
+        Status = STATUS_NOT_IMPLEMENTED;
+        break;
+    }
+
+    return Status;
+}
+
+/**
+ * @brief IOCTL Dispatcher for KD (Kernel Debugger) IOCTLs
+ *
+ * @param Irp
+ * @param IrpStack
+ * @param DoNotChangeInformation
+ * @return NTSTATUS
+ */
+NTSTATUS
+DrvDispatchKdIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation)
+{
+    NTSTATUS Status = STATUS_SUCCESS;
+    UINT32   Ioctl  = IrpStack->Parameters.DeviceIoControl.IoControlCode;
+
+    UNREFERENCED_PARAMETER(Irp);
+    UNREFERENCED_PARAMETER(DoNotChangeInformation);
+
+    switch (Ioctl)
+    {
+    default:
+        LogError("Err, unknown IOCTL");
+        Status = STATUS_NOT_IMPLEMENTED;
+        break;
+    }
+
+    return Status;
+}
+
+/**
+ * @brief IOCTL Dispatcher for VMM IOCTLs
+ *
+ * @param Irp
+ * @param IrpStack
+ * @param DoNotChangeInformation
+ * @return NTSTATUS
+ */
+NTSTATUS
+DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation)
+{
+    PDEBUGGER_READ_MEMORY                                   DebuggerReadMemRequest;
+    PDEBUGGER_READ_AND_WRITE_ON_MSR                         DebuggerReadOrWriteMsrRequest;
+    PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE            DebuggerHideAndUnhideRequest;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS               DebuggerPteRequest;
+    PDEBUGGER_PAGE_IN_REQUEST                               DebuggerPageinRequest;
+    PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET               PcitreeRequest;
+    PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET            PcidevinfoRequest;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
+    PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
+    PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
+    PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
+    PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
+    PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
+    PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
+    PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
+    PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS             DebuggerQueryIdtRequest;
+    PDEBUGGEE_BP_PACKET                                     DebuggerBreakpointRequest;
+    PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
+    PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
+    PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
+    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET             GetInformationProcessRequest;
+    PREVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST           RevServiceRequest;
+    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET              GetInformationThreadRequest;
+    PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
+    PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
+    PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
+    PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggerSendBufferFromDebuggeeToDebuggerRequest;
+    PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS               DebuggerAttachOrDetachToThreadRequest;
+    PDEBUGGER_PREPARE_DEBUGGEE                              DebuggeeRequest;
+    PDEBUGGER_PAUSE_PACKET_RECEIVED                         DebuggerPauseKernelRequest;
+    PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
+    PSMI_OPERATION_PACKETS                                  SmiOperationRequest;
+    PVOID                                                   BufferToStoreThreadsAndProcessesDetails;
+    ULONG                                                   InBuffLength;  // Input buffer length
+    ULONG                                                   OutBuffLength; // Output buffer length
+    SIZE_T                                                  ReturnSize;
+    NTSTATUS                                                Status = STATUS_SUCCESS;
+    UINT32                                                  Ioctl  = IrpStack->Parameters.DeviceIoControl.IoControlCode;
+
+    switch (Ioctl)
+    {
     case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
 
         //
-        // Disallow new IOCTL
+        // Disallow new VMM IOCTL (TODO: needs to be changed)
         //
-        g_AllowIoctlFromUsermode = FALSE;
+        g_VmmInitialized = FALSE;
 
         //
         // Send an immediate message, and we're no longer get new IRP
@@ -368,14 +415,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Return the header a read bytes
             //
-            DrvAdjustStatusAndSetOutputSize((UINT32)(ReturnSize + SIZEOF_DEBUGGER_READ_MEMORY), &DoNotChangeInformation, Irp, &Status);
+            DrvAdjustStatusAndSetOutputSize((UINT32)(ReturnSize + SIZEOF_DEBUGGER_READ_MEMORY), DoNotChangeInformation, Irp, &Status);
         }
         else
         {
             //
             // Just return the header to the user-mode
             //
-            DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_READ_MEMORY, &DoNotChangeInformation, Irp, &Status);
+            DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_READ_MEMORY, DoNotChangeInformation, Irp, &Status);
         }
 
         break;
@@ -410,7 +457,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Adjust the status and output size
             //
-            DrvAdjustStatusAndSetOutputSize((UINT32)ReturnSize, &DoNotChangeInformation, Irp, &Status);
+            DrvAdjustStatusAndSetOutputSize((UINT32)ReturnSize, DoNotChangeInformation, Irp, &Status);
         }
 
         break;
@@ -440,7 +487,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -471,7 +518,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -502,7 +549,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT), DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -543,7 +590,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -572,7 +619,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -611,7 +658,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_EDIT_MEMORY, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_EDIT_MEMORY, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -669,7 +716,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // Configure IRP status, and also we send the results
         // buffer, with it's null values (if any)
         //
-        DrvAdjustStatusAndSetOutputSize(MaximumSearchResults * sizeof(UINT64), &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(MaximumSearchResults * sizeof(UINT64), DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -698,7 +745,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_MODIFY_EVENTS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_MODIFY_EVENTS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -726,7 +773,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -754,7 +801,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -782,7 +829,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PREPARE_DEBUGGEE, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PREPARE_DEBUGGEE, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -810,7 +857,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -838,7 +885,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -876,7 +923,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -914,7 +961,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -942,7 +989,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -970,7 +1017,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PREALLOC_COMMAND, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PREALLOC_COMMAND, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -998,7 +1045,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PREACTIVATE_COMMAND, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PREACTIVATE_COMMAND, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1021,7 +1068,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(ExtensionCommandPerformActionsForApicRequests(DebuggerApicRequest), &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(ExtensionCommandPerformActionsForApicRequests(DebuggerApicRequest), DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1049,7 +1096,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1080,7 +1127,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_BP_PACKET, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_BP_PACKET, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1108,91 +1155,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_SMI_OPERATION_PACKETS, &DoNotChangeInformation, Irp, &Status);
-
-        break;
-
-    case IOCTL_PERFORM_HYPERTRACE_LBR_OPERATION:
-
-        //
-        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
-        //
-        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS,
-                                                (PVOID *)&HyperTraceLbrOperationRequest,
-                                                Irp,
-                                                IrpStack,
-                                                &InBuffLength,
-                                                &OutBuffLength))
-        {
-            Status = STATUS_INVALID_PARAMETER;
-            break;
-        }
-
-        //
-        // Perform the HyperTrace LBR operation
-        //
-        HyperTraceLbrPerformOperation(HyperTraceLbrOperationRequest);
-
-        //
-        // Adjust the status and output size
-        //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS, &DoNotChangeInformation, Irp, &Status);
-
-        break;
-
-    case IOCTL_PERFORM_HYPERTRACE_LBR_DUMP:
-
-        //
-        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
-        //
-        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS,
-                                                (PVOID *)&HyperTraceLbrdumpRequest,
-                                                Irp,
-                                                IrpStack,
-                                                &InBuffLength,
-                                                &OutBuffLength))
-        {
-            Status = STATUS_INVALID_PARAMETER;
-            break;
-        }
-
-        //
-        // Perform the HyperTrace LBR dump operation
-        //
-        HyperTraceLbrPerformDump(HyperTraceLbrdumpRequest);
-
-        //
-        // Adjust the status and output size
-        //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS, &DoNotChangeInformation, Irp, &Status);
-
-        break;
-
-    case IOCTL_PERFORM_HYPERTRACE_PT_OPERATION:
-
-        //
-        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
-        //
-        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS,
-                                                (PVOID *)&HyperTracePtOperationRequest,
-                                                Irp,
-                                                IrpStack,
-                                                &InBuffLength,
-                                                &OutBuffLength))
-        {
-            Status = STATUS_INVALID_PARAMETER;
-            break;
-        }
-
-        //
-        // Perform the HyperTrace PT operation
-        //
-        HyperTracePtPerformOperation(HyperTracePtOperationRequest);
-
-        //
-        // Adjust the status and output size
-        //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_SMI_OPERATION_PACKETS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1220,7 +1183,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(OutBuffLength, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(OutBuffLength, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1247,7 +1210,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(OutBuffLength, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(OutBuffLength, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1275,7 +1238,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(OutBuffLength, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(OutBuffLength, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1310,7 +1273,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1349,7 +1312,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(OutBuffLength, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(OutBuffLength, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1377,7 +1340,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1405,7 +1368,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1433,7 +1396,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1462,7 +1425,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PAGE_IN_REQUEST, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PAGE_IN_REQUEST, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1491,7 +1454,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1520,7 +1483,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET, &DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1528,6 +1491,195 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         LogError("Err, unknown IOCTL");
         Status = STATUS_NOT_IMPLEMENTED;
         break;
+    }
+
+    return Status;
+}
+
+/**
+ * @brief IOCTL Dispatcher for HyperTrace IOCTLs
+ *
+ * @param Irp
+ * @param IrpStack
+ * @param DoNotChangeInformation
+ * @return NTSTATUS
+ */
+NTSTATUS
+DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation)
+{
+    PHYPERTRACE_LBR_OPERATION_PACKETS HyperTraceLbrOperationRequest;
+    PHYPERTRACE_LBR_DUMP_PACKETS      HyperTraceLbrdumpRequest;
+    PHYPERTRACE_PT_OPERATION_PACKETS  HyperTracePtOperationRequest;
+    ULONG                             InBuffLength;
+    ULONG                             OutBuffLength;
+    NTSTATUS                          Status = STATUS_SUCCESS;
+    UINT32                            Ioctl  = IrpStack->Parameters.DeviceIoControl.IoControlCode;
+
+    switch (Ioctl)
+    {
+    case IOCTL_PERFORM_HYPERTRACE_LBR_OPERATION:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS,
+                                                (PVOID *)&HyperTraceLbrOperationRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Perform the HyperTrace LBR operation
+        //
+        HyperTraceLbrPerformOperation(HyperTraceLbrOperationRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_LBR_OPERATION_PACKETS, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_PERFORM_HYPERTRACE_LBR_DUMP:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS,
+                                                (PVOID *)&HyperTraceLbrdumpRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Perform the HyperTrace LBR dump operation
+        //
+        HyperTraceLbrPerformDump(HyperTraceLbrdumpRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_PERFORM_HYPERTRACE_PT_OPERATION:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS,
+                                                (PVOID *)&HyperTracePtOperationRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Perform the HyperTrace PT operation
+        //
+        HyperTracePtPerformOperation(HyperTracePtOperationRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    default:
+        LogError("Err, unknown IOCTL");
+        Status = STATUS_NOT_IMPLEMENTED;
+        break;
+    }
+
+    return Status;
+}
+
+/**
+ * @brief Driver IOCTL Dispatcher
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
+ */
+NTSTATUS
+DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
+{
+    UNREFERENCED_PARAMETER(DeviceObject);
+
+    PIO_STACK_LOCATION IrpStack;
+    NTSTATUS           Status                 = STATUS_SUCCESS;
+    BOOLEAN            DoNotChangeInformation = FALSE;
+    UINT32             Ioctl                  = 0;
+    ULONG              IoctlFunction          = 0;
+
+    //
+    // Here's the best place to see if there is any allocation pending
+    // to be allocated as we're in PASSIVE_LEVEL
+    //
+    PoolManagerCheckAndPerformAllocationAndDeallocation();
+
+    //
+    // Get the current stack location of the IRP to access the parameters of the IOCTL request
+    //
+    IrpStack = IoGetCurrentIrpStackLocation(Irp);
+
+    //
+    // Get the IOCTL code from the parameters
+    //
+    Ioctl = IrpStack->Parameters.DeviceIoControl.IoControlCode;
+
+    //
+    // If we don't allow IOCTL from user-mode, we just complete the request with success, and return
+    //
+    if (!IoctlCheckIoctlAllowed(Ioctl))
+    {
+        Irp->IoStatus.Status      = STATUS_SUCCESS;
+        Irp->IoStatus.Information = 0;
+        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+        return STATUS_SUCCESS;
+    }
+
+    //
+    // Dispatch to the appropriate handler based on the IOCTL range
+    //
+    IoctlFunction = CTL_CODE_FUNCTION(Ioctl);
+
+    if (IoctlFunction > IOCTL_BASIC_IOCTL && IoctlFunction <= IOCTL_BASIC_IOCTL + 0x100)
+    {
+        Status = DrvDispatchBasicIoControl(Irp, IrpStack, &DoNotChangeInformation);
+    }
+    else if (IoctlFunction > IOCTL_KD_IOCTL && IoctlFunction <= IOCTL_KD_IOCTL + 0x100)
+    {
+        Status = DrvDispatchKdIoControl(Irp, IrpStack, &DoNotChangeInformation);
+    }
+    else if (IoctlFunction > IOCTL_VMM_IOCTL && IoctlFunction <= IOCTL_VMM_IOCTL + 0x100)
+    {
+        Status = DrvDispatchVmmIoControl(Irp, IrpStack, &DoNotChangeInformation);
+    }
+    else if (IoctlFunction > IOCTL_HYPERTRACE_IOCTL && IoctlFunction <= IOCTL_HYPERTRACE_IOCTL + 0x100)
+    {
+        Status = DrvDispatchHyperTraceIoControl(Irp, IrpStack, &DoNotChangeInformation);
+    }
+    else
+    {
+        Status = STATUS_NOT_IMPLEMENTED;
     }
 
     if (Status != STATUS_PENDING)

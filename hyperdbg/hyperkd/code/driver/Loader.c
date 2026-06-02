@@ -171,11 +171,6 @@ LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
     }
 
     //
-    // Allow to serve IOCTL
-    //
-    g_AllowIoctlFromUsermode = TRUE;
-
-    //
     // *** Fill the callbacks for using hyperlog in VMM ***
     //
     VmmCallbacks.LogCallbackPrepareAndSendMessageToQueueWrapper = LogCallbackPrepareAndSendMessageToQueueWrapper;
@@ -224,6 +219,11 @@ LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
         LogDebugInfo("HyperDbg's hypervisor loaded successfully");
 
         //
+        // VMM module initialized
+        //
+        g_AllowVmmIoctls = TRUE;
+
+        //
         // Initialize the debugger
         //
         if (DebuggerInitialize())
@@ -246,11 +246,6 @@ LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
     {
         LogError("Err, HyperDbg's hypervisor was not loaded");
     }
-
-    //
-    // Not loaded
-    //
-    g_AllowIoctlFromUsermode = FALSE;
 
     return FALSE;
 }

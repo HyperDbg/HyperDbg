@@ -23,6 +23,18 @@ PROCESSOR_DEBUGGING_STATE * g_DbgState;
 BOOLEAN g_HyperLogInitialized;
 
 /**
+ * @brief Shows whether the KD module is initialized or not
+ *
+ */
+BOOLEAN g_KdInitialized;
+
+/**
+ * @brief Shows whether the VMM is initialized or not
+ *
+ */
+BOOLEAN g_VmmInitialized;
+
+/**
  * @brief Shows whether the hypertrace module is initialized or not
  *
  */
@@ -70,12 +82,6 @@ DEBUGGER_TRAP_FLAG_STATE g_TrapFlagState;
  *
  */
 BOOLEAN g_HandleInUse;
-
-/**
- * @brief Determines whether the clients are allowed to send IOCTL to the drive or not
- *
- */
-BOOLEAN g_AllowIoctlFromUsermode;
 
 /**
  * @brief events list (for debugger)
