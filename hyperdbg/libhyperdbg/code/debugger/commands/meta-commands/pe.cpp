@@ -11,8 +11,6 @@
  */
 #include "pch.h"
 
-using namespace std;
-
 /**
  * @brief help of the .pe command
  *
@@ -23,8 +21,8 @@ CommandPeHelp()
 {
     ShowMessages(".pe : parses portable executable (PE) files, displays header metadata, and dumps sections.\n\n");
 
-    ShowMessages("syntax : \t.pe header <file>\n");
-    ShowMessages("syntax : \t.pe section <section> <file>\n");
+    ShowMessages("syntax : \t.pe [header] [FilePath (string)]\n");
+    ShowMessages("syntax : \t.pe [section] [SectionName (string)] [FilePath (string)]\n");
     ShowMessages("\n.pe section dumps are capped at 1 MiB per matching section and 4 MiB total.\n");
 
     ShowMessages("\n");

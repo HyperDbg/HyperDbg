@@ -3,7 +3,7 @@
  * @author jtaw5649
  * @brief Bounded in-memory Portable Executable reader
  * @details
- * @version 0.1
+ * @version 0.19
  * @date 2026-06-01
  *
  * @copyright This project is released under the GNU Public License v3.
@@ -11,14 +11,36 @@
  */
 #include "pch.h"
 
-#include "header/pe-image-reader.h"
-
+/**
+ * @brief Checks whether the byte range [Offset, Offset + Length) lies entirely within an image buffer
+ *
+ * Validates that neither the offset nor the combined offset-plus-length overflows
+ * and that both fall within the bounds of the image.
+ *
+ * @param ImageSize Total size of the image buffer in bytes
+ * @param Offset Starting byte offset to test
+ * @param Length Number of bytes in the range
+ *
+ * @return BOOLEAN TRUE if the range is valid, FALSE if it exceeds the image bounds
+ */
 static BOOLEAN
 PeImageReaderHasRange(SIZE_T ImageSize, SIZE_T Offset, SIZE_T Length)
 {
     return Offset <= ImageSize && Length <= ImageSize - Offset;
 }
 
+/**
+ * @brief Adds two SIZE_T values with overflow detection
+ *
+ * Returns FALSE without modifying Result when the addition would overflow;
+ * otherwise writes the sum to *Result and returns TRUE.
+ *
+ * @param Left First operand
+ * @param Right Second operand
+ * @param Result Output pointer that receives the sum on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE if the addition succeeded, FALSE on overflow or NULL pointer
+ */
 static BOOLEAN
 PeImageReaderAddSize(SIZE_T Left, SIZE_T Right, SIZE_T * Result)
 {
@@ -31,6 +53,16 @@ PeImageReaderAddSize(SIZE_T Left, SIZE_T Right, SIZE_T * Result)
     return TRUE;
 }
 
+/**
+ * @brief Retrieves the SizeOfHeaders value from the PE optional header
+ *
+ * Reads the field from IMAGE_OPTIONAL_HEADER32 or IMAGE_OPTIONAL_HEADER64
+ * depending on the bitness recorded in the reader.
+ *
+ * @param Reader Pointer to an initialized PE_IMAGE_READER; must not be NULL
+ *
+ * @return DWORD The SizeOfHeaders value from the optional header
+ */
 static DWORD
 PeImageReaderGetSizeOfHeaders(PPE_IMAGE_READER Reader)
 {
@@ -44,6 +76,20 @@ PeImageReaderGetSizeOfHeaders(PPE_IMAGE_READER Reader)
     return ((const IMAGE_OPTIONAL_HEADER64 *)OptionalHeader)->SizeOfHeaders;
 }
 
+/**
+ * @brief Parses and validates all PE headers in an in-memory image buffer
+ *
+ * Verifies the DOS signature, the NT signature, the optional header magic,
+ * and ensures all headers and the section table fit within the supplied buffer.
+ * On success the Reader structure is populated with pointers into ImageBase.
+ *
+ * @param ImageBase Pointer to the start of the image buffer; must not be NULL
+ * @param ImageSize Size of the buffer in bytes
+ * @param Reader Output structure to populate on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE if the image was parsed successfully, FALSE on any
+ *         validation failure or NULL argument
+ */
 BOOLEAN
 PeImageReaderInitialize(const BYTE * ImageBase, SIZE_T ImageSize, PPE_IMAGE_READER Reader)
 {
@@ -134,6 +180,16 @@ PeImageReaderInitialize(const BYTE * ImageBase, SIZE_T ImageSize, PPE_IMAGE_READ
     return TRUE;
 }
 
+/**
+ * @brief Returns whether the PE image is a 32-bit (PE32) image
+ *
+ * Examines the Is32Bit flag populated by PeImageReaderInitialize.
+ * A return value of FALSE means either the reader is NULL or the image is PE32+.
+ *
+ * @param Reader Pointer to an initialized PE_IMAGE_READER
+ *
+ * @return BOOLEAN TRUE for PE32 (32-bit), FALSE for PE32+ (64-bit) or NULL reader
+ */
 BOOLEAN
 PeImageReaderIs32Bit(PPE_IMAGE_READER Reader)
 {
@@ -145,6 +201,20 @@ PeImageReaderIs32Bit(PPE_IMAGE_READER Reader)
     return Reader->Is32Bit;
 }
 
+/**
+ * @brief Returns a validated pointer into the image at a raw file offset
+ *
+ * Verifies that the range [Offset, Offset + Length) lies within the image
+ * buffer before setting *Pointer. Use this function when working with raw
+ * file offsets rather than virtual addresses.
+ *
+ * @param Reader  Pointer to an initialized PE_IMAGE_READER; must not be NULL
+ * @param Offset  Raw file offset from the start of the image
+ * @param Length  Number of bytes that must be accessible at the offset
+ * @param Pointer Output pointer set to ImageBase + Offset on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE on success, FALSE on invalid arguments or out-of-bounds offset
+ */
 BOOLEAN
 PeImageReaderGetPointerAtOffset(PPE_IMAGE_READER Reader, SIZE_T Offset, SIZE_T Length, const BYTE ** Pointer)
 {
@@ -157,6 +227,19 @@ PeImageReaderGetPointerAtOffset(PPE_IMAGE_READER Reader, SIZE_T Offset, SIZE_T L
     return TRUE;
 }
 
+/**
+ * @brief Copies the section name from a section header into a null-terminated buffer
+ *
+ * The PE section name field (IMAGE_SIZEOF_SHORT_NAME bytes) is not required to be
+ * null-terminated when it uses all 8 bytes. This function always appends a null
+ * terminator and truncates to NameBufferSize - 1 characters if necessary.
+ *
+ * @param SectionHeader  Pointer to the section header to read; must not be NULL
+ * @param NameBuffer     Destination buffer for the null-terminated name; must not be NULL
+ * @param NameBufferSize Size of NameBuffer in bytes; must be at least 1
+ *
+ * @return BOOLEAN TRUE on success, FALSE on NULL arguments or zero-length buffer
+ */
 BOOLEAN
 PeImageReaderGetSectionName(const IMAGE_SECTION_HEADER * SectionHeader, CHAR * NameBuffer, SIZE_T NameBufferSize)
 {
@@ -183,6 +266,23 @@ PeImageReaderGetSectionName(const IMAGE_SECTION_HEADER * SectionHeader, CHAR * N
     return TRUE;
 }
 
+/**
+ * @brief Translates a relative virtual address (RVA) to a raw file offset
+ *
+ * First checks whether the RVA falls within the PE headers (before any section),
+ * in which case the file offset equals the RVA. Otherwise iterates the section
+ * table to find the section that contains the range [Rva, Rva + Length) and
+ * computes the corresponding raw offset via PointerToRawData. Returns FALSE if
+ * no section contains the range, if the raw data mapping is out of bounds, or if
+ * any arithmetic overflows.
+ *
+ * @param Reader     Pointer to an initialized PE_IMAGE_READER; must not be NULL
+ * @param Rva        Relative virtual address to translate
+ * @param Length     Number of bytes that must be accessible at the translated offset
+ * @param FileOffset Output pointer that receives the raw file offset on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE if the RVA was translated successfully, FALSE otherwise
+ */
 BOOLEAN
 PeImageReaderRvaToFileOffset(PPE_IMAGE_READER Reader, DWORD Rva, DWORD Length, PSIZE_T FileOffset)
 {

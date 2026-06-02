@@ -225,7 +225,7 @@ SendCommandAndWaitForResponse:
 
     RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
     ReadBytes =
-        NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+        NamedPipeServerReadClientMessage(PipeHandle, (CHAR *)Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     if (!ReadBytes)
     {

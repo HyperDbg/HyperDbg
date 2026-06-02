@@ -181,6 +181,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/assembler.h"
 
 //
+// Components
+//
+#include "../include/components/pe/header/pe-image-reader.h"
+
+//
 // hwdbg
 //
 #include "header/hwdbg-interpreter.h"

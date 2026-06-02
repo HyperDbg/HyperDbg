@@ -11,39 +11,17 @@
  */
 #include "pch.h"
 
-#include <limits.h>
-#include <new>
-#include <math.h>
-
-#include "header/pe-image-reader.h"
-
-typedef struct _RICH_HEADER_INFO
-{
-    int    Size;
-    char * PtrToBuffer;
-    int    Entries;
-} RICH_HEADER_INFO, *PRICH_HEADER_INFO;
-
-typedef struct _RICH_HEADER_ENTRY
-{
-    WORD  ProdID;
-    WORD  BuildID;
-    DWORD UseCount;
-} RICH_HEADER_ENTRY, *PRICH_HEADER_ENTRY;
-
-typedef struct _RICH_HEADER
-{
-    PRICH_HEADER_ENTRY Entries;
-} RICH_HEADER, *PRICH_HEADER;
-
-typedef struct _PE_RAW_SECTION_RANGE
-{
-    ULONGLONG                    Start;
-    ULONGLONG                    End;
-    const IMAGE_SECTION_HEADER * Section;
-} PE_RAW_SECTION_RANGE, *PPE_RAW_SECTION_RANGE;
-
-static const char *
+/**
+ * @brief Returns a human-readable name for a PE subsystem identifier
+ *
+ * Maps the Subsystem field from IMAGE_OPTIONAL_HEADER to a descriptive string.
+ * Unknown subsystem values return "Unknown".
+ *
+ * @param Subsystem The Subsystem value from the PE optional header
+ *
+ * @return const CHAR* A static string describing the subsystem
+ */
+static const CHAR *
 PeGetSubsystemName(WORD Subsystem)
 {
     switch (Subsystem)
@@ -61,6 +39,15 @@ PeGetSubsystemName(WORD Subsystem)
     }
 }
 
+/**
+ * @brief Prints the set DLL characteristics flags from a PE optional header
+ *
+ * Iterates a table of known IMAGE_DLLCHARACTERISTICS_* flag values and prints
+ * the name of each flag that is set in DllCharacteristics, separated by commas.
+ * Prints "None" when no flags are set.
+ *
+ * @param DllCharacteristics The DllCharacteristics field from the PE optional header
+ */
 static VOID
 PeShowDllCharacteristics(WORD DllCharacteristics)
 {
@@ -69,7 +56,7 @@ PeShowDllCharacteristics(WORD DllCharacteristics)
     struct DLL_CHARACTERISTIC_NAME
     {
         WORD         Flag;
-        const char * Name;
+        const CHAR * Name;
     };
 
     static const DLL_CHARACTERISTIC_NAME CommonDllCharacteristics[] = {
@@ -86,11 +73,11 @@ PeShowDllCharacteristics(WORD DllCharacteristics)
         {IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE, "Terminal Server Aware"},
     };
 
-    for (UINT32 i = 0; i < RTL_NUMBER_OF(CommonDllCharacteristics); i++)
+    for (UINT32 Index = 0; Index < RTL_NUMBER_OF(CommonDllCharacteristics); Index++)
     {
-        if ((DllCharacteristics & CommonDllCharacteristics[i].Flag) == CommonDllCharacteristics[i].Flag)
+        if ((DllCharacteristics & CommonDllCharacteristics[Index].Flag) == CommonDllCharacteristics[Index].Flag)
         {
-            ShowMessages("%s%s", AnyFlag ? ", " : "", CommonDllCharacteristics[i].Name);
+            ShowMessages("%s%s", AnyFlag ? ", " : "", CommonDllCharacteristics[Index].Name);
             AnyFlag = TRUE;
         }
     }
@@ -101,6 +88,15 @@ PeShowDllCharacteristics(WORD DllCharacteristics)
     }
 }
 
+/**
+ * @brief Prints the raw file offset corresponding to the PE entrypoint RVA
+ *
+ * Resolves AddressOfEntryPoint through the section table to obtain a file offset
+ * and prints it. Prints "not mapped" when the RVA cannot be resolved.
+ *
+ * @param Reader               Pointer to an initialized PE_IMAGE_READER
+ * @param AddressOfEntryPoint  The AddressOfEntryPoint field from the PE optional header
+ */
 static VOID
 PeShowEntrypointFileOffset(PPE_IMAGE_READER Reader, DWORD AddressOfEntryPoint)
 {
@@ -116,10 +112,21 @@ PeShowEntrypointFileOffset(PPE_IMAGE_READER Reader, DWORD AddressOfEntryPoint)
     }
 }
 
-static const char *
+/**
+ * @brief Returns the name of a PE data directory by its index
+ *
+ * Maps IMAGE_DIRECTORY_ENTRY_* index values to descriptive strings using
+ * the standard ordering defined in the PE specification. Returns "Unknown"
+ * for indices at or beyond IMAGE_NUMBEROF_DIRECTORY_ENTRIES.
+ *
+ * @param Index Zero-based data directory index (IMAGE_DIRECTORY_ENTRY_*)
+ *
+ * @return const CHAR* A static string naming the data directory
+ */
+static const CHAR *
 PeGetDataDirectoryName(UINT32 Index)
 {
-    static const char * DirectoryNames[IMAGE_NUMBEROF_DIRECTORY_ENTRIES] = {
+    static const CHAR * DirectoryNames[IMAGE_NUMBEROF_DIRECTORY_ENTRIES] = {
         "Export Table",
         "Import Table",
         "Resource Table",
@@ -146,6 +153,18 @@ PeGetDataDirectoryName(UINT32 Index)
     return "Unknown";
 }
 
+/**
+ * @brief Adds two DWORD values with overflow detection
+ *
+ * Returns FALSE without modifying Result when the addition would exceed MAXDWORD;
+ * otherwise writes the sum to *Result and returns TRUE.
+ *
+ * @param Left   First operand
+ * @param Right  Second operand
+ * @param Result Output pointer that receives the sum on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE if the addition succeeded, FALSE on overflow or NULL pointer
+ */
 static BOOLEAN
 PeAddDword(DWORD Left, DWORD Right, DWORD * Result)
 {
@@ -158,6 +177,18 @@ PeAddDword(DWORD Left, DWORD Right, DWORD * Result)
     return TRUE;
 }
 
+/**
+ * @brief Adds two ULONGLONG values with overflow detection
+ *
+ * Returns FALSE without modifying Result when the addition would overflow a
+ * 64-bit unsigned integer; otherwise writes the sum to *Result and returns TRUE.
+ *
+ * @param Left   First operand
+ * @param Right  Second operand
+ * @param Result Output pointer that receives the sum on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE if the addition succeeded, FALSE on overflow or NULL pointer
+ */
 static BOOLEAN
 PeAddUlonglong(ULONGLONG Left, ULONGLONG Right, ULONGLONG * Result)
 {
@@ -170,6 +201,17 @@ PeAddUlonglong(ULONGLONG Left, ULONGLONG Right, ULONGLONG * Result)
     return TRUE;
 }
 
+/**
+ * @brief Comparator for sorting PE_RAW_SECTION_RANGE entries by ascending start offset
+ *
+ * Intended for use with qsort(). Entries with the same Start are further ordered
+ * by End in ascending order.
+ *
+ * @param Left  Pointer to the first PE_RAW_SECTION_RANGE to compare
+ * @param Right Pointer to the second PE_RAW_SECTION_RANGE to compare
+ *
+ * @return INT Negative if Left < Right, positive if Left > Right, zero if equal
+ */
 static INT
 PeCompareRawSectionRange(const VOID * Left, const VOID * Right)
 {
@@ -199,6 +241,19 @@ PeCompareRawSectionRange(const VOID * Left, const VOID * Right)
     return 0;
 }
 
+/**
+ * @brief Checks whether an RVA range is fully contained within another RVA range
+ *
+ * Both ranges are expressed as a base RVA and a size. Returns FALSE if any
+ * addition overflows or if [Rva, Rva+Size) extends outside [RangeRva, RangeRva+RangeSize).
+ *
+ * @param RangeRva  Base RVA of the enclosing range
+ * @param RangeSize Size of the enclosing range in bytes
+ * @param Rva       Base RVA of the range to test
+ * @param Size      Size of the range to test in bytes
+ *
+ * @return BOOLEAN TRUE if [Rva, Rva+Size) lies entirely within [RangeRva, RangeRva+RangeSize)
+ */
 static BOOLEAN
 PeRvaContainsRange(DWORD RangeRva, DWORD RangeSize, DWORD Rva, DWORD Size)
 {
@@ -213,6 +268,19 @@ PeRvaContainsRange(DWORD RangeRva, DWORD RangeSize, DWORD Rva, DWORD Size)
     return Rva >= RangeRva && RvaEnd <= RangeEnd;
 }
 
+/**
+ * @brief Returns a validated pointer into the image at the location mapped by an RVA
+ *
+ * Translates Rva to a raw file offset via PeImageReaderRvaToFileOffset and then
+ * validates the range through PeImageReaderGetPointerAtOffset.
+ *
+ * @param Reader  Pointer to an initialized PE_IMAGE_READER
+ * @param Rva     Relative virtual address to look up
+ * @param Length  Number of bytes that must be accessible at the resolved offset
+ * @param Pointer Output pointer set to the resolved image location on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE on success, FALSE if the RVA cannot be resolved or is out of bounds
+ */
 static BOOLEAN
 PeGetPointerAtRva(PPE_IMAGE_READER Reader, DWORD Rva, DWORD Length, const BYTE ** Pointer)
 {
@@ -233,6 +301,23 @@ typedef enum _PE_ASCII_STRING_STATUS
     PeAsciiStringTruncated,
 } PE_ASCII_STRING_STATUS;
 
+/**
+ * @brief Reads an ASCII string from the image at the given RVA
+ *
+ * Reads up to MaxLength bytes starting at Rva, stopping at the first null
+ * terminator. Non-printable bytes are replaced with '.'. The output buffer is
+ * always null-terminated. Returns PeAsciiStringInvalid if any mapped byte
+ * cannot be resolved, PeAsciiStringOk when the null terminator is found within
+ * MaxLength, and PeAsciiStringTruncated otherwise.
+ *
+ * @param Reader     Pointer to an initialized PE_IMAGE_READER
+ * @param Rva        Starting RVA of the string
+ * @param MaxLength  Maximum number of bytes to scan
+ * @param Buffer     Destination buffer for the null-terminated output
+ * @param BufferSize Size of Buffer in bytes; must be at least 1
+ *
+ * @return PE_ASCII_STRING_STATUS Result indicating whether the string was read successfully
+ */
 static PE_ASCII_STRING_STATUS
 PeReadAsciiStringAtRva(PPE_IMAGE_READER Reader, DWORD Rva, DWORD MaxLength, CHAR * Buffer, SIZE_T BufferSize)
 {
@@ -269,7 +354,14 @@ PeReadAsciiStringAtRva(PPE_IMAGE_READER Reader, DWORD Rva, DWORD MaxLength, CHAR
     return PeAsciiStringTruncated;
 }
 
-static const char *
+/**
+ * @brief Returns a human-readable description of a PE_ASCII_STRING_STATUS value
+ *
+ * @param Status The status value returned by PeReadAsciiStringAtRva or related functions
+ *
+ * @return const CHAR* A static string describing the status
+ */
+static const CHAR *
 PeAsciiStatusName(PE_ASCII_STRING_STATUS Status)
 {
     switch (Status)
@@ -283,6 +375,18 @@ PeAsciiStatusName(PE_ASCII_STRING_STATUS Status)
     }
 }
 
+/**
+ * @brief Converts an absolute virtual address to a relative virtual address
+ *
+ * Subtracts ImageBase from Va and checks that the difference fits in a DWORD.
+ * Returns FALSE when Va < ImageBase or when the difference exceeds MAXDWORD.
+ *
+ * @param Va        Absolute virtual address to convert
+ * @param ImageBase Base address of the image
+ * @param Rva       Output pointer that receives the RVA on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE on success, FALSE when the conversion is not representable
+ */
 static BOOLEAN
 PeVaToRva(ULONGLONG Va, ULONGLONG ImageBase, DWORD * Rva)
 {
@@ -303,6 +407,16 @@ PeVaToRva(ULONGLONG Va, ULONGLONG ImageBase, DWORD * Rva)
     return TRUE;
 }
 
+/**
+ * @brief Reads a DWORD from a byte buffer at the specified byte offset
+ *
+ * Uses CopyMemory to avoid strict-aliasing and alignment issues.
+ *
+ * @param Buffer Pointer to the source byte buffer
+ * @param Offset Byte offset within Buffer at which to read
+ *
+ * @return DWORD The 32-bit value read from Buffer + Offset
+ */
 static DWORD
 PeReadDwordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
 {
@@ -312,6 +426,16 @@ PeReadDwordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
     return Value;
 }
 
+/**
+ * @brief Reads a WORD from a byte buffer at the specified byte offset
+ *
+ * Uses CopyMemory to avoid strict-aliasing and alignment issues.
+ *
+ * @param Buffer Pointer to the source byte buffer
+ * @param Offset Byte offset within Buffer at which to read
+ *
+ * @return WORD The 16-bit value read from Buffer + Offset
+ */
 static WORD
 PeReadWordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
 {
@@ -321,6 +445,16 @@ PeReadWordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
     return Value;
 }
 
+/**
+ * @brief Reads a BYTE from a byte buffer at the specified byte offset
+ *
+ * Uses CopyMemory to provide a consistent read interface.
+ *
+ * @param Buffer Pointer to the source byte buffer
+ * @param Offset Byte offset within Buffer at which to read
+ *
+ * @return BYTE The 8-bit value read from Buffer + Offset
+ */
 static BYTE
 PeReadByteFromBuffer(const BYTE * Buffer, SIZE_T Offset)
 {
@@ -330,6 +464,16 @@ PeReadByteFromBuffer(const BYTE * Buffer, SIZE_T Offset)
     return Value;
 }
 
+/**
+ * @brief Reads a ULONGLONG from a byte buffer at the specified byte offset
+ *
+ * Uses CopyMemory to avoid strict-aliasing and alignment issues.
+ *
+ * @param Buffer Pointer to the source byte buffer
+ * @param Offset Byte offset within Buffer at which to read
+ *
+ * @return ULONGLONG The 64-bit value read from Buffer + Offset
+ */
 static ULONGLONG
 PeReadQwordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
 {
@@ -339,12 +483,40 @@ PeReadQwordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
     return Value;
 }
 
+/**
+ * @brief Reads a pointer-sized value from a load configuration structure
+ *
+ * Reads a DWORD when Is32Bit is TRUE (PE32 pointer), or a QWORD when FALSE
+ * (PE32+ pointer), returning the result as a ULONGLONG in both cases.
+ *
+ * @param Buffer  Pointer to the load configuration byte buffer
+ * @param Offset  Byte offset within Buffer of the field to read
+ * @param Is32Bit TRUE to read a 32-bit pointer, FALSE to read a 64-bit pointer
+ *
+ * @return ULONGLONG The pointer value widened to 64 bits
+ */
 static ULONGLONG
 PeReadLoadConfigPointer(const BYTE * Buffer, SIZE_T Offset, BOOLEAN Is32Bit)
 {
     return Is32Bit ? PeReadDwordFromBuffer(Buffer, Offset) : PeReadQwordFromBuffer(Buffer, Offset);
 }
 
+/**
+ * @brief Reads an ASCII string from a raw byte pointer up to MaxLength bytes
+ *
+ * Scans StringPointer[0..MaxLength-1] for a null terminator. Non-printable
+ * bytes are replaced with '.'. The output is always null-terminated.
+ * Returns PeAsciiStringOk when the terminator is found, PeAsciiStringTruncated
+ * when MaxLength is exhausted without a terminator, and PeAsciiStringInvalid
+ * on NULL arguments.
+ *
+ * @param StringPointer Pointer to the source ASCII data; must not be NULL
+ * @param MaxLength     Maximum number of bytes to scan
+ * @param Buffer        Destination buffer for the null-terminated output
+ * @param BufferSize    Size of Buffer in bytes; must be at least 1
+ *
+ * @return PE_ASCII_STRING_STATUS Result indicating whether the string was read successfully
+ */
 static PE_ASCII_STRING_STATUS
 PeReadAsciiStringFromBuffer(const BYTE * StringPointer, DWORD MaxLength, CHAR * Buffer, SIZE_T BufferSize)
 {
@@ -373,6 +545,22 @@ PeReadAsciiStringFromBuffer(const BYTE * StringPointer, DWORD MaxLength, CHAR * 
     return PeAsciiStringTruncated;
 }
 
+/**
+ * @brief Reads an ASCII string located at a fixed offset within a PE data directory
+ *
+ * Computes the target RVA as Directory->VirtualAddress + Offset, clamps the
+ * maximum read length to the remaining bytes in the directory, and delegates
+ * to PeReadAsciiStringAtRva.
+ *
+ * @param Reader     Pointer to an initialized PE_IMAGE_READER
+ * @param Directory  Pointer to the data directory entry that contains the string
+ * @param Offset     Byte offset within the directory at which the string begins
+ * @param MaxLength  Maximum number of bytes to scan for the null terminator
+ * @param Buffer     Destination buffer for the null-terminated output
+ * @param BufferSize Size of Buffer in bytes
+ *
+ * @return PE_ASCII_STRING_STATUS Result indicating whether the string was read successfully
+ */
 static PE_ASCII_STRING_STATUS
 PeReadAsciiStringInDirectory(PPE_IMAGE_READER             Reader,
                              const IMAGE_DATA_DIRECTORY * Directory,
@@ -392,6 +580,20 @@ PeReadAsciiStringInDirectory(PPE_IMAGE_READER             Reader,
     return PeReadAsciiStringAtRva(Reader, StringRva, Remaining < MaxLength ? Remaining : MaxLength, Buffer, BufferSize);
 }
 
+/**
+ * @brief Computes the standard PE file checksum
+ *
+ * Implements the algorithm used by the Windows PE loader: sums all 16-bit
+ * words of the image (treating the checksum field itself as zero), folds the
+ * carry, and adds the total image size. The result matches the value stored
+ * in the optional header CheckSum field for well-formed images.
+ *
+ * @param Reader         Pointer to an initialized PE_IMAGE_READER
+ * @param ChecksumOffset Raw file offset of the 4-byte checksum field (excluded from summation)
+ * @param Checksum       Output pointer that receives the computed checksum on success
+ *
+ * @return BOOLEAN TRUE on success, FALSE on NULL arguments or invalid checksum offset
+ */
 static BOOLEAN
 PeComputeChecksum(PPE_IMAGE_READER Reader, SIZE_T ChecksumOffset, DWORD * Checksum)
 {
@@ -428,6 +630,17 @@ PeComputeChecksum(PPE_IMAGE_READER Reader, SIZE_T ChecksumOffset, DWORD * Checks
     return TRUE;
 }
 
+/**
+ * @brief Prints the stored and computed PE optional header checksums
+ *
+ * Displays HeaderChecksum as read from the optional header and, when the image
+ * is small enough, also computes and displays the expected value via
+ * PeComputeChecksum. Skips computation for images larger than 64 MiB.
+ *
+ * @param Reader          Pointer to an initialized PE_IMAGE_READER (may be NULL to skip computation)
+ * @param HeaderChecksum  Checksum value as stored in the PE optional header
+ * @param ChecksumOffset  Raw file offset of the checksum field within the image
+ */
 static VOID
 PeShowChecksum(PPE_IMAGE_READER Reader, DWORD HeaderChecksum, SIZE_T ChecksumOffset)
 {
@@ -451,6 +664,17 @@ PeShowChecksum(PPE_IMAGE_READER Reader, DWORD HeaderChecksum, SIZE_T ChecksumOff
     }
 }
 
+/**
+ * @brief Prints the contents of the PE certificate (security) directory
+ *
+ * The certificate directory is stored at a raw file offset rather than an RVA.
+ * Iterates WIN_CERTIFICATE entries, printing the file offset, length, revision,
+ * and type of each. Stops when the directory is empty, invalid, or a certificate
+ * length or alignment error is detected.
+ *
+ * @param Reader             Pointer to an initialized PE_IMAGE_READER
+ * @param SecurityDirectory  Pointer to the IMAGE_DIRECTORY_ENTRY_SECURITY data directory entry
+ */
 static VOID
 PeShowCertificateTable(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * SecurityDirectory)
 {
@@ -518,6 +742,17 @@ PeShowCertificateTable(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * Sec
     }
 }
 
+/**
+ * @brief Prints base relocation blocks and per-type entry counts
+ *
+ * Iterates IMAGE_BASE_RELOCATION blocks within the .reloc directory,
+ * printing the page RVA, block size, and entry count for each. Accumulates
+ * a per-type summary and emits warnings for malformed or oversized data.
+ * Processing stops at 0x10000 blocks or 0x100000 entries.
+ *
+ * @param Reader          Pointer to an initialized PE_IMAGE_READER
+ * @param RelocDirectory  Pointer to the IMAGE_DIRECTORY_ENTRY_BASERELOC data directory entry
+ */
 static VOID
 PeShowBaseRelocations(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * RelocDirectory)
 {
@@ -654,6 +889,16 @@ PeShowBaseRelocations(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * Relo
     }
 }
 
+/**
+ * @brief Prints bound import descriptors and their forwarder references
+ *
+ * Iterates IMAGE_BOUND_IMPORT_DESCRIPTOR entries, printing the module name,
+ * timestamp, and forwader reference count for each. Also expands forwader
+ * references inline. Processing stops after 0x1000 descriptors.
+ *
+ * @param Reader               Pointer to an initialized PE_IMAGE_READER
+ * @param BoundImportDirectory Pointer to the IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT data directory entry
+ */
 static VOID
 PeShowBoundImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * BoundImportDirectory)
 {
@@ -697,11 +942,11 @@ PeShowBoundImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * BoundIm
 
         CHAR                   ModuleName[MaxNameLength + 1] = {0};
         PE_ASCII_STRING_STATUS NameStatus                    = PeReadAsciiStringInDirectory(Reader,
-                                                                                            BoundImportDirectory,
-                                                                                            OffsetModuleName,
-                                                                                            MaxNameLength,
-                                                                                            ModuleName,
-                                                                                            sizeof(ModuleName));
+                                                                         BoundImportDirectory,
+                                                                         OffsetModuleName,
+                                                                         MaxNameLength,
+                                                                         ModuleName,
+                                                                         sizeof(ModuleName));
 
         ShowMessages("\n[%u] module %s timestamp %#x forwarder refs %u",
                      DescriptorCount,
@@ -761,6 +1006,17 @@ PeShowBoundImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * BoundIm
     }
 }
 
+/**
+ * @brief Computes the 64-bit FNV-1a hash of a byte buffer
+ *
+ * Uses the standard FNV-1a parameters: offset basis 14695981039346656037
+ * and prime 1099511628211. Suitable for non-cryptographic fingerprinting.
+ *
+ * @param Data Pointer to the input data
+ * @param Size Number of bytes to hash
+ *
+ * @return ULONGLONG The 64-bit FNV-1a hash value
+ */
 static ULONGLONG
 PeFnv1a64(const BYTE * Data, DWORD Size)
 {
@@ -775,6 +1031,19 @@ PeFnv1a64(const BYTE * Data, DWORD Size)
     return Hash;
 }
 
+/**
+ * @brief Computes the Shannon entropy of a byte buffer
+ *
+ * Calculates the frequency of each byte value (0-255) and applies the
+ * standard information-entropy formula. A return value near 8.0 indicates
+ * high entropy (e.g. compressed or encrypted data); values near 0.0 indicate
+ * low entropy (e.g. sparse, mostly-zero data).
+ *
+ * @param Data Pointer to the input data
+ * @param Size Number of bytes to analyse
+ *
+ * @return double Shannon entropy in bits per byte (0.0 to 8.0)
+ */
 static double
 PeCalculateEntropy(const BYTE * Data, DWORD Size)
 {
@@ -798,6 +1067,15 @@ PeCalculateEntropy(const BYTE * Data, DWORD Size)
     return Entropy;
 }
 
+/**
+ * @brief Reads a 16-bit word from the image at the location mapped by an RVA
+ *
+ * @param Reader Pointer to an initialized PE_IMAGE_READER
+ * @param Rva    Relative virtual address to read from
+ * @param Value  Output pointer that receives the WORD value on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE on success, FALSE if the RVA cannot be resolved or Value is NULL
+ */
 static BOOLEAN
 PeReadWordAtRva(PPE_IMAGE_READER Reader, DWORD Rva, WORD * Value)
 {
@@ -812,6 +1090,19 @@ PeReadWordAtRva(PPE_IMAGE_READER Reader, DWORD Rva, WORD * Value)
     return TRUE;
 }
 
+/**
+ * @brief Reads an import/export thunk value (DWORD or QWORD) from an RVA
+ *
+ * Reads sizeof(DWORD) bytes when Is32Bit is TRUE, or sizeof(ULONGLONG) bytes
+ * when FALSE, and widens the result to a ULONGLONG.
+ *
+ * @param Reader  Pointer to an initialized PE_IMAGE_READER
+ * @param Rva     Relative virtual address of the thunk entry
+ * @param Is32Bit TRUE to read a 32-bit thunk, FALSE to read a 64-bit thunk
+ * @param Value   Output pointer that receives the thunk value on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE on success, FALSE if the RVA cannot be resolved or Value is NULL
+ */
 static BOOLEAN
 PeReadThunkAtRva(PPE_IMAGE_READER Reader, DWORD Rva, BOOLEAN Is32Bit, ULONGLONG * Value)
 {
@@ -837,6 +1128,15 @@ PeReadThunkAtRva(PPE_IMAGE_READER Reader, DWORD Rva, BOOLEAN Is32Bit, ULONGLONG 
     return TRUE;
 }
 
+/**
+ * @brief Prints a named resource type identifier and its occurrence count
+ *
+ * Maps well-known RT_* integer type identifiers (1-12, 14, 16, 24) to
+ * human-readable names. Unknown or unnamed type IDs are silently ignored.
+ *
+ * @param TypeId Numeric resource type identifier (RT_* value)
+ * @param Count  Number of resources of this type found in the resource directory
+ */
 static VOID
 PeShowResourceTypeCount(DWORD TypeId, DWORD Count)
 {
@@ -900,6 +1200,18 @@ PeShowResourceTypeCount(DWORD TypeId, DWORD Count)
     }
 }
 
+/**
+ * @brief Traverses and prints the PE resource directory tree
+ *
+ * Performs an iterative depth-first walk of the three-level resource directory
+ * (type / name or id / language), printing directory and data-entry statistics.
+ * Accumulates per-type counts for well-known resource types and reports total
+ * declared and mapped data bytes. Processing is capped at 0x4000 nodes and
+ * 0x10000 entries to prevent runaway on corrupt images.
+ *
+ * @param Reader             Pointer to an initialized PE_IMAGE_READER
+ * @param ResourceDirectory  Pointer to the IMAGE_DIRECTORY_ENTRY_RESOURCE data directory entry
+ */
 static VOID
 PeShowResources(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ResourceDirectory)
 {
@@ -1196,6 +1508,20 @@ PeShowResources(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ResourceDi
     delete[] Visited;
 }
 
+/**
+ * @brief Prints RUNTIME_FUNCTION entries from the x64 exception directory
+ *
+ * Decodes IMAGE_RUNTIME_FUNCTION_ENTRY records for AMD64 images, printing
+ * the begin address, end address, unwind RVA, and key unwind info fields
+ * for the first 0x20 entries. For non-AMD64 machines the directory size
+ * is reported without per-entry decoding. Processing is capped at 0x100000
+ * entries.
+ *
+ * @param Reader             Pointer to an initialized PE_IMAGE_READER
+ * @param ExceptionDirectory Pointer to the IMAGE_DIRECTORY_ENTRY_EXCEPTION data directory entry
+ * @param Machine            Machine type from the PE file header (IMAGE_FILE_MACHINE_*)
+ * @param Is32Bit            TRUE if the PE image is 32-bit
+ */
 static VOID
 PeShowExceptions(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ExceptionDirectory, WORD Machine, BOOLEAN Is32Bit)
 {
@@ -1339,6 +1665,20 @@ PeShowExceptions(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * Exception
     }
 }
 
+/**
+ * @brief Resolves a delay-import address field to a relative virtual address
+ *
+ * Handles both the legacy VA-based format (UsesRva == FALSE) and the newer
+ * RVA-based format (UsesRva == TRUE). For VA-based descriptors the address is
+ * converted via PeVaToRva using the supplied image base.
+ *
+ * @param Address    Raw address value read from the delay-import descriptor
+ * @param UsesRva    TRUE if the descriptor uses RVAs, FALSE if it uses VAs
+ * @param ImageBase  Image base used for VA-to-RVA conversion when UsesRva is FALSE
+ * @param Rva        Output pointer that receives the resolved RVA on success; must not be NULL
+ *
+ * @return BOOLEAN TRUE on success, FALSE when the address cannot be converted to an RVA
+ */
 static BOOLEAN
 PeResolveDelayImportAddress(ULONGLONG Address, BOOLEAN UsesRva, ULONGLONG ImageBase, DWORD * Rva)
 {
@@ -1361,6 +1701,18 @@ PeResolveDelayImportAddress(ULONGLONG Address, BOOLEAN UsesRva, ULONGLONG ImageB
     return PeVaToRva(Address, ImageBase, Rva);
 }
 
+/**
+ * @brief Prints delay-import descriptors and their imported function names or ordinals
+ *
+ * Iterates ImgDelayDescr records, resolving DLL names and import thunk arrays.
+ * Supports both legacy VA-based and RVA-based descriptor formats. Processing
+ * is capped at 0x1000 descriptors and 0x2000 total imported symbols.
+ *
+ * @param Reader              Pointer to an initialized PE_IMAGE_READER
+ * @param DelayImportDirectory Pointer to the IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT data directory entry
+ * @param Is32Bit             TRUE if the PE image is 32-bit
+ * @param ImageBase           Preferred image base used for VA-to-RVA conversion
+ */
 static VOID
 PeShowDelayImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DelayImportDirectory, BOOLEAN Is32Bit, ULONGLONG ImageBase)
 {
@@ -1451,10 +1803,10 @@ PeShowDelayImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DelayIm
 
         CHAR                   DllName[MaxDllNameLength + 1] = {0};
         PE_ASCII_STRING_STATUS DllNameStatus                 = PeReadAsciiStringAtRva(Reader,
-                                                                                      NameRva,
-                                                                                      MaxDllNameLength,
-                                                                                      DllName,
-                                                                                      sizeof(DllName));
+                                                                      NameRva,
+                                                                      MaxDllNameLength,
+                                                                      DllName,
+                                                                      sizeof(DllName));
         if (DllNameStatus != PeAsciiStringOk)
         {
             ShowMessages("\n[%u] DLL name %s", DescriptorIndex, PeAsciiStatusName(DllNameStatus));
@@ -1529,10 +1881,10 @@ PeShowDelayImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DelayIm
 
             CHAR                   ImportName[MaxImportNameLength + 1] = {0};
             PE_ASCII_STRING_STATUS ImportNameStatus                    = PeReadAsciiStringAtRva(Reader,
-                                                                                                ImportNameRva,
-                                                                                                MaxImportNameLength,
-                                                                                                ImportName,
-                                                                                                sizeof(ImportName));
+                                                                             ImportNameRva,
+                                                                             MaxImportNameLength,
+                                                                             ImportName,
+                                                                             sizeof(ImportName));
             if (ImportNameStatus != PeAsciiStringOk)
             {
                 ShowMessages("\n%-36s%#x, %s", "Warning, invalid delay import name RVA :", ImportNameRva, PeAsciiStatusName(ImportNameStatus));
@@ -1565,6 +1917,19 @@ PeShowDelayImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DelayIm
     }
 }
 
+/**
+ * @brief Prints the RVA and size of an IMAGE_DATA_DIRECTORY embedded within the CLR runtime header
+ *
+ * Reads two consecutive DWORDs from the CLR header buffer at Offset to obtain
+ * a sub-directory RVA and size. Also reports whether the range is mapped
+ * within the image.
+ *
+ * @param Reader        Pointer to an initialized PE_IMAGE_READER
+ * @param Header        Pointer to the CLR runtime header byte buffer
+ * @param AvailableSize Number of validated bytes available in Header
+ * @param Offset        Byte offset within Header of the IMAGE_DATA_DIRECTORY to read
+ * @param Label         Column label to print before the values
+ */
 static VOID
 PeShowClrDirectoryBounds(PPE_IMAGE_READER Reader, const BYTE * Header, DWORD AvailableSize, SIZE_T Offset, const CHAR * Label)
 {
@@ -1584,6 +1949,16 @@ PeShowClrDirectoryBounds(PPE_IMAGE_READER Reader, const BYTE * Header, DWORD Ava
     }
 }
 
+/**
+ * @brief Prints CLR (.NET) runtime header information
+ *
+ * Reads the IMAGE_COR20_HEADER from the CLR data directory, printing the
+ * runtime version, flags, entry point token or RVA, and the bounds of each
+ * embedded sub-directory (metadata, resources, strong name, etc.).
+ *
+ * @param Reader       Pointer to an initialized PE_IMAGE_READER
+ * @param ClrDirectory Pointer to the IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR data directory entry
+ */
 static VOID
 PeShowClrRuntime(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ClrDirectory)
 {
@@ -1641,6 +2016,18 @@ PeShowClrRuntime(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ClrDirect
     PeShowClrDirectoryBounds(Reader, Header, AvailableSize, 64, "Managed native header :");
 }
 
+/**
+ * @brief Prints Thread Local Storage (TLS) directory fields and TLS callback addresses
+ *
+ * Reads IMAGE_TLS_DIRECTORY32 or IMAGE_TLS_DIRECTORY64 depending on Is32Bit and
+ * prints all fields. Then walks the null-terminated callback VA array, converting
+ * each entry to an RVA and file offset. Processing stops at 0x200 callbacks.
+ *
+ * @param Reader       Pointer to an initialized PE_IMAGE_READER
+ * @param TlsDirectory Pointer to the IMAGE_DIRECTORY_ENTRY_TLS data directory entry
+ * @param Is32Bit      TRUE if the PE image is 32-bit
+ * @param ImageBase    Preferred image base used for VA-to-RVA conversion
+ */
 static VOID
 PeShowTls(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * TlsDirectory, BOOLEAN Is32Bit, ULONGLONG ImageBase)
 {
@@ -1739,6 +2126,17 @@ PeShowTls(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * TlsDirectory, BO
     ShowMessages("\n%-36s%#x", "Warning, TLS callback cap reached :", MaxCallbacks);
 }
 
+/**
+ * @brief Prints CodeView debug information embedded in a debug directory entry
+ *
+ * Handles both the RSDS (PDB 7.0) and NB10 (PDB 2.0) CodeView formats.
+ * For RSDS entries, prints the GUID, age, and PDB path. For NB10 entries,
+ * prints the offset, signature, age, and PDB path. Silently returns for
+ * non-CodeView entries or entries with insufficient data.
+ *
+ * @param Reader Pointer to an initialized PE_IMAGE_READER
+ * @param Entry  Pointer to the IMAGE_DEBUG_DIRECTORY entry to decode
+ */
 static VOID
 PeShowDebugCodeView(PPE_IMAGE_READER Reader, const IMAGE_DEBUG_DIRECTORY * Entry)
 {
@@ -1818,6 +2216,17 @@ PeShowDebugCodeView(PPE_IMAGE_READER Reader, const IMAGE_DEBUG_DIRECTORY * Entry
     }
 }
 
+/**
+ * @brief Prints all IMAGE_DEBUG_DIRECTORY entries in the debug data directory
+ *
+ * Iterates the debug directory, printing characteristics, timestamp, version,
+ * type, size, and address fields for each entry. Also validates the raw data
+ * bounds and delegates to PeShowDebugCodeView for CodeView entries.
+ * Processing is capped at 0x1000 entries.
+ *
+ * @param Reader          Pointer to an initialized PE_IMAGE_READER
+ * @param DebugDirectory  Pointer to the IMAGE_DIRECTORY_ENTRY_DEBUG data directory entry
+ */
 static VOID
 PeShowDebug(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DebugDirectory)
 {
@@ -1892,12 +2301,35 @@ PeShowDebug(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DebugDirectory
     }
 }
 
+/**
+ * @brief Checks whether a load configuration structure contains a specific field
+ *
+ * Returns TRUE when the range [Offset, Offset + FieldSize) lies entirely within
+ * the first AvailableSize bytes of the load config buffer.
+ *
+ * @param AvailableSize Number of bytes available in the load config buffer
+ * @param Offset        Byte offset of the field within the load config structure
+ * @param FieldSize     Size of the field in bytes
+ *
+ * @return BOOLEAN TRUE if the field is present, FALSE if it is beyond AvailableSize
+ */
 static BOOLEAN
 PeLoadConfigHasField(DWORD AvailableSize, SIZE_T Offset, SIZE_T FieldSize)
 {
     return Offset <= AvailableSize && FieldSize <= AvailableSize - Offset;
 }
 
+/**
+ * @brief Prints a DWORD field from the load config structure if it is present
+ *
+ * Uses PeLoadConfigHasField to verify the field is within AvailableSize before
+ * reading and printing the value with the supplied label.
+ *
+ * @param Config        Pointer to the load configuration byte buffer
+ * @param AvailableSize Number of validated bytes in Config
+ * @param Offset        Byte offset of the DWORD field within Config
+ * @param Label         Column label to print before the value
+ */
 static VOID
 PeShowLoadConfigDword(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset, const CHAR * Label)
 {
@@ -1907,6 +2339,18 @@ PeShowLoadConfigDword(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset, c
     }
 }
 
+/**
+ * @brief Prints a pointer-sized field from the load config structure if it is present
+ *
+ * Reads sizeof(DWORD) or sizeof(ULONGLONG) depending on Is32Bit, verifies
+ * presence with PeLoadConfigHasField, and prints the value as a hex address.
+ *
+ * @param Config        Pointer to the load configuration byte buffer
+ * @param AvailableSize Number of validated bytes in Config
+ * @param Offset        Byte offset of the pointer field within Config
+ * @param Label         Column label to print before the value
+ * @param Is32Bit       TRUE to read a 32-bit pointer, FALSE for a 64-bit pointer
+ */
 static VOID
 PeShowLoadConfigPointer(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset, const CHAR * Label, BOOLEAN Is32Bit)
 {
@@ -1918,6 +2362,18 @@ PeShowLoadConfigPointer(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset,
     }
 }
 
+/**
+ * @brief Prints a count field (pointer-sized) from the load config structure if present
+ *
+ * Behaves identically to PeShowLoadConfigPointer but formats the value as a
+ * decimal count rather than a hex address.
+ *
+ * @param Config        Pointer to the load configuration byte buffer
+ * @param AvailableSize Number of validated bytes in Config
+ * @param Offset        Byte offset of the count field within Config
+ * @param Label         Column label to print before the value
+ * @param Is32Bit       TRUE to read a 32-bit count, FALSE for a 64-bit count
+ */
 static VOID
 PeShowLoadConfigCount(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset, const CHAR * Label, BOOLEAN Is32Bit)
 {
@@ -1929,6 +2385,15 @@ PeShowLoadConfigCount(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset, c
     }
 }
 
+/**
+ * @brief Prints the names of set guard control-flow flags from a load config guard flags field
+ *
+ * Iterates a table of known guard flag bitmasks and prints the name of each
+ * set bit. Reports "None" when no known flags are set, and appends the
+ * unknown bitmask when unrecognised bits are present.
+ *
+ * @param GuardFlags The GuardFlags field value from the load configuration structure
+ */
 static VOID
 PeShowLoadConfigGuardFlags(DWORD GuardFlags)
 {
@@ -1938,7 +2403,7 @@ PeShowLoadConfigGuardFlags(DWORD GuardFlags)
     struct GUARD_FLAG_NAME
     {
         DWORD        Flag;
-        const char * Name;
+        const CHAR * Name;
     };
 
     static const GUARD_FLAG_NAME GuardFlagNames[] = {
@@ -1983,6 +2448,18 @@ PeShowLoadConfigGuardFlags(DWORD GuardFlags)
     }
 }
 
+/**
+ * @brief Prints extended load config fields introduced in Windows 8.1 and later
+ *
+ * Handles guard address-taken IAT, guard long-jump tables, dynamic value
+ * relocation, CHPE metadata, RF (return-flow) guards, EH continuation tables,
+ * XFG, CastGuard, and memcpy pointer fields. Each field is printed only when
+ * AvailableSize covers its offset.
+ *
+ * @param Config        Pointer to the load configuration byte buffer
+ * @param AvailableSize Number of validated bytes in Config
+ * @param Is32Bit       TRUE for PE32 field offsets, FALSE for PE32+ field offsets
+ */
 static VOID
 PeShowLoadConfigModernFields(const BYTE * Config, DWORD AvailableSize, BOOLEAN Is32Bit)
 {
@@ -2012,6 +2489,18 @@ PeShowLoadConfigModernFields(const BYTE * Config, DWORD AvailableSize, BOOLEAN I
     PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 188 : 312, "Guard memcpy pointer :", Is32Bit);
 }
 
+/**
+ * @brief Prints the load configuration directory
+ *
+ * Reads the self-describing size field at the start of the load config
+ * structure, clamps to the directory bounds, and prints security cookie,
+ * SEH handler table, guard CF fields, guard flags, and extended modern
+ * fields via helper functions.
+ *
+ * @param Reader               Pointer to an initialized PE_IMAGE_READER
+ * @param LoadConfigDirectory  Pointer to the IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG data directory entry
+ * @param Is32Bit              TRUE if the PE image is 32-bit
+ */
 static VOID
 PeShowLoadConfig(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * LoadConfigDirectory, BOOLEAN Is32Bit)
 {
@@ -2086,6 +2575,17 @@ PeShowLoadConfig(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * LoadConfi
     PeShowLoadConfigModernFields(Config, AvailableSize, Is32Bit);
 }
 
+/**
+ * @brief Prints a summary of all PE data directory entries
+ *
+ * Iterates IMAGE_NUMBEROF_DIRECTORY_ENTRIES slots, printing the name, RVA
+ * (or file offset for the certificate entry), size, and mapping status of
+ * each. Entries beyond NumberOfRvaAndSizes are marked as "not declared".
+ *
+ * @param Reader               Pointer to an initialized PE_IMAGE_READER
+ * @param Directories          Pointer to the data directory array from the optional header
+ * @param NumberOfRvaAndSizes  Value of NumberOfRvaAndSizes from the optional header
+ */
 static VOID
 PeShowDataDirectories(PPE_IMAGE_READER             Reader,
                       const IMAGE_DATA_DIRECTORY * Directories,
@@ -2100,8 +2600,8 @@ PeShowDataDirectories(PPE_IMAGE_READER             Reader,
 
     for (UINT32 Index = 0; Index < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; Index++)
     {
-        const char * Name         = PeGetDataDirectoryName(Index);
-        const char * AddressLabel = Index == IMAGE_DIRECTORY_ENTRY_SECURITY ? "file offset" : "RVA";
+        const CHAR * Name         = PeGetDataDirectoryName(Index);
+        const CHAR * AddressLabel = Index == IMAGE_DIRECTORY_ENTRY_SECURITY ? "file offset" : "RVA";
 
         if (Index >= NumberOfRvaAndSizes)
         {
@@ -2167,6 +2667,23 @@ PeShowDataDirectories(PPE_IMAGE_READER             Reader,
     }
 }
 
+/**
+ * @brief Prints overlay data information and PE layout warnings
+ *
+ * Identifies data appended after all mapped sections (overlay), checks for
+ * section overlaps and gaps, validates SizeOfImage, and emits warnings for
+ * mismatched optional header magic/machine combinations, sections that extend
+ * beyond SizeOfImage, and inconsistent section raw data boundaries.
+ *
+ * @param Reader               Pointer to an initialized PE_IMAGE_READER
+ * @param Machine              Machine type from the PE file header
+ * @param OptionalHeaderMagic  Magic value from the PE optional header
+ * @param AddressOfEntryPoint  AddressOfEntryPoint from the PE optional header
+ * @param SizeOfImage          SizeOfImage from the PE optional header
+ * @param SizeOfHeaders        SizeOfHeaders from the PE optional header
+ * @param Directories          Pointer to the data directory array
+ * @param NumberOfRvaAndSizes  Value of NumberOfRvaAndSizes from the optional header
+ */
 static VOID
 PeShowOverlayAndWarnings(PPE_IMAGE_READER             Reader,
                          WORD                         Machine,
@@ -2197,10 +2714,10 @@ PeShowOverlayAndWarnings(PPE_IMAGE_READER             Reader,
         ShowMessages("\n%-36s%s", "Warning :", "PE32 optional header with 64-bit machine type");
     }
 
-    for (UINT32 i = 0; i < Reader->FileHeader->NumberOfSections; i++)
+    for (UINT32 SectionIndex = 0; SectionIndex < Reader->FileHeader->NumberOfSections; SectionIndex++)
     {
         CHAR                         SectionName[IMAGE_SIZEOF_SHORT_NAME + 1];
-        const IMAGE_SECTION_HEADER * Section     = &Reader->SectionHeaders[i];
+        const IMAGE_SECTION_HEADER * Section     = &Reader->SectionHeaders[SectionIndex];
         DWORD                        VirtualSpan = Section->Misc.VirtualSize > Section->SizeOfRawData ? Section->Misc.VirtualSize : Section->SizeOfRawData;
         DWORD                        VirtualEnd  = 0;
 
@@ -2251,9 +2768,9 @@ PeShowOverlayAndWarnings(PPE_IMAGE_READER             Reader,
         }
         else
         {
-            for (UINT32 i = 0; i < Reader->FileHeader->NumberOfSections; i++)
+            for (UINT32 SectionIndex = 0; SectionIndex < Reader->FileHeader->NumberOfSections; SectionIndex++)
             {
-                const IMAGE_SECTION_HEADER * Section = &Reader->SectionHeaders[i];
+                const IMAGE_SECTION_HEADER * Section = &Reader->SectionHeaders[SectionIndex];
                 ULONGLONG                    End;
 
                 if (Section->SizeOfRawData == 0 ||
@@ -2275,24 +2792,24 @@ PeShowOverlayAndWarnings(PPE_IMAGE_READER             Reader,
 
                 qsort(Ranges, Count, sizeof(Ranges[0]), PeCompareRawSectionRange);
 
-                for (UINT32 i = 1; i < Count; i++)
+                for (UINT32 RangeIndex = 1; RangeIndex < Count; RangeIndex++)
                 {
-                    if (Ranges[i].Start < Ranges[MaxEndIndex].End)
+                    if (Ranges[RangeIndex].Start < Ranges[MaxEndIndex].End)
                     {
                         CHAR LeftName[IMAGE_SIZEOF_SHORT_NAME + 1];
                         CHAR RightName[IMAGE_SIZEOF_SHORT_NAME + 1];
 
                         PeImageReaderGetSectionName(Ranges[MaxEndIndex].Section, LeftName, sizeof(LeftName));
-                        PeImageReaderGetSectionName(Ranges[i].Section, RightName, sizeof(RightName));
+                        PeImageReaderGetSectionName(Ranges[RangeIndex].Section, RightName, sizeof(RightName));
                         ShowMessages("\n%-36sraw data overlap detected between '%s' and '%s'; additional overlaps may be omitted",
                                      "Warning :",
                                      LeftName,
                                      RightName);
                     }
 
-                    if (Ranges[i].End > Ranges[MaxEndIndex].End)
+                    if (Ranges[RangeIndex].End > Ranges[MaxEndIndex].End)
                     {
-                        MaxEndIndex = i;
+                        MaxEndIndex = RangeIndex;
                     }
                 }
             }
@@ -2306,9 +2823,9 @@ PeShowOverlayAndWarnings(PPE_IMAGE_READER             Reader,
         BOOLEAN                      EntrypointFound   = FALSE;
         const IMAGE_SECTION_HEADER * EntrypointSection = NULL;
 
-        for (UINT32 i = 0; i < Reader->FileHeader->NumberOfSections; i++)
+        for (UINT32 SectionIndex = 0; SectionIndex < Reader->FileHeader->NumberOfSections; SectionIndex++)
         {
-            const IMAGE_SECTION_HEADER * Section     = &Reader->SectionHeaders[i];
+            const IMAGE_SECTION_HEADER * Section     = &Reader->SectionHeaders[SectionIndex];
             DWORD                        VirtualSpan = Section->Misc.VirtualSize > Section->SizeOfRawData ? Section->Misc.VirtualSize : Section->SizeOfRawData;
             DWORD                        VirtualEnd  = 0;
 
@@ -2366,6 +2883,19 @@ PeShowOverlayAndWarnings(PPE_IMAGE_READER             Reader,
     }
 }
 
+/**
+ * @brief Prints all import descriptors and their imported function names or ordinals
+ *
+ * Iterates IMAGE_IMPORT_DESCRIPTOR records, resolving DLL names and walking
+ * the original-first-thunk (or first-thunk) arrays to print each imported
+ * symbol with its hint and IAT RVA. Warns when the null terminator descriptor
+ * is not found within the declared directory size. Processing is capped at
+ * 0x1000 descriptors and 0x2000 total imports.
+ *
+ * @param Reader          Pointer to an initialized PE_IMAGE_READER
+ * @param ImportDirectory Pointer to the IMAGE_DIRECTORY_ENTRY_IMPORT data directory entry
+ * @param Is32Bit         TRUE if the PE image is 32-bit
+ */
 static VOID
 PeShowImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ImportDirectory, BOOLEAN Is32Bit)
 {
@@ -2437,10 +2967,10 @@ PeShowImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ImportDirect
 
         CHAR                   DllName[MaxDllNameLength + 1] = {0};
         PE_ASCII_STRING_STATUS DllNameStatus                 = PeReadAsciiStringAtRva(Reader,
-                                                                                      Descriptor->Name,
-                                                                                      MaxDllNameLength,
-                                                                                      DllName,
-                                                                                      sizeof(DllName));
+                                                                      Descriptor->Name,
+                                                                      MaxDllNameLength,
+                                                                      DllName,
+                                                                      sizeof(DllName));
         if (DllNameStatus != PeAsciiStringOk)
         {
             ShowMessages("\n[%u] DLL name %s", DescriptorIndex, PeAsciiStatusName(DllNameStatus));
@@ -2515,10 +3045,10 @@ PeShowImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ImportDirect
 
             CHAR                   ImportName[MaxImportNameLength + 1] = {0};
             PE_ASCII_STRING_STATUS ImportNameStatus                    = PeReadAsciiStringAtRva(Reader,
-                                                                                                ImportNameRva,
-                                                                                                MaxImportNameLength,
-                                                                                                ImportName,
-                                                                                                sizeof(ImportName));
+                                                                             ImportNameRva,
+                                                                             MaxImportNameLength,
+                                                                             ImportName,
+                                                                             sizeof(ImportName));
             if (ImportNameStatus != PeAsciiStringOk)
             {
                 ShowMessages("\n%-36s%#x, %s", "Warning, invalid import name RVA :", ImportNameRva, PeAsciiStatusName(ImportNameStatus));
@@ -2553,6 +3083,22 @@ PeShowImports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ImportDirect
     }
 }
 
+/**
+ * @brief Validates and retrieves a pointer to a PE export table array
+ *
+ * Computes the total byte size of the table as Count * EntrySize, verifies
+ * that the multiplication does not overflow, and then resolves the table RVA
+ * via PeGetPointerAtRva. When Count is zero *Pointer is set to NULL and TRUE
+ * is returned without any range check.
+ *
+ * @param Reader    Pointer to an initialized PE_IMAGE_READER
+ * @param TableRva  RVA of the export table array
+ * @param Count     Number of entries in the table
+ * @param EntrySize Size of each entry in bytes
+ * @param Pointer   Output pointer set to the validated table location on success
+ *
+ * @return BOOLEAN TRUE on success, FALSE on overflow or if the RVA is not mapped
+ */
 static BOOLEAN
 PeValidateExportTable(PPE_IMAGE_READER Reader, DWORD TableRva, DWORD Count, DWORD EntrySize, const BYTE ** Pointer)
 {
@@ -2573,6 +3119,20 @@ PeValidateExportTable(PPE_IMAGE_READER Reader, DWORD TableRva, DWORD Count, DWOR
     return PeGetPointerAtRva(Reader, TableRva, TableSize, Pointer);
 }
 
+/**
+ * @brief Prints one export entry including its ordinal, name, and function RVA or forwarder
+ *
+ * If FunctionRva falls within the export directory's RVA range the entry is
+ * treated as a forwarder string and that string is read and displayed.
+ * Otherwise the raw function RVA is printed.
+ *
+ * @param Reader          Pointer to an initialized PE_IMAGE_READER
+ * @param ExportDirectory Pointer to the IMAGE_DIRECTORY_ENTRY_EXPORT data directory entry
+ * @param Index           Zero-based display index of this export entry
+ * @param Ordinal         Export ordinal (base-adjusted)
+ * @param Name            Export name string, or an error description if not available
+ * @param FunctionRva     RVA of the exported function or forwarder string
+ */
 static VOID
 PeShowExportEntry(PPE_IMAGE_READER             Reader,
                   const IMAGE_DATA_DIRECTORY * ExportDirectory,
@@ -2590,10 +3150,10 @@ PeShowExportEntry(PPE_IMAGE_READER             Reader,
 
         CHAR                   Forwarder[MaxForwarderLength + 1] = {0};
         PE_ASCII_STRING_STATUS ForwarderStatus                   = PeReadAsciiStringAtRva(Reader,
-                                                                                          FunctionRva,
-                                                                                          ForwarderMaxLength,
-                                                                                          Forwarder,
-                                                                                          sizeof(Forwarder));
+                                                                        FunctionRva,
+                                                                        ForwarderMaxLength,
+                                                                        Forwarder,
+                                                                        sizeof(Forwarder));
         if (ForwarderStatus == PeAsciiStringOk)
         {
             ShowMessages("\n[%u] ordinal %u name %s forwarder %s", Index, Ordinal, Name, Forwarder);
@@ -2609,6 +3169,18 @@ PeShowExportEntry(PPE_IMAGE_READER             Reader,
     ShowMessages("\n[%u] ordinal %u name %s RVA %#x", Index, Ordinal, Name, FunctionRva);
 }
 
+/**
+ * @brief Prints the export directory including the export address, name, and ordinal tables
+ *
+ * Reads the IMAGE_EXPORT_DIRECTORY header, validates the three export tables
+ * (AddressOfFunctions, AddressOfNames, AddressOfNameOrdinals), and iterates
+ * all exported functions. Named exports are matched via the name-ordinal table;
+ * unnamed exports are printed with their ordinal. Forwarder strings are handled
+ * via PeShowExportEntry. Processing is capped at 0x2000 total exports.
+ *
+ * @param Reader          Pointer to an initialized PE_IMAGE_READER
+ * @param ExportDirectory Pointer to the IMAGE_DIRECTORY_ENTRY_EXPORT data directory entry
+ */
 static VOID
 PeShowExports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ExportDirectory)
 {
@@ -2645,10 +3217,10 @@ PeShowExports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ExportDirect
 
     CHAR                   DllName[MaxDllNameLength + 1] = {0};
     PE_ASCII_STRING_STATUS DllNameStatus                 = PeReadAsciiStringAtRva(Reader,
-                                                                                  Directory->Name,
-                                                                                  MaxDllNameLength,
-                                                                                  DllName,
-                                                                                  sizeof(DllName));
+                                                                  Directory->Name,
+                                                                  MaxDllNameLength,
+                                                                  DllName,
+                                                                  sizeof(DllName));
     ShowMessages("\n%-36s%s", "DLL name :", DllNameStatus == PeAsciiStringOk ? DllName : PeAsciiStatusName(DllNameStatus));
     ShowMessages("\n%-36s%u", "Ordinal base :", Directory->Base);
     ShowMessages("\n%-36s%u", "Address table count :", Directory->NumberOfFunctions);
@@ -2659,20 +3231,20 @@ PeShowExports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ExportDirect
     const BYTE * OrdinalTablePointer     = NULL;
 
     BOOLEAN AddressTableValid     = PeValidateExportTable(Reader,
-                                                          Directory->AddressOfFunctions,
-                                                          Directory->NumberOfFunctions,
-                                                          sizeof(DWORD),
-                                                          &AddressTablePointer);
+                                                      Directory->AddressOfFunctions,
+                                                      Directory->NumberOfFunctions,
+                                                      sizeof(DWORD),
+                                                      &AddressTablePointer);
     BOOLEAN NamePointerTableValid = PeValidateExportTable(Reader,
                                                           Directory->AddressOfNames,
                                                           Directory->NumberOfNames,
                                                           sizeof(DWORD),
                                                           &NamePointerTablePointer);
     BOOLEAN OrdinalTableValid     = PeValidateExportTable(Reader,
-                                                          Directory->AddressOfNameOrdinals,
-                                                          Directory->NumberOfNames,
-                                                          sizeof(WORD),
-                                                          &OrdinalTablePointer);
+                                                      Directory->AddressOfNameOrdinals,
+                                                      Directory->NumberOfNames,
+                                                      sizeof(WORD),
+                                                      &OrdinalTablePointer);
 
     if (!AddressTableValid)
     {
@@ -2729,10 +3301,10 @@ PeShowExports(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * ExportDirect
 
             CHAR                   ExportName[MaxExportNameLength + 1] = {0};
             PE_ASCII_STRING_STATUS ExportNameStatus                    = PeReadAsciiStringAtRva(Reader,
-                                                                                                NameRva,
-                                                                                                MaxExportNameLength,
-                                                                                                ExportName,
-                                                                                                sizeof(ExportName));
+                                                                             NameRva,
+                                                                             MaxExportNameLength,
+                                                                             ExportName,
+                                                                             sizeof(ExportName));
             if (ExportNameStatus != PeAsciiStringOk)
             {
                 ShowMessages("\n%-36s%#x, %s", "Warning, invalid export name RVA :", NameRva, PeAsciiStatusName(ExportNameStatus));
@@ -2848,25 +3420,25 @@ FindRichHeader(PIMAGE_DOS_HEADER DosHeader, DWORD SearchSize, DWORD StartOffset,
     // Search for "Rich" signature
     // We need 4 bytes for "Rich" and 4 bytes for the key before the PE header.
     //
-    for (DWORD i = StartOffset; i + 8 <= SearchLimit; ++i)
+    for (DWORD Offset = StartOffset; Offset + 8 <= SearchLimit; ++Offset)
     {
         //
         // Check for "Rich" signature (4 ASCII bytes)
         //
-        if (BaseAddr[i] == 'R' &&
-            BaseAddr[i + 1] == 'i' &&
-            BaseAddr[i + 2] == 'c' &&
-            BaseAddr[i + 3] == 'h')
+        if (BaseAddr[Offset] == 'R' &&
+            BaseAddr[Offset + 1] == 'i' &&
+            BaseAddr[Offset + 2] == 'c' &&
+            BaseAddr[Offset + 3] == 'h')
         {
             //
             // Extract the 4-byte XOR key that immediately follows "Rich"
             //
-            memcpy(Key, BaseAddr + i + 4, 4);
+            memcpy(Key, BaseAddr + Offset + 4, 4);
 
             //
             // Return the offset where "Rich" signature was found
             //
-            return i;
+            return Offset;
         }
     }
 
@@ -3054,7 +3626,7 @@ DecryptRichHeader(CHAR Key[], INT Index, CHAR * DataPtr, INT DataSize)
     //
     while (IndexPointer >= 0)
     {
-        char TmpChar[4];
+        CHAR TmpChar[4];
 
         //
         // Read 4 bytes and decrypt them with the XOR key
@@ -3248,7 +3820,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
 
     if (DosHeader->e_lfanew > 0 && (ULONGLONG)DosHeader->e_lfanew <= (ULONGLONG)MAXDWORD)
     {
-        char *        DataPtr      = NULL;
+        CHAR *        DataPtr      = NULL;
         DWORD         BytesRead    = 0;
         DWORD         RichReadSize = (DWORD)DosHeader->e_lfanew;
         DWORD         SearchOffset = 0;
@@ -3264,7 +3836,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
 
         if (RichReadSize >= 8)
         {
-            DataPtr = new (std::nothrow) char[RichReadSize];
+            DataPtr = new (std::nothrow) CHAR[RichReadSize];
             if (DataPtr == NULL)
             {
                 RichHeaderStatus = "allocation failed";
@@ -3278,8 +3850,8 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
                 goto SkipRichHeader;
             }
 
-            BOOL result = ReadFile(FileHandle, DataPtr, RichReadSize, &BytesRead, NULL);
-            if (!result || BytesRead != RichReadSize)
+            BOOL Result = ReadFile(FileHandle, DataPtr, RichReadSize, &BytesRead, NULL);
+            if (!Result || BytesRead != RichReadSize)
             {
                 RichHeaderStatus = "read failed";
                 delete[] DataPtr;
@@ -3288,7 +3860,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
 
             for (;;)
             {
-                char * richHeaderPtr = NULL;
+                CHAR * RichHeaderPtr = NULL;
 
                 RichHeaderOffset = FindRichHeader(DosHeader, RichReadSize, SearchOffset, Key);
                 if (RichHeaderOffset < 0)
@@ -3299,8 +3871,8 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
                 HadCandidate     = TRUE;
                 RichHeaderStatus = RichSearchCapped ? "malformed candidate in first 1 MiB" : "malformed";
 
-                int RichHeaderSize = DecryptRichHeader(Key, RichHeaderOffset, DataPtr, (INT)RichReadSize);
-                int IndexPointer   = RichHeaderOffset - RichHeaderSize;
+                INT RichHeaderSize = DecryptRichHeader(Key, RichHeaderOffset, DataPtr, (INT)RichReadSize);
+                INT IndexPointer   = RichHeaderOffset - RichHeaderSize;
 
                 if (RichHeaderSize < 16 || RichHeaderSize > MaxRichHeaderSize || ((RichHeaderSize - 16) % 8) != 0 ||
                     (RichHeaderSize - 16) / 8 == 0 || (RichHeaderSize - 16) / 8 > MaxRichHeaderEntries ||
@@ -3310,23 +3882,23 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
                     continue;
                 }
 
-                richHeaderPtr = new (std::nothrow) char[RichHeaderSize];
-                if (richHeaderPtr == NULL)
+                RichHeaderPtr = new (std::nothrow) CHAR[RichHeaderSize];
+                if (RichHeaderPtr == NULL)
                 {
                     RichHeaderStatus = "allocation failed";
                     break;
                 }
 
-                memcpy(richHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
+                memcpy(RichHeaderPtr, DataPtr + IndexPointer, RichHeaderSize);
 
-                if (!FindRichEntries(richHeaderPtr, RichHeaderSize, Key, &PeFileRichHeaderInfo))
+                if (!FindRichEntries(RichHeaderPtr, RichHeaderSize, Key, &PeFileRichHeaderInfo))
                 {
-                    delete[] richHeaderPtr;
+                    delete[] RichHeaderPtr;
                     SearchOffset = (DWORD)RichHeaderOffset + 1;
                     continue;
                 }
 
-                richHeaderPtr = NULL;
+                RichHeaderPtr = NULL;
 
                 if (PeFileRichHeaderInfo.Entries > MaxRichHeaderEntries || PeFileRichHeaderInfo.Entries >= INT_MAX / (INT)sizeof(RICH_HEADER_ENTRY) - 1)
                 {
@@ -3866,13 +4438,13 @@ SkipRichHeader:
 
                     if (Is32Bit)
                     {
-                        PeHexDump((char *)Pointer,
+                        PeHexDump((CHAR *)Pointer,
                                   DumpSize,
                                   (ULONGLONG)OpHeader32.ImageBase + SecHeader->VirtualAddress);
                     }
                     else
                     {
-                        PeHexDump((char *)Pointer,
+                        PeHexDump((CHAR *)Pointer,
                                   DumpSize,
                                   OpHeader64.ImageBase + SecHeader->VirtualAddress);
                     }

@@ -3,7 +3,7 @@
  * @author jtaw5649
  * @brief Test cases for PE parser helpers
  * @details
- * @version 0.11
+ * @version 0.19
  * @date 2026-06-01
  *
  * @copyright This project is released under the GNU Public License v3.
@@ -11,23 +11,46 @@
  */
 #include "pch.h"
 
-#include "header/pe-image-reader.h"
-
 static constexpr SIZE_T PeFixtureSize  = 0x200;
 static constexpr LONG   PeHeaderOffset = 0x80;
 
+/**
+ * @brief Returns the byte offset of the optional header within the test fixture buffer
+ *
+ * The optional header immediately follows the NT signature DWORD and the
+ * IMAGE_FILE_HEADER at a fixed offset determined by PeHeaderOffset.
+ *
+ * @return SIZE_T Byte offset from the start of the fixture buffer
+ */
 static SIZE_T
 PeOptionalHeaderOffset()
 {
     return PeHeaderOffset + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER);
 }
 
+/**
+ * @brief Returns the byte offset of the section header table within the test fixture buffer
+ *
+ * The section table begins immediately after the optional header, whose size
+ * is supplied by the caller.
+ *
+ * @param OptionalHeaderSize Size in bytes of the optional header (32-bit or 64-bit variant)
+ *
+ * @return SIZE_T Byte offset from the start of the fixture buffer
+ */
 static SIZE_T
 PeSectionHeaderOffset(SIZE_T OptionalHeaderSize)
 {
     return PeOptionalHeaderOffset() + OptionalHeaderSize;
 }
 
+/**
+ * @brief Writes a little-endian 16-bit value into a byte buffer at the given offset
+ *
+ * @param Buffer Pointer to the destination byte buffer
+ * @param Offset Byte offset within Buffer at which to write
+ * @param Value  16-bit value to write in little-endian order
+ */
 static VOID
 WriteWord(BYTE * Buffer, SIZE_T Offset, WORD Value)
 {
@@ -35,6 +58,13 @@ WriteWord(BYTE * Buffer, SIZE_T Offset, WORD Value)
     Buffer[Offset + 1] = (BYTE)((Value >> 8) & 0xff);
 }
 
+/**
+ * @brief Writes a little-endian 32-bit value into a byte buffer at the given offset
+ *
+ * @param Buffer Pointer to the destination byte buffer
+ * @param Offset Byte offset within Buffer at which to write
+ * @param Value  32-bit value to write in little-endian order
+ */
 static VOID
 WriteDword(BYTE * Buffer, SIZE_T Offset, DWORD Value)
 {
@@ -44,6 +74,16 @@ WriteDword(BYTE * Buffer, SIZE_T Offset, DWORD Value)
     Buffer[Offset + 3] = (BYTE)((Value >> 24) & 0xff);
 }
 
+/**
+ * @brief Builds a minimal valid 64-bit PE (PE32+) fixture in the supplied buffer
+ *
+ * Zeroes the buffer, then writes a valid IMAGE_DOS_HEADER pointing to PeHeaderOffset,
+ * an NT signature, an IMAGE_FILE_HEADER with machine type AMD64 and one section,
+ * and an IMAGE_OPTIONAL_HEADER64 magic value. The result is the smallest byte
+ * sequence accepted by PeImageReaderInitialize as a 64-bit PE image.
+ *
+ * @param Buffer Pointer to a buffer of at least PeFixtureSize bytes
+ */
 static VOID
 BuildMinimalPe64(BYTE * Buffer)
 {
@@ -63,6 +103,16 @@ BuildMinimalPe64(BYTE * Buffer)
               IMAGE_NT_OPTIONAL_HDR64_MAGIC);
 }
 
+/**
+ * @brief Builds a minimal valid 32-bit PE (PE32) fixture in the supplied buffer
+ *
+ * Zeroes the buffer, then writes a valid IMAGE_DOS_HEADER pointing to PeHeaderOffset,
+ * an NT signature, an IMAGE_FILE_HEADER with machine type I386 and one section,
+ * and an IMAGE_OPTIONAL_HEADER32 magic value. The result is the smallest byte
+ * sequence accepted by PeImageReaderInitialize as a 32-bit PE image.
+ *
+ * @param Buffer Pointer to a buffer of at least PeFixtureSize bytes
+ */
 static VOID
 BuildMinimalPe32(BYTE * Buffer)
 {
@@ -82,6 +132,15 @@ BuildMinimalPe32(BYTE * Buffer)
               IMAGE_NT_OPTIONAL_HDR32_MAGIC);
 }
 
+/**
+ * @brief Sets the SizeOfHeaders field in the PE64 optional header of a fixture buffer
+ *
+ * Computes the field offset within IMAGE_OPTIONAL_HEADER64 and writes a 32-bit
+ * little-endian value at that position.
+ *
+ * @param Buffer        Pointer to a fixture buffer previously initialised by BuildMinimalPe64
+ * @param SizeOfHeaders Value to write into the SizeOfHeaders field
+ */
 static VOID
 SetPe64OptionalHeaderSizeOfHeaders(BYTE * Buffer, DWORD SizeOfHeaders)
 {
@@ -90,12 +149,37 @@ SetPe64OptionalHeaderSizeOfHeaders(BYTE * Buffer, DWORD SizeOfHeaders)
     WriteDword(Buffer, Offset, SizeOfHeaders);
 }
 
+/**
+ * @brief Returns a pointer to the first section header in a fixture buffer
+ *
+ * Computes the section header table offset using OptionalHeaderSize and casts
+ * the corresponding location in Buffer to IMAGE_SECTION_HEADER *.
+ *
+ * @param Buffer             Pointer to a fixture buffer
+ * @param OptionalHeaderSize Size in bytes of the optional header used by the fixture
+ *
+ * @return IMAGE_SECTION_HEADER* Pointer to the first section header within the buffer
+ */
 static IMAGE_SECTION_HEADER *
 GetFixtureSectionHeader(BYTE * Buffer, SIZE_T OptionalHeaderSize)
 {
     return (IMAGE_SECTION_HEADER *)(Buffer + PeSectionHeaderOffset(OptionalHeaderSize));
 }
 
+/**
+ * @brief Configures the .text section header in a fixture buffer
+ *
+ * Zeroes the first section header slot, writes the name ".text", and sets
+ * the virtual address, virtual size, raw data pointer, and raw data size
+ * fields to the supplied values.
+ *
+ * @param Buffer             Pointer to a fixture buffer
+ * @param OptionalHeaderSize Size in bytes of the optional header used by the fixture
+ * @param VirtualAddress     RVA at which the section is loaded
+ * @param VirtualSize        Virtual size of the section
+ * @param PointerToRawData   Raw file offset of the section data
+ * @param SizeOfRawData      Size of the raw data on disk
+ */
 static VOID
 ConfigureTextSection(BYTE * Buffer, SIZE_T OptionalHeaderSize, DWORD VirtualAddress, DWORD VirtualSize, DWORD PointerToRawData, DWORD SizeOfRawData)
 {
@@ -109,6 +193,22 @@ ConfigureTextSection(BYTE * Buffer, SIZE_T OptionalHeaderSize, DWORD VirtualAddr
     SectionHeader->PointerToRawData = PointerToRawData;
 }
 
+/**
+ * @brief Runs all PE parser unit tests and reports pass/fail results
+ *
+ * Each numbered test case exercises a distinct behaviour of the PE image reader:
+ *   1. A valid PE32+ image initialises successfully and reports 64-bit.
+ *   2. A valid PE32 image initialises successfully and reports 32-bit.
+ *   3. A corrupt DOS magic causes initialisation to fail.
+ *   4. An optional header that is one byte too small causes initialisation to fail.
+ *   5. An e_lfanew value that points past the buffer causes initialisation to fail.
+ *   6. A valid section RVA maps to the correct raw file offset.
+ *   7. Header-range RVA resolution is enforced at SizeOfHeaders boundaries.
+ *   8. An 8-byte section name is always returned null-terminated.
+ *   9. An RVA whose raw mapping extends outside the file is rejected.
+ *
+ * @return BOOLEAN TRUE if all tests pass, FALSE if any test fails
+ */
 BOOLEAN
 TestPeParser()
 {

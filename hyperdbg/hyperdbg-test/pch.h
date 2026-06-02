@@ -45,6 +45,11 @@ using namespace std;
 #include "../hyperdbg-test/header/testcases.h"
 
 //
+// Components
+//
+#include "../include/components/pe/header/pe-image-reader.h"
+
+//
 // Hardware Debugger Headers
 //
 #include "../hyperdbg-test/header/hwdbg-tests.h"

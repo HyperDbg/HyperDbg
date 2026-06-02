@@ -127,6 +127,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\components\pe\header\pe-image-reader.h" />
     <ClInclude Include="..\include\platform\user\header\platform-intrinsics.h" />
     <ClInclude Include="..\include\platform\user\header\windows-only\windows-privilege.h" />
     <ClInclude Include="..\include\platform\user\header\Windows.h" />
@@ -150,7 +151,6 @@
     <ClInclude Include="header\namedpipe.h" />
     <ClInclude Include="header\objects.h" />
     <ClInclude Include="header\packets.h" />
-    <ClInclude Include="header\pe-image-reader.h" />
     <ClInclude Include="header\pci-id.h" />
     <ClInclude Include="header\pe-parser.h" />
     <ClInclude Include="header\rev-ctrl.h" />
@@ -163,6 +163,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\pe\code\pe-image-reader.cpp" />
     <ClCompile Include="..\include\platform\user\code\platform-intrinsics.c" />
     <ClCompile Include="..\include\platform\user\code\windows-only\windows-privilege.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
@@ -221,7 +222,6 @@
     <ClCompile Include="code\debugger\script-engine\script-engine-wrapper.cpp" />
     <ClCompile Include="code\debugger\script-engine\script-engine.cpp" />
     <ClCompile Include="code\debugger\script-engine\symbol.cpp" />
-    <ClCompile Include="code\debugger\user-level\pe-image-reader.cpp" />
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp" />
     <ClCompile Include="code\debugger\user-level\ud.cpp" />
     <ClCompile Include="code\debugger\user-level\user-listening.cpp" />

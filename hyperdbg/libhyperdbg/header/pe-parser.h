@@ -12,6 +12,36 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//			  	  Structures                    //
+//////////////////////////////////////////////////
+
+typedef struct _RICH_HEADER_INFO
+{
+    int    Size;
+    CHAR * PtrToBuffer;
+    int    Entries;
+} RICH_HEADER_INFO, *PRICH_HEADER_INFO;
+
+typedef struct _RICH_HEADER_ENTRY
+{
+    WORD  ProdID;
+    WORD  BuildID;
+    DWORD UseCount;
+} RICH_HEADER_ENTRY, *PRICH_HEADER_ENTRY;
+
+typedef struct _RICH_HEADER
+{
+    PRICH_HEADER_ENTRY Entries;
+} RICH_HEADER, *PRICH_HEADER;
+
+typedef struct _PE_RAW_SECTION_RANGE
+{
+    ULONGLONG                    Start;
+    ULONGLONG                    End;
+    const IMAGE_SECTION_HEADER * Section;
+} PE_RAW_SECTION_RANGE, *PPE_RAW_SECTION_RANGE;
+
+//////////////////////////////////////////////////
 //					  Functions                 //
 //////////////////////////////////////////////////
 
