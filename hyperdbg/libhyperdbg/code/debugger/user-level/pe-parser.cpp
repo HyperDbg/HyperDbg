@@ -213,6 +213,78 @@ PeAsciiStatusName(PE_ASCII_STRING_STATUS Status)
 }
 
 static BOOLEAN
+PeVaToRva(ULONGLONG Va, ULONGLONG ImageBase, DWORD * Rva)
+{
+    ULONGLONG Difference = 0;
+
+    if (Rva == NULL || Va < ImageBase)
+    {
+        return FALSE;
+    }
+
+    Difference = Va - ImageBase;
+    if (Difference > MAXDWORD)
+    {
+        return FALSE;
+    }
+
+    *Rva = (DWORD)Difference;
+    return TRUE;
+}
+
+static DWORD
+PeReadDwordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
+{
+    DWORD Value = 0;
+
+    CopyMemory(&Value, Buffer + Offset, sizeof(Value));
+    return Value;
+}
+
+static ULONGLONG
+PeReadQwordFromBuffer(const BYTE * Buffer, SIZE_T Offset)
+{
+    ULONGLONG Value = 0;
+
+    CopyMemory(&Value, Buffer + Offset, sizeof(Value));
+    return Value;
+}
+
+static ULONGLONG
+PeReadLoadConfigPointer(const BYTE * Buffer, SIZE_T Offset, BOOLEAN Is32Bit)
+{
+    return Is32Bit ? PeReadDwordFromBuffer(Buffer, Offset) : PeReadQwordFromBuffer(Buffer, Offset);
+}
+
+static PE_ASCII_STRING_STATUS
+PeReadAsciiStringFromBuffer(const BYTE * StringPointer, DWORD MaxLength, CHAR * Buffer, SIZE_T BufferSize)
+{
+    if (StringPointer == NULL || Buffer == NULL || BufferSize == 0 || MaxLength == 0)
+    {
+        return PeAsciiStringInvalid;
+    }
+
+    Buffer[0] = '\0';
+
+    SIZE_T OutputIndex = 0;
+    for (DWORD Index = 0; Index < MaxLength; Index++)
+    {
+        if (StringPointer[Index] == '\0')
+        {
+            return PeAsciiStringOk;
+        }
+
+        if (OutputIndex + 1 < BufferSize)
+        {
+            Buffer[OutputIndex++] = (StringPointer[Index] >= 0x20 && StringPointer[Index] <= 0x7e) ? (CHAR)StringPointer[Index] : '.';
+            Buffer[OutputIndex]   = '\0';
+        }
+    }
+
+    return PeAsciiStringTruncated;
+}
+
+static BOOLEAN
 PeReadWordAtRva(PPE_IMAGE_READER Reader, DWORD Rva, WORD * Value)
 {
     const BYTE * Pointer = NULL;
@@ -249,6 +321,345 @@ PeReadThunkAtRva(PPE_IMAGE_READER Reader, DWORD Rva, BOOLEAN Is32Bit, ULONGLONG 
     }
 
     return TRUE;
+}
+
+static VOID
+PeShowTls(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * TlsDirectory, BOOLEAN Is32Bit, ULONGLONG ImageBase)
+{
+    const DWORD MaxCallbacks = 0x200;
+    DWORD       TlsSize      = Is32Bit ? sizeof(IMAGE_TLS_DIRECTORY32) : sizeof(IMAGE_TLS_DIRECTORY64);
+
+    ShowMessages("\n\nTLS\n---");
+
+    if (TlsDirectory->VirtualAddress == 0 || TlsDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "TLS directory :", "empty");
+        return;
+    }
+
+    if (!PeRvaContainsRange(TlsDirectory->VirtualAddress, TlsDirectory->Size, TlsDirectory->VirtualAddress, TlsSize))
+    {
+        ShowMessages("\n%-36s%s", "TLS directory :", "invalid bounds");
+        return;
+    }
+
+    const BYTE * TlsPointer = NULL;
+    if (!PeGetPointerAtRva(Reader, TlsDirectory->VirtualAddress, TlsSize, &TlsPointer))
+    {
+        ShowMessages("\n%-36s%s", "TLS directory :", "not mapped");
+        return;
+    }
+
+    ULONGLONG StartRawDataVa     = Is32Bit ? PeReadDwordFromBuffer(TlsPointer, 0) : PeReadQwordFromBuffer(TlsPointer, 0);
+    ULONGLONG EndRawDataVa       = Is32Bit ? PeReadDwordFromBuffer(TlsPointer, 4) : PeReadQwordFromBuffer(TlsPointer, 8);
+    ULONGLONG AddressOfIndexVa   = Is32Bit ? PeReadDwordFromBuffer(TlsPointer, 8) : PeReadQwordFromBuffer(TlsPointer, 16);
+    ULONGLONG AddressCallbacksVa = Is32Bit ? PeReadDwordFromBuffer(TlsPointer, 12) : PeReadQwordFromBuffer(TlsPointer, 24);
+    DWORD     SizeOfZeroFill     = Is32Bit ? PeReadDwordFromBuffer(TlsPointer, 16) : PeReadDwordFromBuffer(TlsPointer, 32);
+    DWORD     Characteristics    = Is32Bit ? PeReadDwordFromBuffer(TlsPointer, 20) : PeReadDwordFromBuffer(TlsPointer, 36);
+
+    ShowMessages("\n%-36s%#llx", "Start address of raw data VA :", StartRawDataVa);
+    ShowMessages("\n%-36s%#llx", "End address of raw data VA :", EndRawDataVa);
+    ShowMessages("\n%-36s%#llx", "Address of index VA :", AddressOfIndexVa);
+    ShowMessages("\n%-36s%#llx", "Address of callbacks VA :", AddressCallbacksVa);
+    ShowMessages("\n%-36s%#x", "Size of zero fill :", SizeOfZeroFill);
+    ShowMessages("\n%-36s%#x", "Characteristics :", Characteristics);
+
+    DWORD CallbacksRva = 0;
+    if (AddressCallbacksVa == 0)
+    {
+        ShowMessages("\n%-36s%s", "TLS callbacks :", "empty");
+        return;
+    }
+
+    if (!PeVaToRva(AddressCallbacksVa, ImageBase, &CallbacksRva))
+    {
+        ShowMessages("\n%-36s%#llx", "Warning, invalid callbacks VA :", AddressCallbacksVa);
+        return;
+    }
+
+    DWORD EntrySize = Is32Bit ? sizeof(DWORD) : sizeof(ULONGLONG);
+    for (DWORD CallbackIndex = 0; CallbackIndex < MaxCallbacks; CallbackIndex++)
+    {
+        DWORD EntryRva = 0;
+        if (!PeAddDword(CallbacksRva, CallbackIndex * EntrySize, &EntryRva))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "TLS callback RVA overflow");
+            return;
+        }
+
+        ULONGLONG CallbackVa = 0;
+        if (!PeReadThunkAtRva(Reader, EntryRva, Is32Bit, &CallbackVa))
+        {
+            ShowMessages("\n%-36s%#x", "Warning, invalid callback entry RVA :", EntryRva);
+            return;
+        }
+
+        if (CallbackVa == 0)
+        {
+            return;
+        }
+
+        DWORD  CallbackRva = 0;
+        SIZE_T FileOffset  = 0;
+        if (PeVaToRva(CallbackVa, ImageBase, &CallbackRva))
+        {
+            if (PeImageReaderRvaToFileOffset(Reader, CallbackRva, 1, &FileOffset))
+            {
+                ShowMessages("\n    [%u] VA %#llx RVA %#x file offset %#llx", CallbackIndex, CallbackVa, CallbackRva, (UINT64)FileOffset);
+            }
+            else
+            {
+                ShowMessages("\n    [%u] VA %#llx RVA %#x file offset %s", CallbackIndex, CallbackVa, CallbackRva, "not mapped");
+            }
+        }
+        else
+        {
+            ShowMessages("\n    [%u] VA %#llx RVA %s", CallbackIndex, CallbackVa, "invalid");
+        }
+    }
+
+    ShowMessages("\n%-36s%#x", "Warning, TLS callback cap reached :", MaxCallbacks);
+}
+
+static VOID
+PeShowDebugCodeView(PPE_IMAGE_READER Reader, const IMAGE_DEBUG_DIRECTORY * Entry)
+{
+    const DWORD MaxPdbPathLength = 0x400;
+
+    if (Entry->Type != IMAGE_DEBUG_TYPE_CODEVIEW || Entry->SizeOfData < sizeof(DWORD))
+    {
+        return;
+    }
+
+    const BYTE * Payload = NULL;
+    if ((Entry->PointerToRawData == 0 || !PeImageReaderGetPointerAtOffset(Reader, Entry->PointerToRawData, Entry->SizeOfData, &Payload)) &&
+        (Entry->AddressOfRawData == 0 || !PeGetPointerAtRva(Reader, Entry->AddressOfRawData, Entry->SizeOfData, &Payload)))
+    {
+        ShowMessages("\n%-36s%s", "    CodeView payload :", "invalid bounds");
+        return;
+    }
+
+    if (memcmp(Payload, "RSDS", sizeof(DWORD)) == 0)
+    {
+        if (Entry->SizeOfData < 24)
+        {
+            ShowMessages("\n%-36s%s", "    CodeView RSDS :", "truncated");
+            return;
+        }
+
+        DWORD        Age                           = PeReadDwordFromBuffer(Payload, 20);
+        DWORD        PathOffset                    = 24;
+        DWORD        PathSize                      = Entry->SizeOfData - 24;
+        DWORD        PathLimit                     = PathSize < MaxPdbPathLength ? PathSize : MaxPdbPathLength;
+        CHAR         PdbPath[MaxPdbPathLength + 1] = {0};
+        const BYTE * Guid                          = Payload + 4;
+
+        PE_ASCII_STRING_STATUS PathStatus = PeReadAsciiStringFromBuffer(Payload + PathOffset, PathLimit, PdbPath, sizeof(PdbPath));
+        ShowMessages("\n%-36s%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                     "    CodeView RSDS GUID :",
+                     Guid[3],
+                     Guid[2],
+                     Guid[1],
+                     Guid[0],
+                     Guid[5],
+                     Guid[4],
+                     Guid[7],
+                     Guid[6],
+                     Guid[8],
+                     Guid[9],
+                     Guid[10],
+                     Guid[11],
+                     Guid[12],
+                     Guid[13],
+                     Guid[14],
+                     Guid[15]);
+        ShowMessages("\n%-36s%u", "    CodeView age :", Age);
+        ShowMessages("\n%-36s%s", "    CodeView PDB path :", PathStatus == PeAsciiStringOk ? PdbPath : PeAsciiStatusName(PathStatus));
+    }
+    else if (memcmp(Payload, "NB10", sizeof(DWORD)) == 0)
+    {
+        if (Entry->SizeOfData < 16)
+        {
+            ShowMessages("\n%-36s%s", "    CodeView NB10 :", "truncated");
+            return;
+        }
+
+        DWORD Offset                        = PeReadDwordFromBuffer(Payload, 4);
+        DWORD Timestamp                     = PeReadDwordFromBuffer(Payload, 8);
+        DWORD Age                           = PeReadDwordFromBuffer(Payload, 12);
+        DWORD PathOffset                    = 16;
+        DWORD PathSize                      = Entry->SizeOfData - 16;
+        DWORD PathLimit                     = PathSize < MaxPdbPathLength ? PathSize : MaxPdbPathLength;
+        CHAR  PdbPath[MaxPdbPathLength + 1] = {0};
+
+        PE_ASCII_STRING_STATUS PathStatus = PeReadAsciiStringFromBuffer(Payload + PathOffset, PathLimit, PdbPath, sizeof(PdbPath));
+        ShowMessages("\n%-36s%#x", "    CodeView NB10 offset :", Offset);
+        ShowMessages("\n%-36s%#x", "    CodeView NB10 signature :", Timestamp);
+        ShowMessages("\n%-36s%u", "    CodeView age :", Age);
+        ShowMessages("\n%-36s%s", "    CodeView PDB path :", PathStatus == PeAsciiStringOk ? PdbPath : PeAsciiStatusName(PathStatus));
+    }
+}
+
+static VOID
+PeShowDebug(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * DebugDirectory)
+{
+    const DWORD MaxDebugEntries = 0x1000;
+
+    ShowMessages("\n\nDebug\n-----");
+
+    if (DebugDirectory->VirtualAddress == 0 || DebugDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Debug directory :", "empty");
+        return;
+    }
+
+    DWORD EntryCount = DebugDirectory->Size / sizeof(IMAGE_DEBUG_DIRECTORY);
+    if (EntryCount == 0)
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "debug directory is smaller than one descriptor");
+        return;
+    }
+
+    BOOLEAN EntryCapped = FALSE;
+    if (EntryCount > MaxDebugEntries)
+    {
+        EntryCount  = MaxDebugEntries;
+        EntryCapped = TRUE;
+    }
+
+    for (DWORD EntryIndex = 0; EntryIndex < EntryCount; EntryIndex++)
+    {
+        DWORD EntryRva = 0;
+        if (!PeAddDword(DebugDirectory->VirtualAddress, EntryIndex * (DWORD)sizeof(IMAGE_DEBUG_DIRECTORY), &EntryRva))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "debug directory RVA overflow");
+            break;
+        }
+
+        const IMAGE_DEBUG_DIRECTORY * Entry = NULL;
+        if (!PeGetPointerAtRva(Reader, EntryRva, sizeof(IMAGE_DEBUG_DIRECTORY), (const BYTE **)&Entry))
+        {
+            ShowMessages("\n%-36s%s", "Warning :", "debug directory entry is not mapped");
+            break;
+        }
+
+        ShowMessages("\n[%u] characteristics %#x time date stamp %#x major %u minor %u type %u size %#x address %#x raw %#x",
+                     EntryIndex,
+                     Entry->Characteristics,
+                     Entry->TimeDateStamp,
+                     Entry->MajorVersion,
+                     Entry->MinorVersion,
+                     Entry->Type,
+                     Entry->SizeOfData,
+                     Entry->AddressOfRawData,
+                     Entry->PointerToRawData);
+
+        if (Entry->SizeOfData != 0 && Entry->PointerToRawData != 0)
+        {
+            const BYTE * Payload = NULL;
+            ShowMessages("\n%-36s%s", "    Payload bounds :", PeImageReaderGetPointerAtOffset(Reader, Entry->PointerToRawData, Entry->SizeOfData, &Payload) ? "valid" : "invalid");
+        }
+
+        PeShowDebugCodeView(Reader, Entry);
+    }
+
+    if (EntryCapped)
+    {
+        ShowMessages("\n%-36s%#x", "Warning, debug entry cap reached :", MaxDebugEntries);
+    }
+}
+
+static BOOLEAN
+PeLoadConfigHasField(DWORD AvailableSize, SIZE_T Offset, SIZE_T FieldSize)
+{
+    return Offset <= AvailableSize && FieldSize <= AvailableSize - Offset;
+}
+
+static VOID
+PeShowLoadConfigDword(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset, const CHAR * Label)
+{
+    if (PeLoadConfigHasField(AvailableSize, Offset, sizeof(DWORD)))
+    {
+        ShowMessages("\n%-36s%#x", Label, PeReadDwordFromBuffer(Config, Offset));
+    }
+}
+
+static VOID
+PeShowLoadConfigPointer(const BYTE * Config, DWORD AvailableSize, SIZE_T Offset, const CHAR * Label, BOOLEAN Is32Bit)
+{
+    SIZE_T FieldSize = Is32Bit ? sizeof(DWORD) : sizeof(ULONGLONG);
+
+    if (PeLoadConfigHasField(AvailableSize, Offset, FieldSize))
+    {
+        ShowMessages("\n%-36s%#llx", Label, PeReadLoadConfigPointer(Config, Offset, Is32Bit));
+    }
+}
+
+static VOID
+PeShowLoadConfig(PPE_IMAGE_READER Reader, const IMAGE_DATA_DIRECTORY * LoadConfigDirectory, BOOLEAN Is32Bit)
+{
+    ShowMessages("\n\nLoad config\n-----------");
+
+    if (LoadConfigDirectory->VirtualAddress == 0 || LoadConfigDirectory->Size == 0)
+    {
+        ShowMessages("\n%-36s%s", "Load config directory :", "empty");
+        return;
+    }
+
+    if (LoadConfigDirectory->Size < sizeof(DWORD))
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "load config size is too small");
+        return;
+    }
+
+    const BYTE * Config = NULL;
+    if (!PeGetPointerAtRva(Reader, LoadConfigDirectory->VirtualAddress, sizeof(DWORD), &Config))
+    {
+        ShowMessages("\n%-36s%s", "Load config directory :", "not mapped");
+        return;
+    }
+
+    DWORD ConfigSize    = PeReadDwordFromBuffer(Config, 0);
+    DWORD AvailableSize = LoadConfigDirectory->Size < ConfigSize ? LoadConfigDirectory->Size : ConfigSize;
+
+    ShowMessages("\n%-36s%#x", "Size :", ConfigSize);
+    if (AvailableSize < sizeof(DWORD))
+    {
+        ShowMessages("\n%-36s%s", "Warning :", "load config size is too small");
+        return;
+    }
+
+    if (!PeGetPointerAtRva(Reader, LoadConfigDirectory->VirtualAddress, AvailableSize, &Config))
+    {
+        ShowMessages("\n%-36s%s", "Load config directory :", "invalid bounds");
+        return;
+    }
+
+    PeShowLoadConfigDword(Config, AvailableSize, 4, "Time date stamp :");
+    if (PeLoadConfigHasField(AvailableSize, 8, sizeof(WORD)))
+    {
+        WORD MajorVersion = 0;
+        CopyMemory(&MajorVersion, Config + 8, sizeof(MajorVersion));
+        ShowMessages("\n%-36s%u", "Major version :", MajorVersion);
+    }
+    if (PeLoadConfigHasField(AvailableSize, 10, sizeof(WORD)))
+    {
+        WORD MinorVersion = 0;
+        CopyMemory(&MinorVersion, Config + 10, sizeof(MinorVersion));
+        ShowMessages("\n%-36s%u", "Minor version :", MinorVersion);
+    }
+    PeShowLoadConfigDword(Config, AvailableSize, 12, "Global flags clear :");
+    PeShowLoadConfigDword(Config, AvailableSize, 16, "Global flags set :");
+    PeShowLoadConfigDword(Config, AvailableSize, 20, "Critical section timeout :");
+    PeShowLoadConfigDword(Config, AvailableSize, Is32Bit ? 44 : 72, "Process heap flags :");
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 60 : 88, "Security cookie :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 64 : 96, "SE handler table :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 68 : 104, "SE handler count :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 72 : 112, "Guard CF check pointer :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 76 : 120, "Guard CF dispatch pointer :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 80 : 128, "Guard CF function table :", Is32Bit);
+    PeShowLoadConfigPointer(Config, AvailableSize, Is32Bit ? 84 : 136, "Guard CF function count :", Is32Bit);
+    PeShowLoadConfigDword(Config, AvailableSize, Is32Bit ? 88 : 144, "Guard flags :");
 }
 
 static VOID
@@ -1418,6 +1829,15 @@ SkipRichHeader:
         ShowMessages("\n%-36s%d", "Major Linker Version : ", OpHeader32.MajorLinkerVersion);
         ShowMessages("\n%-36s%d", "Minor Linker Version : ", OpHeader32.MinorLinkerVersion);
         PeShowDataDirectories(&Reader, OpHeader32.DataDirectory, OpHeader32.NumberOfRvaAndSizes);
+        PeShowTls(&Reader,
+                  OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_TLS ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS] : &EmptyDirectory,
+                  TRUE,
+                  OpHeader32.ImageBase);
+        PeShowDebug(&Reader,
+                    OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_DEBUG ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG] : &EmptyDirectory);
+        PeShowLoadConfig(&Reader,
+                         OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG] : &EmptyDirectory,
+                         TRUE);
         PeShowImports(&Reader,
                       OpHeader32.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_IMPORT ? &OpHeader32.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT] : &EmptyDirectory,
                       TRUE);
@@ -1457,6 +1877,15 @@ SkipRichHeader:
         ShowMessages("\n%-36s%d", "Major Linker Version : ", OpHeader64.MajorLinkerVersion);
         ShowMessages("\n%-36s%d", "Minor Linker Version : ", OpHeader64.MinorLinkerVersion);
         PeShowDataDirectories(&Reader, OpHeader64.DataDirectory, OpHeader64.NumberOfRvaAndSizes);
+        PeShowTls(&Reader,
+                  OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_TLS ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS] : &EmptyDirectory,
+                  FALSE,
+                  OpHeader64.ImageBase);
+        PeShowDebug(&Reader,
+                    OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_DEBUG ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG] : &EmptyDirectory);
+        PeShowLoadConfig(&Reader,
+                         OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG] : &EmptyDirectory,
+                         FALSE);
         PeShowImports(&Reader,
                       OpHeader64.NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_IMPORT ? &OpHeader64.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT] : &EmptyDirectory,
                       FALSE);
