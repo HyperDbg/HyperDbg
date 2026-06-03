@@ -26,6 +26,7 @@ New release of the HyperDbg Debugger.
 - Initial codes for the HyperTrace project by using Intel Processor Trace (PT), thanks to [@masoudrahimi01](https://github.com/masoudrahimi01) ([link](https://github.com/HyperDbg/HyperDbg/pull/589))
 - Exported SDK APIs for loading the 'kd' and the 'trace' modules
 - Added tests for checking PE parser in 'hyperdbg-test' project
+- Added example for loading HyperDbg in VMI mode directly from libhyperdbg
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
