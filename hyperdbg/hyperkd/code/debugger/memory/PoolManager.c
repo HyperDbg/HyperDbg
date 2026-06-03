@@ -307,7 +307,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     // let's make sure we're on vmx non-root and also we have new allocation
     //
-    if (VmxGetCurrentExecutionMode() == TRUE)
+    if (VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         //
         // allocation's can't be done from vmx root

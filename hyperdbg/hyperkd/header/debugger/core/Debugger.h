@@ -189,6 +189,15 @@ VOID
 DebuggerSetLastError(UINT32 LastError);
 
 BOOLEAN
+DebuggerInitializeScriptEngine();
+
+BOOLEAN
+DebuggerInitializeTrapsAndBreakpoints();
+
+BOOLEAN
+DebuggerInitializeVmxEvents();
+
+BOOLEAN
 DebuggerInitialize();
 
 VOID

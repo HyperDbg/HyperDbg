@@ -47,41 +47,106 @@ DebuggerSetLastError(UINT32 LastError)
 }
 
 /**
- * @brief Initialize Debugger Structures and Routines
+ * @brief Initialize script engine global variables and per-core stack buffers
  *
  * @return BOOLEAN Shows whether the initialization process was successful
  * or not
  */
 BOOLEAN
-DebuggerInitialize()
+DebuggerInitializeScriptEngine()
 {
     ULONG                       ProcessorsCount      = KeQueryActiveProcessorCount(0);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
     //
-    // Also allocate the debugging state
+    // Initialize script engines global variables holder
     //
-    if (!GlobalDebuggingStateAllocateZeroedMemory())
+    if (!g_ScriptGlobalVariables)
     {
+        g_ScriptGlobalVariables = PlatformMemAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
+    }
+
+    if (!g_ScriptGlobalVariables)
+    {
+        //
+        // Out of resource, initialization of script engine's global variable holders failed
+        //
         return FALSE;
     }
 
     //
-    // Allocate buffer for saving events
+    // Zero the global variables memory
     //
-    if (GlobalEventsAllocateZeroedMemory() == FALSE)
-    {
-        return FALSE;
-    }
+    RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
 
     //
-    // Set the core's IDs
+    // Initialize the local and temp variables
     //
-    for (UINT32 i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
-        g_DbgState[i].CoreId = i;
+        CurrentDebuggerState = &g_DbgState[i];
+
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
+        {
+            CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer = PlatformMemAllocateNonPagedPool(MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
+        }
+
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
+        {
+            //
+            // Out of resource, initialization of script engine's stack buffer holders failed
+            //
+            return FALSE;
+        }
+
+        //
+        // Zero stack buffer memory
+        //
+        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
     }
 
+    return TRUE;
+}
+
+/**
+ * @brief Initialize trap flag state and breakpoint related structures
+ *
+ * @return BOOLEAN Shows whether the initialization process was successful
+ * or not
+ */
+BOOLEAN
+DebuggerInitializeTrapsAndBreakpoints()
+{
+    //
+    // Zero the TRAP FLAG state memory
+    //
+    RtlZeroMemory(&g_TrapFlagState, sizeof(DEBUGGER_TRAP_FLAG_STATE));
+
+    //
+    // Request pages for breakpoint detail
+    //
+    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
+                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
+                                 BREAKPOINT_DEFINITION_STRUCTURE);
+
+    //
+    // Initialize list of breakpoints and breakpoint id
+    //
+    g_MaximumBreakpointId = 0;
+    InitializeListHead(&g_BreakpointsListHead);
+
+    return TRUE;
+}
+
+/**
+ * @brief Initialize VMX event related state
+ *
+ * @return BOOLEAN Shows whether the initialization process was successful
+ * or not
+ */
+BOOLEAN
+DebuggerInitializeVmxEvents()
+{
     //
     // Initialize lists relating to the debugger events store
     //
@@ -114,9 +179,9 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->XsetbvInstructionExecutionEventsHead);
 
     //
-    // Enabled Debugger Events
+    // Initialize NMI broadcasting mechanism
     //
-    g_EnableDebuggerEvents = TRUE;
+    VmFuncVmxBroadcastInitialize();
 
     //
     // Set initial state of triggering events for VMCALLs
@@ -124,89 +189,9 @@ DebuggerInitialize()
     VmFuncSetTriggerEventForVmcalls(FALSE);
 
     //
-    // Set initial state of triggering events for VMCALLs
+    // Set initial state of triggering events for CPUIDs
     //
     VmFuncSetTriggerEventForCpuids(FALSE);
-
-    //
-    // Initialize script engines global variables holder
-    //
-    if (!g_ScriptGlobalVariables)
-    {
-        g_ScriptGlobalVariables = PlatformMemAllocateNonPagedPool(MAX_VAR_COUNT * sizeof(UINT64));
-    }
-
-    if (!g_ScriptGlobalVariables)
-    {
-        //
-        // Out of resource, initialization of script engine's global variable holders failed
-        //
-        return FALSE;
-    }
-
-    //
-    // Zero the global variables memory
-    //
-    RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
-
-    //
-    // Zero the TRAP FLAG state memory
-    //
-    RtlZeroMemory(&g_TrapFlagState, sizeof(DEBUGGER_TRAP_FLAG_STATE));
-
-    //
-    // Initialize the local and temp variables
-    //
-    for (SIZE_T i = 0; i < ProcessorsCount; i++)
-    {
-        CurrentDebuggerState = &g_DbgState[i];
-
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
-        {
-            CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer = PlatformMemAllocateNonPagedPool(MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
-        }
-
-        if (!CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer)
-        {
-            //
-            // Out of resource, initialization of script engine's stack buffer holders failed
-            //
-            return FALSE;
-        }
-
-        //
-        // Zero stack buffer memory
-        //
-        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
-    }
-
-    //
-    // Request pages for breakpoint detail
-    //
-    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
-                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
-                                 BREAKPOINT_DEFINITION_STRUCTURE);
-
-    //
-    // Initialize list of breakpoints and breakpoint id
-    //
-    g_MaximumBreakpointId = 0;
-    InitializeListHead(&g_BreakpointsListHead);
-
-    //
-    // Initialize NMI broadcasting mechanism
-    //
-    VmFuncVmxBroadcastInitialize();
-
-    //
-    // Initialize attaching mechanism,
-    // we'll use the functionalities of the attaching in reading modules
-    // of user mode applications (other than attaching mechanism itself)
-    //
-    if (!AttachingInitialize())
-    {
-        return FALSE;
-    }
 
     //
     // Pre-allocate pools for possible EPT hooks
@@ -220,6 +205,78 @@ DebuggerInitialize()
         //
         // BTW, won't fail the starting phase because of this
         //
+    }
+
+    //
+    // Enabled Debugger VMX Events
+    //
+    g_EnableDebuggerVmxEvents = TRUE;
+
+    return TRUE;
+}
+
+BOOLEAN
+DebuggerInitialize()
+{
+    ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Also allocate the debugging state
+    //
+    if (!GlobalDebuggingStateAllocateZeroedMemory())
+    {
+        return FALSE;
+    }
+
+    //
+    // Allocate buffer for saving events
+    //
+    if (GlobalEventsAllocateZeroedMemory() == FALSE)
+    {
+        return FALSE;
+    }
+
+    //
+    // Set the core's IDs
+    //
+    for (UINT32 i = 0; i < ProcessorsCount; i++)
+    {
+        g_DbgState[i].CoreId = i;
+    }
+
+    //
+    // Initialize Pool Manager
+    //
+    if (!PoolManagerInitialize())
+    {
+        LogError("Err, could not initialize pool manager");
+        return FALSE;
+    }
+
+    //
+    // Initialize script engine global variables and per-core stack buffers
+    //
+    if (!DebuggerInitializeScriptEngine())
+    {
+        return FALSE;
+    }
+
+    //
+    // Initialize trap flag state and breakpoint related structures
+    //
+    if (!DebuggerInitializeTrapsAndBreakpoints())
+    {
+        return FALSE;
+    }
+
+    //
+    // Initialize attaching mechanism,
+    // we'll use the functionalities of the attaching in reading modules
+    // of user mode applications (other than attaching mechanism itself)
+    //
+    if (!AttachingInitialize())
+    {
+        return FALSE;
     }
 
     return TRUE;
@@ -253,7 +310,7 @@ DebuggerUninitialize()
     //
     // Disable triggering events
     //
-    g_EnableDebuggerEvents = FALSE;
+    g_EnableDebuggerVmxEvents = FALSE;
 
     //
     // Clear all events (Check if the kernel debugger is enable
@@ -287,6 +344,11 @@ DebuggerUninitialize()
     // Uninitialize NMI broadcasting mechanism
     //
     VmFuncVmxBroadcastUninitialize();
+
+    //
+    // Free the Pool manager
+    //
+    PoolManagerUninitialize();
 
     //
     // Free g_Events
@@ -1087,7 +1149,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     //
     // Check if triggering debugging actions are allowed or not
     //
-    if (!g_EnableDebuggerEvents || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
+    if (!g_EnableDebuggerVmxEvents || g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer)
     {
         //
         // Debugger is not enabled

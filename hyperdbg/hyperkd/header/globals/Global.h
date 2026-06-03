@@ -130,7 +130,7 @@ UINT32 g_LastError;
  * @brief Determines whether the debugger events should be active or not
  *
  */
-BOOLEAN g_EnableDebuggerEvents;
+BOOLEAN g_EnableDebuggerVmxEvents;
 
 /**
  * @brief List header of breakpoints for debugger-mode

@@ -73,6 +73,19 @@ BOOLEAN
 DebuggingCallbackCheckThreadInterception(UINT32 CoreId);
 
 //
+// Pool Manager Callbacks
+//
+
+BOOLEAN
+PoolManagerCallbackRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
+
+UINT64
+PoolManagerCallbackRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size);
+
+BOOLEAN
+PoolManagerCallbackFreePool(UINT64 AddressToFree);
+
+//
 // Interception Callbacks
 //
 

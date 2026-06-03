@@ -83,6 +83,24 @@ typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION)(UINT32 C
 typedef BOOLEAN (*DEBUGGING_CALLBACK_CHECK_THREAD_INTERCEPTION)(UINT32 CoreId);
 
 /**
+ * @brief Request pool allocation
+ *
+ */
+typedef BOOLEAN (*POOL_MANAGER_REQUEST_ALLOCATION)(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
+
+/**
+ * @brief Request pool
+ *
+ */
+typedef UINT64 (*POOL_MANAGER_REQUEST_POOL)(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size);
+
+/**
+ * @brief Free pool
+ *
+ */
+typedef BOOLEAN (*POOL_MANAGER_FREE_POOL)(UINT64 AddressToFree);
+
+/**
  * @brief Handle registered MTF callback
  *
  */
@@ -201,6 +219,13 @@ typedef struct _VMM_CALLBACKS
     DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION       DebuggingCallbackHandleBreakpointException;      // Fixed
     DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION DebuggingCallbackHandleDebugBreakpointException; // Fixed
     DEBUGGING_CALLBACK_CHECK_THREAD_INTERCEPTION         DebuggingCallbackCheckThreadInterception;        // Fixed
+
+    //
+    // Pool manager callbacks
+    //
+    POOL_MANAGER_REQUEST_ALLOCATION PoolManagerRequestAllocation; // Fixed
+    POOL_MANAGER_REQUEST_POOL       PoolManagerRequestPool;       // Fixed
+    POOL_MANAGER_FREE_POOL          PoolManagerFreePool;          // Fixed
 
     //
     // Interception callbacks

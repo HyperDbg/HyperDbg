@@ -203,9 +203,6 @@
     <ClCompile Include="code\memory\MemoryMapper.c">
       <Filter>code\memory</Filter>
     </ClCompile>
-    <ClCompile Include="code\memory\PoolManager.c">
-      <Filter>code\memory</Filter>
-    </ClCompile>
     <ClCompile Include="code\components\registers\DebugRegisters.c">
       <Filter>code\components\registers</Filter>
     </ClCompile>
@@ -392,9 +389,6 @@
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
     <ClInclude Include="header\memory\MemoryMapper.h">
-      <Filter>header\memory</Filter>
-    </ClInclude>
-    <ClInclude Include="header\memory\PoolManager.h">
       <Filter>header\memory</Filter>
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h">

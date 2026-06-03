@@ -150,16 +150,25 @@ LoaderInitHyperLog()
 }
 
 /**
- * @brief Initialize the VMM and Debugger
+ * @brief Initialize the VMM
  *
  * @param InitVmmPacket The packet to fill the result of the initialization
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
+LoaderInitVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
 {
     VMM_CALLBACKS VmmCallbacks = {0};
+
+    //
+    // Check if KD is not already initialized, if so we cannot initialize VMM
+    //
+    if (!g_KdInitialized)
+    {
+        InitVmmPacket->KernelStatus = DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_DEBUGGER_IS_NOT_LOADED;
+        return FALSE;
+    }
 
     //
     // Check if HyperTrace is already initialized, if so we cannot initialize VMM
@@ -207,6 +216,13 @@ LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
     VmmCallbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId = KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
 
     //
+    // Fill the pool manager callbacks
+    //
+    VmmCallbacks.PoolManagerRequestAllocation = PoolManagerRequestAllocation;
+    VmmCallbacks.PoolManagerRequestPool       = PoolManagerRequestPool;
+    VmmCallbacks.PoolManagerFreePool          = PoolManagerFreePool;
+
+    //
     // Fill the interception callbacks
     //
     VmmCallbacks.InterceptionCallbackTriggerCr3ProcessChange = ProcessTriggerCr3ProcessChange;
@@ -219,28 +235,19 @@ LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
         LogDebugInfo("HyperDbg's hypervisor loaded successfully");
 
         //
+        // Initialize VMX event related state from the debugger
+        //
+        if (!DebuggerInitializeVmxEvents())
+        {
+            return FALSE;
+        }
+
+        //
         // VMM module initialized
         //
-        g_AllowVmmIoctls = TRUE;
+        g_VmmInitialized = TRUE;
 
-        //
-        // Initialize the debugger
-        //
-        if (DebuggerInitialize())
-        {
-            LogDebugInfo("HyperDbg's debugger loaded successfully");
-
-            //
-            // Set the kernel status to success
-            //
-            InitVmmPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
-
-            return TRUE;
-        }
-        else
-        {
-            LogError("Err, HyperDbg's debugger was not loaded");
-        }
+        return TRUE;
     }
     else
     {
@@ -248,6 +255,83 @@ LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
     }
 
     return FALSE;
+}
+
+/**
+ * @brief Initialize the debugger
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LoaderInitKd()
+{
+    //
+    // If the debugger is already initialized, we don't need to initialize it again
+    // and simply return true
+    //
+    if (g_KdInitialized)
+    {
+        return TRUE;
+    }
+
+    //
+    // The debugger is not initialized, so we try to initialize it
+    //
+    if (DebuggerInitialize())
+    {
+        LogDebugInfo("HyperDbg's debugger loaded successfully");
+
+        //
+        // KD module initialized
+        //
+        g_KdInitialized = TRUE;
+
+        return TRUE;
+    }
+
+    LogError("Err, HyperDbg's debugger was not loaded");
+    return FALSE;
+}
+
+/**
+ * @brief Initialize the VMM and Debugger
+ *
+ * @param InitVmmPacket The packet to fill the result of the initialization
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
+{
+    //
+    // First we need to initialize the debugger
+    // because the VMM relies on the debugger for some of its functionalities,
+    // so if we cannot initialize the debugger we cannot initialize the VMM
+    //
+    if (!LoaderInitKd())
+    {
+        //
+        // Unable to initialize the debugger, so we cannot initialize the VMM, and we return false
+        //
+        InitVmmPacket->KernelStatus = DEBUGGER_ERROR_CANNOT_INITIALIZE_DEBUGGER;
+
+        return FALSE;
+    }
+
+    //
+    // Now we can initialize the VMM
+    //
+    if (!LoaderInitVmm(InitVmmPacket))
+    {
+        return FALSE;
+    }
+
+    //
+    // Set the kernel status to success
+    //
+    InitVmmPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return TRUE;
 }
 
 /**

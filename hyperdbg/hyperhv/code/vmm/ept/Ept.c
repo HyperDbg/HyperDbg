@@ -502,7 +502,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     if (UsePreAllocatedBuffer)
     {
-        NewSplit = (PVMM_EPT_DYNAMIC_SPLIT)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        NewSplit = (PVMM_EPT_DYNAMIC_SPLIT)PoolManagerCallbackRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
     }
     else
     {

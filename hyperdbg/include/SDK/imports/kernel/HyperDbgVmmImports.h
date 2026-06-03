@@ -757,25 +757,6 @@ IMPORT_EXPORT_VMM BOOLEAN
 WritePhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T BufferSize);
 
 //////////////////////////////////////////////////
-//                 Pool Manager     	   		//
-//////////////////////////////////////////////////
-
-IMPORT_EXPORT_VMM BOOLEAN
-PoolManagerCheckAndPerformAllocationAndDeallocation();
-
-IMPORT_EXPORT_VMM BOOLEAN
-PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
-
-IMPORT_EXPORT_VMM UINT64
-PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size);
-
-IMPORT_EXPORT_VMM BOOLEAN
-PoolManagerFreePool(UINT64 AddressToFree);
-
-IMPORT_EXPORT_VMM VOID
-PoolManagerShowPreAllocatedPools();
-
-//////////////////////////////////////////////////
 //          VMX Registers Modification  		//
 //////////////////////////////////////////////////
 

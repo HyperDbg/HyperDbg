@@ -317,15 +317,6 @@ VmxPerformVirtualizationOnAllCores()
         LogDebugInfo("MTRR memory map built successfully");
     }
 
-    //
-    // Initialize Pool Manager
-    //
-    if (!PoolManagerInitialize())
-    {
-        LogError("Err, could not initialize pool manager");
-        return FALSE;
-    }
-
     if (!EptLogicalProcessorInitialize())
     {
         //
@@ -1157,11 +1148,6 @@ VmxPerformTermination()
     //
     PlatformMemFreePool(g_EptState);
     g_EptState = NULL;
-
-    //
-    // Free the Pool manager
-    //
-    PoolManagerUninitialize();
 
     //
     // Uninitialize memory mapper

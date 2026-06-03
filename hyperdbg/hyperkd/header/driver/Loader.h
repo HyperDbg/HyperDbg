@@ -20,6 +20,12 @@ BOOLEAN
 LoaderInitHyperLog();
 
 BOOLEAN
+LoaderInitKd();
+
+BOOLEAN
+LoaderInitVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket);
+
+BOOLEAN
 LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket);
 
 BOOLEAN
