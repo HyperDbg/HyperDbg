@@ -19,4 +19,7 @@ BOOLEAN
 TestCommandParser();
 
 BOOLEAN
+TestPeParser();
+
+BOOLEAN
 TestSemanticScripts();

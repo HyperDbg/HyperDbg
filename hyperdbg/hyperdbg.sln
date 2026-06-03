@@ -62,6 +62,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "headers", "headers", "{D67D
 		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
 		include\SDK\headers\LbrDefinitions.h = include\SDK\headers\LbrDefinitions.h
 		include\SDK\headers\Pcie.h = include\SDK\headers\Pcie.h
+		include\SDK\headers\PortableExecutable.h = include\SDK\headers\PortableExecutable.h
 		include\SDK\headers\PtDefinitions.h = include\SDK\headers\PtDefinitions.h
 		include\SDK\Headers\RequestStructures.h = include\SDK\Headers\RequestStructures.h
 		include\SDK\Headers\ScriptEngineCommonDefinitions.h = include\SDK\Headers\ScriptEngineCommonDefinitions.h
@@ -314,6 +315,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AD02B9
 		include\components\callback\hyperlog\header\HyperLogCallback.h = include\components\callback\hyperlog\header\HyperLogCallback.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pe", "pe", "{9A0232BB-B06B-47EE-A096-E7B475956437}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{824DF7C7-18B5-48DE-99D7-AD6B612D6204}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\pe\code\pe-image-reader.cpp = include\components\pe\code\pe-image-reader.cpp
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{CA2D9C24-F90A-48ED-8ABC-F296674EA2B7}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\pe\header\pe-image-reader.h = include\components\pe\header\pe-image-reader.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|x64 = debug|x64
@@ -418,6 +431,9 @@ Global
 		{1AA10217-07BF-490B-A688-1D1D6A267D52} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
 		{78821DCF-DCFE-45B7-A9DD-3543BDF1FB9E} = {1AA10217-07BF-490B-A688-1D1D6A267D52}
 		{AD02B952-0D75-47FE-8FF7-18B3E081E2C1} = {1AA10217-07BF-490B-A688-1D1D6A267D52}
+		{9A0232BB-B06B-47EE-A096-E7B475956437} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
+		{824DF7C7-18B5-48DE-99D7-AD6B612D6204} = {9A0232BB-B06B-47EE-A096-E7B475956437}
+		{CA2D9C24-F90A-48ED-8ABC-F296674EA2B7} = {9A0232BB-B06B-47EE-A096-E7B475956437}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

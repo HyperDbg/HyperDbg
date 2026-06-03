@@ -62,6 +62,7 @@ VOID
 CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoctlSize)
 {
     BOOL    Status;
+    DWORD   BytesReturned;
     UINT64  CurrentValue;
     PUINT64 ResultsBuffer = NULL;
 
@@ -87,7 +88,7 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
                         ResultsBuffer,                // Output Buffer from driver.
                         MaximumSearchResults *
                             sizeof(UINT64), // Length of output buffer in bytes.
-                        NULL,               // Bytes placed in buffer.
+                        &BytesReturned,     // Bytes placed in buffer.
                         NULL                // synchronous call
         );
 

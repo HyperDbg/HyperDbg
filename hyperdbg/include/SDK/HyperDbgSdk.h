@@ -3,8 +3,8 @@
 //
 // General SDK Headers
 //
-#include "SDK/headers/Constants.h"
 #include "SDK/headers/BasicTypes.h"
+#include "SDK/headers/Constants.h"
 #include "SDK/headers/ErrorCodes.h"
 #include "SDK/headers/Connection.h"
 #include "SDK/headers/DataTypes.h"

@@ -128,6 +128,7 @@ exit /b 0
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\platform\user\header\platform-lib-calls.h" />
     <ClInclude Include="header\common.h" />
     <ClInclude Include="header\globals.h" />
     <ClInclude Include="header\hardware.h" />
@@ -139,6 +140,7 @@ exit /b 0
     <ClInclude Include="header\type.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\platform\user\code\platform-lib-calls.c" />
     <ClCompile Include="code\common.c" />
     <ClCompile Include="code\globals.c" />
     <ClCompile Include="code\hardware.c" />

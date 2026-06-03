@@ -14,7 +14,6 @@ Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discu
 - Troubleshooting problems with running on VirtualBox's nested virtualization.
 - Supporting KDNET (sending data over the network).
 - Enhancing HyperDbg's [Transparent Mode](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/operation-modes#transparent-mode). These features should be added as an extension to the [HyperEvade](https://www.vusec.net/projects/hyperevade/) project (e.g., by bypassing [al-khaser](https://github.com/LordNoteworthy/al-khaser) and similar anti-debugging and anti-hypervisor projects).
-- Enhancing and adding more features to the ['.pe'](https://docs.hyperdbg.org/commands/meta-commands/.pe) command.
 - Adding HyperDbg to the system startup using UEFI.
 - Creating a QT-based GUI.
 - Creating a SoftICE-style GUI.
@@ -43,6 +42,7 @@ Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discu
 - Adding support for [Hardware Performance Counters (HPC)](https://en.wikipedia.org/wiki/Hardware_performance_counter).
 - Any other interesting tasks you might find!
 
+- ~~Enhancing and adding more features to the ['.pe'](https://docs.hyperdbg.org/commands/meta-commands/.pe) command.~~ Added: [<a href="https://docs.hyperdbg.org/commands/meta-commands/.pe" target="_blank">link</a>][<a href="https://github.com/HyperDbg/HyperDbg/pull/598" target="_blank">link</a>]
 - ~~Adding routines to activate and use Last Branch Record (LBR) and Branch Trace Store (BTS).~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/lbr" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/lbrdump" target="_blank">link</a>]
 - ~~Creating commands to inspect and read details of PCIe devices.~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/pcitree" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/pcicam" target="_blank">link</a>]
 - ~~Mitigating the anti-hypervisor method described [here](https://howtohypervise.blogspot.com/2019/01/a-common-missight-in-most-hypervisors.html).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/497)]

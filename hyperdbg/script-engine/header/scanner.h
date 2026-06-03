@@ -17,36 +17,36 @@
 /**
  * @brief lookup table for storing global Ids
  */
-PSCRIPT_ENGINE_TOKEN_LIST GlobalIdTable;
+extern PSCRIPT_ENGINE_TOKEN_LIST GlobalIdTable;
 
 /**
  * @brief
  */
-PUSER_DEFINED_FUNCTION_NODE UserDefinedFunctionHead;
+extern PUSER_DEFINED_FUNCTION_NODE UserDefinedFunctionHead;
 
-PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction;
+extern PUSER_DEFINED_FUNCTION_NODE CurrentUserDefinedFunction;
 
-PINCLUDE_NODE IncludeHead;
+extern PINCLUDE_NODE IncludeHead;
 
 /**
  * @brief number of read characters from input
  */
-unsigned int InputIdx;
+extern unsigned int InputIdx;
 
 /**
  * @brief number of current reading line
  */
-unsigned int CurrentLine;
+extern unsigned int CurrentLine;
 
 /*
  * @brief current line start position
  */
-unsigned int CurrentLineIdx;
+extern unsigned int CurrentLineIdx;
 
 /*
  * @brief current PTOKEN start position
  */
-unsigned int CurrentTokenIdx;
+extern unsigned int CurrentTokenIdx;
 
 ////////////////////////////////////////////////////
 //            Interfacing functions	         	  //

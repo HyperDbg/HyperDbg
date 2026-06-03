@@ -11,6 +11,7 @@
  *
  */
 #include "pch.h"
+#include "platform/user/header/platform-lib-calls.h"
 
 // #define _SCRIPT_ENGINE_LALR_DBG_EN
 // #define _SCRIPT_ENGINE_LL1_DBG_EN
@@ -44,7 +45,7 @@ ShowMessages(const char * Fmt, ...)
     {
         char TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
         va_start(ArgList, Fmt);
-        INT SprintfResult = vsprintf_s(TempMessage, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT, Fmt, ArgList);
+        INT SprintfResult = PlatformVsnprintf(TempMessage, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT, Fmt, ArgList);
         va_end(ArgList);
 
         if (SprintfResult != -1)
@@ -309,15 +310,15 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 PVOID
 ScriptEngineParse(char * str)
 {
-    char * ScriptSource = _strdup(str);
+    char * ScriptSource = PlatformStrDup(str);
 
     PSCRIPT_ENGINE_TOKEN_LIST Stack        = NewTokenList();
     PSCRIPT_ENGINE_TOKEN_LIST MatchedStack = NewTokenList();
     PSYMBOL_BUFFER            CodeBuffer   = NewSymbolBuffer();
 
     UserDefinedFunctionHead = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
-    RtlZeroMemory(UserDefinedFunctionHead, sizeof(USER_DEFINED_FUNCTION_NODE));
-    UserDefinedFunctionHead->Name                     = _strdup("main");
+    PlatformZeroMemory(UserDefinedFunctionHead, sizeof(USER_DEFINED_FUNCTION_NODE));
+    UserDefinedFunctionHead->Name                     = PlatformStrDup("main");
     UserDefinedFunctionHead->IdTable                  = (unsigned long long)NewTokenList();
     UserDefinedFunctionHead->FunctionParameterIdTable = (unsigned long long)NewTokenList();
     UserDefinedFunctionHead->TempMap                  = calloc(MAX_TEMP_COUNT, 1);
@@ -739,7 +740,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             if (!IncludeHead)
             {
                 IncludeHead           = calloc(sizeof(INCLUDE_NODE), 1);
-                IncludeHead->FilePath = _strdup(FullPath);
+                IncludeHead->FilePath = PlatformStrDup(FullPath);
             }
             else
             {
@@ -757,7 +758,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 if (!IncludedPath && PrevNode)
                 {
                     PrevNode->NextNode           = calloc(sizeof(INCLUDE_NODE), 1);
-                    PrevNode->NextNode->FilePath = _strdup(FullPath);
+                    PrevNode->NextNode->FilePath = PlatformStrDup(FullPath);
                 }
             }
 
@@ -803,10 +804,10 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 Node = Node->NextNode;
             }
             Node->NextNode = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
-            RtlZeroMemory(Node->NextNode, sizeof(USER_DEFINED_FUNCTION_NODE));
+            PlatformZeroMemory(Node->NextNode, sizeof(USER_DEFINED_FUNCTION_NODE));
             CurrentUserDefinedFunction = Node->NextNode;
 
-            CurrentUserDefinedFunction->Name                     = _strdup(Op0->Value);
+            CurrentUserDefinedFunction->Name                     = PlatformStrDup(Op0->Value);
             CurrentUserDefinedFunction->Address                  = CodeBuffer->Pointer; // CurrentPointer
             CurrentUserDefinedFunction->VariableType             = (long long unsigned)VariableType;
             CurrentUserDefinedFunction->IdTable                  = (unsigned long long)NewTokenList();
@@ -1362,9 +1363,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             }
 
             VariableType = (VARIABLE_TYPE *)IdToken->VariableType;
-            Temp         = NewTemp();
+            Temp         = NewTemp(Error);
             TempSymbol   = ToSymbol(Temp, Error);
-            OffsetToken  = NewTemp();
+            OffsetToken  = NewTemp(Error);
             OffsetSymbol = ToSymbol(OffsetToken, Error);
 
             Symbol        = NewSymbol();
@@ -1718,7 +1719,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     Symbol->Value = ArrayElementCount;
                     PushSymbol(CodeBuffer, Symbol);
 
-                    Temp       = NewTemp();
+                    Temp       = NewTemp(Error);
                     TempSymbol = ToSymbol(Temp, Error);
                     PushSymbol(CodeBuffer, TempSymbol);
 
@@ -1784,7 +1785,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 Symbol->Value = ArrayElementCount;
                 PushSymbol(CodeBuffer, Symbol);
 
-                Temp       = NewTemp();
+                Temp       = NewTemp(Error);
                 TempSymbol = ToSymbol(Temp, Error);
                 PushSymbol(CodeBuffer, TempSymbol);
 
