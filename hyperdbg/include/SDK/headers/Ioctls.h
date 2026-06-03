@@ -351,3 +351,11 @@
  */
 #define IOCTL_PERFORM_HYPERTRACE_PT_OPERATION \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x829, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to map per-CPU HyperTrace PT output buffers into the
+ *        calling user-mode process. See HYPERTRACE_PT_MMAP_PACKETS.
+ *
+ */
+#define IOCTL_PERFORM_HYPERTRACE_PT_MMAP \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x82a, METHOD_BUFFERED, FILE_ANY_ACCESS)

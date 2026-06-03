@@ -264,6 +264,16 @@ IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_lbr_dump(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest);
 
 //
+// Intel PT related commands
+// Exported functionality of the '!pt' command + the PT mmap surface
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_pt_operation(HYPERTRACE_PT_OPERATION_PACKETS * PtRequest);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_pt_mmap(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest);
+
+//
 // Transparent mode related command
 // Exported functionality of the '!hide', and '!unhide' commands
 //
