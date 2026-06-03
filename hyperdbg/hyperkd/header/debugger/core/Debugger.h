@@ -195,10 +195,13 @@ BOOLEAN
 DebuggerInitializeTrapsAndBreakpoints();
 
 BOOLEAN
-DebuggerInitializeVmxEvents();
+DebuggerInitializeVmmOperations();
 
 BOOLEAN
 DebuggerInitialize();
+
+VOID
+DebuggerUninitializeVmmOperations();
 
 VOID
 DebuggerUninitialize();

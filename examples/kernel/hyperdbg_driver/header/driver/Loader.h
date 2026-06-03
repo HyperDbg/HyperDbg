@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////
 
 VOID
-LoaderUninitializeLogTracer();
+LoaderUninitLogTracer();
 
 BOOLEAN
 LoaderInitVmmAndReversingMachine();

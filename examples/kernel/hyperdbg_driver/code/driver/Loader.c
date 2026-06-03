@@ -101,7 +101,7 @@ LoaderInitVmmAndReversingMachine()
  * @return VOID
  */
 VOID
-LoaderUninitializeLogTracer()
+LoaderUninitLogTracer()
 {
     LogDebugInfo("Unloading HyperDbg's debugger...\n");
 

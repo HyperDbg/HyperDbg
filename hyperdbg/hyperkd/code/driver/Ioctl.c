@@ -145,13 +145,13 @@ IoctlCheckIoctlAllowed(ULONG Ioctl)
 NTSTATUS
 DrvDispatchBasicIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation)
 {
-    PREGISTER_NOTIFY_BUFFER      RegisterEventRequest;
-    PDEBUGGER_INIT_VMM_PACKET    InitVmmRequest;
+    PREGISTER_NOTIFY_BUFFER          RegisterEventRequest;
+    PDEBUGGER_INIT_VMM_PACKET        InitVmmRequest;
     PDEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTraceRequest;
-    ULONG                        InBuffLength;
-    ULONG                        OutBuffLength;
-    NTSTATUS                     Status = STATUS_SUCCESS;
-    UINT32                       Ioctl  = IrpStack->Parameters.DeviceIoControl.IoControlCode;
+    ULONG                            InBuffLength;
+    ULONG                            OutBuffLength;
+    NTSTATUS                         Status = STATUS_SUCCESS;
+    UINT32                           Ioctl  = IrpStack->Parameters.DeviceIoControl.IoControlCode;
 
     switch (Ioctl)
     {
@@ -172,9 +172,9 @@ DrvDispatchBasicIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNot
         }
 
         //
-        // Initialize the vmm and the debugger
+        // Initialize the debugger and the vmm
         //
-        if (LoaderInitVmmAndDebugger(InitVmmRequest))
+        if (LoaderInitDebuggerAndVmm(InitVmmRequest))
         {
             Status = STATUS_SUCCESS;
         }
@@ -379,14 +379,9 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
     case IOCTL_TERMINATE_VMX:
 
         //
-        // Uninitialize the debugger and its sub-mechanisms
+        // Uninitialize the VMM and the debugger
         //
-        DebuggerUninitialize();
-
-        //
-        // Terminate VMX
-        //
-        VmFuncUninitVmm();
+        LoaderUninitVmmAndDebugger();
 
         Status = STATUS_SUCCESS;
 

@@ -139,13 +139,13 @@ DebuggerInitializeTrapsAndBreakpoints()
 }
 
 /**
- * @brief Initialize VMX event related state
+ * @brief Initialize VMM operations (events and related operations)
  *
  * @return BOOLEAN Shows whether the initialization process was successful
  * or not
  */
 BOOLEAN
-DebuggerInitializeVmxEvents()
+DebuggerInitializeVmmOperations()
 {
     //
     // Initialize lists relating to the debugger events store
@@ -215,6 +215,12 @@ DebuggerInitializeVmxEvents()
     return TRUE;
 }
 
+/**
+ * @brief Initialize Debugger Structures and Routines
+ *
+ * @return BOOLEAN Shows whether the initialization process was successful
+ * or not
+ */
 BOOLEAN
 DebuggerInitialize()
 {
@@ -283,17 +289,13 @@ DebuggerInitialize()
 }
 
 /**
- * @brief Uninitialize Debugger Structures and Routines
+ * @brief Uninitialize Debugger VMM Operations (Events and other related operations)
  *
+ * @return VOID
  */
 VOID
-DebuggerUninitialize()
+DebuggerUninitializeVmmOperations()
 {
-    ULONG                       ProcessorsCount;
-    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
-
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
-
     //
     //  *** Disable, terminate and clear all the events ***
     //
@@ -326,11 +328,6 @@ DebuggerUninitialize()
     }
 
     //
-    // Uninitialize the HyperTrace (if it was initialized)
-    //
-    HyperTraceUnInit();
-
-    //
     // Uninitialize kernel debugger
     //
     KdUninitializeKernelDebugger();
@@ -344,6 +341,25 @@ DebuggerUninitialize()
     // Uninitialize NMI broadcasting mechanism
     //
     VmFuncVmxBroadcastUninitialize();
+}
+
+/**
+ * @brief Uninitialize Debugger Structures and Routines
+ *
+ * @return VOID
+ */
+VOID
+DebuggerUninitialize()
+{
+    ULONG                       ProcessorsCount;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
+
+    ProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Uninitialize the HyperTrace (if it was initialized)
+    //
+    HyperTraceUnInit();
 
     //
     // Free the Pool manager

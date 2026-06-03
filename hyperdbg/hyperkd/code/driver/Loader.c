@@ -235,9 +235,9 @@ LoaderInitVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
         LogDebugInfo("HyperDbg's hypervisor loaded successfully");
 
         //
-        // Initialize VMX event related state from the debugger
+        // Initialize VMM opeartions (event related state from the debugger)
         //
-        if (!DebuggerInitializeVmxEvents())
+        if (!DebuggerInitializeVmmOperations())
         {
             return FALSE;
         }
@@ -294,14 +294,14 @@ LoaderInitKd()
 }
 
 /**
- * @brief Initialize the VMM and Debugger
+ * @brief Initialize the debugger and the vmm
  *
  * @param InitVmmPacket The packet to fill the result of the initialization
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
+LoaderInitDebuggerAndVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
 {
     //
     // First we need to initialize the debugger
@@ -335,12 +335,74 @@ LoaderInitVmmAndDebugger(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
 }
 
 /**
+ * @brief Uninitialize the VMM
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitVmm()
+{
+    //
+    // Mark VMM as uninitialized before uninitializing it to avoid any potential reentrancy issues during the uninitialization process
+    //
+    g_VmmInitialized = FALSE;
+
+    //
+    // First remove all VMM related state from the debugger
+    //
+    DebuggerUninitializeVmmOperations();
+
+    //
+    // Terminate VMM and its sub-mechanisms
+    //
+    VmFuncUninitVmm();
+}
+
+/**
+ * @brief Uninitialize the debugger
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitKd()
+{
+    //
+    // Mark KD as uninitialized before uninitializing it to avoid any potential reentrancy issues during the uninitialization process
+    //
+    g_KdInitialized = FALSE;
+
+    //
+    // Uninitialize the debugger and its sub-mechanisms
+    //
+    DebuggerUninitialize();
+}
+
+/**
+ * @brief Uninitialize the VMM and the debugger
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitVmmAndDebugger()
+{
+    //
+    // Uninitialize the VMM first because it relies on the debugger for some
+    //
+    LoaderUninitVmm();
+
+    //
+    // Uninitialize the debugger
+    //
+    LoaderUninitKd();
+}
+
+/**
  * @brief Uninitialize the log tracer
  *
  * @return VOID
  */
 VOID
-LoaderUninitializeLogTracer()
+LoaderUninitLogTracer()
 {
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
 
