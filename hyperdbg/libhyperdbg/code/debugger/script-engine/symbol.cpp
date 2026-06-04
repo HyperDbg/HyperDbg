@@ -764,7 +764,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             //
             // check the module list
             //
-            if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            if (ModuleDetailsRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Se the modules buffer
@@ -784,7 +784,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             }
             else
             {
-                ShowErrorMessage(ModuleCountRequest.Result);
+                ShowErrorMessage(ModuleDetailsRequest->Result);
                 free(ModuleDetailsRequest);
                 break;
             }
@@ -1022,7 +1022,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
         //
         if (SendOverSerial)
         {
-            KdSendSymbolDetailPacket(&ModuleSymDetailArray[IndexInSymbolBuffer], i, ModuleInfo->NumberOfModules + ModulesCount);
+            KdSendSymbolDetailPacket(&ModuleSymDetailArray[IndexInSymbolBuffer], IndexInSymbolBuffer, ModuleInfo->NumberOfModules + ModulesCount);
         }
     }
 
