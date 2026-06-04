@@ -591,7 +591,8 @@ SymbolGetLoadedImageHeaderDetails(const std::vector<BYTE> & LoadedImagePrefix, U
 static BOOLEAN
 SymbolReadLoadedUserModuleForCodeView(UINT64 BaseAddress, UINT32 UserProcessId, std::vector<BYTE> & LoadedImageBytes)
 {
-    static constexpr UINT32 InitialLoadedImagePrefixSize = 4 * 1024;
+    static constexpr UINT32 InitialLoadedImagePrefixSize       = 4 * 1024;
+    static constexpr UINT32 MaximumLoadedImageCodeViewReadSize = 4 * 1024 * 1024;
 
     UINT32               SizeOfImage    = 0;
     UINT32               RequiredSize   = InitialLoadedImagePrefixSize;
@@ -614,7 +615,8 @@ SymbolReadLoadedUserModuleForCodeView(UINT64 BaseAddress, UINT32 UserProcessId, 
     }
 
     if (!SymbolAddLoadedImageReadRange(DebugDirectory.VirtualAddress, DebugDirectory.Size, &RequiredSize) ||
-        RequiredSize > SizeOfImage)
+        RequiredSize > SizeOfImage ||
+        RequiredSize > MaximumLoadedImageCodeViewReadSize)
     {
         return TRUE;
     }
@@ -641,7 +643,8 @@ SymbolReadLoadedUserModuleForCodeView(UINT64 BaseAddress, UINT32 UserProcessId, 
 
             UINT32 NextRequiredSize = RequiredSize;
             if (!SymbolAddLoadedImageReadRange(DebugEntry->AddressOfRawData, DebugEntry->SizeOfData, &NextRequiredSize) ||
-                NextRequiredSize > SizeOfImage)
+                NextRequiredSize > SizeOfImage ||
+                NextRequiredSize > MaximumLoadedImageCodeViewReadSize)
             {
                 continue;
             }
