@@ -73,6 +73,21 @@ main(int argc, char * argv[])
             printf("\n[x] The script semantic test cases failed\n");
         }
     }
+    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_CODEVIEW_RSDS_PARSER))
+    {
+        //
+        // # Test case 4
+        // Testing CodeView RSDS parser helpers
+        //
+        if (TestCodeViewRsdsParser())
+        {
+            printf("\n[*] The CodeView RSDS parser test cases passed successfully\n");
+        }
+        else
+        {
+            printf("\n[x] The CodeView RSDS parser test cases failed\n");
+        }
+    }
     else if (!strcmp(argv[1], TEST_HWDBG_FUNCTIONALITIES))
     {
         //

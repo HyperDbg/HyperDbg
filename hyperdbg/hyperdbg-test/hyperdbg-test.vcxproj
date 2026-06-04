@@ -63,7 +63,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;$(ProjectDir);$(SolutionDir)libhyperdbg;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;$(ProjectDir);$(SolutionDir)libhyperdbg;$(SolutionDir)symbol-parser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -85,7 +85,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;$(ProjectDir);$(SolutionDir)libhyperdbg;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;$(ProjectDir);$(SolutionDir)libhyperdbg;$(SolutionDir)symbol-parser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -105,8 +105,10 @@
   <ItemGroup>
     <ClCompile Include="..\include\components\pe\code\pe-image-reader.cpp" />
     <ClCompile Include="code\hardware\hwdbg-tests.cpp" />
+    <ClCompile Include="..\symbol-parser\code\codeview-rsds.cpp" />
     <ClCompile Include="code\main.cpp" />
     <ClCompile Include="code\namedpipe.cpp" />
+    <ClCompile Include="code\tests\test-codeview-rsds-parser.cpp" />
     <ClCompile Include="code\tests\test-pe-parser.cpp" />
     <ClCompile Include="code\tests\test-parser.cpp" />
     <ClCompile Include="code\tests\test-semantic-scripts.cpp" />
@@ -119,6 +121,7 @@
     <ClInclude Include="header\namedpipe.h" />
     <ClInclude Include="header\routines.h" />
     <ClInclude Include="header\testcases.h" />
+    <ClInclude Include="..\symbol-parser\header\codeview-rsds.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

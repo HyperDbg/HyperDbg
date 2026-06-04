@@ -100,6 +100,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="code\casting.cpp" />
+    <ClCompile Include="code\codeview-rsds.cpp" />
     <ClCompile Include="code\common-utils.cpp" />
     <ClCompile Include="code\symbol-parser.cpp" />
     <ClCompile Include="pch.cpp">
@@ -108,6 +109,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="header\codeview-rsds.h" />
     <ClInclude Include="header\common-utils.h" />
     <ClInclude Include="header\symbol-parser.h" />
     <ClInclude Include="pch.h" />

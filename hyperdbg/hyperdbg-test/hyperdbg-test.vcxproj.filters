@@ -41,6 +41,9 @@
     <ClCompile Include="code\tests\test-pe-parser.cpp">
       <Filter>code\tests</Filter>
     </ClCompile>
+    <ClCompile Include="code\tests\test-codeview-rsds-parser.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
     <ClCompile Include="code\namedpipe.cpp">
       <Filter>code</Filter>
     </ClCompile>
@@ -55,6 +58,9 @@
     </ClCompile>
     <ClCompile Include="code\hardware\hwdbg-tests.cpp">
       <Filter>code\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\symbol-parser\code\codeview-rsds.cpp">
+      <Filter>code\tests</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>code</Filter>
@@ -81,6 +87,9 @@
     </ClInclude>
     <ClInclude Include="..\include\components\pe\header\pe-image-reader.h">
       <Filter>header\components\pe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\symbol-parser\header\codeview-rsds.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

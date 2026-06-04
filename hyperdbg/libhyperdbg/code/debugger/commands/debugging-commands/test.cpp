@@ -125,6 +125,15 @@ CommandTestAllFunctionalities()
     }
 
     //
+    // Test CodeView RSDS parser helpers
+    //
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_CODEVIEW_RSDS_PARSER))
+    {
+        ShowMessages("err, start HyperDbg test process for testing the CodeView RSDS parser\n");
+        return;
+    }
+
+    //
     // Test script engine (script parser) using semantic tests
     //
     if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES))
