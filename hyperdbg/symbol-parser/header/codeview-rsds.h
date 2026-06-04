@@ -18,3 +18,11 @@ SymExtractCodeViewRsdsInfoFromPeImage(const BYTE * ImageBase,
                                       SIZE_T       PdbFileNameSize,
                                       GUID *       Guid,
                                       DWORD *      Age);
+
+BOOLEAN
+SymExtractCodeViewRsdsInfoFromLoadedPeImage(const BYTE * ImageBase,
+                                            SIZE_T       ImageSize,
+                                            CHAR *       PdbFileName,
+                                            SIZE_T       PdbFileNameSize,
+                                            GUID *       Guid,
+                                            DWORD *      Age);

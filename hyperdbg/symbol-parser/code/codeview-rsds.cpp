@@ -145,6 +145,18 @@ SymRsdsRvaToFileOffset(const BYTE *                 ImageBase,
 }
 
 static BOOLEAN
+SymRsdsRvaToLoadedOffset(SIZE_T ImageSize, DWORD Rva, DWORD Length, SIZE_T * LoadedOffset)
+{
+    if (LoadedOffset == NULL || !SymRsdsHasRange(ImageSize, (SIZE_T)Rva, (SIZE_T)Length))
+    {
+        return FALSE;
+    }
+
+    *LoadedOffset = (SIZE_T)Rva;
+    return TRUE;
+}
+
+static BOOLEAN
 SymRsdsCopyBasename(const CHAR * Path, SIZE_T PathLength, CHAR * PdbFileName, SIZE_T PdbFileNameSize)
 {
     if (Path == NULL || PdbFileName == NULL || PdbFileNameSize == 0)
@@ -214,13 +226,14 @@ SymRsdsTryParseCodeView(const BYTE * CodeViewData,
     return TRUE;
 }
 
-BOOLEAN
-SymExtractCodeViewRsdsInfoFromPeImage(const BYTE * ImageBase,
-                                      SIZE_T       ImageSize,
-                                      CHAR *       PdbFileName,
-                                      SIZE_T       PdbFileNameSize,
-                                      GUID *       Guid,
-                                      DWORD *      Age)
+static BOOLEAN
+SymExtractCodeViewRsdsInfoFromPeImageInternal(const BYTE * ImageBase,
+                                              SIZE_T       ImageSize,
+                                              CHAR *       PdbFileName,
+                                              SIZE_T       PdbFileNameSize,
+                                              GUID *       Guid,
+                                              DWORD *      Age,
+                                              BOOLEAN      LoadedLayout)
 {
     SymRsdsClearOutputs(PdbFileName, PdbFileNameSize, Guid, Age);
 
@@ -288,12 +301,12 @@ SymExtractCodeViewRsdsInfoFromPeImage(const BYTE * ImageBase,
     SIZE_T SectionTableOffset = OptionalHeaderOffset + FileHeader->SizeOfOptionalHeader;
     SIZE_T SectionTableSize   = (SIZE_T)FileHeader->NumberOfSections * sizeof(IMAGE_SECTION_HEADER);
 
-    if (FileHeader->NumberOfSections != 0 && SectionTableSize / sizeof(IMAGE_SECTION_HEADER) != FileHeader->NumberOfSections)
+    if (!LoadedLayout && FileHeader->NumberOfSections != 0 && SectionTableSize / sizeof(IMAGE_SECTION_HEADER) != FileHeader->NumberOfSections)
     {
         return FALSE;
     }
 
-    if (!SymRsdsHasRange(ImageSize, SectionTableOffset, SectionTableSize))
+    if (!LoadedLayout && !SymRsdsHasRange(ImageSize, SectionTableOffset, SectionTableSize))
     {
         return FALSE;
     }
@@ -305,17 +318,24 @@ SymExtractCodeViewRsdsInfoFromPeImage(const BYTE * ImageBase,
         return FALSE;
     }
 
-    const IMAGE_SECTION_HEADER * SectionHeaders = (const IMAGE_SECTION_HEADER *)(ImageBase + SectionTableOffset);
+    const IMAGE_SECTION_HEADER * SectionHeaders = LoadedLayout ? NULL : (const IMAGE_SECTION_HEADER *)(ImageBase + SectionTableOffset);
     SIZE_T                       DebugOffset    = 0;
 
-    if (!SymRsdsRvaToFileOffset(ImageBase,
-                                ImageSize,
-                                FileHeader,
-                                SectionHeaders,
-                                SymRsdsGetSizeOfHeaders(OptionalHeader, Is32Bit),
-                                DebugDirectory.VirtualAddress,
-                                DebugDirectory.Size,
-                                &DebugOffset))
+    if (LoadedLayout)
+    {
+        if (!SymRsdsRvaToLoadedOffset(ImageSize, DebugDirectory.VirtualAddress, DebugDirectory.Size, &DebugOffset))
+        {
+            return FALSE;
+        }
+    }
+    else if (!SymRsdsRvaToFileOffset(ImageBase,
+                                     ImageSize,
+                                     FileHeader,
+                                     SectionHeaders,
+                                     SymRsdsGetSizeOfHeaders(OptionalHeader, Is32Bit),
+                                     DebugDirectory.VirtualAddress,
+                                     DebugDirectory.Size,
+                                     &DebugOffset))
     {
         return FALSE;
     }
@@ -338,15 +358,9 @@ SymExtractCodeViewRsdsInfoFromPeImage(const BYTE * ImageBase,
         SIZE_T       CodeViewOffset = 0;
         const BYTE * CodeViewData   = NULL;
 
-        if (!SymRsdsRvaToFileOffset(ImageBase,
-                                    ImageSize,
-                                    FileHeader,
-                                    SectionHeaders,
-                                    SymRsdsGetSizeOfHeaders(OptionalHeader, Is32Bit),
-                                    DebugEntry->AddressOfRawData,
-                                    DebugEntry->SizeOfData,
-                                    &CodeViewOffset) ||
-            !SymRsdsGetPointerAtOffset(ImageBase, ImageSize, CodeViewOffset, DebugEntry->SizeOfData, &CodeViewData))
+        BOOLEAN IsCodeViewMapped = LoadedLayout ? SymRsdsRvaToLoadedOffset(ImageSize, DebugEntry->AddressOfRawData, DebugEntry->SizeOfData, &CodeViewOffset) : SymRsdsRvaToFileOffset(ImageBase, ImageSize, FileHeader, SectionHeaders, SymRsdsGetSizeOfHeaders(OptionalHeader, Is32Bit), DebugEntry->AddressOfRawData, DebugEntry->SizeOfData, &CodeViewOffset);
+
+        if (!IsCodeViewMapped || !SymRsdsGetPointerAtOffset(ImageBase, ImageSize, CodeViewOffset, DebugEntry->SizeOfData, &CodeViewData))
         {
             continue;
         }
@@ -360,4 +374,26 @@ SymExtractCodeViewRsdsInfoFromPeImage(const BYTE * ImageBase,
     }
 
     return FALSE;
+}
+
+BOOLEAN
+SymExtractCodeViewRsdsInfoFromPeImage(const BYTE * ImageBase,
+                                      SIZE_T       ImageSize,
+                                      CHAR *       PdbFileName,
+                                      SIZE_T       PdbFileNameSize,
+                                      GUID *       Guid,
+                                      DWORD *      Age)
+{
+    return SymExtractCodeViewRsdsInfoFromPeImageInternal(ImageBase, ImageSize, PdbFileName, PdbFileNameSize, Guid, Age, FALSE);
+}
+
+BOOLEAN
+SymExtractCodeViewRsdsInfoFromLoadedPeImage(const BYTE * ImageBase,
+                                            SIZE_T       ImageSize,
+                                            CHAR *       PdbFileName,
+                                            SIZE_T       PdbFileNameSize,
+                                            GUID *       Guid,
+                                            DWORD *      Age)
+{
+    return SymExtractCodeViewRsdsInfoFromPeImageInternal(ImageBase, ImageSize, PdbFileName, PdbFileNameSize, Guid, Age, TRUE);
 }

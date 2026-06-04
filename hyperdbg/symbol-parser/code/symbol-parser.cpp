@@ -1865,6 +1865,42 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
                                                      (PVOID)ActualLocalFilePath);
 }
 
+BOOLEAN
+SymConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(const BYTE * LoadedImageBytes,
+                                                    SIZE_T       LoadedImageSize,
+                                                    const char * LocalFilePath,
+                                                    char *       PdbFilePath,
+                                                    char *       GuidAndAgeDetails,
+                                                    BOOLEAN      Is32BitModule)
+{
+    std::string  Wow64ConvertedPath;
+    const char * ActualLocalFilePath = NULL;
+
+    if (Is32BitModule)
+    {
+        SymConvertWow64CompatibilityPaths(LocalFilePath, Wow64ConvertedPath);
+        ActualLocalFilePath = Wow64ConvertedPath.c_str();
+        // ShowMessages("local file path: %s | final file path: %s\n", LocalFilePath, ActualLocalFilePath);
+    }
+    else
+    {
+        ActualLocalFilePath = LocalFilePath;
+    }
+
+    // ShowMessages("the final (actual) address is: %s\n", ActualLocalFilePath);
+
+    return SymFormatPdbIdentityFromLoadedPeImageOrFallback(LoadedImageBytes,
+                                                           LoadedImageSize,
+                                                           NULL,
+                                                           0,
+                                                           PdbFilePath,
+                                                           MAX_PATH,
+                                                           GuidAndAgeDetails,
+                                                           MAX_PATH,
+                                                           SymSrvGetFileIndexInfoFallback,
+                                                           (PVOID)ActualLocalFilePath);
+}
+
 /**
  * @brief check if the pdb files of loaded symbols are available or not
  *

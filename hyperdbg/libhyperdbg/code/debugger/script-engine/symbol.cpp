@@ -423,6 +423,140 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
     return IsFound;
 }
 
+static BOOLEAN
+SymbolReadUserVirtualMemoryExact(UINT64 BaseAddress, UINT32 UserProcessId, UINT32 ReadSize, std::vector<BYTE> & Bytes)
+{
+    BOOL                   Status             = FALSE;
+    ULONG                  ReturnedLength     = 0;
+    UINT32                 SizeOfTargetBuffer = SIZEOF_DEBUGGER_READ_MEMORY + ReadSize;
+    DEBUGGER_READ_MEMORY   ReadMemoryRequest  = {0};
+    DEBUGGER_READ_MEMORY * MemReadRequest     = NULL;
+
+    Bytes.clear();
+
+    if (g_DeviceHandle == NULL || BaseAddress == 0 || UserProcessId == 0 || ReadSize == 0)
+    {
+        return FALSE;
+    }
+
+    MemReadRequest = (DEBUGGER_READ_MEMORY *)malloc(SizeOfTargetBuffer);
+    if (MemReadRequest == NULL)
+    {
+        return FALSE;
+    }
+
+    ReadMemoryRequest.Address     = BaseAddress;
+    ReadMemoryRequest.Pid         = UserProcessId;
+    ReadMemoryRequest.Size        = ReadSize;
+    ReadMemoryRequest.MemoryType  = DEBUGGER_READ_VIRTUAL_ADDRESS;
+    ReadMemoryRequest.ReadingType = READ_FROM_KERNEL;
+
+    RtlZeroMemory(MemReadRequest, SizeOfTargetBuffer);
+    memcpy(MemReadRequest, &ReadMemoryRequest, sizeof(DEBUGGER_READ_MEMORY));
+
+    Status = DeviceIoControl(g_DeviceHandle,
+                             IOCTL_DEBUGGER_READ_MEMORY,
+                             MemReadRequest,
+                             SIZEOF_DEBUGGER_READ_MEMORY,
+                             MemReadRequest,
+                             SizeOfTargetBuffer,
+                             &ReturnedLength,
+                             NULL);
+
+    if (!Status || MemReadRequest->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL || ReturnedLength != SizeOfTargetBuffer)
+    {
+        free(MemReadRequest);
+        return FALSE;
+    }
+
+    Bytes.resize(ReadSize);
+    memcpy(Bytes.data(), ((UCHAR *)MemReadRequest) + SIZEOF_DEBUGGER_READ_MEMORY, ReadSize);
+
+    free(MemReadRequest);
+    return TRUE;
+}
+
+static BOOLEAN
+SymbolGetLoadedImageSizeOfImage(const std::vector<BYTE> & LoadedImagePrefix, UINT32 * SizeOfImage)
+{
+    if (LoadedImagePrefix.size() < sizeof(IMAGE_DOS_HEADER) || SizeOfImage == NULL)
+    {
+        return FALSE;
+    }
+
+    const IMAGE_DOS_HEADER * DosHeader = (const IMAGE_DOS_HEADER *)LoadedImagePrefix.data();
+    if (DosHeader->e_magic != IMAGE_DOS_SIGNATURE || DosHeader->e_lfanew < 0)
+    {
+        return FALSE;
+    }
+
+    SIZE_T NtHeaderOffset = (SIZE_T)DosHeader->e_lfanew;
+    if (NtHeaderOffset > LoadedImagePrefix.size() || sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER) > LoadedImagePrefix.size() - NtHeaderOffset)
+    {
+        return FALSE;
+    }
+
+    const BYTE * NtHeaders = LoadedImagePrefix.data() + NtHeaderOffset;
+    if (*(const DWORD *)NtHeaders != IMAGE_NT_SIGNATURE)
+    {
+        return FALSE;
+    }
+
+    const IMAGE_FILE_HEADER * FileHeader           = (const IMAGE_FILE_HEADER *)(NtHeaders + sizeof(DWORD));
+    SIZE_T                    OptionalHeaderOffset = NtHeaderOffset + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER);
+
+    if (OptionalHeaderOffset > LoadedImagePrefix.size() || FileHeader->SizeOfOptionalHeader < sizeof(WORD) ||
+        FileHeader->SizeOfOptionalHeader > LoadedImagePrefix.size() - OptionalHeaderOffset)
+    {
+        return FALSE;
+    }
+
+    const BYTE * OptionalHeader = LoadedImagePrefix.data() + OptionalHeaderOffset;
+    WORD         Magic          = *(const WORD *)OptionalHeader;
+
+    if (Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC && FileHeader->SizeOfOptionalHeader >= sizeof(IMAGE_OPTIONAL_HEADER32))
+    {
+        *SizeOfImage = ((const IMAGE_OPTIONAL_HEADER32 *)OptionalHeader)->SizeOfImage;
+        return TRUE;
+    }
+
+    if (Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC && FileHeader->SizeOfOptionalHeader >= sizeof(IMAGE_OPTIONAL_HEADER64))
+    {
+        *SizeOfImage = ((const IMAGE_OPTIONAL_HEADER64 *)OptionalHeader)->SizeOfImage;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static BOOLEAN
+SymbolReadLoadedUserModulePrefix(UINT64 BaseAddress, UINT32 UserProcessId, std::vector<BYTE> & LoadedImageBytes)
+{
+    static constexpr UINT32 InitialLoadedImagePrefixSize = 4 * 1024;
+    static constexpr UINT32 MaximumLoadedImagePrefixSize = 128 * 1024;
+
+    UINT32 SizeOfImage = 0;
+    UINT32 ReadSize    = MaximumLoadedImagePrefixSize;
+
+    if (!SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, InitialLoadedImagePrefixSize, LoadedImageBytes))
+    {
+        return FALSE;
+    }
+
+    if (SymbolGetLoadedImageSizeOfImage(LoadedImageBytes, &SizeOfImage) && SizeOfImage != 0 && SizeOfImage < ReadSize)
+    {
+        ReadSize = SizeOfImage;
+    }
+
+    if (ReadSize <= LoadedImageBytes.size())
+    {
+        LoadedImageBytes.resize(ReadSize);
+        return TRUE;
+    }
+
+    return SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, ReadSize, LoadedImageBytes);
+}
+
 /**
  * @brief Delete and free structures and variables related to the symbols
  *
@@ -724,17 +858,31 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             RtlZeroMemory(ModuleSymbolPath, sizeof(ModuleSymbolPath));
             RtlZeroMemory(TempPath, sizeof(TempPath));
             RtlZeroMemory(ModuleSymbolGuidAndAge, sizeof(ModuleSymbolGuidAndAge));
+            std::vector<BYTE> LoadedImageBytes;
 
             //
             // Convert symbol path from unicode to ascii
             //
             wcstombs(TempPath, Modules[i].FilePath, MAX_PATH);
 
-            if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(
-                    TempPath,
-                    ModuleSymbolPath,
-                    ModuleSymbolGuidAndAge,
-                    ModuleDetailsRequest->Is32Bit))
+            if (SendOverSerial && Modules[i].BaseAddress != 0 &&
+                SymbolReadLoadedUserModulePrefix(Modules[i].BaseAddress, UserProcessId, LoadedImageBytes) &&
+                ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetailsWrapper(LoadedImageBytes.data(),
+                                                                                    LoadedImageBytes.size(),
+                                                                                    TempPath,
+                                                                                    ModuleSymbolPath,
+                                                                                    ModuleSymbolGuidAndAge,
+                                                                                    ModuleDetailsRequest->Is32Bit))
+            {
+                IsSymbolPdbDetailAvailable = TRUE;
+
+                // ShowMessages("Hash : %s , Symbol path : %s\n", ModuleSymbolGuidAndAge, ModuleSymbolPath);
+            }
+            else if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(
+                         TempPath,
+                         ModuleSymbolPath,
+                         ModuleSymbolGuidAndAge,
+                         ModuleDetailsRequest->Is32Bit))
             {
                 IsSymbolPdbDetailAvailable = TRUE;
 

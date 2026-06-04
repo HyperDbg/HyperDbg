@@ -114,6 +114,14 @@ IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const CHAR * LocalFilePath, CHAR * PdbFilePath, CHAR * GuidAndAgeDetails, BOOLEAN Is32BitModule);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
+ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(const BYTE * LoadedImageBytes,
+                                                             SIZE_T       LoadedImageSize,
+                                                             const CHAR * LocalFilePath,
+                                                             CHAR *       PdbFilePath,
+                                                             CHAR *       GuidAndAgeDetails,
+                                                             BOOLEAN      Is32BitModule);
+
+IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const CHAR * SymbolPath, BOOLEAN IsSilentLoad);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN

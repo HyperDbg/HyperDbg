@@ -37,3 +37,15 @@ SymFormatPdbIdentityFromPeImageOrFallback(const BYTE *                        Pe
                                           SIZE_T                              GuidAndAgeDetailsSize,
                                           PSYM_PDB_IDENTITY_FALLBACK_CALLBACK FallbackCallback,
                                           PVOID                               FallbackContext);
+
+BOOLEAN
+SymFormatPdbIdentityFromLoadedPeImageOrFallback(const BYTE *                        PeImageBytes,
+                                                SIZE_T                              PeImageSize,
+                                                CHAR *                              SymbolServerRelativePath,
+                                                SIZE_T                              SymbolServerRelativePathSize,
+                                                CHAR *                              PdbFilePath,
+                                                SIZE_T                              PdbFilePathSize,
+                                                CHAR *                              GuidAndAgeDetails,
+                                                SIZE_T                              GuidAndAgeDetailsSize,
+                                                PSYM_PDB_IDENTITY_FALLBACK_CALLBACK FallbackCallback,
+                                                PVOID                               FallbackContext);

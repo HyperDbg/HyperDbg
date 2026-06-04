@@ -23,6 +23,9 @@ static constexpr DWORD  RsdsDebugDirectoryRva = 0x1100;
 static constexpr DWORD  RsdsDebugDirectoryRaw = 0x300;
 static constexpr DWORD  RsdsPayloadRva        = 0x1140;
 static constexpr DWORD  RsdsPayloadRaw        = 0x340;
+static constexpr DWORD  RsdsLoadedDebugRva    = 0x280;
+static constexpr DWORD  RsdsLoadedPayloadRva  = 0x2c0;
+static constexpr DWORD  RsdsBogusRawPointer   = 0xfffff000;
 
 static const GUID RsdsGuid64    = {0x67452301, 0xab89, 0xefcd, {0x10, 0x32, 0x54, 0x76, 0x98, 0xba, 0xdc, 0xfe}};
 static const GUID RsdsGuid32    = {0x01234567, 0x89ab, 0xcdef, {0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10}};
@@ -149,6 +152,21 @@ RsdsWriteValidDebugEntry(BYTE * Buffer, const GUID & Guid, DWORD Age, const CHAR
     RsdsWriteDebugEntry(Buffer, RsdsDebugDirectoryRaw, IMAGE_DEBUG_TYPE_CODEVIEW, RsdsPayloadRva, RsdsPayloadRaw, PayloadSize);
 }
 
+static VOID
+RsdsBuildLoadedPe(BYTE * Buffer, BOOLEAN Is32Bit)
+{
+    RsdsBuildMinimalPe(Buffer, Is32Bit);
+    RsdsSetDebugDirectory(Buffer, RsdsLoadedDebugRva, sizeof(IMAGE_DEBUG_DIRECTORY));
+}
+
+static VOID
+RsdsWriteValidLoadedDebugEntry(BYTE * Buffer, const GUID & Guid, DWORD Age, const CHAR * Path)
+{
+    DWORD PayloadSize = RsdsPayloadSize(Path, TRUE);
+    RsdsWritePayload(Buffer, RsdsLoadedPayloadRva, Guid, Age, Path, TRUE);
+    RsdsWriteDebugEntry(Buffer, RsdsLoadedDebugRva, IMAGE_DEBUG_TYPE_CODEVIEW, RsdsLoadedPayloadRva, RsdsBogusRawPointer, PayloadSize);
+}
+
 static BOOLEAN
 RsdsGuidEquals(const GUID & Left, const GUID & Right)
 {
@@ -175,6 +193,29 @@ RsdsExpectFailure(const BYTE * Buffer)
     DWORD Age                   = 0x12345678;
 
     return !SymExtractCodeViewRsdsInfoFromPeImage(Buffer, RsdsFixtureSize, PdbFileName, sizeof(PdbFileName), &Guid, &Age) &&
+           PdbFileName[0] == '\0' && RsdsGuidEquals(Guid, EmptyGuid) && Age == 0;
+}
+
+static BOOLEAN
+RsdsExpectLoadedSuccess(const BYTE * Buffer, const CHAR * ExpectedPdb, const GUID & ExpectedGuid, DWORD ExpectedAge)
+{
+    CHAR  PdbFileName[MAX_PATH] = {0};
+    GUID  Guid                  = {0};
+    DWORD Age                   = 0;
+
+    return SymExtractCodeViewRsdsInfoFromLoadedPeImage(Buffer, RsdsFixtureSize, PdbFileName, sizeof(PdbFileName), &Guid, &Age) &&
+           strcmp(PdbFileName, ExpectedPdb) == 0 && RsdsGuidEquals(Guid, ExpectedGuid) && Age == ExpectedAge;
+}
+
+static BOOLEAN
+RsdsExpectLoadedFailure(const BYTE * Buffer)
+{
+    CHAR  PdbFileName[MAX_PATH] = {'x'};
+    GUID  Guid                  = RsdsGuid64;
+    GUID  EmptyGuid             = {0};
+    DWORD Age                   = 0x12345678;
+
+    return !SymExtractCodeViewRsdsInfoFromLoadedPeImage(Buffer, RsdsFixtureSize, PdbFileName, sizeof(PdbFileName), &Guid, &Age) &&
            PdbFileName[0] == '\0' && RsdsGuidEquals(Guid, EmptyGuid) && Age == 0;
 }
 
@@ -310,6 +351,121 @@ TestCodeViewRsdsParser()
     {
         printf("[-] Test number %d Failed\n", TestNum);
         printf("[x] parser did not skip invalid first entry and parse second RSDS entry\n");
+        return FALSE;
+    }
+
+    RsdsBuildLoadedPe(Buffer, FALSE);
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x21, "C:\\loaded\\loaded64.pdb");
+    TestNum++;
+    if (RsdsExpectLoadedSuccess(Buffer, "loaded64.pdb", RsdsGuid64, 0x21))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded PE32+ RSDS entry was not parsed\n");
+        return FALSE;
+    }
+
+    RsdsBuildLoadedPe(Buffer, TRUE);
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid32, 0x22, "C:/loaded/loaded32.pdb");
+    TestNum++;
+    if (RsdsExpectLoadedSuccess(Buffer, "loaded32.pdb", RsdsGuid32, 0x22))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded PE32 RSDS entry was not parsed\n");
+        return FALSE;
+    }
+
+    RsdsBuildLoadedPe(Buffer, FALSE);
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x23, "C:\\loaded\\bogus-raw-ignored.pdb");
+    TestNum++;
+    if (RsdsExpectLoadedSuccess(Buffer, "bogus-raw-ignored.pdb", RsdsGuid64, 0x23))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded parser used bogus PointerToRawData instead of loaded RVA\n");
+        return FALSE;
+    }
+
+    RsdsBuildLoadedPe(Buffer, FALSE);
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x24, "C:\\loaded\\invalid-dir.pdb");
+    RsdsSetDebugDirectory(Buffer, RsdsFixtureSize - sizeof(IMAGE_DEBUG_DIRECTORY) / 2, sizeof(IMAGE_DEBUG_DIRECTORY));
+    TestNum++;
+    if (RsdsExpectLoadedFailure(Buffer))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded parser accepted malformed debug directory bounds\n");
+        return FALSE;
+    }
+
+    RsdsBuildLoadedPe(Buffer, FALSE);
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x25, "C:\\loaded\\unsupported.pdb");
+    CopyMemory(Buffer + RsdsLoadedPayloadRva, "ABCD", sizeof(DWORD));
+    TestNum++;
+    if (RsdsExpectLoadedFailure(Buffer))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded parser accepted unsupported CodeView signature\n");
+        return FALSE;
+    }
+
+    RsdsBuildLoadedPe(Buffer, FALSE);
+    RsdsWritePayload(Buffer, RsdsLoadedPayloadRva, RsdsGuid64, 0x26, "C:\\loaded\\missing-nul.pdb", FALSE);
+    RsdsWriteDebugEntry(Buffer,
+                        RsdsLoadedDebugRva,
+                        IMAGE_DEBUG_TYPE_CODEVIEW,
+                        RsdsLoadedPayloadRva,
+                        RsdsBogusRawPointer,
+                        RsdsPayloadSize("C:\\loaded\\missing-nul.pdb", FALSE));
+    TestNum++;
+    if (RsdsExpectLoadedFailure(Buffer))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded parser accepted RSDS path without NUL terminator\n");
+        return FALSE;
+    }
+
+    RsdsBuildLoadedPe(Buffer, FALSE);
+    RsdsSetDebugDirectory(Buffer, RsdsLoadedDebugRva, sizeof(IMAGE_DEBUG_DIRECTORY) * 2);
+    RsdsWriteDebugEntry(Buffer, RsdsLoadedDebugRva, IMAGE_DEBUG_TYPE_CODEVIEW, RsdsLoadedPayloadRva, RsdsBogusRawPointer, sizeof(DWORD));
+    CopyMemory(Buffer + RsdsLoadedPayloadRva, "NB10", sizeof(DWORD));
+    RsdsWritePayload(Buffer, 0x330, RsdsGuidMulti, 0x27, "D:/loaded/second-loaded.pdb", TRUE);
+    RsdsWriteDebugEntry(Buffer,
+                        RsdsLoadedDebugRva + sizeof(IMAGE_DEBUG_DIRECTORY),
+                        IMAGE_DEBUG_TYPE_CODEVIEW,
+                        0x330,
+                        RsdsBogusRawPointer,
+                        RsdsPayloadSize("D:/loaded/second-loaded.pdb", TRUE));
+    TestNum++;
+    if (RsdsExpectLoadedSuccess(Buffer, "second-loaded.pdb", RsdsGuidMulti, 0x27))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded parser did not skip invalid first entry and parse second RSDS entry\n");
         return FALSE;
     }
 

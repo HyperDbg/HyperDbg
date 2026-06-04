@@ -32,6 +32,13 @@ SymOutputBufferHasSpace(const CHAR * Buffer, SIZE_T BufferSize)
     return Buffer == NULL || BufferSize != 0;
 }
 
+typedef BOOLEAN (*PSYM_PDB_IDENTITY_EXTRACTOR_CALLBACK)(const BYTE * PeImageBytes,
+                                                        SIZE_T       PeImageSize,
+                                                        CHAR *       PdbFile,
+                                                        SIZE_T       PdbFileSize,
+                                                        GUID *       Guid,
+                                                        DWORD *      Age);
+
 BOOLEAN
 SymFormatPdbIdentity(const CHAR * PdbFile,
                      const GUID * Guid,
@@ -102,17 +109,18 @@ SymFormatPdbIdentity(const CHAR * PdbFile,
     return TRUE;
 }
 
-BOOLEAN
-SymFormatPdbIdentityFromPeImageOrFallback(const BYTE *                        PeImageBytes,
-                                          SIZE_T                              PeImageSize,
-                                          CHAR *                              SymbolServerRelativePath,
-                                          SIZE_T                              SymbolServerRelativePathSize,
-                                          CHAR *                              PdbFilePath,
-                                          SIZE_T                              PdbFilePathSize,
-                                          CHAR *                              GuidAndAgeDetails,
-                                          SIZE_T                              GuidAndAgeDetailsSize,
-                                          PSYM_PDB_IDENTITY_FALLBACK_CALLBACK FallbackCallback,
-                                          PVOID                               FallbackContext)
+static BOOLEAN
+SymFormatPdbIdentityFromExtractorOrFallback(const BYTE *                         PeImageBytes,
+                                            SIZE_T                               PeImageSize,
+                                            CHAR *                               SymbolServerRelativePath,
+                                            SIZE_T                               SymbolServerRelativePathSize,
+                                            CHAR *                               PdbFilePath,
+                                            SIZE_T                               PdbFilePathSize,
+                                            CHAR *                               GuidAndAgeDetails,
+                                            SIZE_T                               GuidAndAgeDetailsSize,
+                                            PSYM_PDB_IDENTITY_EXTRACTOR_CALLBACK ExtractorCallback,
+                                            PSYM_PDB_IDENTITY_FALLBACK_CALLBACK  FallbackCallback,
+                                            PVOID                                FallbackContext)
 {
     CHAR              PdbFile[MAX_PATH] = {0};
     GUID              Guid              = {0};
@@ -137,8 +145,8 @@ SymFormatPdbIdentityFromPeImageOrFallback(const BYTE *                        Pe
         return FALSE;
     }
 
-    if (PeImageBytes == NULL ||
-        !SymExtractCodeViewRsdsInfoFromPeImage(PeImageBytes, PeImageSize, PdbFile, sizeof(PdbFile), &Guid, &Age))
+    if (PeImageBytes == NULL || ExtractorCallback == NULL ||
+        !ExtractorCallback(PeImageBytes, PeImageSize, PdbFile, sizeof(PdbFile), &Guid, &Age))
     {
         if (FallbackCallback == NULL || !FallbackCallback(FallbackContext, PdbFile, sizeof(PdbFile), &Guid, &Age))
         {
@@ -196,4 +204,54 @@ SymFormatPdbIdentityFromPeImageOrFallback(const BYTE *                        Pe
     }
 
     return TRUE;
+}
+
+BOOLEAN
+SymFormatPdbIdentityFromPeImageOrFallback(const BYTE *                        PeImageBytes,
+                                          SIZE_T                              PeImageSize,
+                                          CHAR *                              SymbolServerRelativePath,
+                                          SIZE_T                              SymbolServerRelativePathSize,
+                                          CHAR *                              PdbFilePath,
+                                          SIZE_T                              PdbFilePathSize,
+                                          CHAR *                              GuidAndAgeDetails,
+                                          SIZE_T                              GuidAndAgeDetailsSize,
+                                          PSYM_PDB_IDENTITY_FALLBACK_CALLBACK FallbackCallback,
+                                          PVOID                               FallbackContext)
+{
+    return SymFormatPdbIdentityFromExtractorOrFallback(PeImageBytes,
+                                                       PeImageSize,
+                                                       SymbolServerRelativePath,
+                                                       SymbolServerRelativePathSize,
+                                                       PdbFilePath,
+                                                       PdbFilePathSize,
+                                                       GuidAndAgeDetails,
+                                                       GuidAndAgeDetailsSize,
+                                                       SymExtractCodeViewRsdsInfoFromPeImage,
+                                                       FallbackCallback,
+                                                       FallbackContext);
+}
+
+BOOLEAN
+SymFormatPdbIdentityFromLoadedPeImageOrFallback(const BYTE *                        PeImageBytes,
+                                                SIZE_T                              PeImageSize,
+                                                CHAR *                              SymbolServerRelativePath,
+                                                SIZE_T                              SymbolServerRelativePathSize,
+                                                CHAR *                              PdbFilePath,
+                                                SIZE_T                              PdbFilePathSize,
+                                                CHAR *                              GuidAndAgeDetails,
+                                                SIZE_T                              GuidAndAgeDetailsSize,
+                                                PSYM_PDB_IDENTITY_FALLBACK_CALLBACK FallbackCallback,
+                                                PVOID                               FallbackContext)
+{
+    return SymFormatPdbIdentityFromExtractorOrFallback(PeImageBytes,
+                                                       PeImageSize,
+                                                       SymbolServerRelativePath,
+                                                       SymbolServerRelativePathSize,
+                                                       PdbFilePath,
+                                                       PdbFilePathSize,
+                                                       GuidAndAgeDetails,
+                                                       GuidAndAgeDetailsSize,
+                                                       SymExtractCodeViewRsdsInfoFromLoadedPeImage,
+                                                       FallbackCallback,
+                                                       FallbackContext);
 }

@@ -302,6 +302,38 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 }
 
 /**
+ * @brief Convert loaded module bytes to pdb attributes for symbols
+ *
+ * @param LoadedImageBytes
+ * @param LoadedImageSize
+ * @param LocalFilePath
+ * @param PdbFilePath
+ * @param GuidAndAgeDetails
+ * @param Is32BitModule
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(const BYTE * LoadedImageBytes,
+                                                             SIZE_T       LoadedImageSize,
+                                                             const char * LocalFilePath,
+                                                             char *       PdbFilePath,
+                                                             char *       GuidAndAgeDetails,
+                                                             BOOLEAN      Is32BitModule)
+{
+    //
+    // A wrapper for loaded module pdb to path file and guid and age detail converter
+    //
+    return SymConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(
+        LoadedImageBytes,
+        LoadedImageSize,
+        LocalFilePath,
+        PdbFilePath,
+        GuidAndAgeDetails,
+        Is32BitModule);
+}
+
+/**
  * @brief The entry point of script engine
  *
  * @param str

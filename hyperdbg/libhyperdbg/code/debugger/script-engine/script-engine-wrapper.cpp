@@ -252,6 +252,36 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const CHAR * LocalFi
     return ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails, Is32BitModule);
 }
 
+/**
+ * @brief ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetails wrapper
+ *
+ * @param LoadedImageBytes
+ * @param LoadedImageSize
+ * @param LocalFilePath
+ * @param PdbFilePath
+ * @param GuidAndAgeDetails
+ * @param Is32BitModule
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetailsWrapper(const BYTE * LoadedImageBytes,
+                                                                    SIZE_T       LoadedImageSize,
+                                                                    const CHAR * LocalFilePath,
+                                                                    CHAR *       PdbFilePath,
+                                                                    CHAR *       GuidAndAgeDetails,
+                                                                    BOOLEAN      Is32BitModule)
+
+{
+    return ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(
+        LoadedImageBytes,
+        LoadedImageSize,
+        LocalFilePath,
+        PdbFilePath,
+        GuidAndAgeDetails,
+        Is32BitModule);
+}
+
 //
 // *********************** Function links (wrapper) ***********************
 //
