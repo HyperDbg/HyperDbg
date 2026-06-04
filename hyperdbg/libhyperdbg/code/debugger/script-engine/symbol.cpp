@@ -426,8 +426,13 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 static BOOLEAN
 SymbolReadUserVirtualMemoryExact(UINT64 BaseAddress, UINT32 UserProcessId, UINT32 ReadSize, std::vector<BYTE> & Bytes)
 {
-    BOOL                   Status             = FALSE;
-    ULONG                  ReturnedLength     = 0;
+    BOOL  Status         = FALSE;
+    ULONG ReturnedLength = 0;
+    if (ReadSize > 0xffffffffu - SIZEOF_DEBUGGER_READ_MEMORY)
+    {
+        return FALSE;
+    }
+
     UINT32                 SizeOfTargetBuffer = SIZEOF_DEBUGGER_READ_MEMORY + ReadSize;
     DEBUGGER_READ_MEMORY   ReadMemoryRequest  = {0};
     DEBUGGER_READ_MEMORY * MemReadRequest     = NULL;
@@ -477,11 +482,51 @@ SymbolReadUserVirtualMemoryExact(UINT64 BaseAddress, UINT32 UserProcessId, UINT3
 }
 
 static BOOLEAN
-SymbolGetLoadedImageSizeOfImage(const std::vector<BYTE> & LoadedImagePrefix, UINT32 * SizeOfImage)
+SymbolAddLoadedImageReadRange(UINT32 Offset, UINT32 Length, UINT32 * RequiredSize)
+{
+    UINT32 EndOffset = 0;
+
+    if (RequiredSize == NULL)
+    {
+        return FALSE;
+    }
+
+    if (Length == 0)
+    {
+        return TRUE;
+    }
+
+    if (Offset > 0xffffffffu - Length)
+    {
+        return FALSE;
+    }
+
+    EndOffset = Offset + Length;
+    if (EndOffset > *RequiredSize)
+    {
+        *RequiredSize = EndOffset;
+    }
+
+    return TRUE;
+}
+
+static BOOLEAN
+SymbolLoadedImageHasRange(const std::vector<BYTE> & LoadedImageBytes, UINT32 Offset, UINT32 Length)
+{
+    return Length <= LoadedImageBytes.size() && Offset <= LoadedImageBytes.size() - Length;
+}
+
+static BOOLEAN
+SymbolGetLoadedImageHeaderDetails(const std::vector<BYTE> & LoadedImagePrefix, UINT32 * SizeOfImage, IMAGE_DATA_DIRECTORY * DebugDirectory)
 {
     if (LoadedImagePrefix.size() < sizeof(IMAGE_DOS_HEADER) || SizeOfImage == NULL)
     {
         return FALSE;
+    }
+
+    if (DebugDirectory != NULL)
+    {
+        RtlZeroMemory(DebugDirectory, sizeof(*DebugDirectory));
     }
 
     const IMAGE_DOS_HEADER * DosHeader = (const IMAGE_DOS_HEADER *)LoadedImagePrefix.data();
@@ -516,13 +561,27 @@ SymbolGetLoadedImageSizeOfImage(const std::vector<BYTE> & LoadedImagePrefix, UIN
 
     if (Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC && FileHeader->SizeOfOptionalHeader >= sizeof(IMAGE_OPTIONAL_HEADER32))
     {
-        *SizeOfImage = ((const IMAGE_OPTIONAL_HEADER32 *)OptionalHeader)->SizeOfImage;
+        const IMAGE_OPTIONAL_HEADER32 * OptionalHeader32 = (const IMAGE_OPTIONAL_HEADER32 *)OptionalHeader;
+
+        *SizeOfImage = OptionalHeader32->SizeOfImage;
+        if (DebugDirectory != NULL && OptionalHeader32->NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_DEBUG)
+        {
+            *DebugDirectory = OptionalHeader32->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+        }
+
         return TRUE;
     }
 
     if (Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC && FileHeader->SizeOfOptionalHeader >= sizeof(IMAGE_OPTIONAL_HEADER64))
     {
-        *SizeOfImage = ((const IMAGE_OPTIONAL_HEADER64 *)OptionalHeader)->SizeOfImage;
+        const IMAGE_OPTIONAL_HEADER64 * OptionalHeader64 = (const IMAGE_OPTIONAL_HEADER64 *)OptionalHeader;
+
+        *SizeOfImage = OptionalHeader64->SizeOfImage;
+        if (DebugDirectory != NULL && OptionalHeader64->NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_DEBUG)
+        {
+            *DebugDirectory = OptionalHeader64->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+        }
+
         return TRUE;
     }
 
@@ -530,31 +589,74 @@ SymbolGetLoadedImageSizeOfImage(const std::vector<BYTE> & LoadedImagePrefix, UIN
 }
 
 static BOOLEAN
-SymbolReadLoadedUserModulePrefix(UINT64 BaseAddress, UINT32 UserProcessId, std::vector<BYTE> & LoadedImageBytes)
+SymbolReadLoadedUserModuleForCodeView(UINT64 BaseAddress, UINT32 UserProcessId, std::vector<BYTE> & LoadedImageBytes)
 {
     static constexpr UINT32 InitialLoadedImagePrefixSize = 4 * 1024;
-    static constexpr UINT32 MaximumLoadedImagePrefixSize = 128 * 1024;
 
-    UINT32 SizeOfImage = 0;
-    UINT32 ReadSize    = MaximumLoadedImagePrefixSize;
+    UINT32               SizeOfImage    = 0;
+    UINT32               RequiredSize   = InitialLoadedImagePrefixSize;
+    IMAGE_DATA_DIRECTORY DebugDirectory = {0};
 
     if (!SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, InitialLoadedImagePrefixSize, LoadedImageBytes))
     {
         return FALSE;
     }
 
-    if (SymbolGetLoadedImageSizeOfImage(LoadedImageBytes, &SizeOfImage) && SizeOfImage != 0 && SizeOfImage < ReadSize)
+    if (!SymbolGetLoadedImageHeaderDetails(LoadedImageBytes, &SizeOfImage, &DebugDirectory) || SizeOfImage == 0)
     {
-        ReadSize = SizeOfImage;
-    }
-
-    if (ReadSize <= LoadedImageBytes.size())
-    {
-        LoadedImageBytes.resize(ReadSize);
         return TRUE;
     }
 
-    return SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, ReadSize, LoadedImageBytes);
+    if (DebugDirectory.VirtualAddress == 0 || DebugDirectory.Size < sizeof(IMAGE_DEBUG_DIRECTORY) ||
+        DebugDirectory.Size % sizeof(IMAGE_DEBUG_DIRECTORY) != 0)
+    {
+        return TRUE;
+    }
+
+    if (!SymbolAddLoadedImageReadRange(DebugDirectory.VirtualAddress, DebugDirectory.Size, &RequiredSize) ||
+        RequiredSize > SizeOfImage)
+    {
+        return TRUE;
+    }
+
+    if (RequiredSize > LoadedImageBytes.size() && !SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, RequiredSize, LoadedImageBytes))
+    {
+        return FALSE;
+    }
+
+    if (SymbolLoadedImageHasRange(LoadedImageBytes, DebugDirectory.VirtualAddress, DebugDirectory.Size))
+    {
+        const IMAGE_DEBUG_DIRECTORY * DebugEntries    = (const IMAGE_DEBUG_DIRECTORY *)(LoadedImageBytes.data() + DebugDirectory.VirtualAddress);
+        DWORD                         DebugEntryCount = DebugDirectory.Size / sizeof(IMAGE_DEBUG_DIRECTORY);
+
+        for (DWORD Index = 0; Index < DebugEntryCount; Index++)
+        {
+            const IMAGE_DEBUG_DIRECTORY * DebugEntry = &DebugEntries[Index];
+
+            if (DebugEntry->Type != IMAGE_DEBUG_TYPE_CODEVIEW ||
+                DebugEntry->SizeOfData < sizeof(DWORD) + sizeof(GUID) + sizeof(DWORD))
+            {
+                continue;
+            }
+
+            UINT32 NextRequiredSize = RequiredSize;
+            if (!SymbolAddLoadedImageReadRange(DebugEntry->AddressOfRawData, DebugEntry->SizeOfData, &NextRequiredSize) ||
+                NextRequiredSize > SizeOfImage)
+            {
+                continue;
+            }
+
+            RequiredSize = NextRequiredSize;
+        }
+    }
+
+    if (RequiredSize <= LoadedImageBytes.size())
+    {
+        LoadedImageBytes.resize(RequiredSize);
+        return TRUE;
+    }
+
+    return SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, RequiredSize, LoadedImageBytes);
 }
 
 /**
@@ -866,7 +968,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             wcstombs(TempPath, Modules[i].FilePath, MAX_PATH);
 
             if (SendOverSerial && Modules[i].BaseAddress != 0 &&
-                SymbolReadLoadedUserModulePrefix(Modules[i].BaseAddress, UserProcessId, LoadedImageBytes) &&
+                SymbolReadLoadedUserModuleForCodeView(Modules[i].BaseAddress, UserProcessId, LoadedImageBytes) &&
                 ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetailsWrapper(LoadedImageBytes.data(),
                                                                                     LoadedImageBytes.size(),
                                                                                     TempPath,

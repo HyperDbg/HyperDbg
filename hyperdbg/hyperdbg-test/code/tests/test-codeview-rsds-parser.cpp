@@ -14,18 +14,21 @@
 #include "header/codeview-rsds.h"
 #include "header/pdb-identity.h"
 
-static constexpr SIZE_T RsdsFixtureSize       = 0x600;
-static constexpr LONG   RsdsPeHeaderOffset    = 0x80;
-static constexpr DWORD  RsdsSectionRva        = 0x1000;
-static constexpr DWORD  RsdsSectionRaw        = 0x200;
-static constexpr DWORD  RsdsSectionSize       = 0x300;
-static constexpr DWORD  RsdsDebugDirectoryRva = 0x1100;
-static constexpr DWORD  RsdsDebugDirectoryRaw = 0x300;
-static constexpr DWORD  RsdsPayloadRva        = 0x1140;
-static constexpr DWORD  RsdsPayloadRaw        = 0x340;
-static constexpr DWORD  RsdsLoadedDebugRva    = 0x280;
-static constexpr DWORD  RsdsLoadedPayloadRva  = 0x2c0;
-static constexpr DWORD  RsdsBogusRawPointer   = 0xfffff000;
+static constexpr SIZE_T RsdsFixtureSize          = 0x600;
+static constexpr LONG   RsdsPeHeaderOffset       = 0x80;
+static constexpr DWORD  RsdsSectionRva           = 0x1000;
+static constexpr DWORD  RsdsSectionRaw           = 0x200;
+static constexpr DWORD  RsdsSectionSize          = 0x300;
+static constexpr DWORD  RsdsDebugDirectoryRva    = 0x1100;
+static constexpr DWORD  RsdsDebugDirectoryRaw    = 0x300;
+static constexpr DWORD  RsdsPayloadRva           = 0x1140;
+static constexpr DWORD  RsdsPayloadRaw           = 0x340;
+static constexpr DWORD  RsdsLoadedDebugRva       = 0x280;
+static constexpr DWORD  RsdsLoadedPayloadRva     = 0x2c0;
+static constexpr SIZE_T RsdsHighLoadedSize       = 0x22000;
+static constexpr DWORD  RsdsHighLoadedDebugRva   = 0x20000;
+static constexpr DWORD  RsdsHighLoadedPayloadRva = 0x20100;
+static constexpr DWORD  RsdsBogusRawPointer      = 0xfffff000;
 
 static const GUID RsdsGuid64    = {0x67452301, 0xab89, 0xefcd, {0x10, 0x32, 0x54, 0x76, 0x98, 0xba, 0xdc, 0xfe}};
 static const GUID RsdsGuid32    = {0x01234567, 0x89ab, 0xcdef, {0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10}};
@@ -108,6 +111,40 @@ RsdsSetDebugDirectory(BYTE * Buffer, DWORD DirectoryRva, DWORD DirectorySize)
         IMAGE_OPTIONAL_HEADER64 * OptionalHeader64                                  = (IMAGE_OPTIONAL_HEADER64 *)OptionalHeader;
         OptionalHeader64->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress = DirectoryRva;
         OptionalHeader64->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].Size           = DirectorySize;
+    }
+}
+
+static VOID
+RsdsSetNumberOfRvaAndSizes(BYTE * Buffer, DWORD NumberOfRvaAndSizes)
+{
+    BYTE * NtHeaders      = Buffer + RsdsPeHeaderOffset;
+    BYTE * OptionalHeader = NtHeaders + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER);
+    WORD   Magic          = *(WORD *)OptionalHeader;
+
+    if (Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC)
+    {
+        ((IMAGE_OPTIONAL_HEADER32 *)OptionalHeader)->NumberOfRvaAndSizes = NumberOfRvaAndSizes;
+    }
+    else
+    {
+        ((IMAGE_OPTIONAL_HEADER64 *)OptionalHeader)->NumberOfRvaAndSizes = NumberOfRvaAndSizes;
+    }
+}
+
+static VOID
+RsdsSetSizeOfImage(BYTE * Buffer, DWORD SizeOfImage)
+{
+    BYTE * NtHeaders      = Buffer + RsdsPeHeaderOffset;
+    BYTE * OptionalHeader = NtHeaders + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER);
+    WORD   Magic          = *(WORD *)OptionalHeader;
+
+    if (Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC)
+    {
+        ((IMAGE_OPTIONAL_HEADER32 *)OptionalHeader)->SizeOfImage = SizeOfImage;
+    }
+    else
+    {
+        ((IMAGE_OPTIONAL_HEADER64 *)OptionalHeader)->SizeOfImage = SizeOfImage;
     }
 }
 
@@ -267,6 +304,21 @@ TestCodeViewRsdsParser()
         return FALSE;
     }
 
+    RsdsBuildMinimalPe(Buffer, FALSE);
+    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "C:\\symbols\\unadvertised.pdb");
+    RsdsSetNumberOfRvaAndSizes(Buffer, IMAGE_DIRECTORY_ENTRY_DEBUG);
+    TestNum++;
+    if (RsdsExpectFailure(Buffer))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] raw parser accepted an unadvertised debug directory\n");
+        return FALSE;
+    }
+
     RsdsBuildMinimalPe(Buffer, TRUE);
     RsdsWriteValidDebugEntry(Buffer, RsdsGuid32, 9, "C:/symbols/valid32.pdb");
     TestNum++;
@@ -368,6 +420,21 @@ TestCodeViewRsdsParser()
         return FALSE;
     }
 
+    RsdsBuildLoadedPe(Buffer, FALSE);
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x21, "C:\\loaded\\unadvertised.pdb");
+    RsdsSetNumberOfRvaAndSizes(Buffer, IMAGE_DIRECTORY_ENTRY_DEBUG);
+    TestNum++;
+    if (RsdsExpectLoadedFailure(Buffer))
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded parser accepted an unadvertised debug directory\n");
+        return FALSE;
+    }
+
     RsdsBuildLoadedPe(Buffer, TRUE);
     RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid32, 0x22, "C:/loaded/loaded32.pdb");
     TestNum++;
@@ -393,6 +460,39 @@ TestCodeViewRsdsParser()
     {
         printf("[-] Test number %d Failed\n", TestNum);
         printf("[x] loaded parser used bogus PointerToRawData instead of loaded RVA\n");
+        return FALSE;
+    }
+
+    std::vector<BYTE> HighLoadedBuffer(RsdsHighLoadedSize);
+    RsdsBuildLoadedPe(HighLoadedBuffer.data(), FALSE);
+    RsdsSetSizeOfImage(HighLoadedBuffer.data(), (DWORD)HighLoadedBuffer.size());
+    RsdsSetDebugDirectory(HighLoadedBuffer.data(), RsdsHighLoadedDebugRva, sizeof(IMAGE_DEBUG_DIRECTORY));
+    RsdsWritePayload(HighLoadedBuffer.data(), RsdsHighLoadedPayloadRva, RsdsGuid64, 0x28, "C:\\loaded\\high-rva.pdb", TRUE);
+    RsdsWriteDebugEntry(HighLoadedBuffer.data(),
+                        RsdsHighLoadedDebugRva,
+                        IMAGE_DEBUG_TYPE_CODEVIEW,
+                        RsdsHighLoadedPayloadRva,
+                        RsdsBogusRawPointer,
+                        RsdsPayloadSize("C:\\loaded\\high-rva.pdb", TRUE));
+    CHAR  HighLoadedPdbFileName[MAX_PATH] = {0};
+    GUID  HighLoadedGuid                  = {0};
+    DWORD HighLoadedAge                   = 0;
+    TestNum++;
+    if (SymExtractCodeViewRsdsInfoFromLoadedPeImage(HighLoadedBuffer.data(),
+                                                    HighLoadedBuffer.size(),
+                                                    HighLoadedPdbFileName,
+                                                    sizeof(HighLoadedPdbFileName),
+                                                    &HighLoadedGuid,
+                                                    &HighLoadedAge) &&
+        strcmp(HighLoadedPdbFileName, "high-rva.pdb") == 0 && RsdsGuidEquals(HighLoadedGuid, RsdsGuid64) &&
+        HighLoadedAge == 0x28)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] loaded parser did not parse high-RVA RSDS data\n");
         return FALSE;
     }
 
@@ -469,9 +569,10 @@ TestCodeViewRsdsParser()
         return FALSE;
     }
 
-    CHAR       SymbolServerRelativePath[MAX_PATH] = {0};
-    CHAR       GuidAndAgeDetails[MAX_PATH]        = {0};
-    const GUID Guid                               = {0x01234567, 0x89ab, 0xcdef, {0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10}};
+    CHAR       SymbolServerRelativePath[MAX_PATH]                = {0};
+    CHAR       GuidAndAgeDetails[MAX_PATH]                       = {0};
+    CHAR       SmallGuidAndAgeDetails[MAXIMUM_GUID_AND_AGE_SIZE] = {0};
+    const GUID Guid                                              = {0x01234567, 0x89ab, 0xcdef, {0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10}};
     TestNum++;
     if (SymFormatPdbIdentity("valid32.pdb",
                              &Guid,
@@ -489,6 +590,25 @@ TestCodeViewRsdsParser()
     {
         printf("[-] Test number %d Failed\n", TestNum);
         printf("[x] PDB identity formatting did not match symbol server path and GUID+age expectations\n");
+        return FALSE;
+    }
+
+    TestNum++;
+    if (SymFormatPdbIdentity("valid32.pdb",
+                             &Guid,
+                             0x1a,
+                             NULL,
+                             0,
+                             SmallGuidAndAgeDetails,
+                             sizeof(SmallGuidAndAgeDetails)) &&
+        strcmp(SmallGuidAndAgeDetails, "0123456789abcdeffedcba98765432101a") == 0)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] GUID+age identity did not fit the SDK-sized buffer\n");
         return FALSE;
     }
 

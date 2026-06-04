@@ -84,6 +84,17 @@ SymRsdsGetDebugDataDirectory(const BYTE * OptionalHeader, BOOLEAN Is32Bit)
     return ((const IMAGE_OPTIONAL_HEADER64 *)OptionalHeader)->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
 }
 
+static DWORD
+SymRsdsGetNumberOfRvaAndSizes(const BYTE * OptionalHeader, BOOLEAN Is32Bit)
+{
+    if (Is32Bit)
+    {
+        return ((const IMAGE_OPTIONAL_HEADER32 *)OptionalHeader)->NumberOfRvaAndSizes;
+    }
+
+    return ((const IMAGE_OPTIONAL_HEADER64 *)OptionalHeader)->NumberOfRvaAndSizes;
+}
+
 static BOOLEAN
 SymRsdsRvaToFileOffset(const BYTE *                 ImageBase,
                        SIZE_T                       ImageSize,
@@ -307,6 +318,11 @@ SymExtractCodeViewRsdsInfoFromPeImageInternal(const BYTE * ImageBase,
     }
 
     if (!LoadedLayout && !SymRsdsHasRange(ImageSize, SectionTableOffset, SectionTableSize))
+    {
+        return FALSE;
+    }
+
+    if (SymRsdsGetNumberOfRvaAndSizes(OptionalHeader, Is32Bit) <= IMAGE_DIRECTORY_ENTRY_DEBUG)
     {
         return FALSE;
     }

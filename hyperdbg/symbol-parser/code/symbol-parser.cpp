@@ -1860,7 +1860,7 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
                                                      PdbFilePath,
                                                      MAX_PATH,
                                                      GuidAndAgeDetails,
-                                                     MAX_PATH,
+                                                     MAXIMUM_GUID_AND_AGE_SIZE,
                                                      SymSrvGetFileIndexInfoFallback,
                                                      (PVOID)ActualLocalFilePath);
 }
@@ -1896,7 +1896,7 @@ SymConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(const BYTE * LoadedImageByte
                                                            PdbFilePath,
                                                            MAX_PATH,
                                                            GuidAndAgeDetails,
-                                                           MAX_PATH,
+                                                           MAXIMUM_GUID_AND_AGE_SIZE,
                                                            SymSrvGetFileIndexInfoFallback,
                                                            (PVOID)ActualLocalFilePath);
 }
