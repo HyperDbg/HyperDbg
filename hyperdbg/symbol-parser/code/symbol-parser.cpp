@@ -14,6 +14,80 @@
 
 #include "header/pdb-identity.h"
 
+static BOOLEAN
+SymReadFileBytes(const char * LocalFilePath, std::vector<BYTE> & FileBytes)
+{
+    FileBytes.clear();
+
+    if (LocalFilePath == NULL)
+    {
+        return FALSE;
+    }
+
+    HANDLE FileHandle = CreateFileA(LocalFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (FileHandle == INVALID_HANDLE_VALUE)
+    {
+        return FALSE;
+    }
+
+    LARGE_INTEGER FileSize = {0};
+    if (!GetFileSizeEx(FileHandle, &FileSize) || FileSize.QuadPart <= 0 || (ULONGLONG)FileSize.QuadPart > FileBytes.max_size())
+    {
+        CloseHandle(FileHandle);
+        return FALSE;
+    }
+
+    FileBytes.resize((SIZE_T)FileSize.QuadPart);
+
+    BYTE * WriteCursor = FileBytes.data();
+    SIZE_T Remaining   = FileBytes.size();
+    while (Remaining != 0)
+    {
+        DWORD ChunkSize = Remaining > MAXDWORD ? MAXDWORD : (DWORD)Remaining;
+        DWORD BytesRead = 0;
+
+        if (!ReadFile(FileHandle, WriteCursor, ChunkSize, &BytesRead, NULL) || BytesRead == 0)
+        {
+            CloseHandle(FileHandle);
+            FileBytes.clear();
+            return FALSE;
+        }
+
+        WriteCursor += BytesRead;
+        Remaining -= BytesRead;
+    }
+
+    CloseHandle(FileHandle);
+    return TRUE;
+}
+
+static BOOLEAN
+SymSrvGetFileIndexInfoFallback(PVOID Context, CHAR * PdbFile, SIZE_T PdbFileSize, GUID * Guid, DWORD * Age)
+{
+    SYMSRV_INDEX_INFO SymInfo = {0};
+    SymInfo.sizeofstruct      = sizeof(SYMSRV_INDEX_INFO);
+
+    if (Context == NULL || PdbFile == NULL || Guid == NULL || Age == NULL)
+    {
+        return FALSE;
+    }
+
+    if (!SymSrvGetFileIndexInfo((const char *)Context, &SymInfo, 0))
+    {
+        return FALSE;
+    }
+
+    if (FAILED(StringCchCopyA(PdbFile, PdbFileSize, SymInfo.pdbfile)))
+    {
+        return FALSE;
+    }
+
+    *Guid = SymInfo.guid;
+    *Age  = SymInfo.age;
+
+    return TRUE;
+}
+
 //
 // Global Variables
 //
@@ -1689,33 +1763,25 @@ SymTagStr(ULONG Tag)
 BOOLEAN
 SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, SIZE_T ResultPathSize)
 {
-    BOOL              Ret;
-    SYMSRV_INDEX_INFO SymInfo = {0};
-    SymInfo.sizeofstruct      = sizeof(SYMSRV_INDEX_INFO);
+    std::vector<BYTE> FileBytes;
 
     if (LocalFilePath == NULL && ResultPath == NULL)
     {
         return FALSE;
     }
 
-    Ret = SymSrvGetFileIndexInfo(LocalFilePath, &SymInfo, 0);
+    SymReadFileBytes(LocalFilePath, FileBytes);
 
-    if (Ret)
-    {
-        return SymFormatPdbIdentity(SymInfo.pdbfile, &SymInfo.guid, SymInfo.age, ResultPath, ResultPathSize, NULL, 0);
-    }
-    else
-    {
-        //
-        // ShowMessages("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
-        //
-        return FALSE;
-    }
-
-    //
-    // By default, return false
-    //
-    return FALSE;
+    return SymFormatPdbIdentityFromPeImageOrFallback(FileBytes.empty() ? NULL : FileBytes.data(),
+                                                     FileBytes.size(),
+                                                     ResultPath,
+                                                     ResultPathSize,
+                                                     NULL,
+                                                     0,
+                                                     NULL,
+                                                     0,
+                                                     SymSrvGetFileIndexInfoFallback,
+                                                     (PVOID)LocalFilePath);
 }
 
 /**
@@ -1768,11 +1834,9 @@ SymConvertWow64CompatibilityPaths(const char * LocalFilePath, std::string & Wow6
 BOOLEAN
 SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule)
 {
-    SYMSRV_INDEX_INFO SymInfo = {0};
     std::string       Wow64ConvertedPath;
-    const char *      FormatStrPdbFilePath = "%s";
-    const char *      ActualLocalFilePath  = NULL;
-    SymInfo.sizeofstruct                   = sizeof(SYMSRV_INDEX_INFO);
+    std::vector<BYTE> FileBytes;
+    const char *      ActualLocalFilePath = NULL;
 
     if (Is32BitModule)
     {
@@ -1787,26 +1851,18 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
 
     // ShowMessages("the final (actual) address is: %s\n", ActualLocalFilePath);
 
-    BOOL Ret = SymSrvGetFileIndexInfo(ActualLocalFilePath, &SymInfo, 0);
+    SymReadFileBytes(ActualLocalFilePath, FileBytes);
 
-    if (Ret)
-    {
-        wsprintfA(PdbFilePath, FormatStrPdbFilePath, SymInfo.pdbfile);
-
-        return SymFormatPdbIdentity(SymInfo.pdbfile, &SymInfo.guid, SymInfo.age, NULL, 0, GuidAndAgeDetails, MAX_PATH);
-    }
-    else
-    {
-        //
-        // ShowMessages("err, unable to get symbol information for %s (%x)\n", ActualLocalFilePath, GetLastError());
-        //
-        return FALSE;
-    }
-
-    //
-    // By default, return false
-    //
-    return FALSE;
+    return SymFormatPdbIdentityFromPeImageOrFallback(FileBytes.empty() ? NULL : FileBytes.data(),
+                                                     FileBytes.size(),
+                                                     NULL,
+                                                     0,
+                                                     PdbFilePath,
+                                                     MAX_PATH,
+                                                     GuidAndAgeDetails,
+                                                     MAX_PATH,
+                                                     SymSrvGetFileIndexInfoFallback,
+                                                     (PVOID)ActualLocalFilePath);
 }
 
 /**

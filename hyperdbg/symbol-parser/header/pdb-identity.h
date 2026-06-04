@@ -11,6 +11,12 @@
  */
 #pragma once
 
+typedef BOOLEAN (*PSYM_PDB_IDENTITY_FALLBACK_CALLBACK)(PVOID   Context,
+                                                       CHAR *  PdbFile,
+                                                       SIZE_T  PdbFileSize,
+                                                       GUID *  Guid,
+                                                       DWORD * Age);
+
 BOOLEAN
 SymFormatPdbIdentity(const CHAR * PdbFile,
                      const GUID * Guid,
@@ -19,3 +25,15 @@ SymFormatPdbIdentity(const CHAR * PdbFile,
                      SIZE_T       SymbolServerRelativePathSize,
                      CHAR *       GuidAndAgeDetails,
                      SIZE_T       GuidAndAgeDetailsSize);
+
+BOOLEAN
+SymFormatPdbIdentityFromPeImageOrFallback(const BYTE *                        PeImageBytes,
+                                          SIZE_T                              PeImageSize,
+                                          CHAR *                              SymbolServerRelativePath,
+                                          SIZE_T                              SymbolServerRelativePathSize,
+                                          CHAR *                              PdbFilePath,
+                                          SIZE_T                              PdbFilePathSize,
+                                          CHAR *                              GuidAndAgeDetails,
+                                          SIZE_T                              GuidAndAgeDetailsSize,
+                                          PSYM_PDB_IDENTITY_FALLBACK_CALLBACK FallbackCallback,
+                                          PVOID                               FallbackContext);

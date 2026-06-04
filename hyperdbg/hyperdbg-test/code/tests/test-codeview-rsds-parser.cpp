@@ -178,6 +178,34 @@ RsdsExpectFailure(const BYTE * Buffer)
            PdbFileName[0] == '\0' && RsdsGuidEquals(Guid, EmptyGuid) && Age == 0;
 }
 
+typedef struct _RSDS_FAKE_FALLBACK_CONTEXT
+{
+    INT32   CallCount;
+    BOOLEAN Succeed;
+} RSDS_FAKE_FALLBACK_CONTEXT, *PRSDS_FAKE_FALLBACK_CONTEXT;
+
+static BOOLEAN
+RsdsFakeFallback(PVOID Context, CHAR * PdbFile, SIZE_T PdbFileSize, GUID * Guid, DWORD * Age)
+{
+    PRSDS_FAKE_FALLBACK_CONTEXT FallbackContext = (PRSDS_FAKE_FALLBACK_CONTEXT)Context;
+
+    FallbackContext->CallCount++;
+    if (!FallbackContext->Succeed)
+    {
+        return FALSE;
+    }
+
+    if (strcpy_s(PdbFile, PdbFileSize, "fallback.pdb") != 0)
+    {
+        return FALSE;
+    }
+
+    *Guid = RsdsGuidMulti;
+    *Age  = 0x2b;
+
+    return TRUE;
+}
+
 BOOLEAN
 TestCodeViewRsdsParser()
 {
@@ -305,6 +333,161 @@ TestCodeViewRsdsParser()
     {
         printf("[-] Test number %d Failed\n", TestNum);
         printf("[x] PDB identity formatting did not match symbol server path and GUID+age expectations\n");
+        return FALSE;
+    }
+
+    RsdsBuildMinimalPe(Buffer, FALSE);
+    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 0x1c, "C:\\preferred\\preferred.pdb");
+    RSDS_FAKE_FALLBACK_CONTEXT FallbackContext         = {0, TRUE};
+    CHAR                       PreferredPath[MAX_PATH] = {0};
+    TestNum++;
+    if (SymFormatPdbIdentityFromPeImageOrFallback(Buffer,
+                                                  RsdsFixtureSize,
+                                                  PreferredPath,
+                                                  sizeof(PreferredPath),
+                                                  NULL,
+                                                  0,
+                                                  NULL,
+                                                  0,
+                                                  RsdsFakeFallback,
+                                                  &FallbackContext) &&
+        strcmp(PreferredPath, "preferred.pdb/67452301ab89efcd1032547698badcfe1c/preferred.pdb") == 0 &&
+        FallbackContext.CallCount == 0)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] PE RSDS identity was not preferred over fallback identity\n");
+        return FALSE;
+    }
+
+    FallbackContext.CallCount = 0;
+    CHAR ZeroSizeOutput       = 'x';
+    TestNum++;
+    if (!SymFormatPdbIdentityFromPeImageOrFallback(Buffer,
+                                                   RsdsFixtureSize,
+                                                   &ZeroSizeOutput,
+                                                   0,
+                                                   NULL,
+                                                   0,
+                                                   NULL,
+                                                   0,
+                                                   RsdsFakeFallback,
+                                                   &FallbackContext) &&
+        ZeroSizeOutput == 'x' && FallbackContext.CallCount == 0)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] zero-sized output buffer was written or reported success\n");
+        return FALSE;
+    }
+
+    FallbackContext.CallCount = 0;
+    TestNum++;
+    if (!SymFormatPdbIdentityFromPeImageOrFallback(Buffer,
+                                                   RsdsFixtureSize,
+                                                   NULL,
+                                                   0,
+                                                   NULL,
+                                                   0,
+                                                   NULL,
+                                                   0,
+                                                   RsdsFakeFallback,
+                                                   &FallbackContext) &&
+        FallbackContext.CallCount == 0)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] identity formatting without requested output reported success or used fallback\n");
+        return FALSE;
+    }
+
+    FallbackContext.CallCount    = 0;
+    CHAR SmallPdbPath[4]         = {'x'};
+    CHAR SmallFailureGuidAge[64] = {'x'};
+    TestNum++;
+    if (!SymFormatPdbIdentityFromPeImageOrFallback(Buffer,
+                                                   RsdsFixtureSize,
+                                                   NULL,
+                                                   0,
+                                                   SmallPdbPath,
+                                                   sizeof(SmallPdbPath),
+                                                   SmallFailureGuidAge,
+                                                   sizeof(SmallFailureGuidAge),
+                                                   RsdsFakeFallback,
+                                                   &FallbackContext) &&
+        SmallPdbPath[0] == '\0' && SmallFailureGuidAge[0] == '\0' && FallbackContext.CallCount == 0)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] output formatting failure leaked partial identity data\n");
+        return FALSE;
+    }
+
+    ZeroMemory(Buffer, sizeof(Buffer));
+    FallbackContext.CallCount      = 0;
+    FallbackContext.Succeed        = TRUE;
+    CHAR FallbackPdb[MAX_PATH]     = {0};
+    CHAR FallbackGuidAge[MAX_PATH] = {0};
+    TestNum++;
+    if (SymFormatPdbIdentityFromPeImageOrFallback(Buffer,
+                                                  RsdsFixtureSize,
+                                                  NULL,
+                                                  0,
+                                                  FallbackPdb,
+                                                  sizeof(FallbackPdb),
+                                                  FallbackGuidAge,
+                                                  sizeof(FallbackGuidAge),
+                                                  RsdsFakeFallback,
+                                                  &FallbackContext) &&
+        strcmp(FallbackPdb, "fallback.pdb") == 0 &&
+        strcmp(FallbackGuidAge, "aabbccddeeff112233445566778899aa2b") == 0 &&
+        FallbackContext.CallCount == 1)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] malformed PE bytes did not use fallback identity\n");
+        return FALSE;
+    }
+
+    FallbackContext.CallCount    = 0;
+    FallbackContext.Succeed      = FALSE;
+    CHAR FailedPath[MAX_PATH]    = {'x'};
+    CHAR FailedPdb[MAX_PATH]     = {'x'};
+    CHAR FailedGuidAge[MAX_PATH] = {'x'};
+    TestNum++;
+    if (!SymFormatPdbIdentityFromPeImageOrFallback(Buffer,
+                                                   RsdsFixtureSize,
+                                                   FailedPath,
+                                                   sizeof(FailedPath),
+                                                   FailedPdb,
+                                                   sizeof(FailedPdb),
+                                                   FailedGuidAge,
+                                                   sizeof(FailedGuidAge),
+                                                   RsdsFakeFallback,
+                                                   &FallbackContext) &&
+        FailedPath[0] == '\0' && FailedPdb[0] == '\0' && FailedGuidAge[0] == '\0' && FallbackContext.CallCount == 1)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] fallback failure reported success or left success-looking output\n");
         return FALSE;
     }
 
