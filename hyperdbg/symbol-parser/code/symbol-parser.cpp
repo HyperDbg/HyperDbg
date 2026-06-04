@@ -12,6 +12,8 @@
  */
 #include "pch.h"
 
+#include "header/pdb-identity.h"
+
 //
 // Global Variables
 //
@@ -1687,11 +1689,9 @@ SymTagStr(ULONG Tag)
 BOOLEAN
 SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, SIZE_T ResultPathSize)
 {
-    HRESULT           Result;
     BOOL              Ret;
-    SYMSRV_INDEX_INFO SymInfo   = {0};
-    const char *      FormatStr = "%s/%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x%x/%s";
-    SymInfo.sizeofstruct        = sizeof(SYMSRV_INDEX_INFO);
+    SYMSRV_INDEX_INFO SymInfo = {0};
+    SymInfo.sizeofstruct      = sizeof(SYMSRV_INDEX_INFO);
 
     if (LocalFilePath == NULL && ResultPath == NULL)
     {
@@ -1702,31 +1702,7 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, SIZE_T Re
 
     if (Ret)
     {
-        Result = StringCchPrintfA(
-            ResultPath,
-            ResultPathSize,
-            FormatStr,
-            SymInfo.pdbfile,
-            SymInfo.guid.Data1,
-            SymInfo.guid.Data2,
-            SymInfo.guid.Data3,
-            SymInfo.guid.Data4[0],
-            SymInfo.guid.Data4[1],
-            SymInfo.guid.Data4[2],
-            SymInfo.guid.Data4[3],
-            SymInfo.guid.Data4[4],
-            SymInfo.guid.Data4[5],
-            SymInfo.guid.Data4[6],
-            SymInfo.guid.Data4[7],
-            SymInfo.age,
-            SymInfo.pdbfile);
-
-        if (FAILED(Result))
-        {
-            return FALSE;
-        }
-
-        return TRUE;
+        return SymFormatPdbIdentity(SymInfo.pdbfile, &SymInfo.guid, SymInfo.age, ResultPath, ResultPathSize, NULL, 0);
     }
     else
     {
@@ -1796,9 +1772,7 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
     std::string       Wow64ConvertedPath;
     const char *      FormatStrPdbFilePath = "%s";
     const char *      ActualLocalFilePath  = NULL;
-    const char *      FormatStrPdbFileGuidAndAgeDetails =
-        "%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x%x";
-    SymInfo.sizeofstruct = sizeof(SYMSRV_INDEX_INFO);
+    SymInfo.sizeofstruct                   = sizeof(SYMSRV_INDEX_INFO);
 
     if (Is32BitModule)
     {
@@ -1819,22 +1793,7 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
     {
         wsprintfA(PdbFilePath, FormatStrPdbFilePath, SymInfo.pdbfile);
 
-        wsprintfA(GuidAndAgeDetails,
-                  FormatStrPdbFileGuidAndAgeDetails,
-                  SymInfo.guid.Data1,
-                  SymInfo.guid.Data2,
-                  SymInfo.guid.Data3,
-                  SymInfo.guid.Data4[0],
-                  SymInfo.guid.Data4[1],
-                  SymInfo.guid.Data4[2],
-                  SymInfo.guid.Data4[3],
-                  SymInfo.guid.Data4[4],
-                  SymInfo.guid.Data4[5],
-                  SymInfo.guid.Data4[6],
-                  SymInfo.guid.Data4[7],
-                  SymInfo.age);
-
-        return TRUE;
+        return SymFormatPdbIdentity(SymInfo.pdbfile, &SymInfo.guid, SymInfo.age, NULL, 0, GuidAndAgeDetails, MAX_PATH);
     }
     else
     {

@@ -12,6 +12,7 @@
 #include "pch.h"
 
 #include "header/codeview-rsds.h"
+#include "header/pdb-identity.h"
 
 static constexpr SIZE_T RsdsFixtureSize       = 0x600;
 static constexpr LONG   RsdsPeHeaderOffset    = 0x80;
@@ -281,6 +282,29 @@ TestCodeViewRsdsParser()
     {
         printf("[-] Test number %d Failed\n", TestNum);
         printf("[x] parser did not skip invalid first entry and parse second RSDS entry\n");
+        return FALSE;
+    }
+
+    CHAR       SymbolServerRelativePath[MAX_PATH] = {0};
+    CHAR       GuidAndAgeDetails[MAX_PATH]        = {0};
+    const GUID Guid                               = {0x01234567, 0x89ab, 0xcdef, {0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10}};
+    TestNum++;
+    if (SymFormatPdbIdentity("valid32.pdb",
+                             &Guid,
+                             0x1a,
+                             SymbolServerRelativePath,
+                             sizeof(SymbolServerRelativePath),
+                             GuidAndAgeDetails,
+                             sizeof(GuidAndAgeDetails)) &&
+        strcmp(GuidAndAgeDetails, "0123456789abcdeffedcba98765432101a") == 0 &&
+        strcmp(SymbolServerRelativePath, "valid32.pdb/0123456789abcdeffedcba98765432101a/valid32.pdb") == 0)
+    {
+        printf("[+] Test number %d Passed\n", TestNum);
+    }
+    else
+    {
+        printf("[-] Test number %d Failed\n", TestNum);
+        printf("[x] PDB identity formatting did not match symbol server path and GUID+age expectations\n");
         return FALSE;
     }
 

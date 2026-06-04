@@ -62,6 +62,9 @@
     <ClCompile Include="..\symbol-parser\code\codeview-rsds.cpp">
       <Filter>code\tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\symbol-parser\code\pdb-identity.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>code</Filter>
     </ClCompile>
@@ -89,6 +92,9 @@
       <Filter>header\components\pe</Filter>
     </ClInclude>
     <ClInclude Include="..\symbol-parser\header\codeview-rsds.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\symbol-parser\header\pdb-identity.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

@@ -106,6 +106,7 @@
     <ClCompile Include="..\include\components\pe\code\pe-image-reader.cpp" />
     <ClCompile Include="code\hardware\hwdbg-tests.cpp" />
     <ClCompile Include="..\symbol-parser\code\codeview-rsds.cpp" />
+    <ClCompile Include="..\symbol-parser\code\pdb-identity.cpp" />
     <ClCompile Include="code\main.cpp" />
     <ClCompile Include="code\namedpipe.cpp" />
     <ClCompile Include="code\tests\test-codeview-rsds-parser.cpp" />
@@ -122,6 +123,7 @@
     <ClInclude Include="header\routines.h" />
     <ClInclude Include="header\testcases.h" />
     <ClInclude Include="..\symbol-parser\header\codeview-rsds.h" />
+    <ClInclude Include="..\symbol-parser\header\pdb-identity.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
