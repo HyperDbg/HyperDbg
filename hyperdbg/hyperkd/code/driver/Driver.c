@@ -103,7 +103,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Unloading Log Tracer
     //
-    LoaderUninitializeLogTracer();
+    LoaderUninitLogTracer();
 }
 
 /**

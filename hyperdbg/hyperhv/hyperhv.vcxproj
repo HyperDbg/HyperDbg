@@ -165,7 +165,6 @@
     <ClCompile Include="code\memory\Layout.c" />
     <ClCompile Include="code\memory\MemoryManager.c" />
     <ClCompile Include="code\memory\MemoryMapper.c" />
-    <ClCompile Include="code\memory\PoolManager.c" />
     <ClCompile Include="code\memory\Segmentation.c" />
     <ClCompile Include="code\memory\SwitchLayout.c" />
     <ClCompile Include="code\mmio\MmioShadowing.c" />
@@ -272,7 +271,6 @@
     <ClInclude Include="header\memory\Conversion.h" />
     <ClInclude Include="header\memory\Layout.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
-    <ClInclude Include="header\memory\PoolManager.h" />
     <ClInclude Include="header\memory\Segmentation.h" />
     <ClInclude Include="header\memory\SwitchLayout.h" />
     <ClInclude Include="header\mmio\MmioShadowing.h" />

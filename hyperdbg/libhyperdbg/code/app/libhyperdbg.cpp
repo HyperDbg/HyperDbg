@@ -18,7 +18,7 @@ using namespace std;
 //
 extern HANDLE     g_DeviceHandle;
 extern HANDLE     g_IsDriverLoadedSuccessfully;
-extern BOOLEAN    g_IsVmxOffProcessStart;
+extern BOOLEAN    g_IsMessageLoggingWindowClosed;
 extern TCHAR      g_DriverLocation[MAX_PATH];
 extern TCHAR      g_DriverName[MAX_PATH];
 extern BOOLEAN    g_UseCustomDriverLocation;
@@ -26,6 +26,50 @@ extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN    g_IsKdModuleLoaded;
 extern BOOLEAN    g_IsVmmModuleLoaded;
 extern BOOLEAN    g_IsHyperTraceModuleLoaded;
+
+/**
+ * @brief Install (start) VMM driver
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgStartDriver()
+{
+    if (!ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    {
+        //
+        // Error - remove driver
+        //
+        ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE);
+
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Stop the driver
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgStopDriver(LPCTSTR DriverName)
+{
+    //
+    // Unload the driver if loaded
+    //
+    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP))
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
 
 /**
  * @brief Install KD (Kernel Debugger) driver
@@ -70,14 +114,9 @@ HyperDbgInstallKdDriver()
         strcpy_s(g_DriverName, KERNEL_DEBUGGER_DRIVER_NAME);
     }
 
-    if (!ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    if (HyperDbgStartDriver() != 0)
     {
-        ShowMessages("unable to install VMM driver\n");
-
-        //
-        // Error - remove driver
-        //
-        ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE);
+        ShowMessages("unable to install KD driver\n");
 
         return 1;
     }
@@ -86,25 +125,14 @@ HyperDbgInstallKdDriver()
 }
 
 /**
- * @brief Stop the driver
+ * @brief Start KD driver
  *
- * @return INT return zero if it was successful or non-zero if there
- * was error
+ * @return INT return zero if it was successful or non-zero if there was error
  */
 INT
-HyperDbgStopDriver(LPCTSTR DriverName)
+HyperDbgStartKdDriver()
 {
-    //
-    // Unload the driver if loaded
-    //
-    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP))
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
+    return HyperDbgStartDriver();
 }
 
 /**
@@ -296,7 +324,7 @@ HyperDbgCreateHandleFromKdModule()
     // Make sure that this variable is false, because it might be set to
     // true as the result of a previous load
     //
-    g_IsVmxOffProcessStart = FALSE;
+    g_IsMessageLoggingWindowClosed = FALSE;
 
     //
     // Init entering vmx
@@ -395,13 +423,39 @@ HyperDbgUnloadVmm()
     }
 
     //
+    // Hypervisor (VMM) module is not loaded anymore
+    //
+    g_IsVmmModuleLoaded = FALSE;
+
+    ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief Unload KD driver
+ *
+ * @return INT return zero if it was successful or non-zero if there was error
+ */
+INT
+HyperDbgUnloadKd()
+{
+    BOOL  Status;
+    DWORD BytesReturned;
+
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    //
+    // Indicate that the message logging window is closed
+    //
+    g_IsMessageLoggingWindowClosed = TRUE;
+
+    //
     // Send IOCTL to mark complete all IRP Pending
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                                      // Handle to device
-        IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO
-                                                             // Control
-                                                             // code
+        IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO Control Code (IOCTL)
         NULL,                                                // Input Buffer to driver.
         0,                                                   // Length of input buffer in bytes. (x 2 is bcuz as the
                                                              // driver is x64 and has 64 bit values)
@@ -421,29 +475,9 @@ HyperDbgUnloadVmm()
     }
 
     //
-    // Indicate that the finish process start or not
+    // Wait for a while to make sure that all IRP pending are completed and the driver is ready to be unloaded
     //
-    g_IsVmxOffProcessStart = TRUE;
-
-    //
-    // Hypervisor (VMM) module is not loaded anymore
-    //
-    g_IsVmmModuleLoaded = FALSE;
-
-    ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
-
-    return 0;
-}
-
-/**
- * @brief Unload KD driver
- *
- * @return INT return zero if it was successful or non-zero if there was error
- */
-INT
-HyperDbgUnloadKd()
-{
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+    Sleep(1000);
 
     //
     // Send IRP_MJ_CLOSE to driver to terminate Vmxs

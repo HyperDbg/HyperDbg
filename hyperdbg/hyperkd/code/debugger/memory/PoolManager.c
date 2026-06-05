@@ -68,9 +68,15 @@ PoolManagerInitialize()
     InitializeListHead(&g_ListOfAllocatedPoolsHead);
 
     //
-    // Nothing to deallocate
+    // Nothing to deallocate or allocate at the beginning
     //
-    g_IsNewRequestForDeAllocation = FALSE;
+    g_IsNewRequestForDeAllocation       = FALSE;
+    g_IsNewRequestForAllocationReceived = FALSE;
+
+    //
+    // Memory allocator is initialized
+    //
+    g_PoolManagerInitialized = TRUE;
 
     //
     // Initialized successfully
@@ -86,8 +92,12 @@ PoolManagerInitialize()
 VOID
 PoolManagerUninitialize()
 {
-    PLIST_ENTRY ListTemp = 0;
-    ListTemp             = &g_ListOfAllocatedPoolsHead;
+    PLIST_ENTRY ListTemp = &g_ListOfAllocatedPoolsHead;
+
+    //
+    // Pool manager is not initialized anymore
+    //
+    g_PoolManagerInitialized = FALSE;
 
     SpinlockLock(&LockForReadingPool);
 
@@ -305,12 +315,14 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     PLIST_ENTRY ListTemp = 0;
 
     //
-    // let's make sure we're on vmx non-root and also we have new allocation
+    // Make sure we're on vmx non-root and also we have new allocation
+    // and also pool manager is initialized, otherwise we shouldn't allocate or deallocate
     //
-    if (VmxGetCurrentExecutionMode() == TRUE)
+    if (!g_PoolManagerInitialized || VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         //
         // allocation's can't be done from vmx root
+        // or pool manager is not initialized yet
         //
         return FALSE;
     }

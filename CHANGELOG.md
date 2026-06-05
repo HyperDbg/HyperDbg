@@ -25,8 +25,10 @@ New release of the HyperDbg Debugger.
 - Exported SDK API for detecting CPU vendors
 - Initial codes for the HyperTrace project by using Intel Processor Trace (PT), thanks to [@masoudrahimi01](https://github.com/masoudrahimi01) ([link](https://github.com/HyperDbg/HyperDbg/pull/589))
 - Exported SDK APIs for loading the 'kd' and the 'trace' modules
+- Exported SDK APIs for starting (installing) the 'kd' driver
 - Added tests for checking PE parser in 'hyperdbg-test' project
 - Added example for loading HyperDbg in VMI mode directly from libhyperdbg
+- Fix action cleanup list removal in debugger events ([link](https://github.com/HyperDbg/HyperDbg/pull/601))
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
@@ -42,6 +44,7 @@ New release of the HyperDbg Debugger.
 - Fix synchronous debugger device IOCTL handles thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/595))
 - PE parser ('.pe' command) now supports richer DOS/NT/COFF/optional-header output, section bounds checking, data directory reporting, import/export parsing, TLS/debug/PDB/load-config metadata, overlay reporting, and malformed metadata warnings thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/598))([link](https://docs.hyperdbg.org/commands/meta-commands/.pe))
 - Building the script engine module on Linux (GCC) thanks to [@maxraulea](https://github.com/maxraulea) ([link](https://github.com/HyperDbg/HyperDbg/pull/596))
+- Pool manager moved from 'hyperhv' to 'hyperkd'
 
 ## [0.18.1.0] - 2026-04-09
 New release of the HyperDbg Debugger.

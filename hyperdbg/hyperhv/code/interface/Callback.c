@@ -285,6 +285,71 @@ DebuggingCallbackCheckThreadInterception(UINT32 CoreId)
 }
 
 /**
+ * @brief routine callback to request pool allocation
+ *
+ * @param Size
+ * @param Count
+ * @param Intention The intention of the buffer (buffer tag)
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+PoolManagerCallbackRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention)
+{
+    if (g_Callbacks.PoolManagerRequestAllocation == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+    return g_Callbacks.PoolManagerRequestAllocation(Size, Count, Intention);
+}
+
+/**
+ * @brief routine callback to request pool
+ *
+ * @param Intention The intention why we need this pool for (buffer tag)
+ * @param RequestNewPool Create a request to allocate a new pool with the same size, next time
+ * that it's safe to allocate (this way we never ran out of pools for this "Intention")
+ * @param Size If the RequestNewPool is true the we should specify a size for the new pool
+ *
+ * @return UINT64 Returns a pool address or returns null if there was an error
+ */
+UINT64
+PoolManagerCallbackRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size)
+{
+    if (g_Callbacks.PoolManagerRequestPool == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return 0;
+    }
+    return g_Callbacks.PoolManagerRequestPool(Intention, RequestNewPool, Size);
+}
+
+/**
+ * @brief routine callback to free pool
+ *
+ * @param AddressToFree
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+PoolManagerCallbackFreePool(UINT64 AddressToFree)
+{
+    if (g_Callbacks.PoolManagerFreePool == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+    return g_Callbacks.PoolManagerFreePool(AddressToFree);
+}
+
+/**
  * @brief routine callback to handle cr3 process change
  *
  * @param CoreId

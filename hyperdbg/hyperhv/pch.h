@@ -95,7 +95,6 @@
 #include "memory/MemoryMapper.h"
 #include "interface/Dispatch.h"
 #include "common/Msr.h"
-#include "memory/PoolManager.h"
 #include "common/Trace.h"
 #include "assembly/InlineAsm.h"
 #include "vmm/ept/Vpid.h"

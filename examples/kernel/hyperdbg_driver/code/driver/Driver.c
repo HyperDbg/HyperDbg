@@ -106,7 +106,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Unloading VMM and Debugger
     //
-    LoaderUninitializeLogTracer();
+    LoaderUninitLogTracer();
 }
 
 /**

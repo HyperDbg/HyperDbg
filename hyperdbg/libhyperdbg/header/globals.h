@@ -464,10 +464,10 @@ PVOID g_MessageHandler = 0;
 PVOID g_MessageHandlerSharedBuffer = 0;
 
 /**
- * @brief Shows whether the vmxoff process start or not
+ * @brief Shows whether the message logging window is closed or not
  *
  */
-BOOLEAN g_IsVmxOffProcessStart;
+BOOLEAN g_IsMessageLoggingWindowClosed;
 
 /**
  * @brief Holds the global handle of device which is used

@@ -626,6 +626,16 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_DEBUGGER_IS_NOT_LOADED:
+        ShowMessages("err, the VMM module cannot be initialized because the debugger is not loaded (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_CANNOT_INITIALIZE_DEBUGGER:
+        ShowMessages("err, cannot initialize the debugger (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);
