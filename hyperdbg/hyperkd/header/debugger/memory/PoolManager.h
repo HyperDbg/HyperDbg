@@ -77,6 +77,12 @@ volatile LONG LockForRequestAllocation;
 volatile LONG LockForReadingPool;
 
 /**
+ * @brief Pool manager memory allocator initialized
+ *
+ */
+BOOLEAN g_PoolManagerInitialized;
+
+/**
  * @brief We set it when there is a new allocation
  *
  */
