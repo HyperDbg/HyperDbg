@@ -87,245 +87,227 @@ ReadIrpBasedBuffer()
 
     try
     {
-        while (TRUE)
+        while (!g_IsVmxOffProcessStart)
         {
-            if (!g_IsVmxOffProcessStart)
+            //
+            // Clear the buffer
+            //
+            ZeroMemory(OutputBuffer, UsermodeBufferSize);
+
+            Status = DeviceIoControl(
+                Handle,                    // Handle to device
+                IOCTL_REGISTER_EVENT,      // IO Control Code (IOCTL)
+                &RegisterEvent,            // Input Buffer to driver.
+                SIZEOF_REGISTER_EVENT * 2, // Length of input buffer in bytes. (x 2 is bcuz as the
+                                           // driver is x64 and has 64 bit values)
+                OutputBuffer,              // Output Buffer from driver.
+                UsermodeBufferSize,        // Length of output buffer in bytes.
+                &ReturnedLength,           // Bytes placed in buffer.
+                NULL                       // synchronous call
+            );
+
+            if (!Status)
             {
                 //
-                // Clear the buffer
+                // Error occurred for second time, and we show the error message
                 //
-                ZeroMemory(OutputBuffer, UsermodeBufferSize);
+                // ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
 
-                Status = DeviceIoControl(
-                    Handle,                    // Handle to device
-                    IOCTL_REGISTER_EVENT,      // IO Control Code (IOCTL)
-                    &RegisterEvent,            // Input Buffer to driver.
-                    SIZEOF_REGISTER_EVENT * 2, // Length of input buffer in bytes. (x 2 is bcuz as the
-                                               // driver is x64 and has 64 bit values)
-                    OutputBuffer,              // Output Buffer from driver.
-                    UsermodeBufferSize,        // Length of output buffer in bytes.
-                    &ReturnedLength,           // Bytes placed in buffer.
-                    NULL                       // synchronous call
-                );
+                //
+                // if we reach here, the packet is probably failed, it might
+                // be because of using flush command
+                //
+                continue;
+            }
 
-                if (!Status)
+            //
+            // Compute the received buffer's operation code
+            //
+            memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
+
+            // ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
+            // ShowMessages("Operation Code : 0x%x \n", OperationCode);
+
+            //
+            // Check if the operation code contains mandatory debuggee bit
+            // If that's the case, we shouldn't wait (sleep) for new messages
+            //
+            if ((OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT) == 0)
+            {
+                Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
+            }
+
+            switch (OperationCode)
+            {
+            case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
+
+                if (g_BreakPrintingOutput)
                 {
                     //
-                    // Error occurred for second time, and we show the error message
-                    //
-                    // ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-
-                    //
-                    // if we reach here, the packet is probably failed, it might
-                    // be because of using flush command
+                    // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                    // we shouldn't show or save anything in this case
                     //
                     continue;
                 }
 
-                //
-                // Compute the received buffer's operation code
-                //
-                memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
+                ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 
-                // ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
-                // ShowMessages("Operation Code : 0x%x \n", OperationCode);
+                break;
 
-                //
-                // Check if the operation code contains mandatory debuggee bit
-                // If that's the case, we shouldn't wait (sleep) for new messages
-                //
-                if ((OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT) == 0)
+            case OPERATION_LOG_MESSAGE_MANDATORY:
+
+                ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
+                break;
+
+            case OPERATION_LOG_INFO_MESSAGE:
+
+                if (g_BreakPrintingOutput)
                 {
-                    Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
+                    //
+                    // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                    // we shouldn't show or save anything in this case
+                    //
+                    continue;
                 }
 
-                switch (OperationCode)
+                ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
+                break;
+
+            case OPERATION_LOG_ERROR_MESSAGE:
+                if (g_BreakPrintingOutput)
                 {
-                case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
-
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_LOG_MESSAGE_MANDATORY:
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_LOG_INFO_MESSAGE:
-
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_LOG_ERROR_MESSAGE:
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_LOG_WARNING_MESSAGE:
-
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM:
-
-                    KdCloseConnection();
-
-                    break;
-
-                case OPERATION_DEBUGGEE_USER_INPUT:
-
-                    KdHandleUserInputInDebuggee((DEBUGGEE_USER_INPUT_PACKET *)(OutputBuffer + sizeof(UINT32)));
-
-                    break;
-
-                case OPERATION_DEBUGGEE_REGISTER_EVENT:
-
-                    KdRegisterEventInDebuggee(
-                        (PDEBUGGER_GENERAL_EVENT_DETAIL)(OutputBuffer + sizeof(UINT32)),
-                        ReturnedLength);
-
-                    break;
-
-                case OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT:
-
-                    KdAddActionToEventInDebuggee(
-                        (PDEBUGGER_GENERAL_ACTION)(OutputBuffer + sizeof(UINT32)),
-                        ReturnedLength);
-
-                    break;
-
-                case OPERATION_DEBUGGEE_CLEAR_EVENTS:
-
-                    KdSendModifyEventInDebuggee(
-                        (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)),
-                        TRUE);
-
-                    break;
-
-                case OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER:
-
-                    KdSendModifyEventInDebuggee(
-                        (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)),
-                        FALSE);
-
-                    break;
-
-                case OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED:
-
                     //
-                    // Indicate that driver (Hypervisor) is loaded successfully
+                    // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                    // we shouldn't show or save anything in this case
                     //
-                    SetEvent(g_IsDriverLoadedSuccessfully);
-
-                    break;
-
-                case OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS:
-
-                    //
-                    // End of receiving messages (IRPs), nothing to do
-                    //
-                    break;
-
-                case OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL:
-
-                    //
-                    // Pause debugger after getting the results
-                    //
-                    KdReloadSymbolsInDebuggee(TRUE,
-                                              ((PDEBUGGEE_SYMBOL_REQUEST_PACKET)(OutputBuffer + sizeof(UINT32)))->ProcessId);
-
-                    break;
-
-                case OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE:
-
-                    //
-                    // handle pausing packet from user debugger
-                    //
-                    UdHandleUserDebuggerPausing(
-                        (PDEBUGGEE_UD_PAUSED_PACKET)(OutputBuffer + sizeof(UINT32)));
-
-                    break;
-
-                default:
-
-                    //
-                    // Check if there are available output sources
-                    //
-                    if (!g_OutputSourcesInitialized || !ForwardingCheckAndPerformEventForwarding(OperationCode,
-                                                                                                 OutputBuffer + sizeof(UINT32),
-                                                                                                 ReturnedLength - sizeof(UINT32) - 1))
-                    {
-                        if (g_BreakPrintingOutput)
-                        {
-                            //
-                            // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                            // we shouldn't show or save anything in this case
-                            //
-                            continue;
-                        }
-
-                        ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-                    }
-
-                    break;
-                }
-            }
-            else
-            {
-                //
-                // the thread should not work anymore
-                //
-                free(OutputBuffer);
-
-                //
-                // closeHandle
-                //
-                if (!CloseHandle(Handle))
-                {
-                    ShowMessages("err, closing handle 0x%x\n", GetLastError());
+                    continue;
                 }
 
-                return;
+                ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
+                break;
+
+            case OPERATION_LOG_WARNING_MESSAGE:
+
+                if (g_BreakPrintingOutput)
+                {
+                    //
+                    // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                    // we shouldn't show or save anything in this case
+                    //
+                    continue;
+                }
+
+                ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
+                break;
+
+            case OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM:
+
+                KdCloseConnection();
+
+                break;
+
+            case OPERATION_DEBUGGEE_USER_INPUT:
+
+                KdHandleUserInputInDebuggee((DEBUGGEE_USER_INPUT_PACKET *)(OutputBuffer + sizeof(UINT32)));
+
+                break;
+
+            case OPERATION_DEBUGGEE_REGISTER_EVENT:
+
+                KdRegisterEventInDebuggee(
+                    (PDEBUGGER_GENERAL_EVENT_DETAIL)(OutputBuffer + sizeof(UINT32)),
+                    ReturnedLength);
+
+                break;
+
+            case OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT:
+
+                KdAddActionToEventInDebuggee(
+                    (PDEBUGGER_GENERAL_ACTION)(OutputBuffer + sizeof(UINT32)),
+                    ReturnedLength);
+
+                break;
+
+            case OPERATION_DEBUGGEE_CLEAR_EVENTS:
+
+                KdSendModifyEventInDebuggee(
+                    (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)),
+                    TRUE);
+
+                break;
+
+            case OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER:
+
+                KdSendModifyEventInDebuggee(
+                    (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)),
+                    FALSE);
+
+                break;
+
+            case OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED:
+
+                //
+                // Indicate that driver (Hypervisor) is loaded successfully
+                //
+                SetEvent(g_IsDriverLoadedSuccessfully);
+
+                break;
+
+            case OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS:
+
+                //
+                // End of receiving messages (IRPs), nothing to do
+                // it will just end the thread at next round because of the check of
+                // g_IsVmxOffProcessStart at the beginning of the loop
+                //
+                break;
+
+            case OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL:
+
+                //
+                // Pause debugger after getting the results
+                //
+                KdReloadSymbolsInDebuggee(TRUE,
+                                          ((PDEBUGGEE_SYMBOL_REQUEST_PACKET)(OutputBuffer + sizeof(UINT32)))->ProcessId);
+
+                break;
+
+            case OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE:
+
+                //
+                // handle pausing packet from user debugger
+                //
+                UdHandleUserDebuggerPausing(
+                    (PDEBUGGEE_UD_PAUSED_PACKET)(OutputBuffer + sizeof(UINT32)));
+
+                break;
+
+            default:
+
+                //
+                // Check if there are available output sources
+                //
+                if (!g_OutputSourcesInitialized || !ForwardingCheckAndPerformEventForwarding(OperationCode,
+                                                                                             OutputBuffer + sizeof(UINT32),
+                                                                                             ReturnedLength - sizeof(UINT32) - 1))
+                {
+                    if (g_BreakPrintingOutput)
+                    {
+                        //
+                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                        // we shouldn't show or save anything in this case
+                        //
+                        continue;
+                    }
+
+                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+                }
+
+                break;
             }
         }
     }
@@ -337,12 +319,12 @@ ReadIrpBasedBuffer()
     free(OutputBuffer);
 
     //
-    // closeHandle
+    // close handle
     //
     if (!CloseHandle(Handle))
     {
         ShowMessages("err, closing handle 0x%x\n", GetLastError());
-    };
+    }
 }
 
 /**

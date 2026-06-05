@@ -267,6 +267,20 @@ DrvDispatchBasicIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNot
 
         break;
 
+    case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
+
+        //
+        // Send an immediate message, and we're no longer get new IRP
+        //
+        LogCallbackSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
+                              "$",
+                              sizeof(CHAR),
+                              TRUE);
+
+        Status = STATUS_SUCCESS;
+
+        break;
+
     default:
         LogError("Err, unknown IOCTL");
         Status = STATUS_NOT_IMPLEMENTED;
@@ -357,25 +371,6 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
 
     switch (Ioctl)
     {
-    case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
-
-        //
-        // Disallow new VMM IOCTL (TODO: needs to be changed)
-        //
-        g_VmmInitialized = FALSE;
-
-        //
-        // Send an immediate message, and we're no longer get new IRP
-        //
-        LogCallbackSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
-                              "$",
-                              sizeof(CHAR),
-                              TRUE);
-
-        Status = STATUS_SUCCESS;
-
-        break;
-
     case IOCTL_TERMINATE_VMX:
 
         //

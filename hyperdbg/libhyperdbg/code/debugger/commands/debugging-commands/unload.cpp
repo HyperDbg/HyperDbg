@@ -85,6 +85,8 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
         if (g_IsVmmModuleLoaded)
         {
             HyperDbgUnloadVmm();
+
+            HyperDbgUnloadKd(); // Tessssssssssssssssssssssttttttttttt
         }
         else
         {
@@ -99,11 +101,12 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
             //
             // Unload the KD module
             //
-            if (HyperDbgUnloadKd())
-            {
-                ShowMessages("err, failed to unload the kd (kernel debugger) driver\n");
-                return;
-            }
+
+            //  if (HyperDbgUnloadKd())
+            //  {
+            //      ShowMessages("err, failed to unload the kd (kernel debugger) driver\n");
+            //      return;
+            //  }
 
             //
             // Stop the driver

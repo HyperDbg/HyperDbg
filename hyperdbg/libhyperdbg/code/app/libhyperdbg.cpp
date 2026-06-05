@@ -395,6 +395,11 @@ HyperDbgUnloadVmm()
     }
 
     //
+    // Indicate that the finish process start or not
+    //
+    g_IsVmxOffProcessStart = TRUE;
+
+    //
     // Send IOCTL to mark complete all IRP Pending
     //
     Status = DeviceIoControl(
@@ -421,9 +426,9 @@ HyperDbgUnloadVmm()
     }
 
     //
-    // Indicate that the finish process start or not
+    // Wait for a while to make sure that all IRP pending are completed and the driver is ready to be unloaded
     //
-    g_IsVmxOffProcessStart = TRUE;
+    Sleep(1000);
 
     //
     // Hypervisor (VMM) module is not loaded anymore

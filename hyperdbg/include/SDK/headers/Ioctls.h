@@ -114,6 +114,13 @@
 #define IOCTL_REGISTER_EVENT \
     CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_BASIC_IOCTL + 0x03, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+/**
+ * @brief ioctl, irp pending mechanism for reading from message tracing buffers
+ *
+ */
+#define IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_BASIC_IOCTL + 0x04, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
 //////////////////////////////////////////////////
 //                  KD IOCTLs                   //
 //////////////////////////////////////////////////
@@ -121,13 +128,6 @@
 //////////////////////////////////////////////////
 //                  VMM IOCTLs                  //
 //////////////////////////////////////////////////
-
-/**
- * @brief ioctl, irp pending mechanism for reading from message tracing buffers
- *
- */
-#define IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x01, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, to terminate vmx and exit form debugger
