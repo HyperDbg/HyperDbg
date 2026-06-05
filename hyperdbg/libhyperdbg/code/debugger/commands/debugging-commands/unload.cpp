@@ -90,7 +90,7 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
         }
         else
         {
-            ShowMessages("there is nothing to unload\n");
+            ShowMessages("the vmm module is not loadedd\n");
         }
 
         //

@@ -11,19 +11,19 @@
 #pragma once
 
 #ifdef _WIN32
-    // MSVC (Windows)
-#   ifdef HYPERDBG_LIBHYPERDBG
-#       define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllexport)
-#   else
-#       define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllimport)
-#   endif
+// MSVC (Windows)
+#    ifdef HYPERDBG_LIBHYPERDBG
+#        define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllexport)
+#    else
+#        define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllimport)
+#    endif
 #else
-    // GCC/Clang (Linux)
-#   ifdef HYPERDBG_LIBHYPERDBG
-#       define IMPORT_EXPORT_LIBHYPERDBG __attribute__((visibility("default")))
-#   else
-#       define IMPORT_EXPORT_LIBHYPERDBG
-#   endif
+// GCC/Clang (Linux)
+#    ifdef HYPERDBG_LIBHYPERDBG
+#        define IMPORT_EXPORT_LIBHYPERDBG __attribute__((visibility("default")))
+#    else
+#        define IMPORT_EXPORT_LIBHYPERDBG
+#    endif
 #endif
 //
 // Header file of libhyperdbg
@@ -59,6 +59,9 @@ hyperdbg_u_install_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_uninstall_kd_driver();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_start_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_stop_kd_driver();

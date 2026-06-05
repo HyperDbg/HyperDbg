@@ -18,7 +18,7 @@ using namespace std;
 //
 extern HANDLE  g_DeviceHandle;
 extern HANDLE  g_IsDriverLoadedSuccessfully;
-extern BOOLEAN g_IsVmxOffProcessStart;
+extern BOOLEAN g_IsMessageLoggingWindowClosed;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_OutputSourcesInitialized;
 
@@ -87,7 +87,7 @@ ReadIrpBasedBuffer()
 
     try
     {
-        while (!g_IsVmxOffProcessStart)
+        while (!g_IsMessageLoggingWindowClosed)
         {
             //
             // Clear the buffer
@@ -262,7 +262,7 @@ ReadIrpBasedBuffer()
                 //
                 // End of receiving messages (IRPs), nothing to do
                 // it will just end the thread at next round because of the check of
-                // g_IsVmxOffProcessStart at the beginning of the loop
+                // g_IsMessageLoggingWindowClosed at the beginning of the loop
                 //
                 break;
 

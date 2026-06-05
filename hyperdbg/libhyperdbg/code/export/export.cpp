@@ -97,6 +97,17 @@ hyperdbg_u_uninstall_kd_driver()
 }
 
 /**
+ * @brief Start the KD driver
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_start_kd_driver()
+{
+    return HyperDbgStartKdDriver();
+}
+
+/**
  * @brief Stop the KD driver
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
