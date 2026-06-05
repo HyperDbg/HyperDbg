@@ -2538,12 +2538,12 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllo
     //
     // Remove all actions
     //
-    TempList  = &Event->ActionsListHead;
-    TempList2 = TempList;
+    TempList  = Event->ActionsListHead.Flink;
+    TempList2 = &Event->ActionsListHead;
 
-    while (TempList2 != TempList->Flink)
+    while (TempList != TempList2)
     {
-        TempList                             = TempList->Flink;
+        PLIST_ENTRY            NextList      = TempList->Flink;
         PDEBUGGER_EVENT_ACTION CurrentAction = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_ACTION, ActionsList);
 
         //
@@ -2570,6 +2570,8 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllo
         // if it's a custom buffer then the buffer
         // is appended to the Action
         //
+        RemoveEntryList(&CurrentAction->ActionsList);
+
         if (PoolManagerAllocatedMemory)
         {
             PoolManagerFreePool((UINT64)CurrentAction);
@@ -2578,6 +2580,8 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event, BOOLEAN PoolManagerAllo
         {
             PlatformMemFreePool(CurrentAction);
         }
+
+        TempList = NextList;
     }
     //
     // Remember to free the pool
