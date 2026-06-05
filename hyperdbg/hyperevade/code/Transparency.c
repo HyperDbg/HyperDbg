@@ -1,6 +1,7 @@
 ﻿/**
  * @file Transparency.c
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Try to hide the debugger from anti-debugging and anti-hypervisor methods
  * @details
  * @version 0.1
@@ -23,6 +24,19 @@ BOOLEAN
 TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        HyperevadeCallbacks,
                         DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
+    UINT32 EvadeMask = TransparentModeRequest->EvadeMask;
+
+    if (EvadeMask == 0)
+    {
+        EvadeMask = TRANSPARENT_EVADE_MASK_DEFAULT;
+    }
+
+    if ((EvadeMask & ~TRANSPARENT_EVADE_MASK_ALL) != 0)
+    {
+        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+        return FALSE;
+    }
+
     //
     // Check if any of the required callbacks are NULL
     //
@@ -66,6 +80,8 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
         // Enable the transparent mode
         //
         g_TransparentMode                    = TRUE;
+        g_TransparentEvadeMask               = EvadeMask;
+        TransparentModeRequest->EvadeMask    = EvadeMask;
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         //
@@ -93,7 +109,8 @@ TransparentUnhideDebugger()
         //
         // Disable the transparent-mode
         //
-        g_TransparentMode = FALSE;
+        g_TransparentMode      = FALSE;
+        g_TransparentEvadeMask = 0;
 
         return TRUE;
     }

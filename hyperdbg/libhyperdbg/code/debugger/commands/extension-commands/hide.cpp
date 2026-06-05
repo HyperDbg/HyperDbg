@@ -1,6 +1,7 @@
 /**
  * @file hide.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief !hide command
  * @details
  * @version 0.1
@@ -225,17 +226,19 @@ CommandHideFillSystemCalls(SYSTEM_CALL_NUMBERS_INFORMATION * SyscallNumberDetail
  * @param ProcessId
  * @param ProcessName
  * @param IsProcessId
+ * @param EvadeMask
  *
  * @return BOOLEAN
  */
 BOOLEAN
-HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId)
+HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId, UINT32 EvadeMask)
 {
     BOOLEAN                                      Status;
     ULONG                                        ReturnedLength;
     DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE  HideRequest        = {0};
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE FinalRequestBuffer = 0;
     SIZE_T                                       RequestBufferSize  = 0;
+    UINT32                                       EffectiveEvadeMask = EvadeMask == 0 ? TRANSPARENT_EVADE_MASK_DEFAULT : EvadeMask;
 
     //
     // Check if debugger is loaded or not
@@ -245,7 +248,14 @@ HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsPr
     //
     // We wanna hide the debugger and make transparent vm-exits
     //
-    HideRequest.IsHide = TRUE;
+    if ((EffectiveEvadeMask & ~TRANSPARENT_EVADE_MASK_ALL) != 0)
+    {
+        ShowMessages("unknown transparent-mode evade mask bits\n");
+        return FALSE;
+    }
+
+    HideRequest.IsHide    = TRUE;
+    HideRequest.EvadeMask = EffectiveEvadeMask;
 
     HideRequest.TrueIfProcessIdAndFalseIfProcessName = IsProcessId;
 
@@ -267,7 +277,8 @@ HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsPr
         RequestBufferSize               = sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE) + HideRequest.LengthOfProcessName;
     }
 
-    if (!CommandHideFillSystemCalls(&HideRequest.SystemCallNumbersInformation))
+    if ((EffectiveEvadeMask & TRANSPARENT_EVADE_MASK_SYSCALL_HOOK) != 0 &&
+        !CommandHideFillSystemCalls(&HideRequest.SystemCallNumbersInformation))
     {
         ShowMessages("warning, failed to resolve one or more syscall numbers for transparent-mode\n");
         return FALSE;
@@ -359,6 +370,20 @@ HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsPr
 }
 
 /**
+ * @brief Enable transparent mode
+ * @param ProcessId
+ * @param ProcessName
+ * @param IsProcessId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId)
+{
+    return HyperDbgEnableTransparentModeEx(ProcessId, ProcessName, IsProcessId, 0);
+}
+
+/**
  * @brief !hide command handler
  *
  * @param CommandTokens
@@ -380,7 +405,7 @@ CommandHide(vector<CommandToken> CommandTokens, string Command)
 
 #endif
 
-    if (CommandTokens.size() <= 2 && CommandTokens.size() != 1)
+    if (CommandTokens.size() != 1 && CommandTokens.size() != 3)
     {
         ShowMessages("incorrect use of the '%s'\n\n",
                      GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());

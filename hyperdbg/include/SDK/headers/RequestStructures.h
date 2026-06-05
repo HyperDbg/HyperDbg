@@ -1,6 +1,7 @@
 /**
  * @file RequestStructures.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief HyperDbg's SDK Headers Request Packets
  * @details This file contains definitions of request packets (enums, structs)
  * @version 0.2
@@ -612,6 +613,8 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
     UINT32 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
                           DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
                           */
+
+    UINT32 EvadeMask; // zero means TRANSPARENT_EVADE_MASK_DEFAULT
 
 } DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE,
     *PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE;
