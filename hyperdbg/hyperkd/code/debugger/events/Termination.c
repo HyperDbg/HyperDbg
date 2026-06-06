@@ -1370,24 +1370,6 @@ TerminateQueryDebuggerResourceExceptionBitmap(UINT32                            
 }
 
 /**
- * @brief Check state of RDPMC exiting
- *
- * @param CoreId Core specific resource
- *
- * @return BOOLEAN
- */
-BOOLEAN
-TerminateQueryDebuggerResourcePmcExiting(UINT32 CoreId)
-{
-    if (DebuggerEventListCountByEventType(PMC_INSTRUCTION_EXECUTION, CoreId) != 0)
-    {
-        return TRUE;
-    }
-
-    return FALSE;
-}
-
-/**
  * @brief Check and modify state of external interrupt exiting
  *
  * @param CoreId Core specific resource
@@ -1474,6 +1456,24 @@ TerminateQueryDebuggerResourceTscExiting(UINT32                               Co
     //
     // Not terminate it
     //
+    return FALSE;
+}
+
+/**
+ * @brief Check state of RDPMC exiting
+ *
+ * @param CoreId Core specific resource
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TerminateQueryDebuggerResourcePmcExiting(UINT32 CoreId)
+{
+    if (DebuggerEventListCountByEventType(PMC_INSTRUCTION_EXECUTION, CoreId) != 0)
+    {
+        return TRUE;
+    }
+
     return FALSE;
 }
 

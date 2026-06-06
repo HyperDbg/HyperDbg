@@ -117,6 +117,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
             CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
         }
     }
+
     //
     // Copy the values from the logical processor registers into the VP GPRs
     //
