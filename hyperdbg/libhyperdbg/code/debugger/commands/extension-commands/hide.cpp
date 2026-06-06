@@ -248,7 +248,7 @@ HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN Is
     //
     // We wanna hide the debugger and make transparent vm-exits
     //
-    if ((EffectiveEvadeMask & ~TRANSPARENT_EVADE_MASK_ALL) != 0)
+    if ((EffectiveEvadeMask & ~TRANSPARENT_EVADE_MASK_VALID) != 0)
     {
         ShowMessages("unknown transparent-mode evade mask bits\n");
         return FALSE;

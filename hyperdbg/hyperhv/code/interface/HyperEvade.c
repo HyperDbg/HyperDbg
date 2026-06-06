@@ -32,7 +32,7 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
         EvadeMask = TRANSPARENT_EVADE_MASK_DEFAULT;
     }
 
-    if ((EvadeMask & ~TRANSPARENT_EVADE_MASK_ALL) != 0)
+    if ((EvadeMask & ~TRANSPARENT_EVADE_MASK_VALID) != 0)
     {
         TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
         return FALSE;

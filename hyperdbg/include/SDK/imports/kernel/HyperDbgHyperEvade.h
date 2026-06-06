@@ -33,7 +33,7 @@ TransparentUnhideDebugger();
 //
 // VMX footprint routines
 //
-IMPORT_EXPORT_HYPEREVADE VOID
+IMPORT_EXPORT_HYPEREVADE BOOLEAN
 TransparentCheckAndModifyCpuid(PGUEST_REGS Regs, INT32 CpuInfo[]);
 
 IMPORT_EXPORT_HYPEREVADE VOID
