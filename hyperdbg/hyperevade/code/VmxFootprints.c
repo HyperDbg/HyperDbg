@@ -30,6 +30,23 @@ TransparentCpuidLeafIsHypervisorRange(UINT64 Leaf)
     return Leaf >= HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS && Leaf <= HYPERV_CPUID_MAX;
 }
 
+static BOOLEAN
+TransparentGuestExecutionIsUserMode()
+{
+    return g_Callbacks.IsGuestExecutionUserMode();
+}
+
+static BOOLEAN
+TransparentReservedMsrAccessShouldFault(UINT32 TargetMsr)
+{
+    // The Hyper-V synthetic MSR range is used by the Windows kernel for timers.
+    // #GP injection for kernel traffic can crash nested guests on Meteor Lake.
+    // Ref: https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/tlfs/timers
+    return TargetMsr >= RESERVED_MSR_RANGE_LOW &&
+           TargetMsr <= RESERVED_MSR_RANGE_HI &&
+           TransparentGuestExecutionIsUserMode();
+}
+
 static VOID
 TransparentApplyBareMetalCpuidPolicy(PGUEST_REGS Regs, INT32 CpuInfo[])
 {
@@ -123,33 +140,13 @@ TransparentCheckAndModifyMsrRead(PGUEST_REGS Regs, UINT32 TargetMsr)
         return FALSE;
     }
 
-    //
-    // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
-    // when the guest operating system is Windows to indicate the OS identifier
-    //
-    // Sina: Needs more investigation since injecting #GP on Nested-virtualization environments
-    // will crash the VM on Meteor Lake processors since the OS expects to use synthetic timers
-    // (HV_REGISTER_STIMER0_CONFIG and HV_REGISTER_STIMER0_COUNT) to receive interrupts
-    // Ref: https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/tlfs/timers
-    //
-    // if (TargetMsr >= RESERVED_MSR_RANGE_LOW && TargetMsr <= RESERVED_MSR_RANGE_HI)
-    // {
-    //     LogInfo("RDMSR attempts to write to a reserved MSR range. MSR: %x",
-    //             TargetMsr);
-    //
-    //     g_Callbacks.EventInjectGeneralProtection();
-    //     return TRUE; // Should not emulate further
-    // }
-    // else
-    // {
-    //     //
-    //     // Not handled in the transparent-mode
-    //     //
-    //     return FALSE;
-    // }
-
     UNREFERENCED_PARAMETER(Regs);
-    UNREFERENCED_PARAMETER(TargetMsr);
+
+    if (TransparentReservedMsrAccessShouldFault(TargetMsr))
+    {
+        g_Callbacks.EventInjectGeneralProtection();
+        return TRUE;
+    }
 
     return FALSE;
 }
@@ -173,32 +170,13 @@ TransparentCheckAndModifyMsrWrite(PGUEST_REGS Regs, UINT32 TargetMsr)
         return FALSE;
     }
 
-    // if (TargetMsr >= RESERVED_MSR_RANGE_LOW && TargetMsr <= RESERVED_MSR_RANGE_HI)
-    // {
-    //     //
-    //     // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
-    //     // when the guest operating system is Windows to indicate the OS identifier
-    //     //
-    //
-    //     LogInfo("WRMSR attempts to write to a reserved MSR range. MSR: %x, rax: %llx, rdx: %llx",
-    //             TargetMsr,
-    //             Regs->rax,
-    //             Regs->rdx);
-    //
-    //     g_Callbacks.EventInjectGeneralProtection();
-    //
-    //     return TRUE; // Should not emulate further
-    // }
-    // else
-    // {
-    //     //
-    //     // Not handled in the transparent-mode
-    //     //
-    //     return FALSE;
-    // }
-
     UNREFERENCED_PARAMETER(Regs);
-    UNREFERENCED_PARAMETER(TargetMsr);
+
+    if (TransparentReservedMsrAccessShouldFault(TargetMsr))
+    {
+        g_Callbacks.EventInjectGeneralProtection();
+        return TRUE;
+    }
 
     return FALSE;
 }

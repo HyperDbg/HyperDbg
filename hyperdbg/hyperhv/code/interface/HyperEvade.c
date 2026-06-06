@@ -13,6 +13,14 @@
  */
 #include "pch.h"
 
+static BOOLEAN
+TransparentCallbackIsGuestExecutionUserMode()
+{
+    VMX_SEGMENT_SELECTOR Cs = GetGuestCs();
+
+    return Cs.Attributes.DescriptorPrivilegeLevel != DPL_SYSTEM;
+}
+
 /**
  * @brief Wrapper for hiding debugger on transparent-mode (activate transparent-mode)
  *
@@ -80,6 +88,7 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     //
     HyperevadeCallbacks.HvHandleTrapFlag             = HvHandleTrapFlag;
     HyperevadeCallbacks.EventInjectGeneralProtection = EventInjectGeneralProtection;
+    HyperevadeCallbacks.IsGuestExecutionUserMode     = TransparentCallbackIsGuestExecutionUserMode;
 
     //
     // Call the hyperevade hide debugger function
