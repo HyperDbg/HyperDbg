@@ -29,15 +29,17 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 VOID
 CommandUnloadHelp()
 {
-    ShowMessages(
-        "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
+    ShowMessages("unload : unloads the kernel modules and uninstalls drivers.\n\n");
 
-    ShowMessages("syntax : \tunload [remove] [ModuleName (string)]\n");
+    ShowMessages("syntax : \tunload [ModuleNameOrAll (string)]\n");
+    ShowMessages("syntax : \tunload [remove] [all]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : unload vmm\n");
-    ShowMessages("\t\te.g : unload vm\n");
-    ShowMessages("\t\te.g : unload remove vmm\n");
+    ShowMessages("\t\te.g : unload trace\n");
+    ShowMessages("\t\te.g : unload kd\n");
+    ShowMessages("\t\te.g : unload all\n");
+    ShowMessages("\t\te.g : unload remove all\n");
 }
 
 /**
@@ -132,8 +134,57 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
             ShowMessages("the trace (hypertrace) module is not loadedd\n");
         }
     }
+    else if (CommandTokens.size() == 2 &&
+             (CompareLowerCaseStrings(CommandTokens.at(1), "kd") || CompareLowerCaseStrings(CommandTokens.at(1), "dbg") ||
+              CompareLowerCaseStrings(CommandTokens.at(1), "debugger") || CompareLowerCaseStrings(CommandTokens.at(1), "debug") ||
+              CompareLowerCaseStrings(CommandTokens.at(1), "kerneldebugger") || CompareLowerCaseStrings(CommandTokens.at(1), "kerneldebug")))
+    {
+        //
+        // Check the environment
+        //
+        if (!CommandUnloadCheckEnvironment())
+        {
+            return;
+        }
+
+        if (g_IsKdModuleLoaded)
+        {
+            HyperDbgUnloadKd();
+        }
+        else
+        {
+            ShowMessages("the kd (kernel debugger) module is not loadedd\n");
+        }
+    }
+    else if (CommandTokens.size() == 2 &&
+             (CompareLowerCaseStrings(CommandTokens.at(1), "all") || CompareLowerCaseStrings(CommandTokens.at(1), ".")))
+    {
+        //
+        // Check the environment
+        //
+        if (!CommandUnloadCheckEnvironment())
+        {
+            return;
+        }
+
+        ShowMessages("unloading all modules\n");
+
+        //
+        // Unload all modules
+        //
+        if (HyperDbgUnloadAllModules() != 0)
+        {
+            ShowMessages("err, failed to unload all modules\n");
+            return;
+        }
+        else
+        {
+            ShowMessages("all modules are unloaded\n");
+        }
+    }
     else if (CommandTokens.size() == 3 && CompareLowerCaseStrings(CommandTokens.at(1), "remove") &&
              (CompareLowerCaseStrings(CommandTokens.at(2), "all") ||
+              CompareLowerCaseStrings(CommandTokens.at(2), ".") ||
               CompareLowerCaseStrings(CommandTokens.at(2), "vmm") ||
               CompareLowerCaseStrings(CommandTokens.at(2), "vm")))
     {

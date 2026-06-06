@@ -174,6 +174,17 @@ hyperdbg_u_load_hypertrace_module()
 }
 
 /**
+ * @brief Load all modules
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_load_all_modules()
+{
+    return HyperDbgLoadAllModules();
+}
+
+/**
  * @brief Run a command
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed

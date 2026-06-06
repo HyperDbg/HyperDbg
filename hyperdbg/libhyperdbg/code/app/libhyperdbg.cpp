@@ -510,6 +510,28 @@ HyperDbgUnloadKd()
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     //
+    // Check if HyperTrace module is loaded, if so we need to unload it before unloading KD because KD is used by HyperTrace
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages("err, unable to unload the kd module because the trace module is currently loaded "
+                     "and uses the kd module, if you want to unload the kd module, please first unload "
+                     "the trace module using the 'unload trace' command\n");
+        return 1;
+    }
+
+    //
+    // Check if VMM module is loaded, if so we need to unload it before unloading KD because KD is used by VMM
+    //
+    if (g_IsVmmModuleLoaded)
+    {
+        ShowMessages("err, unable to unload the kd module because the vmm module is currently loaded "
+                     "and uses the kd module, if you want to unload the kd module, please first unload "
+                     "the vmm module using the 'unload vmm' command\n");
+        return 1;
+    }
+
+    //
     // Indicate that the message logging window is closed
     //
     g_IsMessageLoggingWindowClosed = TRUE;
@@ -846,6 +868,44 @@ HyperDbgLoadHyperTraceModule()
     g_IsHyperTraceModuleLoaded = TRUE;
 
     ShowMessages("hypertrace (trace) module is running...\n");
+
+    return 0;
+}
+
+/**
+ * @brief load all modules (KD, VMM, HyperTrace, etc.)
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgLoadAllModules()
+{
+    INT RetVal = 0;
+
+    //
+    // Load KD module if not loaded
+    //
+    if (!g_IsKdModuleLoaded && HyperDbgLoadKdModule() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Load VMM module if not loaded
+    //
+    if (!g_IsVmmModuleLoaded && HyperDbgLoadVmmModule() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Load HyperTrace module if not loaded
+    //
+    if (!g_IsHyperTraceModuleLoaded && HyperDbgLoadHyperTraceModule() != 0)
+    {
+        return 1;
+    }
 
     return 0;
 }

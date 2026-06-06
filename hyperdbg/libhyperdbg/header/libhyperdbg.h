@@ -46,6 +46,9 @@ INT
 HyperDbgLoadHyperTraceModule();
 
 INT
+HyperDbgLoadAllModules();
+
+INT
 HyperDbgStartKdDriver();
 
 INT
