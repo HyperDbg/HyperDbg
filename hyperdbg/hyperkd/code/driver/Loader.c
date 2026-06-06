@@ -335,30 +335,6 @@ LoaderInitDebuggerAndVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
 }
 
 /**
- * @brief Uninitialize the VMM
- *
- * @return VOID
- */
-VOID
-LoaderUninitVmm()
-{
-    //
-    // Mark VMM as uninitialized before uninitializing it to avoid any potential reentrancy issues during the uninitialization process
-    //
-    g_VmmInitialized = FALSE;
-
-    //
-    // First remove all VMM related state from the debugger
-    //
-    DebuggerUninitializeVmmOperations();
-
-    //
-    // Terminate VMM and its sub-mechanisms
-    //
-    VmFuncUninitVmm();
-}
-
-/**
  * @brief Uninitialize the hyper trace module
  *
  * @return VOID
@@ -375,6 +351,44 @@ LoaderUninitHyperTrace()
     // Uninitialize the hypertrace
     //
     HyperTraceUninit();
+}
+
+/**
+ * @brief Uninitialize the VMM
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitVmm()
+{
+    //
+    // Mark VMM as uninitialized before uninitializing it to avoid any potential reentrancy issues during the uninitialization process
+    //
+    g_VmmInitialized = FALSE;
+
+    //
+    // Uninitialize the HyperTrace (if it was initialized)
+    //
+    // If the trace module is currently loaded, it must be unloaded before the VMM module can be unloaded
+    // HyperTrace can operate both with and without the VMM module. When loaded after the VMM module, HyperTrace can make
+    // use of hypervisor-specific features. Otherwise, it will operate normally, but those features will not be available
+    // The trace module will be unloaded automatically and may be reloaded later if needed
+    //
+    // Note: The user mode should automatically request to unload the 'trace' module if it is already loaded
+    // however, here we also unload it just in case if this function is directly called or the user mode
+    // code did not unload it
+    //
+    LoaderUninitHyperTrace();
+
+    //
+    // First remove all VMM related state from the debugger
+    //
+    DebuggerUninitializeVmmOperations();
+
+    //
+    // Terminate VMM and its sub-mechanisms
+    //
+    VmFuncUninitVmm();
 }
 
 /**

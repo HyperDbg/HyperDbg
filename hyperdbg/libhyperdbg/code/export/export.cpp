@@ -163,7 +163,7 @@ hyperdbg_u_load_kd_module()
 }
 
 /**
- * @brief Load the HyperTrace module
+ * @brief Load the hypertrace module
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */

@@ -17,6 +17,7 @@
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsVmmModuleLoaded;
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
@@ -37,6 +38,34 @@ CommandUnloadHelp()
     ShowMessages("\t\te.g : unload vmm\n");
     ShowMessages("\t\te.g : unload vm\n");
     ShowMessages("\t\te.g : unload remove vmm\n");
+}
+
+/**
+ * @brief check the environment for unload command
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandUnloadCheckEnvironment()
+{
+    if (!g_IsConnectedToHyperDbgLocally)
+    {
+        ShowMessages("you're not connected to any instance of HyperDbg, did you "
+                     "use '.connect'? \n");
+        return FALSE;
+    }
+
+    //
+    // Check to avoid using this command in debugger-mode
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebugger)
+    {
+        ShowMessages("you're connected to a an instance of HyperDbg, please use "
+                     "'.debug close' command\n");
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 /**
@@ -64,20 +93,11 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
     if (CommandTokens.size() == 2 &&
         (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") || CompareLowerCaseStrings(CommandTokens.at(1), "vm")))
     {
-        if (!g_IsConnectedToHyperDbgLocally)
-        {
-            ShowMessages("you're not connected to any instance of HyperDbg, did you "
-                         "use '.connect'? \n");
-            return;
-        }
-
         //
-        // Check to avoid using this command in debugger-mode
+        // Check the environment
         //
-        if (g_IsSerialConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebugger)
+        if (!CommandUnloadCheckEnvironment())
         {
-            ShowMessages("you're connected to a an instance of HyperDbg, please use "
-                         "'.debug close' command\n");
             return;
         }
 
@@ -91,12 +111,25 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
         {
             ShowMessages("the vmm module is not loadedd\n");
         }
-
+    }
+    else if (CommandTokens.size() == 2 &&
+             (CompareLowerCaseStrings(CommandTokens.at(1), "trace") || CompareLowerCaseStrings(CommandTokens.at(1), "hypertrace")))
+    {
         //
-        // Check to remove the driver
+        // Check the environment
         //
-        if (CompareLowerCaseStrings(CommandTokens.at(1), "remove"))
+        if (!CommandUnloadCheckEnvironment())
         {
+            return;
+        }
+
+        if (g_IsHyperTraceModuleLoaded)
+        {
+            HyperDbgUnloadHyperTrace();
+        }
+        else
+        {
+            ShowMessages("the trace (hypertrace) module is not loadedd\n");
         }
     }
     else if (CommandTokens.size() == 3 && CompareLowerCaseStrings(CommandTokens.at(1), "remove") &&
@@ -104,6 +137,14 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
               CompareLowerCaseStrings(CommandTokens.at(2), "vmm") ||
               CompareLowerCaseStrings(CommandTokens.at(2), "vm")))
     {
+        //
+        // Check the environment
+        //
+        if (!CommandUnloadCheckEnvironment())
+        {
+            return;
+        }
+
         //
         // Unload all modules before removing the driver
         //

@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
 
 /**
  * @brief Send LBR dump requests
@@ -248,6 +249,11 @@ CommandLbrdump(vector<CommandToken> CommandTokens, string Command)
         CommandLbrdumpHelp();
         return;
     }
+
+    //
+    // Check if the HyperTrace module is loaded, as it is required for LBR operations
+    //
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, AssertReturn);
 
     if (CommandTokens.size() == 3)
     {

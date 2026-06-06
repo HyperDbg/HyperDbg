@@ -357,11 +357,6 @@ DebuggerUninitialize()
     ProcessorsCount = KeQueryActiveProcessorCount(0);
 
     //
-    // Uninitialize the HyperTrace (if it was initialized)
-    //
-    HyperTraceUninit();
-
-    //
     // Free the Pool manager
     //
     PoolManagerUninitialize();

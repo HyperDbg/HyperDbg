@@ -395,6 +395,21 @@ HyperDbgUnloadVmm()
     ShowMessages("start terminating vmm...\n");
 
     //
+    // Check if HyperTrace module is loaded, if so we need to unload it before unloading VMM
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages(
+            "the trace module is currently loaded and will be unloaded before the vmm module\nnote that hypertrace (trace) "
+            "use the hypervisor (vmm) features when it is loaded after vmm, however, hypertrace can also operate without the vmm "
+            "module, although hypervisor-specific features will not be available\n"
+            "the 'trace' module will now be unloaded automatically. You can reload it later "
+            "using the command 'load trace', which will load the trace module again without enabling hypervisor-dependent features\n");
+
+        HyperDbgUnloadHyperTrace();
+    }
+
+    //
     // Uninitialize the user debugger if it's initialized
     //
     UdUninitializeUserDebugger();
@@ -570,17 +585,17 @@ HyperDbgUnloadAllModules()
     INT RetVal = 0;
 
     //
-    // Unload VMM module if loaded
+    // Unload HyperTrace module if loaded
     //
-    if (g_IsVmmModuleLoaded && HyperDbgUnloadVmm() != 0)
+    if (g_IsHyperTraceModuleLoaded && HyperDbgUnloadHyperTrace() != 0)
     {
         return 1;
     }
 
     //
-    // Unload HyperTrace module if loaded
+    // Unload VMM module if loaded
     //
-    if (g_IsHyperTraceModuleLoaded && HyperDbgUnloadHyperTrace() != 0)
+    if (g_IsVmmModuleLoaded && HyperDbgUnloadVmm() != 0)
     {
         return 1;
     }
@@ -687,6 +702,20 @@ HyperDbgLoadVmmModule()
         //  and we no need to re-load it anymore
         //
         return 0;
+    }
+
+    //
+    // Check if the HyperTrace module is loaded or not
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages(
+            "err, the trace module is currently loaded and should be unloaded before loading the vmm module\n"
+            "Note that HyperTrace (trace) uses the hypervisor (vmm) features when it is loaded after the vmm module, "
+            "however, HyperTrace can also operate without the vmm module, although hypervisor-specific features will not be available\n"
+            "to solve this problem, first unload the trace module using the 'unload trace' command, next, load "
+            "the vmm module and then load the trace module again. This way, the trace module is reloaded with hypervisor APIs\n");
+        return 1;
     }
 
     //
@@ -806,7 +835,7 @@ HyperDbgLoadHyperTraceModule()
     //
     if (HyperDbgInitHyperTraceModule() == 1)
     {
-        ShowMessages("err, initializing HyperTrace module\n");
+        ShowMessages("err, initializing hypertrace module\n");
 
         return 1;
     }
@@ -816,7 +845,7 @@ HyperDbgLoadHyperTraceModule()
     //
     g_IsHyperTraceModuleLoaded = TRUE;
 
-    ShowMessages("hypertrace module is running...\n");
+    ShowMessages("hypertrace (trace) module is running...\n");
 
     return 0;
 }
