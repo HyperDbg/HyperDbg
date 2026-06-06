@@ -23,22 +23,35 @@
 BOOLEAN
 MsrHandleIsHypervSyntheticMsr(_In_ UINT32 TargetMsr)
 {
-    return (TargetMsr >= HV_X64_MSR_GUEST_OS_ID && TargetMsr <= HV_X64_MSR_RESET) ||
-           TargetMsr == HV_X64_MSR_VP_RUNTIME ||
-           (TargetMsr >= HV_REGISTER_TIME_REF_COUNT && TargetMsr <= HV_X64_MSR_APIC_FREQUENCY) ||
-           TargetMsr == HV_X64_MSR_NPIEP_CONFIG ||
-           (TargetMsr >= HV_X64_MSR_EOI && TargetMsr <= HV_X64_MSR_VP_ASSIST_PAGE) ||
-           (TargetMsr >= HV_REGISTER_SCONTROL && TargetMsr <= HV_REGISTER_EOM) ||
-           (TargetMsr >= HV_REGISTER_SINT0 && TargetMsr <= HV_REGISTER_SINT15) ||
-           (TargetMsr >= HV_REGISTER_STIMER0_CONFIG && TargetMsr <= HV_REGISTER_STIMER3_COUNT) ||
-           TargetMsr == HV_X64_MSR_GUEST_IDLE ||
-           (TargetMsr >= HV_REGISTER_CRASH_P0 && TargetMsr <= HV_REGISTER_CRASH_CTL) ||
-           (TargetMsr >= HV_X64_MSR_REENLIGHTENMENT_CONTROL && TargetMsr <= HV_X64_MSR_TSC_EMULATION_STATUS) ||
-           (TargetMsr >= HV_X64_MSR_STIME_UNHALTED_TIMER_CONFIG && TargetMsr <= HV_X64_MSR_STIME_UNHALTED_TIMER_COUNT) ||
-           TargetMsr == HV_X64_MSR_TSC_INVARIANT_CONTROL ||
-           TargetMsr == HV_X64_MSR_NESTED_VP_INDEX ||
-           (TargetMsr >= HV_X64_MSR_NESTED_SCONTROL && TargetMsr <= HV_X64_MSR_NESTED_EOM) ||
-           (TargetMsr >= HV_X64_MSR_NESTED_SINT0 && TargetMsr <= HV_X64_MSR_NESTED_SINT15);
+    switch (TargetMsr)
+    {
+    case HV_X64_MSR_GUEST_OS_ID:
+    case HV_X64_MSR_HYPERCALL:
+    case HV_X64_MSR_VP_INDEX:
+    case HV_X64_MSR_RESET:
+    case HV_X64_MSR_VP_RUNTIME:
+    case HV_X64_MSR_TIME_REF_COUNT:
+    case HV_X64_MSR_REFERENCE_TSC:
+    case HV_X64_MSR_TSC_FREQUENCY:
+    case HV_X64_MSR_APIC_FREQUENCY:
+    case HV_X64_MSR_NPIEP_CONFIG:
+    case HV_X64_MSR_GUEST_IDLE:
+    case HV_X64_MSR_REENLIGHTENMENT_CONTROL:
+    case HV_X64_MSR_TSC_EMULATION_CONTROL:
+    case HV_X64_MSR_TSC_EMULATION_STATUS:
+    case HV_X64_MSR_STIME_UNHALTED_TIMER_CONFIG:
+    case HV_X64_MSR_STIME_UNHALTED_TIMER_COUNT:
+    case HV_X64_MSR_NESTED_VP_INDEX:
+        return TRUE;
+    default:
+        return (TargetMsr >= HV_X64_MSR_EOI && TargetMsr <= HV_X64_MSR_TPR) ||
+               (TargetMsr >= HV_X64_MSR_SCONTROL && TargetMsr <= HV_X64_MSR_EOM) ||
+               (TargetMsr >= HV_X64_MSR_SINT0 && TargetMsr <= HV_X64_MSR_SINT15) ||
+               (TargetMsr >= HV_X64_MSR_STIMER0_CONFIG && TargetMsr <= HV_X64_MSR_STIMER3_COUNT) ||
+               (TargetMsr >= HV_X64_MSR_CRASH_P0 && TargetMsr <= HV_X64_MSR_CRASH_CTL) ||
+               (TargetMsr >= HV_X64_MSR_NESTED_SCONTROL && TargetMsr <= HV_X64_MSR_NESTED_EOM) ||
+               (TargetMsr >= HV_X64_MSR_NESTED_SINT0 && TargetMsr <= HV_X64_MSR_NESTED_SINT15);
+    }
 }
 
 /**
