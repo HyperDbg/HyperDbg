@@ -30,7 +30,7 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HyperTraceCallbacks, BOOLEAN Runni
 // Uninitialize the HyperTrace module
 //
 IMPORT_EXPORT_HYPERTRACE VOID
-HyperTraceUnInit();
+HyperTraceUninit();
 
 //////////////////////////////////////////////////
 //                LBR Functions 	    		//

@@ -1507,6 +1507,20 @@ DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * 
 
     switch (Ioctl)
     {
+    case IOCTL_PERFORM_HYPERTRACE_UNLOAD:
+
+        //
+        // Perform the unload of HyperTrace (there is no parameter for this IOCTL)
+        //
+        LoaderUninitHyperTrace();
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(0, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
     case IOCTL_PERFORM_HYPERTRACE_LBR_OPERATION:
 
         //

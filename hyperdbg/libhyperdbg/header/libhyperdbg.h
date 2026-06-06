@@ -16,10 +16,16 @@
 //////////////////////////////////////////////////
 
 INT
+HyperDbgUnloadAllModules();
+
+INT
 HyperDbgInitHyperTraceModule();
 
 INT
 HyperDbgUnloadVmm();
+
+INT
+HyperDbgUnloadHyperTrace();
 
 INT
 HyperDbgUnloadKd();

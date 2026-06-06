@@ -53,6 +53,17 @@ hyperdbg_u_load_vmm()
 }
 
 /**
+ * @brief Unload all modules
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_unload_all_modules()
+{
+    return HyperDbgUnloadAllModules();
+}
+
+/**
  * @brief Unload the VMM module
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
@@ -61,6 +72,17 @@ INT
 hyperdbg_u_unload_vmm()
 {
     return HyperDbgUnloadVmm();
+}
+
+/**
+ * @brief Unload the trace module
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_unload_hypertrace_module()
+{
+    return HyperDbgUnloadHyperTrace();
 }
 
 /**

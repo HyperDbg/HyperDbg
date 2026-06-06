@@ -100,7 +100,7 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HyperTraceCallbacks,
  * @return VOID
  */
 VOID
-HyperTraceUnInit()
+HyperTraceUninit()
 {
     //
     // Disable LBR tracing if it is still enabled

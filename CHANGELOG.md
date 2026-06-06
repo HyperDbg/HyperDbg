@@ -24,7 +24,7 @@ New release of the HyperDbg Debugger.
 - Added the 'trace' module in the 'load' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
 - Exported SDK API for detecting CPU vendors
 - Initial codes for the HyperTrace project by using Intel Processor Trace (PT), thanks to [@masoudrahimi01](https://github.com/masoudrahimi01) ([link](https://github.com/HyperDbg/HyperDbg/pull/589))
-- Exported SDK APIs for loading the 'kd' and the 'trace' modules
+- Exported SDK APIs for loading and unloading the 'kd' and the 'trace' modules
 - Exported SDK APIs for starting (installing) the 'kd' driver
 - Added tests for checking PE parser in 'hyperdbg-test' project
 - Added example for loading HyperDbg in VMI mode directly from libhyperdbg

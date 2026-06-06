@@ -61,9 +61,8 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
     //
     // Check for the module
     //
-    if ((CommandTokens.size() == 2 && (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") || CompareLowerCaseStrings(CommandTokens.at(1), "vm"))) ||
-        (CommandTokens.size() == 3 && (CompareLowerCaseStrings(CommandTokens.at(2), "vmm") || CompareLowerCaseStrings(CommandTokens.at(2), "vm")) &&
-         CompareLowerCaseStrings(CommandTokens.at(1), "remove")))
+    if (CommandTokens.size() == 2 &&
+        (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") || CompareLowerCaseStrings(CommandTokens.at(1), "vm")))
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {
@@ -86,7 +85,7 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
         {
             HyperDbgUnloadVmm();
 
-            HyperDbgUnloadKd(); // Tessssssssssssssssssssssttttttttttt
+            HyperDbgUnloadKd(); // Test: Should be removed
         }
         else
         {
@@ -98,36 +97,41 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
         //
         if (CompareLowerCaseStrings(CommandTokens.at(1), "remove"))
         {
-            //
-            // Unload the KD module
-            //
-
-            //  if (HyperDbgUnloadKd())
-            //  {
-            //      ShowMessages("err, failed to unload the kd (kernel debugger) driver\n");
-            //      return;
-            //  }
-
-            //
-            // Stop the driver
-            //
-            if (HyperDbgStopKdDriver())
-            {
-                ShowMessages("err, failed to stop driver\n");
-                return;
-            }
-
-            //
-            // Uninstall the driver
-            //
-            if (HyperDbgUninstallKdDriver())
-            {
-                ShowMessages("err, failed to uninstall the driver\n");
-                return;
-            }
-
-            ShowMessages("the driver is removed\n");
         }
+    }
+    else if (CommandTokens.size() == 3 && CompareLowerCaseStrings(CommandTokens.at(1), "remove") &&
+             (CompareLowerCaseStrings(CommandTokens.at(2), "all") ||
+              CompareLowerCaseStrings(CommandTokens.at(2), "vmm") ||
+              CompareLowerCaseStrings(CommandTokens.at(2), "vm")))
+    {
+        //
+        // Unload all modules before removing the driver
+        //
+        if (HyperDbgUnloadAllModules())
+        {
+            ShowMessages("err, failed to unload all modules\n");
+            return;
+        }
+
+        //
+        // Stop the driver
+        //
+        if (HyperDbgStopKdDriver())
+        {
+            ShowMessages("err, failed to stop driver\n");
+            return;
+        }
+
+        //
+        // Uninstall the driver
+        //
+        if (HyperDbgUninstallKdDriver())
+        {
+            ShowMessages("err, failed to uninstall the driver\n");
+            return;
+        }
+
+        ShowMessages("all drivers are removed\n");
     }
     else
     {

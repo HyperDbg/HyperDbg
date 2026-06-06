@@ -359,7 +359,7 @@ DebuggerUninitialize()
     //
     // Uninitialize the HyperTrace (if it was initialized)
     //
-    HyperTraceUnInit();
+    HyperTraceUninit();
 
     //
     // Free the Pool manager

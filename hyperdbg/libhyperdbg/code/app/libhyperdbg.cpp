@@ -379,7 +379,7 @@ HyperDbgCreateHandleFromKdModule()
 }
 
 /**
- * @brief Unload VMM driver
+ * @brief Unload VMM module
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
@@ -400,7 +400,7 @@ HyperDbgUnloadVmm()
     UdUninitializeUserDebugger();
 
     //
-    // Send IOCTL to mark complete all IRP Pending
+    // Send IOCTL terminate VMX
     //
     Status = DeviceIoControl(g_DeviceHandle,      // Handle to device
                              IOCTL_TERMINATE_VMX, // IO Control Code (IOCTL)
@@ -428,6 +428,55 @@ HyperDbgUnloadVmm()
     g_IsVmmModuleLoaded = FALSE;
 
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief Unload HyperTrace module
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgUnloadHyperTrace()
+{
+    BOOL  Status;
+    DWORD BytesReturned;
+
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    ShowMessages("start terminating trace module...\n");
+
+    //
+    // Send IOCTL to unload HyperTrace module
+    //
+    Status = DeviceIoControl(g_DeviceHandle,                  // Handle to device
+                             IOCTL_PERFORM_HYPERTRACE_UNLOAD, // IO Control Code (IOCTL)
+                             NULL,                            // Input Buffer to driver.
+                             0,                               // Length of input buffer in bytes. (x 2 is bcuz
+                                                              // as the driver is x64 and has 64 bit values)
+                             NULL,                            // Output Buffer from driver.
+                             0,                               // Length of output buffer in bytes.
+                             &BytesReturned,                  // Bytes placed in buffer.
+                             NULL                             // synchronous call
+    );
+
+    //
+    // wait to make sure we don't use an invalid handle in another Ioctl
+    //
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return 1;
+    }
+
+    //
+    // HyperTrace module is not loaded anymore
+    //
+    g_IsHyperTraceModuleLoaded = FALSE;
+
+    ShowMessages("the trace module is unloaded!\n");
 
     return 0;
 }
@@ -505,6 +554,44 @@ HyperDbgUnloadKd()
     SymbolDeleteSymTable();
 
     ShowMessages("the debugger module is unloaded!\n");
+
+    return 0;
+}
+
+/**
+ * @brief unload all modules (KD, VMM, HyperTrace, etc.)
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgUnloadAllModules()
+{
+    INT RetVal = 0;
+
+    //
+    // Unload VMM module if loaded
+    //
+    if (g_IsVmmModuleLoaded && HyperDbgUnloadVmm() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Unload HyperTrace module if loaded
+    //
+    if (g_IsHyperTraceModuleLoaded && HyperDbgUnloadHyperTrace() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Unload KD module if loaded
+    //
+    if (g_IsKdModuleLoaded && HyperDbgUnloadKd() != 0)
+    {
+        return 1;
+    }
 
     return 0;
 }

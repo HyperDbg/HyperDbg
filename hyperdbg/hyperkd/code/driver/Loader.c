@@ -359,6 +359,25 @@ LoaderUninitVmm()
 }
 
 /**
+ * @brief Uninitialize the hyper trace module
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitHyperTrace()
+{
+    //
+    // Mark hypertrace as uninitialized before uninitializing it to avoid any potential reentrancy issues during the uninitialization process
+    //
+    g_HyperTraceInitialized = FALSE;
+
+    //
+    // Uninitialize the hypertrace
+    //
+    HyperTraceUninit();
+}
+
+/**
  * @brief Uninitialize the debugger
  *
  * @return VOID
