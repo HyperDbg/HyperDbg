@@ -348,7 +348,7 @@ PtEngineInitDefaultConfig(PT_TRACE_CONFIG * Config)
     Config->TargetCr3            = 0;
     Config->NumAddrRanges        = 0;
     Config->EnableBranch         = TRUE;
-    Config->EnableTsc            = TRUE;
+    Config->EnableTsc            = FALSE;
     Config->EnableMtc            = FALSE;
     Config->EnableCyc            = FALSE;
     Config->EnableRetCompression = FALSE;
