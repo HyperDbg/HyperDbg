@@ -608,6 +608,24 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_CLEAR_TRANSPARENT_CPUID_TSC_COMPENSATION:
+    {
+        CounterClearCpuidTscCompensation(VCpu);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_SET_TRANSPARENT_CPUID_TSC_TIMING:
+    {
+        CounterEnableTransparentCpuidTscTiming(VCpu);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_UNSET_TRANSPARENT_CPUID_TSC_TIMING:
+    {
+        CounterDisableTransparentCpuidTscTiming(VCpu);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Err, unsupported VMCALL (%llx)", VmcallNumber);

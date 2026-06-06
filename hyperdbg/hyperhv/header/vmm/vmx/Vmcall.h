@@ -374,6 +374,24 @@
  */
 #define VMCALL_UNSET_CLEAR_GUEST_IA32_LBR_CTL 0x0000003A
 
+/**
+ * @brief VMCALL to clear transparent CPUID TSC compensation state
+ *
+ */
+#define VMCALL_CLEAR_TRANSPARENT_CPUID_TSC_COMPENSATION 0x0000003B
+
+/**
+ * @brief VMCALL to enable transparent CPUID TSC timing
+ *
+ */
+#define VMCALL_SET_TRANSPARENT_CPUID_TSC_TIMING 0x0000003C
+
+/**
+ * @brief VMCALL to disable transparent CPUID TSC timing
+ *
+ */
+#define VMCALL_UNSET_TRANSPARENT_CPUID_TSC_TIMING 0x0000003D
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

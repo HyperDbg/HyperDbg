@@ -151,11 +151,27 @@ typedef struct _VMM_EPT_PAGE_TABLE
  */
 typedef struct _VM_EXIT_TRANSPARENCY
 {
+    UINT64 LastVmexitTimeStampCounter;
+    UINT64 CpuidTscEntryTsc;
+    UINT64 CpuidTscEntryRip;
+    UINT64 CpuidTscEntryRsp;
+    UINT64 CpuidTscEntryLeaf;
+    UINT64 CpuidTscEntrySubleaf;
+    UINT64 LastRevealedTimeStampCounter;
+    UINT64 LastGuestTimeStampCounter;
+    UINT64 LastTransparentTscHostCounter;
+    UINT64 LastTransparentTscGuestCounter;
     UINT64 PreviousTimeStampCounter;
 
     HANDLE  ThreadId;
     UINT64  RevealedTimeStampCounterByRdtsc;
     BOOLEAN CpuidAfterRdtscDetected;
+    BOOLEAN CpuidTscCompensationArmed;
+    BOOLEAN LastGuestTimeStampCounterValid;
+    BOOLEAN LastTransparentTscValid;
+    BOOLEAN TransparentCpuidTscTimingEnabled;
+    BOOLEAN TransparentCpuidTscHadForcedRdtscExiting;
+    BOOLEAN TransparentCpuidTscHadForcedRdpmcExiting;
 
 } VM_EXIT_TRANSPARENCY, *PVM_EXIT_TRANSPARENCY;
 

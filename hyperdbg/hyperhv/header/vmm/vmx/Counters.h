@@ -25,6 +25,15 @@ VOID
 CounterEmulateRdpmc(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
+CounterClearCpuidTscCompensation(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+CounterEnableTransparentCpuidTscTiming(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+CounterDisableTransparentCpuidTscTiming(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 CounterSetPreemptionTimer(UINT32 TimerValue);
 
 VOID

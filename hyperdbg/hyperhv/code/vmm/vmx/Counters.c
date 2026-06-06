@@ -11,6 +11,89 @@
  */
 #include "pch.h"
 
+static BOOLEAN
+CounterIsRdtscExitingEnabled()
+{
+    UINT32 CpuBasedVmExecControls = 0;
+
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+
+    return (CpuBasedVmExecControls & IA32_VMX_PROCBASED_CTLS_RDTSC_EXITING_FLAG) != 0;
+}
+
+static BOOLEAN
+CounterIsRdpmcExitingEnabled()
+{
+    UINT32 CpuBasedVmExecControls = 0;
+
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
+
+    return (CpuBasedVmExecControls & IA32_VMX_PROCBASED_CTLS_RDPMC_EXITING_FLAG) != 0;
+}
+
+VOID
+CounterClearCpuidTscCompensation(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    if (!VCpu->TransparencyState.CpuidTscCompensationArmed)
+    {
+        return;
+    }
+
+    VCpu->TransparencyState.CpuidTscCompensationArmed = FALSE;
+    VCpu->TransparencyState.CpuidTscEntryTsc          = 0;
+    VCpu->TransparencyState.CpuidTscEntryRip          = 0;
+    VCpu->TransparencyState.CpuidTscEntryRsp          = 0;
+    VCpu->TransparencyState.CpuidTscEntryLeaf         = 0;
+    VCpu->TransparencyState.CpuidTscEntrySubleaf      = 0;
+}
+
+VOID
+CounterEnableTransparentCpuidTscTiming(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    VCpu->TransparencyState.TransparentCpuidTscTimingEnabled = TRUE;
+
+    if (!CounterIsRdtscExitingEnabled())
+    {
+        ProtectedHvSetRdtscExiting(VCpu, TRUE);
+        VCpu->TransparencyState.TransparentCpuidTscHadForcedRdtscExiting = TRUE;
+    }
+
+    if (!CounterIsRdpmcExitingEnabled())
+    {
+        ProtectedHvSetPmcVmexit(VCpu, TRUE);
+        VCpu->TransparencyState.TransparentCpuidTscHadForcedRdpmcExiting = TRUE;
+    }
+}
+
+VOID
+CounterDisableTransparentCpuidTscTiming(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    BOOLEAN DisableRdtscExiting = VCpu->TransparencyState.TransparentCpuidTscHadForcedRdtscExiting;
+    BOOLEAN DisableRdpmcExiting = VCpu->TransparencyState.TransparentCpuidTscHadForcedRdpmcExiting;
+
+    CounterClearCpuidTscCompensation(VCpu);
+
+    VCpu->TransparencyState.LastGuestTimeStampCounter                = 0;
+    VCpu->TransparencyState.LastGuestTimeStampCounterValid           = FALSE;
+    VCpu->TransparencyState.LastRevealedTimeStampCounter             = 0;
+    VCpu->TransparencyState.LastTransparentTscHostCounter            = 0;
+    VCpu->TransparencyState.LastTransparentTscGuestCounter           = 0;
+    VCpu->TransparencyState.LastTransparentTscValid                  = FALSE;
+    VCpu->TransparencyState.TransparentCpuidTscTimingEnabled         = FALSE;
+    VCpu->TransparencyState.TransparentCpuidTscHadForcedRdtscExiting = FALSE;
+    VCpu->TransparencyState.TransparentCpuidTscHadForcedRdpmcExiting = FALSE;
+
+    if (DisableRdtscExiting)
+    {
+        ProtectedHvSetRdtscExiting(VCpu, FALSE);
+    }
+
+    if (DisableRdpmcExiting)
+    {
+        ProtectedHvSetPmcVmexit(VCpu, FALSE);
+    }
+}
+
 /**
  * @brief Emulate RDTSC
  *
