@@ -379,7 +379,7 @@ HyperDbgCreateHandleFromKdModule()
 }
 
 /**
- * @brief Unload VMM driver
+ * @brief Unload VMM module
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
@@ -395,12 +395,27 @@ HyperDbgUnloadVmm()
     ShowMessages("start terminating vmm...\n");
 
     //
+    // Check if HyperTrace module is loaded, if so we need to unload it before unloading VMM
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages(
+            "the trace module is currently loaded and will be unloaded before the vmm module\nnote that hypertrace (trace) "
+            "use the hypervisor (vmm) features when it is loaded after vmm, however, hypertrace can also operate without the vmm "
+            "module, although hypervisor-specific features will not be available\n"
+            "the 'trace' module will now be unloaded automatically. You can reload it later "
+            "using the command 'load trace', which will load the trace module again without enabling hypervisor-dependent features\n");
+
+        HyperDbgUnloadHyperTrace();
+    }
+
+    //
     // Uninitialize the user debugger if it's initialized
     //
     UdUninitializeUserDebugger();
 
     //
-    // Send IOCTL to mark complete all IRP Pending
+    // Send IOCTL terminate VMX
     //
     Status = DeviceIoControl(g_DeviceHandle,      // Handle to device
                              IOCTL_TERMINATE_VMX, // IO Control Code (IOCTL)
@@ -433,6 +448,55 @@ HyperDbgUnloadVmm()
 }
 
 /**
+ * @brief Unload HyperTrace module
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgUnloadHyperTrace()
+{
+    BOOL  Status;
+    DWORD BytesReturned;
+
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    ShowMessages("start terminating trace module...\n");
+
+    //
+    // Send IOCTL to unload HyperTrace module
+    //
+    Status = DeviceIoControl(g_DeviceHandle,                  // Handle to device
+                             IOCTL_PERFORM_HYPERTRACE_UNLOAD, // IO Control Code (IOCTL)
+                             NULL,                            // Input Buffer to driver.
+                             0,                               // Length of input buffer in bytes. (x 2 is bcuz
+                                                              // as the driver is x64 and has 64 bit values)
+                             NULL,                            // Output Buffer from driver.
+                             0,                               // Length of output buffer in bytes.
+                             &BytesReturned,                  // Bytes placed in buffer.
+                             NULL                             // synchronous call
+    );
+
+    //
+    // wait to make sure we don't use an invalid handle in another Ioctl
+    //
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return 1;
+    }
+
+    //
+    // HyperTrace module is not loaded anymore
+    //
+    g_IsHyperTraceModuleLoaded = FALSE;
+
+    ShowMessages("the trace module is unloaded!\n");
+
+    return 0;
+}
+
+/**
  * @brief Unload KD driver
  *
  * @return INT return zero if it was successful or non-zero if there was error
@@ -444,6 +508,28 @@ HyperDbgUnloadKd()
     DWORD BytesReturned;
 
     AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    //
+    // Check if HyperTrace module is loaded, if so we need to unload it before unloading KD because KD is used by HyperTrace
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages("err, unable to unload the kd module because the trace module is currently loaded "
+                     "and uses the kd module, if you want to unload the kd module, please first unload "
+                     "the trace module using the 'unload trace' command\n");
+        return 1;
+    }
+
+    //
+    // Check if VMM module is loaded, if so we need to unload it before unloading KD because KD is used by VMM
+    //
+    if (g_IsVmmModuleLoaded)
+    {
+        ShowMessages("err, unable to unload the kd module because the vmm module is currently loaded "
+                     "and uses the kd module, if you want to unload the kd module, please first unload "
+                     "the vmm module using the 'unload vmm' command\n");
+        return 1;
+    }
 
     //
     // Indicate that the message logging window is closed
@@ -505,6 +591,44 @@ HyperDbgUnloadKd()
     SymbolDeleteSymTable();
 
     ShowMessages("the debugger module is unloaded!\n");
+
+    return 0;
+}
+
+/**
+ * @brief unload all modules (KD, VMM, HyperTrace, etc.)
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgUnloadAllModules()
+{
+    INT RetVal = 0;
+
+    //
+    // Unload HyperTrace module if loaded
+    //
+    if (g_IsHyperTraceModuleLoaded && HyperDbgUnloadHyperTrace() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Unload VMM module if loaded
+    //
+    if (g_IsVmmModuleLoaded && HyperDbgUnloadVmm() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Unload KD module if loaded
+    //
+    if (g_IsKdModuleLoaded && HyperDbgUnloadKd() != 0)
+    {
+        return 1;
+    }
 
     return 0;
 }
@@ -600,6 +724,20 @@ HyperDbgLoadVmmModule()
         //  and we no need to re-load it anymore
         //
         return 0;
+    }
+
+    //
+    // Check if the HyperTrace module is loaded or not
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages(
+            "err, the trace module is currently loaded and should be unloaded before loading the vmm module\n"
+            "Note that HyperTrace (trace) uses the hypervisor (vmm) features when it is loaded after the vmm module, "
+            "however, HyperTrace can also operate without the vmm module, although hypervisor-specific features will not be available\n"
+            "to solve this problem, first unload the trace module using the 'unload trace' command, next, load "
+            "the vmm module and then load the trace module again. This way, the trace module is reloaded with hypervisor APIs\n");
+        return 1;
     }
 
     //
@@ -719,7 +857,7 @@ HyperDbgLoadHyperTraceModule()
     //
     if (HyperDbgInitHyperTraceModule() == 1)
     {
-        ShowMessages("err, initializing HyperTrace module\n");
+        ShowMessages("err, initializing hypertrace module\n");
 
         return 1;
     }
@@ -729,7 +867,45 @@ HyperDbgLoadHyperTraceModule()
     //
     g_IsHyperTraceModuleLoaded = TRUE;
 
-    ShowMessages("hypertrace module is running...\n");
+    ShowMessages("hypertrace (trace) module is running...\n");
+
+    return 0;
+}
+
+/**
+ * @brief load all modules (KD, VMM, HyperTrace, etc.)
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgLoadAllModules()
+{
+    INT RetVal = 0;
+
+    //
+    // Load KD module if not loaded
+    //
+    if (!g_IsKdModuleLoaded && HyperDbgLoadKdModule() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Load VMM module if not loaded
+    //
+    if (!g_IsVmmModuleLoaded && HyperDbgLoadVmmModule() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Load HyperTrace module if not loaded
+    //
+    if (!g_IsHyperTraceModuleLoaded && HyperDbgLoadHyperTraceModule() != 0)
+    {
+        return 1;
+    }
 
     return 0;
 }

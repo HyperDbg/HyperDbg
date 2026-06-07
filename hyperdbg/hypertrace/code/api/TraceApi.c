@@ -61,6 +61,7 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HyperTraceCallbacks,
     // allocate ToPA / output / overflow buffers on first use per core.
     //
     g_PtStateList = (PT_PER_CPU *)PlatformMemAllocateZeroedNonPagedPool(sizeof(PT_PER_CPU) * ProcessorsCount);
+
     if (g_PtStateList != NULL)
     {
         UINT32 i;
@@ -100,8 +101,16 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HyperTraceCallbacks,
  * @return VOID
  */
 VOID
-HyperTraceUnInit()
+HyperTraceUninit()
 {
+    //
+    // Check if the callbacks are initialized, if not, we don't need to handle anymore
+    //
+    if (!g_HyperTraceCallbacksInitialized)
+    {
+        return;
+    }
+
     //
     // Disable LBR tracing if it is still enabled
     //

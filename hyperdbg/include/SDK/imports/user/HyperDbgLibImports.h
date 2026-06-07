@@ -43,6 +43,18 @@ hyperdbg_u_detect_vmx_support();
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_read_vendor_string(CHAR *);
 
+IMPORT_EXPORT_LIBHYPERDBG GENERIC_PROCESSOR_VENDOR
+hyperdbg_u_get_processor_vendor();
+
+//
+// All Modules
+//
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_load_all_modules();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_unload_all_modules();
+
 //
 // VMM Module
 //
@@ -52,6 +64,9 @@ hyperdbg_u_load_vmm();
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_unload_vmm();
 
+//
+// KD (Kernel Debugger) Module
+//
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_unload_kd();
 
@@ -67,14 +82,17 @@ hyperdbg_u_start_kd_driver();
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_stop_kd_driver();
 
-IMPORT_EXPORT_LIBHYPERDBG GENERIC_PROCESSOR_VENDOR
-hyperdbg_u_get_processor_vendor();
-
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_load_kd_module();
 
+//
+// HyperTrace Module
+//
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_load_hypertrace_module();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_unload_hypertrace_module();
 
 //
 // Testing parser

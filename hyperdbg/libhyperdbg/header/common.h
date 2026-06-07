@@ -26,6 +26,8 @@
 
 #define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded. Did you use 'load' command?\n"
 
+#define ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED "the trace (hypertrace) module is not loaded. Did you use 'load trace' command?\n"
+
 #define ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH "the handshaking process was successful; however, there is a mismatch between " \
                                                     "the version/build of the debuggee and the debugger. please use the same "      \
                                                     "version/build for both the debuggee and debugger\n"

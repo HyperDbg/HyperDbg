@@ -29,4 +29,7 @@ VOID
 LoaderUninitVmmAndDebugger();
 
 VOID
+LoaderUninitHyperTrace();
+
+VOID
 LoaderUninitLogTracer();

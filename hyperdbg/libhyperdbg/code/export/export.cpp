@@ -54,6 +54,17 @@ hyperdbg_u_load_vmm()
 }
 
 /**
+ * @brief Unload all modules
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_unload_all_modules()
+{
+    return HyperDbgUnloadAllModules();
+}
+
+/**
  * @brief Unload the VMM module
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
@@ -62,6 +73,17 @@ INT
 hyperdbg_u_unload_vmm()
 {
     return HyperDbgUnloadVmm();
+}
+
+/**
+ * @brief Unload the trace module
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_unload_hypertrace_module()
+{
+    return HyperDbgUnloadHyperTrace();
 }
 
 /**
@@ -142,7 +164,7 @@ hyperdbg_u_load_kd_module()
 }
 
 /**
- * @brief Load the HyperTrace module
+ * @brief Load the hypertrace module
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
@@ -150,6 +172,17 @@ INT
 hyperdbg_u_load_hypertrace_module()
 {
     return HyperDbgLoadHyperTraceModule();
+}
+
+/**
+ * @brief Load all modules
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_load_all_modules()
+{
+    return HyperDbgLoadAllModules();
 }
 
 /**

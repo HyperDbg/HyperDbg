@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern HANDLE  g_DeviceHandle;
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
+
 /**
  * @brief help of the !lbr command
  *
@@ -358,6 +364,11 @@ CommandLbr(vector<CommandToken> CommandTokens, string Command)
         CommandLbrHelp();
         return;
     }
+
+    //
+    // Check if the HyperTrace module is loaded, as it is required for LBR operations
+    //
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, AssertReturn);
 
     //
     // Send the LBR operation request
