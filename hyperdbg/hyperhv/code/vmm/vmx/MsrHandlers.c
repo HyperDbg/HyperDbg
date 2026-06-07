@@ -12,6 +12,49 @@
 #include "pch.h"
 
 /**
+ * @brief Checks whether an MSR belongs to the Hyper-V synthetic MSR set
+ * @details The ranges and individual registers are defined by Hyper-V TLFS
+ * synthetic MSRs and mirrored in HypervTlfs.h.
+ *
+ * @param TargetMsr The target MSR
+ * @return BOOLEAN Returns TRUE if the MSR should be forwarded to the
+ * top-level Hyper-V compatible hypervisor
+ */
+BOOLEAN
+MsrHandleIsHypervSyntheticMsr(_In_ UINT32 TargetMsr)
+{
+    switch (TargetMsr)
+    {
+    case HV_X64_MSR_GUEST_OS_ID:
+    case HV_X64_MSR_HYPERCALL:
+    case HV_X64_MSR_VP_INDEX:
+    case HV_X64_MSR_RESET:
+    case HV_X64_MSR_VP_RUNTIME:
+    case HV_X64_MSR_TIME_REF_COUNT:
+    case HV_X64_MSR_REFERENCE_TSC:
+    case HV_X64_MSR_TSC_FREQUENCY:
+    case HV_X64_MSR_APIC_FREQUENCY:
+    case HV_X64_MSR_NPIEP_CONFIG:
+    case HV_X64_MSR_GUEST_IDLE:
+    case HV_X64_MSR_REENLIGHTENMENT_CONTROL:
+    case HV_X64_MSR_TSC_EMULATION_CONTROL:
+    case HV_X64_MSR_TSC_EMULATION_STATUS:
+    case HV_X64_MSR_STIME_UNHALTED_TIMER_CONFIG:
+    case HV_X64_MSR_STIME_UNHALTED_TIMER_COUNT:
+    case HV_X64_MSR_NESTED_VP_INDEX:
+        return TRUE;
+    default:
+        return (TargetMsr >= HV_X64_MSR_EOI && TargetMsr <= HV_X64_MSR_TPR) ||
+               (TargetMsr >= HV_X64_MSR_SCONTROL && TargetMsr <= HV_X64_MSR_EOM) ||
+               (TargetMsr >= HV_X64_MSR_SINT0 && TargetMsr <= HV_X64_MSR_SINT15) ||
+               (TargetMsr >= HV_X64_MSR_STIMER0_CONFIG && TargetMsr <= HV_X64_MSR_STIMER3_COUNT) ||
+               (TargetMsr >= HV_X64_MSR_CRASH_P0 && TargetMsr <= HV_X64_MSR_CRASH_CTL) ||
+               (TargetMsr >= HV_X64_MSR_NESTED_SCONTROL && TargetMsr <= HV_X64_MSR_NESTED_EOM) ||
+               (TargetMsr >= HV_X64_MSR_NESTED_SINT0 && TargetMsr <= HV_X64_MSR_NESTED_SINT15);
+    }
+}
+
+/**
  * @brief Handles in the cases when RDMSR causes a vm-exit
  *
  * @param VCpu The virtual processor's state
@@ -53,6 +96,16 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // LogInfo("MSR read (RDMSR) VM-exit, MSR: %x, from: %llx",
     //         TargetMsr,
     //         VCpu->LastVmexitRip);
+    // 
+    // Checking whether it is a synthetic MSR for Hyper-V.
+    if (MsrHandleIsHypervSyntheticMsr(TargetMsr))
+    {
+        Msr.Flags      = __readmsr(TargetMsr);
+        GuestRegs->rax = Msr.Fields.Low;
+        GuestRegs->rdx = Msr.Fields.High;
+
+        return;
+    }
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
@@ -203,6 +256,13 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //         GuestRegs->rax,
     //         GuestRegs->rdx,
     //         VCpu->LastVmexitRip);
+    // 
+    // Checking whether it is a synthetic MSR for Hyper-V.
+    if (MsrHandleIsHypervSyntheticMsr(TargetMsr))
+    {
+        __writemsr(TargetMsr, Msr.Flags);
+        return;
+    }
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
