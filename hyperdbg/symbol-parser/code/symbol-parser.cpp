@@ -14,6 +14,24 @@
 
 #include "header/pdb-identity.h"
 
+//
+// Global Variables
+//
+std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
+BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
+BOOLEAN                                    g_AbortLoadingExecution      = FALSE;
+CHAR *                                     g_CurrentModuleName          = NULL;
+PVOID                                      g_MessageHandler             = NULL;
+SymbolMapCallback                          g_SymbolMapForDisassembler   = NULL;
+
+/**
+ * @brief Reads the contents of a file into a byte vector
+ *
+ * @param LocalFilePath The path to the local file to read
+ * @param FileBytes An output reference to a vector that will receive the file bytes on success; will be cleared on failure
+ *
+ * @return BOOLEAN TRUE if the file was successfully read, FALSE on failure (e.g. file not found, access denied, read error)
+ */
 static BOOLEAN
 SymReadFileBytes(const char * LocalFilePath, std::vector<BYTE> & FileBytes)
 {
@@ -61,6 +79,17 @@ SymReadFileBytes(const char * LocalFilePath, std::vector<BYTE> & FileBytes)
     return TRUE;
 }
 
+/**
+ * @brief Fallback callback function to retrieve PDB file name, GUID, and age information using SymSrvGetFileIndexInfo when the primary extractor fails
+ *
+ * @param Context A context pointer that is expected to be a string representing the file path to query with SymSrvGetFileIndexInfo
+ * @param PdbFile An output buffer to receive the base name of the PDB file extracted from SymSrvGetFileIndexInfo. Must be at least PdbFileSize bytes
+ * @param PdbFileSize The size of the PdbFile buffer in bytes
+ * @param Guid An output pointer to receive the GUID extracted from SymSrvGetFileIndexInfo
+ * @param Age An output pointer to receive the age extracted from SymSrvGetFileIndexInfo
+ *
+ * @return BOOLEAN TRUE if the information was successfully retrieved and output buffers were filled as requested, FALSE otherwise (e.g., if Context is invalid or SymSrvGetFileIndexInfo fails)
+ */
 static BOOLEAN
 SymSrvGetFileIndexInfoFallback(PVOID Context, CHAR * PdbFile, SIZE_T PdbFileSize, GUID * Guid, DWORD * Age)
 {
@@ -87,16 +116,6 @@ SymSrvGetFileIndexInfoFallback(PVOID Context, CHAR * PdbFile, SIZE_T PdbFileSize
 
     return TRUE;
 }
-
-//
-// Global Variables
-//
-std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
-BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
-BOOLEAN                                    g_AbortLoadingExecution      = FALSE;
-CHAR *                                     g_CurrentModuleName          = NULL;
-PVOID                                      g_MessageHandler             = NULL;
-SymbolMapCallback                          g_SymbolMapForDisassembler   = NULL;
 
 /**
  * @brief Set the function callback that will be called if any message

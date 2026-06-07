@@ -3,16 +3,13 @@
  * @author jtaw5649
  * @brief Test cases for CodeView RSDS parser helpers
  * @details
- * @version 0.1
+ * @version 0.19
  * @date 2026-06-02
  *
  * @copyright This project is released under the GNU Public License v3.
  *
  */
 #include "pch.h"
-
-#include "header/codeview-rsds.h"
-#include "header/pdb-identity.h"
 
 static constexpr SIZE_T RsdsFixtureSize          = 0x600;
 static constexpr LONG   RsdsPeHeaderOffset       = 0x80;
@@ -34,18 +31,38 @@ static const GUID RsdsGuid64    = {0x67452301, 0xab89, 0xefcd, {0x10, 0x32, 0x54
 static const GUID RsdsGuid32    = {0x01234567, 0x89ab, 0xcdef, {0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10}};
 static const GUID RsdsGuidMulti = {0xaabbccdd, 0xeeff, 0x1122, {0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa}};
 
+/**
+ * @brief Calculates the file offset of the optional header based on the PE header offset
+ *
+ * @return SIZE_T The file offset of the optional header
+ */
 static SIZE_T
 RsdsOptionalHeaderOffset()
 {
     return RsdsPeHeaderOffset + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER);
 }
 
+/**
+ * @brief Calculates the file offset of the first section header based on the optional header size
+ *
+ * @param OptionalHeaderSize The size of the optional header, obtained from the IMAGE_FILE_HEADER
+ *
+ * @return SIZE_T The file offset of the first section header
+ */
 static SIZE_T
 RsdsSectionHeaderOffset(SIZE_T OptionalHeaderSize)
 {
     return RsdsOptionalHeaderOffset() + OptionalHeaderSize;
 }
 
+/**
+ * @brief Builds a minimal PE image in the provided buffer with the specified architecture
+ *
+ * @param Buffer The buffer to write the PE image into. Must be at least RsdsFixtureSize bytes
+ * @param Is32Bit Whether to build a 32-bit (true) or 64-bit (false) PE image
+ *
+ * @return VOID
+ */
 static VOID
 RsdsBuildMinimalPe(BYTE * Buffer, BOOLEAN Is32Bit)
 {
@@ -93,6 +110,15 @@ RsdsBuildMinimalPe(BYTE * Buffer, BOOLEAN Is32Bit)
     SectionHeader->PointerToRawData = RsdsSectionRaw;
 }
 
+/**
+ * @brief Updates the debug directory entry in the PE image to point to the specified directory
+ *
+ * @param Buffer The buffer containing the PE image
+ * @param DirectoryRva The RVA of the debug directory to set
+ * @param DirectorySize The size of the debug directory
+ *
+ * @return VOID
+ */
 static VOID
 RsdsSetDebugDirectory(BYTE * Buffer, DWORD DirectoryRva, DWORD DirectorySize)
 {
@@ -114,6 +140,14 @@ RsdsSetDebugDirectory(BYTE * Buffer, DWORD DirectoryRva, DWORD DirectorySize)
     }
 }
 
+/**
+ * @brief Updates the NumberOfRvaAndSizes field in the optional header to the specified value
+ *
+ * @param Buffer The buffer containing the PE image
+ * @param NumberOfRvaAndSizes The value to set for the NumberOfRvaAndSizes field
+ *
+ * @return VOID
+ */
 static VOID
 RsdsSetNumberOfRvaAndSizes(BYTE * Buffer, DWORD NumberOfRvaAndSizes)
 {
@@ -131,6 +165,14 @@ RsdsSetNumberOfRvaAndSizes(BYTE * Buffer, DWORD NumberOfRvaAndSizes)
     }
 }
 
+/**
+ * @brief Updates the SizeOfImage field in the optional header to the specified value
+ *
+ * @param Buffer The buffer containing the PE image
+ * @param SizeOfImage The value to set for the SizeOfImage field
+ *
+ * @return VOID
+ */
 static VOID
 RsdsSetSizeOfImage(BYTE * Buffer, DWORD SizeOfImage)
 {
@@ -148,6 +190,18 @@ RsdsSetSizeOfImage(BYTE * Buffer, DWORD SizeOfImage)
     }
 }
 
+/**
+ * @brief Writes an RSDS CodeView payload to the specified location in the buffer
+ *
+ * @param Buffer The buffer to write the payload into
+ * @param RawOffset The file offset to write the payload at
+ * @param Guid The GUID to include in the payload
+ * @param Age The age to include in the payload
+ * @param Path The path to include in the payload
+ * @param IncludeNul Whether to include a NUL terminator at the end of the path
+ *
+ * @return VOID
+ */
 static VOID
 RsdsWritePayload(BYTE * Buffer, DWORD RawOffset, const GUID & Guid, DWORD Age, const CHAR * Path, BOOLEAN IncludeNul)
 {
@@ -164,12 +218,32 @@ RsdsWritePayload(BYTE * Buffer, DWORD RawOffset, const GUID & Guid, DWORD Age, c
     }
 }
 
+/**
+ * @brief Calculates the size of an RSDS CodeView payload based on the path length and whether to include a NUL terminator
+ *
+ * @param Path The path to be included in the payload
+ * @param IncludeNul Whether to include a NUL terminator at the end of the path
+ *
+ * @return DWORD The size of the payload in bytes
+ */
 static DWORD
 RsdsPayloadSize(const CHAR * Path, BOOLEAN IncludeNul)
 {
     return (DWORD)(sizeof(DWORD) + sizeof(GUID) + sizeof(DWORD) + strlen(Path) + (IncludeNul ? 1 : 0));
 }
 
+/**
+ * @brief Writes an IMAGE_DEBUG_DIRECTORY entry to the specified location in the buffer
+ *
+ * @param Buffer The buffer to write the debug entry into
+ * @param EntryRawOffset The file offset to write the debug entry at
+ * @param Type The Type field of the debug entry
+ * @param PayloadRva The AddressOfRawData field of the debug entry
+ * @param PayloadRaw The PointerToRawData field of the debug entry
+ * @param PayloadSize The SizeOfData field of the debug entry
+ *
+ * @return VOID
+ */
 static VOID
 RsdsWriteDebugEntry(BYTE * Buffer, DWORD EntryRawOffset, DWORD Type, DWORD PayloadRva, DWORD PayloadRaw, DWORD PayloadSize)
 {
@@ -181,6 +255,16 @@ RsdsWriteDebugEntry(BYTE * Buffer, DWORD EntryRawOffset, DWORD Type, DWORD Paylo
     DebugEntry->PointerToRawData = PayloadRaw;
 }
 
+/**
+ * @brief Builds a minimal PE image with a valid RSDS debug entry in the specified buffer
+ *
+ * @param Buffer The buffer to write the PE image into. Must be at least RsdsFixtureSize bytes
+ * @param Guid The GUID to include in the RSDS payload
+ * @param Age The age to include in the RSDS payload
+ * @param Path The path to include in the RSDS payload
+ *
+ * @return VOID
+ */
 static VOID
 RsdsWriteValidDebugEntry(BYTE * Buffer, const GUID & Guid, DWORD Age, const CHAR * Path)
 {
@@ -189,6 +273,14 @@ RsdsWriteValidDebugEntry(BYTE * Buffer, const GUID & Guid, DWORD Age, const CHAR
     RsdsWriteDebugEntry(Buffer, RsdsDebugDirectoryRaw, IMAGE_DEBUG_TYPE_CODEVIEW, RsdsPayloadRva, RsdsPayloadRaw, PayloadSize);
 }
 
+/**
+ * @brief Builds a minimal PE image with a valid RSDS debug entry suitable for loaded PE parsing in the specified buffer
+ *
+ * @param Buffer The buffer to write the PE image into. Must be at least RsdsFixtureSize bytes
+ * @param Is32Bit Whether to build a 32-bit (true) or 64-bit (false) PE image
+ *
+ * @return VOID
+ */
 static VOID
 RsdsBuildLoadedPe(BYTE * Buffer, BOOLEAN Is32Bit)
 {
@@ -196,6 +288,16 @@ RsdsBuildLoadedPe(BYTE * Buffer, BOOLEAN Is32Bit)
     RsdsSetDebugDirectory(Buffer, RsdsLoadedDebugRva, sizeof(IMAGE_DEBUG_DIRECTORY));
 }
 
+/**
+ * @brief Writes a valid RSDS debug entry suitable for loaded PE parsing to the specified buffer
+ *
+ * @param Buffer The buffer to write the debug entry into
+ * @param Guid The GUID to include in the RSDS payload
+ * @param Age The age to include in the RSDS payload
+ * @param Path The path to include in the RSDS payload
+ *
+ * @return VOID
+ */
 static VOID
 RsdsWriteValidLoadedDebugEntry(BYTE * Buffer, const GUID & Guid, DWORD Age, const CHAR * Path)
 {
@@ -204,12 +306,30 @@ RsdsWriteValidLoadedDebugEntry(BYTE * Buffer, const GUID & Guid, DWORD Age, cons
     RsdsWriteDebugEntry(Buffer, RsdsLoadedDebugRva, IMAGE_DEBUG_TYPE_CODEVIEW, RsdsLoadedPayloadRva, RsdsBogusRawPointer, PayloadSize);
 }
 
+/**
+ * @brief Compares two GUIDs for equality
+ *
+ * @param Left The first GUID to compare
+ * @param Right The second GUID to compare
+ *
+ * @return BOOLEAN TRUE if the GUIDs are equal, FALSE otherwise
+ */
 static BOOLEAN
 RsdsGuidEquals(const GUID & Left, const GUID & Right)
 {
     return memcmp(&Left, &Right, sizeof(Left)) == 0;
 }
 
+/**
+ * @brief Helper function to test that the RSDS parser successfully extracts the expected information from the provided buffer
+ *
+ * @param Buffer The buffer containing the PE image to parse
+ * @param ExpectedPdb The expected PDB file name to be extracted from the RSDS payload
+ * @param ExpectedGuid The expected GUID to be extracted from the RSDS payload
+ * @param ExpectedAge The expected age to be extracted from the RSDS payload
+ *
+ * @return BOOLEAN TRUE if the parser successfully extracted the expected information, FALSE otherwise
+ */
 static BOOLEAN
 RsdsExpectSuccess(const BYTE * Buffer, const CHAR * ExpectedPdb, const GUID & ExpectedGuid, DWORD ExpectedAge)
 {
@@ -221,6 +341,13 @@ RsdsExpectSuccess(const BYTE * Buffer, const CHAR * ExpectedPdb, const GUID & Ex
            strcmp(PdbFileName, ExpectedPdb) == 0 && RsdsGuidEquals(Guid, ExpectedGuid) && Age == ExpectedAge;
 }
 
+/**
+ * @brief Helper function to test that the RSDS parser fails to extract information from the provided buffer and leaves output parameters unchanged
+ *
+ * @param Buffer The buffer containing the PE image to parse
+ *
+ * @return BOOLEAN TRUE if the parser failed as expected and left output parameters unchanged, FALSE otherwise
+ */
 static BOOLEAN
 RsdsExpectFailure(const BYTE * Buffer)
 {
@@ -233,6 +360,16 @@ RsdsExpectFailure(const BYTE * Buffer)
            PdbFileName[0] == '\0' && RsdsGuidEquals(Guid, EmptyGuid) && Age == 0;
 }
 
+/**
+ * @brief Helper function to test that the RSDS parser successfully extracts the expected information from the provided buffer when parsing as a loaded PE
+ *
+ * @param Buffer The buffer containing the PE image to parse
+ * @param ExpectedPdb The expected PDB file name to be extracted from the RSDS payload
+ * @param ExpectedGuid The expected GUID to be extracted from the RSDS payload
+ * @param ExpectedAge The expected age to be extracted from the RSDS payload
+ *
+ * @return BOOLEAN TRUE if the parser successfully extracted the expected information, FALSE otherwise
+ */
 static BOOLEAN
 RsdsExpectLoadedSuccess(const BYTE * Buffer, const CHAR * ExpectedPdb, const GUID & ExpectedGuid, DWORD ExpectedAge)
 {
@@ -244,6 +381,13 @@ RsdsExpectLoadedSuccess(const BYTE * Buffer, const CHAR * ExpectedPdb, const GUI
            strcmp(PdbFileName, ExpectedPdb) == 0 && RsdsGuidEquals(Guid, ExpectedGuid) && Age == ExpectedAge;
 }
 
+/**
+ * @brief Helper function to test that the RSDS parser fails to extract information from the provided buffer when parsing as a loaded PE and leaves output parameters unchanged
+ *
+ * @param Buffer The buffer containing the PE image to parse
+ *
+ * @return BOOLEAN TRUE if the parser failed as expected and left output parameters unchanged, FALSE otherwise
+ */
 static BOOLEAN
 RsdsExpectLoadedFailure(const BYTE * Buffer)
 {
@@ -256,12 +400,24 @@ RsdsExpectLoadedFailure(const BYTE * Buffer)
            PdbFileName[0] == '\0' && RsdsGuidEquals(Guid, EmptyGuid) && Age == 0;
 }
 
+// Context structure for the fake fallback function used in some test cases
 typedef struct _RSDS_FAKE_FALLBACK_CONTEXT
 {
     INT32   CallCount;
     BOOLEAN Succeed;
 } RSDS_FAKE_FALLBACK_CONTEXT, *PRSDS_FAKE_FALLBACK_CONTEXT;
 
+/**
+ * @brief A fake fallback function that can be used to test the behavior of the RSDS parser when a fallback is triggered
+ *
+ * @param Context A pointer to an RSDS_FAKE_FALLBACK_CONTEXT structure that controls the behavior of the fallback
+ * @param PdbFile The output buffer to receive the PDB file name (must be at least MAX_PATH bytes)
+ * @param PdbFileSize The size of the PdbFile buffer in bytes
+ * @param Guid The output parameter to receive the GUID
+ * @param Age The output parameter to receive the age
+ *
+ * @return BOOLEAN TRUE if the fallback succeeded and filled output parameters, FALSE if the fallback failed and left output parameters unchanged
+ */
 static BOOLEAN
 RsdsFakeFallback(PVOID Context, CHAR * PdbFile, SIZE_T PdbFileSize, GUID * Guid, DWORD * Age)
 {
@@ -284,6 +440,11 @@ RsdsFakeFallback(PVOID Context, CHAR * PdbFile, SIZE_T PdbFileSize, GUID * Guid,
     return TRUE;
 }
 
+/**
+ * @brief Runs a series of test cases to validate the behavior of the RSDS parser helper functions
+ *
+ * @return BOOLEAN TRUE if all test cases passed, FALSE if any test case failed
+ */
 BOOLEAN
 TestCodeViewRsdsParser()
 {

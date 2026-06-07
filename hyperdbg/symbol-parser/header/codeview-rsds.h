@@ -3,7 +3,7 @@
  * @author jtaw5649
  * @brief Bounded in-memory CodeView RSDS parser
  * @details
- * @version 0.1
+ * @version 0.19
  * @date 2026-06-02
  *
  * @copyright This project is released under the GNU Public License v3.

@@ -3,7 +3,7 @@
  * @author jtaw5649
  * @brief Internal PDB identity formatting helpers
  * @details
- * @version 0.1
+ * @version 0.19
  * @date 2026-06-02
  *
  * @copyright This project is released under the GNU Public License v3.
@@ -16,6 +16,14 @@ typedef BOOLEAN (*PSYM_PDB_IDENTITY_FALLBACK_CALLBACK)(PVOID   Context,
                                                        SIZE_T  PdbFileSize,
                                                        GUID *  Guid,
                                                        DWORD * Age);
+
+
+typedef BOOLEAN (*PSYM_PDB_IDENTITY_EXTRACTOR_CALLBACK)(const BYTE * PeImageBytes,
+                                                        SIZE_T       PeImageSize,
+                                                        CHAR *       PdbFile,
+                                                        SIZE_T       PdbFileSize,
+                                                        GUID *       Guid,
+                                                        DWORD *      Age);
 
 BOOLEAN
 SymFormatPdbIdentity(const CHAR * PdbFile,

@@ -423,6 +423,16 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
     return IsFound;
 }
 
+/**
+ * @brief Read user virtual memory of the debuggee process
+ *
+ * @param BaseAddress the base address to read from
+ * @param UserProcessId the target process id to read its memory
+ * @param ReadSize the size of bytes to read
+ * @param Bytes the output vector to receive the read bytes
+ *
+ * @return BOOLEAN shows whether the reading was successful or not
+ */
 static BOOLEAN
 SymbolReadUserVirtualMemoryExact(UINT64 BaseAddress, UINT32 UserProcessId, UINT32 ReadSize, std::vector<BYTE> & Bytes)
 {
@@ -481,6 +491,15 @@ SymbolReadUserVirtualMemoryExact(UINT64 BaseAddress, UINT32 UserProcessId, UINT3
     return TRUE;
 }
 
+/**
+ * @brief Check if the provided range is valid and update the required size to read if needed
+ *
+ * @param Offset the offset of the range to check
+ * @param Length the length of the range to check
+ * @param RequiredSize a pointer to the variable containing the current required size, which will be updated if the end of the range exceeds it
+ *
+ * @return BOOLEAN TRUE if the range is valid and RequiredSize is updated if needed, FALSE if the range is invalid (e.g., due to overflow)
+ */
 static BOOLEAN
 SymbolAddLoadedImageReadRange(UINT32 Offset, UINT32 Length, UINT32 * RequiredSize)
 {
@@ -510,12 +529,30 @@ SymbolAddLoadedImageReadRange(UINT32 Offset, UINT32 Length, UINT32 * RequiredSiz
     return TRUE;
 }
 
+/**
+ * @brief Check if the provided range is within the bounds of the loaded image bytes
+ *
+ * @param LoadedImageBytes the vector containing the bytes of the loaded image
+ * @param Offset the offset of the range to check
+ * @param Length the length of the range to check
+ *
+ * @return BOOLEAN TRUE if the range is within bounds, FALSE otherwise
+ */
 static BOOLEAN
 SymbolLoadedImageHasRange(const std::vector<BYTE> & LoadedImageBytes, UINT32 Offset, UINT32 Length)
 {
     return Length <= LoadedImageBytes.size() && Offset <= LoadedImageBytes.size() - Length;
 }
 
+/**
+ * @brief Parse the headers of a loaded PE image from the provided bytes and extract the SizeOfImage and DebugDirectory details
+ *
+ * @param LoadedImagePrefix a vector containing the initial bytes of the loaded image, which should include at least the DOS header and NT headers
+ * @param SizeOfImage an output pointer to receive the SizeOfImage extracted from the optional header
+ * @param DebugDirectory an optional output pointer to receive the IMAGE_DATA_DIRECTORY entry for the debug directory if available (can be NULL if not needed)
+ *
+ * @return BOOLEAN TRUE if the headers were successfully parsed and SizeOfImage was extracted, FALSE otherwise (e.g., if the headers are invalid or incomplete)
+ */
 static BOOLEAN
 SymbolGetLoadedImageHeaderDetails(const std::vector<BYTE> & LoadedImagePrefix, UINT32 * SizeOfImage, IMAGE_DATA_DIRECTORY * DebugDirectory)
 {
@@ -588,6 +625,15 @@ SymbolGetLoadedImageHeaderDetails(const std::vector<BYTE> & LoadedImagePrefix, U
     return FALSE;
 }
 
+/**
+ * @brief Read the necessary bytes of a loaded user-mode module to extract the debug directory and code view information for symbol loading
+ *
+ * @param BaseAddress the base address of the loaded module in the user process
+ * @param UserProcessId the target process id to read its memory
+ * @param LoadedImageBytes an output vector to receive the bytes of the loaded image that are necessary for symbol extraction (should be cleared and filled by this function)
+ *
+ * @return BOOLEAN TRUE if the necessary bytes were successfully read, FALSE otherwise (e.g., if memory reading failed or headers are invalid)
+ */
 static BOOLEAN
 SymbolReadLoadedUserModuleForCodeView(UINT64 BaseAddress, UINT32 UserProcessId, std::vector<BYTE> & LoadedImageBytes)
 {

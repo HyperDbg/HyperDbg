@@ -3,7 +3,7 @@
  * @author jtaw5649
  * @brief Internal PDB identity formatting helpers
  * @details
- * @version 0.1
+ * @version 0.19
  * @date 2026-06-02
  *
  * @copyright This project is released under the GNU Public License v3.
@@ -11,12 +11,18 @@
  */
 #include "pch.h"
 
-#include <strsafe.h>
-#include <vector>
-
 #include "header/codeview-rsds.h"
 #include "header/pdb-identity.h"
 
+/**
+ * @brief Helper function to clear the output buffer
+ *
+ *
+ * @param Buffer The output buffer pointer to check
+ * @param BufferSize The size of the output buffer in bytes
+ *
+ * @return BOOLEAN TRUE if the buffer is valid for writing, FALSE otherwise
+ */
 static VOID
 SymClearOutputBuffer(CHAR * Buffer, SIZE_T BufferSize)
 {
@@ -26,19 +32,37 @@ SymClearOutputBuffer(CHAR * Buffer, SIZE_T BufferSize)
     }
 }
 
+/**
+ * @brief Helper function to check if the output buffer is valid for writing
+ *
+ * A buffer is considered valid if it is either NULL (indicating the caller does not want that output) or if it has a non-zero size.
+ *
+ * @param Buffer The output buffer pointer to check
+ * @param BufferSize The size of the output buffer in bytes
+ *
+ * @return BOOLEAN TRUE if the buffer is valid for writing, FALSE otherwise
+ */
 static BOOLEAN
 SymOutputBufferHasSpace(const CHAR * Buffer, SIZE_T BufferSize)
 {
     return Buffer == NULL || BufferSize != 0;
 }
 
-typedef BOOLEAN (*PSYM_PDB_IDENTITY_EXTRACTOR_CALLBACK)(const BYTE * PeImageBytes,
-                                                        SIZE_T       PeImageSize,
-                                                        CHAR *       PdbFile,
-                                                        SIZE_T       PdbFileSize,
-                                                        GUID *       Guid,
-                                                        DWORD *      Age);
-
+/**
+ * @brief Helper function to format the PDB identity information into the specified output buffers
+ *
+ * The function formats the PDB file name, GUID, and age into a symbol server relative path and a combined GUID-and-age string according to the standard symbol server layout.
+ *
+ * @param PdbFile The base name of the PDB file (e.g., "example.pdb")
+ * @param Guid The GUID associated with the PDB
+ * @param Age The age associated with the PDB
+ * @param SymbolServerRelativePath An optional output buffer to receive the formatted symbol server relative path. If not NULL, it must have enough space for the formatted string
+ * @param SymbolServerRelativePathSize The size of the SymbolServerRelativePath buffer in bytes
+ * @param GuidAndAgeDetails An optional output buffer to receive the formatted GUID and age details string. If not NULL, it must have enough space for the formatted string
+ * @param GuidAndAgeDetailsSize The size of the GuidAndAgeDetails buffer in bytes
+ *
+ * @return BOOLEAN TRUE if the formatting succeeded and output buffers were filled as requested, FALSE if there was an error (e.g., invalid parameters or insufficient buffer sizes)
+ */
 BOOLEAN
 SymFormatPdbIdentity(const CHAR * PdbFile,
                      const GUID * Guid,
@@ -109,6 +133,23 @@ SymFormatPdbIdentity(const CHAR * PdbFile,
     return TRUE;
 }
 
+/**
+ * @brief Helper function to extract PDB identity information from a PE image using a specified extractor callback, with an optional fallback if extraction fails
+ *
+ * @param PeImageBytes A pointer to the bytes of the PE image in memory
+ * @param PeImageSize The size of the PE image in bytes
+ * @param SymbolServerRelativePath An optional output buffer to receive the formatted symbol server relative path. If not NULL, it must have enough space for the formatted string
+ * @param SymbolServerRelativePathSize The size of the SymbolServerRelativePath buffer in bytes
+ * @param PdbFilePath An optional output buffer to receive the extracted PDB file path. If not NULL, it must have enough space for the file path string
+ * @param PdbFilePathSize The size of the PdbFilePath buffer in bytes
+ * @param GuidAndAgeDetails An optional output buffer to receive the formatted GUID and age details string. If not NULL, it must have enough space for the formatted string
+ * @param GuidAndAgeDetailsSize The size of the GuidAndAgeDetails buffer in bytes
+ * @param ExtractorCallback A callback function that attempts to extract the PDB file name, GUID, and age from the PE image bytes. It should return TRUE on success and FALSE on failure
+ * @param FallbackCallback An optional callback function that is invoked if the extractor callback fails. It should attempt to provide the same information as the extractor and return TRUE on success or FALSE on failure
+ * @param FallbackContext An optional context pointer that is passed to the fallback callback when invoked
+ *
+ * @return BOOLEAN TRUE if either extraction method succeeded and output buffers were filled as requested, FALSE if both methods failed or if there was an error with parameters or buffer sizes
+ */
 static BOOLEAN
 SymFormatPdbIdentityFromExtractorOrFallback(const BYTE *                         PeImageBytes,
                                             SIZE_T                               PeImageSize,
@@ -206,6 +247,22 @@ SymFormatPdbIdentityFromExtractorOrFallback(const BYTE *                        
     return TRUE;
 }
 
+/**
+ * @brief Extracts PDB identity information from a PE image using the specified extractor callback, with an optional fallback if extraction fails
+ *
+ * @param PeImageBytes A pointer to the bytes of the PE image in memory
+ * @param PeImageSize The size of the PE image in bytes
+ * @param SymbolServerRelativePath An optional output buffer to receive the formatted symbol server relative path. If not NULL, it must have enough space for the formatted string
+ * @param SymbolServerRelativePathSize The size of the SymbolServerRelativePath buffer in bytes
+ * @param PdbFilePath An optional output buffer to receive the extracted PDB file path. If not NULL, it must have enough space for the file path string
+ * @param PdbFilePathSize The size of the PdbFilePath buffer in bytes
+ * @param GuidAndAgeDetails An optional output buffer to receive the formatted GUID and age details string. If not NULL, it must have enough space for the formatted string
+ * @param GuidAndAgeDetailsSize The size of the GuidAndAgeDetails buffer in bytes
+ * @param FallbackCallback An optional callback function that is invoked if the extractor callback fails. It should attempt to provide the same information as the extractor and return TRUE on success or FALSE on failure
+ * @param FallbackContext An optional context pointer that is passed to the fallback callback when invoked
+ *
+ * @return BOOLEAN TRUE if either extraction method succeeded and output buffers were filled as requested, FALSE if both methods failed or if there was an error with parameters or buffer sizes
+ */
 BOOLEAN
 SymFormatPdbIdentityFromPeImageOrFallback(const BYTE *                        PeImageBytes,
                                           SIZE_T                              PeImageSize,
@@ -231,6 +288,22 @@ SymFormatPdbIdentityFromPeImageOrFallback(const BYTE *                        Pe
                                                        FallbackContext);
 }
 
+/**
+ * @brief Extracts PDB identity information from a PE image using the specified extractor callback that parses the image as if it is loaded in memory, with an optional fallback if extraction fails
+ *
+ * @param PeImageBytes A pointer to the bytes of the PE image in memory
+ * @param PeImageSize The size of the PE image in bytes
+ * @param SymbolServerRelativePath An optional output buffer to receive the formatted symbol server relative path. If not NULL, it must have enough space for the formatted string
+ * @param SymbolServerRelativePathSize The size of the SymbolServerRelativePath buffer in bytes
+ * @param PdbFilePath An optional output buffer to receive the extracted PDB file path. If not NULL, it must have enough space for the file path string
+ * @param PdbFilePathSize The size of the PdbFilePath buffer in bytes
+ * @param GuidAndAgeDetails An optional output buffer to receive the formatted GUID and age details string. If not NULL, it must have enough space for the formatted string
+ * @param GuidAndAgeDetailsSize The size of the GuidAndAgeDetails buffer in bytes
+ * @param FallbackCallback An optional callback function that is invoked if the extractor callback fails. It should attempt to provide the same information as the extractor and return TRUE on success or FALSE on failure
+ * @param FallbackContext An optional context pointer that is passed to the fallback callback when invoked
+ *
+ * @return BOOLEAN TRUE if either extraction method succeeded and output buffers were filled as requested, FALSE if both methods failed or if there was an error with parameters or buffer sizes
+ */
 BOOLEAN
 SymFormatPdbIdentityFromLoadedPeImageOrFallback(const BYTE *                        PeImageBytes,
                                                 SIZE_T                              PeImageSize,
