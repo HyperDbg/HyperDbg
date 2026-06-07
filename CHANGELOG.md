@@ -30,6 +30,8 @@ New release of the HyperDbg Debugger.
 - Added tests for checking PE parser in 'hyperdbg-test' project
 - Added example for loading HyperDbg in VMI mode directly from libhyperdbg
 - Fix action cleanup list removal in debugger events ([link](https://github.com/HyperDbg/HyperDbg/pull/601))
+- Added transparent-mode evade mask selection thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/602))
+- Added synthetic MSR handling thanks to [@Idov31](https://github.com/Idov31) ([link](https://github.com/HyperDbg/HyperDbg/pull/605))
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
