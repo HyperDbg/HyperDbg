@@ -452,7 +452,7 @@ TestCodeViewRsdsParser()
     INT32 TestNum                 = 0;
 
     RsdsBuildMinimalPe(Buffer, FALSE);
-    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "C:\\symbols\\valid64.pdb");
+    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "symbols\\valid64.pdb");
     TestNum++;
     if (RsdsExpectSuccess(Buffer, "valid64.pdb", RsdsGuid64, 7))
     {
@@ -466,7 +466,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildMinimalPe(Buffer, FALSE);
-    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "C:\\symbols\\unadvertised.pdb");
+    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "symbols\\unadvertised.pdb");
     RsdsSetNumberOfRvaAndSizes(Buffer, IMAGE_DIRECTORY_ENTRY_DEBUG);
     TestNum++;
     if (RsdsExpectFailure(Buffer))
@@ -481,7 +481,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildMinimalPe(Buffer, TRUE);
-    RsdsWriteValidDebugEntry(Buffer, RsdsGuid32, 9, "C:/symbols/valid32.pdb");
+    RsdsWriteValidDebugEntry(Buffer, RsdsGuid32, 9, "symbols/valid32.pdb");
     TestNum++;
     if (RsdsExpectSuccess(Buffer, "valid32.pdb", RsdsGuid32, 9))
     {
@@ -495,7 +495,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildMinimalPe(Buffer, FALSE);
-    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "C:\\symbols\\valid64.pdb");
+    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "symbols\\valid64.pdb");
     RsdsSetDebugDirectory(Buffer, 0x3000, sizeof(IMAGE_DEBUG_DIRECTORY));
     TestNum++;
     if (RsdsExpectFailure(Buffer))
@@ -510,7 +510,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildMinimalPe(Buffer, FALSE);
-    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "C:\\symbols\\invalid.pdb");
+    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 7, "symbols\\invalid.pdb");
     CopyMemory(Buffer + RsdsPayloadRaw, "ABCD", sizeof(DWORD));
     TestNum++;
     if (RsdsExpectFailure(Buffer))
@@ -525,13 +525,13 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildMinimalPe(Buffer, FALSE);
-    RsdsWritePayload(Buffer, RsdsPayloadRaw, RsdsGuid64, 7, "C:\\symbols\\missing-nul.pdb", FALSE);
+    RsdsWritePayload(Buffer, RsdsPayloadRaw, RsdsGuid64, 7, "symbols\\missing-nul.pdb", FALSE);
     RsdsWriteDebugEntry(Buffer,
                         RsdsDebugDirectoryRaw,
                         IMAGE_DEBUG_TYPE_CODEVIEW,
                         RsdsPayloadRva,
                         RsdsPayloadRaw,
-                        RsdsPayloadSize("C:\\symbols\\missing-nul.pdb", FALSE));
+                        RsdsPayloadSize("symbols\\missing-nul.pdb", FALSE));
     TestNum++;
     if (RsdsExpectFailure(Buffer))
     {
@@ -548,13 +548,13 @@ TestCodeViewRsdsParser()
     RsdsSetDebugDirectory(Buffer, RsdsDebugDirectoryRva, sizeof(IMAGE_DEBUG_DIRECTORY) * 2);
     RsdsWriteDebugEntry(Buffer, RsdsDebugDirectoryRaw, IMAGE_DEBUG_TYPE_CODEVIEW, RsdsPayloadRva, RsdsPayloadRaw, sizeof(DWORD));
     CopyMemory(Buffer + RsdsPayloadRaw, "NB10", sizeof(DWORD));
-    RsdsWritePayload(Buffer, 0x390, RsdsGuidMulti, 11, "D:/alt/second-valid.pdb", TRUE);
+    RsdsWritePayload(Buffer, 0x390, RsdsGuidMulti, 11, "alt/second-valid.pdb", TRUE);
     RsdsWriteDebugEntry(Buffer,
                         RsdsDebugDirectoryRaw + sizeof(IMAGE_DEBUG_DIRECTORY),
                         IMAGE_DEBUG_TYPE_CODEVIEW,
                         0x1190,
                         0x390,
-                        RsdsPayloadSize("D:/alt/second-valid.pdb", TRUE));
+                        RsdsPayloadSize("alt/second-valid.pdb", TRUE));
     TestNum++;
     if (RsdsExpectSuccess(Buffer, "second-valid.pdb", RsdsGuidMulti, 11))
     {
@@ -568,7 +568,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildLoadedPe(Buffer, FALSE);
-    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x21, "C:\\loaded\\loaded64.pdb");
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x21, "loaded\\loaded64.pdb");
     TestNum++;
     if (RsdsExpectLoadedSuccess(Buffer, "loaded64.pdb", RsdsGuid64, 0x21))
     {
@@ -582,7 +582,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildLoadedPe(Buffer, FALSE);
-    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x21, "C:\\loaded\\unadvertised.pdb");
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x21, "loaded\\unadvertised.pdb");
     RsdsSetNumberOfRvaAndSizes(Buffer, IMAGE_DIRECTORY_ENTRY_DEBUG);
     TestNum++;
     if (RsdsExpectLoadedFailure(Buffer))
@@ -597,7 +597,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildLoadedPe(Buffer, TRUE);
-    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid32, 0x22, "C:/loaded/loaded32.pdb");
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid32, 0x22, "loaded/loaded32.pdb");
     TestNum++;
     if (RsdsExpectLoadedSuccess(Buffer, "loaded32.pdb", RsdsGuid32, 0x22))
     {
@@ -611,7 +611,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildLoadedPe(Buffer, FALSE);
-    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x23, "C:\\loaded\\bogus-raw-ignored.pdb");
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x23, "loaded\\bogus-raw-ignored.pdb");
     TestNum++;
     if (RsdsExpectLoadedSuccess(Buffer, "bogus-raw-ignored.pdb", RsdsGuid64, 0x23))
     {
@@ -628,13 +628,13 @@ TestCodeViewRsdsParser()
     RsdsBuildLoadedPe(HighLoadedBuffer.data(), FALSE);
     RsdsSetSizeOfImage(HighLoadedBuffer.data(), (DWORD)HighLoadedBuffer.size());
     RsdsSetDebugDirectory(HighLoadedBuffer.data(), RsdsHighLoadedDebugRva, sizeof(IMAGE_DEBUG_DIRECTORY));
-    RsdsWritePayload(HighLoadedBuffer.data(), RsdsHighLoadedPayloadRva, RsdsGuid64, 0x28, "C:\\loaded\\high-rva.pdb", TRUE);
+    RsdsWritePayload(HighLoadedBuffer.data(), RsdsHighLoadedPayloadRva, RsdsGuid64, 0x28, "loaded\\high-rva.pdb", TRUE);
     RsdsWriteDebugEntry(HighLoadedBuffer.data(),
                         RsdsHighLoadedDebugRva,
                         IMAGE_DEBUG_TYPE_CODEVIEW,
                         RsdsHighLoadedPayloadRva,
                         RsdsBogusRawPointer,
-                        RsdsPayloadSize("C:\\loaded\\high-rva.pdb", TRUE));
+                        RsdsPayloadSize("loaded\\high-rva.pdb", TRUE));
     CHAR  HighLoadedPdbFileName[MAX_PATH] = {0};
     GUID  HighLoadedGuid                  = {0};
     DWORD HighLoadedAge                   = 0;
@@ -658,7 +658,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildLoadedPe(Buffer, FALSE);
-    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x24, "C:\\loaded\\invalid-dir.pdb");
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x24, "loaded\\invalid-dir.pdb");
     RsdsSetDebugDirectory(Buffer, RsdsFixtureSize - sizeof(IMAGE_DEBUG_DIRECTORY) / 2, sizeof(IMAGE_DEBUG_DIRECTORY));
     TestNum++;
     if (RsdsExpectLoadedFailure(Buffer))
@@ -673,7 +673,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildLoadedPe(Buffer, FALSE);
-    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x25, "C:\\loaded\\unsupported.pdb");
+    RsdsWriteValidLoadedDebugEntry(Buffer, RsdsGuid64, 0x25, "loaded\\unsupported.pdb");
     CopyMemory(Buffer + RsdsLoadedPayloadRva, "ABCD", sizeof(DWORD));
     TestNum++;
     if (RsdsExpectLoadedFailure(Buffer))
@@ -688,13 +688,13 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildLoadedPe(Buffer, FALSE);
-    RsdsWritePayload(Buffer, RsdsLoadedPayloadRva, RsdsGuid64, 0x26, "C:\\loaded\\missing-nul.pdb", FALSE);
+    RsdsWritePayload(Buffer, RsdsLoadedPayloadRva, RsdsGuid64, 0x26, "loaded\\missing-nul.pdb", FALSE);
     RsdsWriteDebugEntry(Buffer,
                         RsdsLoadedDebugRva,
                         IMAGE_DEBUG_TYPE_CODEVIEW,
                         RsdsLoadedPayloadRva,
                         RsdsBogusRawPointer,
-                        RsdsPayloadSize("C:\\loaded\\missing-nul.pdb", FALSE));
+                        RsdsPayloadSize("loaded\\missing-nul.pdb", FALSE));
     TestNum++;
     if (RsdsExpectLoadedFailure(Buffer))
     {
@@ -711,13 +711,13 @@ TestCodeViewRsdsParser()
     RsdsSetDebugDirectory(Buffer, RsdsLoadedDebugRva, sizeof(IMAGE_DEBUG_DIRECTORY) * 2);
     RsdsWriteDebugEntry(Buffer, RsdsLoadedDebugRva, IMAGE_DEBUG_TYPE_CODEVIEW, RsdsLoadedPayloadRva, RsdsBogusRawPointer, sizeof(DWORD));
     CopyMemory(Buffer + RsdsLoadedPayloadRva, "NB10", sizeof(DWORD));
-    RsdsWritePayload(Buffer, 0x330, RsdsGuidMulti, 0x27, "D:/loaded/second-loaded.pdb", TRUE);
+    RsdsWritePayload(Buffer, 0x330, RsdsGuidMulti, 0x27, "loaded/second-loaded.pdb", TRUE);
     RsdsWriteDebugEntry(Buffer,
                         RsdsLoadedDebugRva + sizeof(IMAGE_DEBUG_DIRECTORY),
                         IMAGE_DEBUG_TYPE_CODEVIEW,
                         0x330,
                         RsdsBogusRawPointer,
-                        RsdsPayloadSize("D:/loaded/second-loaded.pdb", TRUE));
+                        RsdsPayloadSize("loaded/second-loaded.pdb", TRUE));
     TestNum++;
     if (RsdsExpectLoadedSuccess(Buffer, "second-loaded.pdb", RsdsGuidMulti, 0x27))
     {
@@ -774,7 +774,7 @@ TestCodeViewRsdsParser()
     }
 
     RsdsBuildMinimalPe(Buffer, FALSE);
-    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 0x1c, "C:\\preferred\\preferred.pdb");
+    RsdsWriteValidDebugEntry(Buffer, RsdsGuid64, 0x1c, "preferred\\preferred.pdb");
     RSDS_FAKE_FALLBACK_CONTEXT FallbackContext         = {0, TRUE};
     CHAR                       PreferredPath[MAX_PATH] = {0};
     TestNum++;
