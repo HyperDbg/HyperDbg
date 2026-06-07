@@ -1,6 +1,7 @@
 /**
  * @file export.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Exported functions from libhyperdbg interface
  * @details
  * @version 0.10
@@ -842,6 +843,21 @@ BOOLEAN
 hyperdbg_u_enable_transparent_mode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId)
 {
     return HyperDbgEnableTransparentMode(ProcessId, ProcessName, IsProcessId);
+}
+
+/**
+ * @brief Enable transparent mode with a feature mask
+ * @param ProcessId The process ID to enable transparent mode for
+ * @param ProcessName The process name to enable transparent mode for
+ * @param IsProcessId If true, ProcessId is used, otherwise ProcessName is used
+ * @param EvadeMask The transparent-mode feature mask, or zero for default behavior
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_enable_transparent_mode_ex(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId, UINT32 EvadeMask)
+{
+    return HyperDbgEnableTransparentModeEx(ProcessId, ProcessName, IsProcessId, EvadeMask);
 }
 
 /**

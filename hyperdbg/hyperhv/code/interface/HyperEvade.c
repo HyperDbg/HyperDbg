@@ -1,6 +1,7 @@
 /**
  * @file HyperEvade.c
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Hyperevade function wrappers
  * @details
  *
@@ -24,6 +25,20 @@ BOOLEAN
 TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
     HYPEREVADE_CALLBACKS HyperevadeCallbacks = {0};
+    UINT32               EvadeMask           = TransparentModeRequest->EvadeMask;
+
+    if (EvadeMask == 0)
+    {
+        EvadeMask = TRANSPARENT_EVADE_MASK_DEFAULT;
+    }
+
+    if ((EvadeMask & ~TRANSPARENT_EVADE_MASK_ALL) != 0)
+    {
+        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+        return FALSE;
+    }
+
+    TransparentModeRequest->EvadeMask = EvadeMask;
 
     //
     // *** Fill the callbacks ***
@@ -67,19 +82,23 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     HyperevadeCallbacks.EventInjectGeneralProtection = EventInjectGeneralProtection;
 
     //
-    // Initialize the syscall callback mechanism from hypervisor
-    //
-    if (!SyscallCallbackInitialize())
-    {
-        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
-        return FALSE;
-    }
-
-    //
     // Call the hyperevade hide debugger function
     //
     if (TransparentHideDebugger(&HyperevadeCallbacks, TransparentModeRequest))
     {
+        //
+        // Initialize the syscall callback mechanism from hypervisor after
+        // transparent-mode accepts the request as the active state.
+        //
+        if ((EvadeMask & TRANSPARENT_EVADE_MASK_SYSCALL_HOOK) != 0 && !SyscallCallbackInitialize())
+        {
+            TransparentUnhideDebugger();
+
+            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+            g_CheckForFootprints                 = FALSE;
+            return FALSE;
+        }
+
         //
         // Status is set within the transparent mode (hyperevade) module
         //
@@ -105,10 +124,15 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
 BOOLEAN
 TransparentUnhideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
-    //
-    // Uninitialize the syscall callback mechanism from hypervisor
-    //
-    SyscallCallbackUninitialize();
+    if (SyscallCallbackIsInitialized() && !SyscallCallbackUninitialize())
+    {
+        if (TransparentModeRequest != NULL)
+        {
+            TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+        }
+
+        return FALSE;
+    }
 
     if (TransparentUnhideDebugger())
     {

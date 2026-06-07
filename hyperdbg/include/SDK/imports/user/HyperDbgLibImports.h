@@ -1,6 +1,7 @@
 /**
  * @file HyperDbgLibImports.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Headers relating exported functions from controller interface
  * @version 0.2
  * @date 2023-02-02
@@ -293,6 +294,9 @@ hyperdbg_u_lbr_dump(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest);
 //
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_enable_transparent_mode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_enable_transparent_mode_ex(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId, UINT32 EvadeMask);
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_disable_transparent_mode();

@@ -1,6 +1,7 @@
 /**
  * @file debugger.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief General debugger functions
  * @details
  * @version 0.1
@@ -309,6 +310,9 @@ HyperDbgPerformSmiOperation(SMI_OPERATION_PACKETS * SmiOperation);
 
 BOOLEAN
 HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
+
+BOOLEAN
+HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId, UINT32 EvadeMask);
 
 BOOLEAN
 HyperDbgDisableTransparentMode();

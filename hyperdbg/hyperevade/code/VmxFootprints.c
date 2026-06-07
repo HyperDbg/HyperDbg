@@ -1,6 +1,7 @@
 /**
  * @file VmxFootprints.c
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Try to hide VMX methods from anti-debugging and anti-hypervisor
  * @details
  * @version 0.14
@@ -22,6 +23,11 @@
 VOID
 TransparentCheckAndModifyCpuid(PGUEST_REGS Regs, INT32 CpuInfo[])
 {
+    if ((g_TransparentEvadeMask & TRANSPARENT_EVADE_MASK_CPUID) == 0)
+    {
+        return;
+    }
+
     if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
     {
         //
@@ -50,6 +56,14 @@ TransparentCheckAndModifyCpuid(PGUEST_REGS Regs, INT32 CpuInfo[])
 BOOLEAN
 TransparentCheckAndModifyMsrRead(PGUEST_REGS Regs, UINT32 TargetMsr)
 {
+    if ((g_TransparentEvadeMask & TRANSPARENT_EVADE_MASK_MSR) == 0)
+    {
+        UNREFERENCED_PARAMETER(Regs);
+        UNREFERENCED_PARAMETER(TargetMsr);
+
+        return FALSE;
+    }
+
     //
     // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
     // when the guest operating system is Windows to indicate the OS identifier
@@ -92,6 +106,14 @@ TransparentCheckAndModifyMsrRead(PGUEST_REGS Regs, UINT32 TargetMsr)
 BOOLEAN
 TransparentCheckAndModifyMsrWrite(PGUEST_REGS Regs, UINT32 TargetMsr)
 {
+    if ((g_TransparentEvadeMask & TRANSPARENT_EVADE_MASK_MSR) == 0)
+    {
+        UNREFERENCED_PARAMETER(Regs);
+        UNREFERENCED_PARAMETER(TargetMsr);
+
+        return FALSE;
+    }
+
     // if (TargetMsr >= RESERVED_MSR_RANGE_LOW && TargetMsr <= RESERVED_MSR_RANGE_HI)
     // {
     //     //
@@ -130,6 +152,11 @@ TransparentCheckAndModifyMsrWrite(PGUEST_REGS Regs, UINT32 TargetMsr)
 VOID
 TransparentCheckAndTrapFlagAfterVmexit()
 {
+    if ((g_TransparentEvadeMask & TRANSPARENT_EVADE_MASK_TRAP_FLAG) == 0)
+    {
+        return;
+    }
+
     //
     // If RIP is incremented, then we emulate an instruction, and then
     // we need to handle the trap flag if it is set in a guest

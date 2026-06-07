@@ -1,6 +1,7 @@
 /**
  * @file Transparency.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief hide the debugger from anti-debugging and anti-hypervisor methods (headers)
  * @details
  * @version 0.1
@@ -63,6 +64,12 @@ typedef struct _TRANSPARENCY_PROCESS
  *
  */
 BOOLEAN g_TransparentMode;
+
+/**
+ * @brief The enabled transparent-mode feature mask
+ *
+ */
+UINT32 g_TransparentEvadeMask;
 
 //////////////////////////////////////////////////
 //				   Functions					//
