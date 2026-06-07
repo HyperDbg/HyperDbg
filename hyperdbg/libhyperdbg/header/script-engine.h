@@ -51,6 +51,14 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const CHAR * LocalFi
                                                             BOOLEAN      Is32BitModule);
 
 BOOLEAN
+ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetailsWrapper(const BYTE * LoadedImageBytes,
+                                                                    SIZE_T       LoadedImageSize,
+                                                                    const CHAR * LocalFilePath,
+                                                                    CHAR *       PdbFilePath,
+                                                                    CHAR *       GuidAndAgeDetails,
+                                                                    BOOLEAN      Is32BitModule);
+
+BOOLEAN
 ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   UINT32                StoredLength,
                                   BOOLEAN               DownloadIfAvailable,

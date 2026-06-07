@@ -34,15 +34,22 @@ using namespace std;
 #include <iomanip>
 #include <fstream>
 #include <filesystem>
+#include <strsafe.h>
+
+//
+// SDK and config headers
+//
+#include "SDK/HyperDbgSdk.h"
+#include "config/Definition.h"
 
 //
 // Program Defined Headers
 //
-#include "SDK/HyperDbgSdk.h"
-#include "config/Definition.h"
-#include "../hyperdbg-test/header/namedpipe.h"
-#include "../hyperdbg-test/header/routines.h"
-#include "../hyperdbg-test/header/testcases.h"
+#include "header/namedpipe.h"
+#include "header/routines.h"
+#include "header/testcases.h"
+#include "header/pdb-identity.h"
+#include "header/codeview-rsds.h"
 
 //
 // Components
@@ -52,7 +59,7 @@ using namespace std;
 //
 // Hardware Debugger Headers
 //
-#include "../hyperdbg-test/header/hwdbg-tests.h"
+#include "header/hwdbg-tests.h"
 
 //
 // import libhyperdbg

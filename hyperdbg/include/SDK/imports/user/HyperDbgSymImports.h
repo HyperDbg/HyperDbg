@@ -74,6 +74,14 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const CHAR * LocalFilePath,
                                             BOOLEAN      Is32BitModule);
 
 IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
+SymConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(const BYTE * LoadedImageBytes,
+                                                    SIZE_T       LoadedImageSize,
+                                                    const CHAR * LocalFilePath,
+                                                    CHAR *       PdbFilePath,
+                                                    CHAR *       GuidAndAgeDetails,
+                                                    BOOLEAN      Is32BitModule);
+
+IMPORT_EXPORT_HYPERDBG_SYMBOL_PARSER BOOLEAN
 SymbolInitLoad(PVOID        BufferToStoreDetails,
                UINT32       StoredLength,
                BOOLEAN      DownloadIfAvailable,

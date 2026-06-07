@@ -424,6 +424,291 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 }
 
 /**
+ * @brief Read user virtual memory of the debuggee process
+ *
+ * @param BaseAddress the base address to read from
+ * @param UserProcessId the target process id to read its memory
+ * @param ReadSize the size of bytes to read
+ * @param Bytes the output vector to receive the read bytes
+ *
+ * @return BOOLEAN shows whether the reading was successful or not
+ */
+static BOOLEAN
+SymbolReadUserVirtualMemoryExact(UINT64 BaseAddress, UINT32 UserProcessId, UINT32 ReadSize, std::vector<BYTE> & Bytes)
+{
+    BOOL  Status         = FALSE;
+    ULONG ReturnedLength = 0;
+    if (ReadSize > 0xffffffffu - SIZEOF_DEBUGGER_READ_MEMORY)
+    {
+        return FALSE;
+    }
+
+    UINT32                 SizeOfTargetBuffer = SIZEOF_DEBUGGER_READ_MEMORY + ReadSize;
+    DEBUGGER_READ_MEMORY   ReadMemoryRequest  = {0};
+    DEBUGGER_READ_MEMORY * MemReadRequest     = NULL;
+
+    Bytes.clear();
+
+    if (g_DeviceHandle == NULL || BaseAddress == 0 || UserProcessId == 0 || ReadSize == 0)
+    {
+        return FALSE;
+    }
+
+    MemReadRequest = (DEBUGGER_READ_MEMORY *)malloc(SizeOfTargetBuffer);
+    if (MemReadRequest == NULL)
+    {
+        return FALSE;
+    }
+
+    ReadMemoryRequest.Address     = BaseAddress;
+    ReadMemoryRequest.Pid         = UserProcessId;
+    ReadMemoryRequest.Size        = ReadSize;
+    ReadMemoryRequest.MemoryType  = DEBUGGER_READ_VIRTUAL_ADDRESS;
+    ReadMemoryRequest.ReadingType = READ_FROM_KERNEL;
+
+    RtlZeroMemory(MemReadRequest, SizeOfTargetBuffer);
+    memcpy(MemReadRequest, &ReadMemoryRequest, sizeof(DEBUGGER_READ_MEMORY));
+
+    Status = DeviceIoControl(g_DeviceHandle,
+                             IOCTL_DEBUGGER_READ_MEMORY,
+                             MemReadRequest,
+                             SIZEOF_DEBUGGER_READ_MEMORY,
+                             MemReadRequest,
+                             SizeOfTargetBuffer,
+                             &ReturnedLength,
+                             NULL);
+
+    if (!Status || MemReadRequest->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL || ReturnedLength != SizeOfTargetBuffer)
+    {
+        free(MemReadRequest);
+        return FALSE;
+    }
+
+    Bytes.resize(ReadSize);
+    memcpy(Bytes.data(), ((UCHAR *)MemReadRequest) + SIZEOF_DEBUGGER_READ_MEMORY, ReadSize);
+
+    free(MemReadRequest);
+    return TRUE;
+}
+
+/**
+ * @brief Check if the provided range is valid and update the required size to read if needed
+ *
+ * @param Offset the offset of the range to check
+ * @param Length the length of the range to check
+ * @param RequiredSize a pointer to the variable containing the current required size, which will be updated if the end of the range exceeds it
+ *
+ * @return BOOLEAN TRUE if the range is valid and RequiredSize is updated if needed, FALSE if the range is invalid (e.g., due to overflow)
+ */
+static BOOLEAN
+SymbolAddLoadedImageReadRange(UINT32 Offset, UINT32 Length, UINT32 * RequiredSize)
+{
+    UINT32 EndOffset = 0;
+
+    if (RequiredSize == NULL)
+    {
+        return FALSE;
+    }
+
+    if (Length == 0)
+    {
+        return TRUE;
+    }
+
+    if (Offset > 0xffffffffu - Length)
+    {
+        return FALSE;
+    }
+
+    EndOffset = Offset + Length;
+    if (EndOffset > *RequiredSize)
+    {
+        *RequiredSize = EndOffset;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Check if the provided range is within the bounds of the loaded image bytes
+ *
+ * @param LoadedImageBytes the vector containing the bytes of the loaded image
+ * @param Offset the offset of the range to check
+ * @param Length the length of the range to check
+ *
+ * @return BOOLEAN TRUE if the range is within bounds, FALSE otherwise
+ */
+static BOOLEAN
+SymbolLoadedImageHasRange(const std::vector<BYTE> & LoadedImageBytes, UINT32 Offset, UINT32 Length)
+{
+    return Length <= LoadedImageBytes.size() && Offset <= LoadedImageBytes.size() - Length;
+}
+
+/**
+ * @brief Parse the headers of a loaded PE image from the provided bytes and extract the SizeOfImage and DebugDirectory details
+ *
+ * @param LoadedImagePrefix a vector containing the initial bytes of the loaded image, which should include at least the DOS header and NT headers
+ * @param SizeOfImage an output pointer to receive the SizeOfImage extracted from the optional header
+ * @param DebugDirectory an optional output pointer to receive the IMAGE_DATA_DIRECTORY entry for the debug directory if available (can be NULL if not needed)
+ *
+ * @return BOOLEAN TRUE if the headers were successfully parsed and SizeOfImage was extracted, FALSE otherwise (e.g., if the headers are invalid or incomplete)
+ */
+static BOOLEAN
+SymbolGetLoadedImageHeaderDetails(const std::vector<BYTE> & LoadedImagePrefix, UINT32 * SizeOfImage, IMAGE_DATA_DIRECTORY * DebugDirectory)
+{
+    if (LoadedImagePrefix.size() < sizeof(IMAGE_DOS_HEADER) || SizeOfImage == NULL)
+    {
+        return FALSE;
+    }
+
+    if (DebugDirectory != NULL)
+    {
+        RtlZeroMemory(DebugDirectory, sizeof(*DebugDirectory));
+    }
+
+    const IMAGE_DOS_HEADER * DosHeader = (const IMAGE_DOS_HEADER *)LoadedImagePrefix.data();
+    if (DosHeader->e_magic != IMAGE_DOS_SIGNATURE || DosHeader->e_lfanew < 0)
+    {
+        return FALSE;
+    }
+
+    SIZE_T NtHeaderOffset = (SIZE_T)DosHeader->e_lfanew;
+    if (NtHeaderOffset > LoadedImagePrefix.size() || sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER) > LoadedImagePrefix.size() - NtHeaderOffset)
+    {
+        return FALSE;
+    }
+
+    const BYTE * NtHeaders = LoadedImagePrefix.data() + NtHeaderOffset;
+    if (*(const DWORD *)NtHeaders != IMAGE_NT_SIGNATURE)
+    {
+        return FALSE;
+    }
+
+    const IMAGE_FILE_HEADER * FileHeader           = (const IMAGE_FILE_HEADER *)(NtHeaders + sizeof(DWORD));
+    SIZE_T                    OptionalHeaderOffset = NtHeaderOffset + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER);
+
+    if (OptionalHeaderOffset > LoadedImagePrefix.size() || FileHeader->SizeOfOptionalHeader < sizeof(WORD) ||
+        FileHeader->SizeOfOptionalHeader > LoadedImagePrefix.size() - OptionalHeaderOffset)
+    {
+        return FALSE;
+    }
+
+    const BYTE * OptionalHeader = LoadedImagePrefix.data() + OptionalHeaderOffset;
+    WORD         Magic          = *(const WORD *)OptionalHeader;
+
+    if (Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC && FileHeader->SizeOfOptionalHeader >= sizeof(IMAGE_OPTIONAL_HEADER32))
+    {
+        const IMAGE_OPTIONAL_HEADER32 * OptionalHeader32 = (const IMAGE_OPTIONAL_HEADER32 *)OptionalHeader;
+
+        *SizeOfImage = OptionalHeader32->SizeOfImage;
+        if (DebugDirectory != NULL && OptionalHeader32->NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_DEBUG)
+        {
+            *DebugDirectory = OptionalHeader32->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+        }
+
+        return TRUE;
+    }
+
+    if (Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC && FileHeader->SizeOfOptionalHeader >= sizeof(IMAGE_OPTIONAL_HEADER64))
+    {
+        const IMAGE_OPTIONAL_HEADER64 * OptionalHeader64 = (const IMAGE_OPTIONAL_HEADER64 *)OptionalHeader;
+
+        *SizeOfImage = OptionalHeader64->SizeOfImage;
+        if (DebugDirectory != NULL && OptionalHeader64->NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_DEBUG)
+        {
+            *DebugDirectory = OptionalHeader64->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+        }
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/**
+ * @brief Read the necessary bytes of a loaded user-mode module to extract the debug directory and code view information for symbol loading
+ *
+ * @param BaseAddress the base address of the loaded module in the user process
+ * @param UserProcessId the target process id to read its memory
+ * @param LoadedImageBytes an output vector to receive the bytes of the loaded image that are necessary for symbol extraction (should be cleared and filled by this function)
+ *
+ * @return BOOLEAN TRUE if the necessary bytes were successfully read, FALSE otherwise (e.g., if memory reading failed or headers are invalid)
+ */
+static BOOLEAN
+SymbolReadLoadedUserModuleForCodeView(UINT64 BaseAddress, UINT32 UserProcessId, std::vector<BYTE> & LoadedImageBytes)
+{
+    static constexpr UINT32 InitialLoadedImagePrefixSize       = 4 * 1024;
+    static constexpr UINT32 MaximumLoadedImageCodeViewReadSize = 4 * 1024 * 1024;
+
+    UINT32               SizeOfImage    = 0;
+    UINT32               RequiredSize   = InitialLoadedImagePrefixSize;
+    IMAGE_DATA_DIRECTORY DebugDirectory = {0};
+
+    if (!SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, InitialLoadedImagePrefixSize, LoadedImageBytes))
+    {
+        return FALSE;
+    }
+
+    if (!SymbolGetLoadedImageHeaderDetails(LoadedImageBytes, &SizeOfImage, &DebugDirectory) || SizeOfImage == 0)
+    {
+        return TRUE;
+    }
+
+    if (DebugDirectory.VirtualAddress == 0 || DebugDirectory.Size < sizeof(IMAGE_DEBUG_DIRECTORY) ||
+        DebugDirectory.Size % sizeof(IMAGE_DEBUG_DIRECTORY) != 0)
+    {
+        return TRUE;
+    }
+
+    if (!SymbolAddLoadedImageReadRange(DebugDirectory.VirtualAddress, DebugDirectory.Size, &RequiredSize) ||
+        RequiredSize > SizeOfImage ||
+        RequiredSize > MaximumLoadedImageCodeViewReadSize)
+    {
+        return TRUE;
+    }
+
+    if (RequiredSize > LoadedImageBytes.size() && !SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, RequiredSize, LoadedImageBytes))
+    {
+        return FALSE;
+    }
+
+    if (SymbolLoadedImageHasRange(LoadedImageBytes, DebugDirectory.VirtualAddress, DebugDirectory.Size))
+    {
+        const IMAGE_DEBUG_DIRECTORY * DebugEntries    = (const IMAGE_DEBUG_DIRECTORY *)(LoadedImageBytes.data() + DebugDirectory.VirtualAddress);
+        DWORD                         DebugEntryCount = DebugDirectory.Size / sizeof(IMAGE_DEBUG_DIRECTORY);
+
+        for (DWORD Index = 0; Index < DebugEntryCount; Index++)
+        {
+            const IMAGE_DEBUG_DIRECTORY * DebugEntry = &DebugEntries[Index];
+
+            if (DebugEntry->Type != IMAGE_DEBUG_TYPE_CODEVIEW ||
+                DebugEntry->SizeOfData < sizeof(DWORD) + sizeof(GUID) + sizeof(DWORD))
+            {
+                continue;
+            }
+
+            UINT32 NextRequiredSize = RequiredSize;
+            if (!SymbolAddLoadedImageReadRange(DebugEntry->AddressOfRawData, DebugEntry->SizeOfData, &NextRequiredSize) ||
+                NextRequiredSize > SizeOfImage ||
+                NextRequiredSize > MaximumLoadedImageCodeViewReadSize)
+            {
+                continue;
+            }
+
+            RequiredSize = NextRequiredSize;
+        }
+    }
+
+    if (RequiredSize <= LoadedImageBytes.size())
+    {
+        LoadedImageBytes.resize(RequiredSize);
+        return TRUE;
+    }
+
+    return SymbolReadUserVirtualMemoryExact(BaseAddress, UserProcessId, RequiredSize, LoadedImageBytes);
+}
+
+/**
  * @brief Delete and free structures and variables related to the symbols
  *
  * @return BOOLEAN shows whether the operation was successful or not
@@ -630,7 +915,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             //
             // check the module list
             //
-            if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            if (ModuleDetailsRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 //
                 // Se the modules buffer
@@ -650,7 +935,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             }
             else
             {
-                ShowErrorMessage(ModuleCountRequest.Result);
+                ShowErrorMessage(ModuleDetailsRequest->Result);
                 free(ModuleDetailsRequest);
                 break;
             }
@@ -724,17 +1009,31 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             RtlZeroMemory(ModuleSymbolPath, sizeof(ModuleSymbolPath));
             RtlZeroMemory(TempPath, sizeof(TempPath));
             RtlZeroMemory(ModuleSymbolGuidAndAge, sizeof(ModuleSymbolGuidAndAge));
+            std::vector<BYTE> LoadedImageBytes;
 
             //
             // Convert symbol path from unicode to ascii
             //
             wcstombs(TempPath, Modules[i].FilePath, MAX_PATH);
 
-            if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(
-                    TempPath,
-                    ModuleSymbolPath,
-                    ModuleSymbolGuidAndAge,
-                    ModuleDetailsRequest->Is32Bit))
+            if (SendOverSerial && Modules[i].BaseAddress != 0 &&
+                SymbolReadLoadedUserModuleForCodeView(Modules[i].BaseAddress, UserProcessId, LoadedImageBytes) &&
+                ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetailsWrapper(LoadedImageBytes.data(),
+                                                                                    LoadedImageBytes.size(),
+                                                                                    TempPath,
+                                                                                    ModuleSymbolPath,
+                                                                                    ModuleSymbolGuidAndAge,
+                                                                                    ModuleDetailsRequest->Is32Bit))
+            {
+                IsSymbolPdbDetailAvailable = TRUE;
+
+                // ShowMessages("Hash : %s , Symbol path : %s\n", ModuleSymbolGuidAndAge, ModuleSymbolPath);
+            }
+            else if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(
+                         TempPath,
+                         ModuleSymbolPath,
+                         ModuleSymbolGuidAndAge,
+                         ModuleDetailsRequest->Is32Bit))
             {
                 IsSymbolPdbDetailAvailable = TRUE;
 
@@ -874,7 +1173,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
         //
         if (SendOverSerial)
         {
-            KdSendSymbolDetailPacket(&ModuleSymDetailArray[IndexInSymbolBuffer], i, ModuleInfo->NumberOfModules + ModulesCount);
+            KdSendSymbolDetailPacket(&ModuleSymDetailArray[IndexInSymbolBuffer], IndexInSymbolBuffer, ModuleInfo->NumberOfModules + ModulesCount);
         }
     }
 
