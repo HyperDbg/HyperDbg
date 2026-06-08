@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsKdModuleLoaded;
+
 /**
  * @brief Get details about processes or threads
  * @param IsProcess
@@ -144,9 +149,9 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
     PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY        ThreadEntries                               = NULL;
 
     //
-    // Check if driver is loaded
+    // Check if the debugger module is loaded
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We wanna query the count of active processes or threads

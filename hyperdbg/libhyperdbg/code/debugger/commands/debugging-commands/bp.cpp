@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsVmmModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -66,7 +67,7 @@ CommandBpPerformApplyingBreakpointOnUserDebugger(DEBUGGEE_BP_PACKET * BpPacket)
     }
     else
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTL

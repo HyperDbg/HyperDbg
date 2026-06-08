@@ -17,6 +17,7 @@
 extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsUserDebuggerInitialized;
+extern BOOLEAN                  g_IsVmmModuleLoaded;
 extern UINT64                   g_ResultOfEvaluatedExpression;
 extern UINT32                   g_ErrorStateOfResultOfEvaluatedExpression;
 extern CommandType              g_CommandsList;
@@ -384,9 +385,9 @@ UdAttachToProcess(UINT32        TargetPid,
     UdInitializeUserDebugger();
 
     //
-    // Check if debugger is loaded or not
+    // Check if the VMM module is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Check whether it's starting a new process or not
@@ -691,9 +692,9 @@ UdKillProcess(UINT32 TargetPid)
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest = {0};
 
     //
-    // Check if debugger is loaded or not
+    // Check if VMM module is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Check if the process exists
@@ -789,9 +790,9 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
     //
-    // Check if debugger is loaded or not
+    // Check if the VMM module is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send the continue command to the target process as we
@@ -868,9 +869,9 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest = {0};
 
     //
-    // Check if debugger is loaded or not
+    // Check if the VMM module is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We wanna pause a process
@@ -936,9 +937,9 @@ UdContinueProcess(UINT64 ProcessDebuggingToken)
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest = {0};
 
     //
-    // Check if debugger is loaded or not
+    // Check if the VMM module is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We wanna continue a process
@@ -1023,7 +1024,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
     UINT32                       TargetBufferSize = 0;
     DEBUGGER_UD_COMMAND_PACKET * CommandPacket;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Calculate the target buffer size
@@ -1317,9 +1318,9 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest = {0};
 
     //
-    // Check if debugger is loaded or not
+    // Check if the VMM module is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We wanna switch to a process or thread
@@ -1403,9 +1404,9 @@ UdShowListActiveDebuggingProcessesAndThreads()
     UINT32                                               SizeOfBufferForThreadsAndProcessDetails = NULL;
 
     //
-    // Check if debugger is loaded or not
+    // Check if the VMM module is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Check if user debugger is active or not

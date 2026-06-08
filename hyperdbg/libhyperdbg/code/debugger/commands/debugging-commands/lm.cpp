@@ -16,6 +16,7 @@ using namespace std;
 //
 // Global Variables
 //
+extern BOOLEAN                  g_IsKdModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -96,7 +97,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const CHAR * SearchModule)
     //
     // Check if debugger is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Set the module details to get the details

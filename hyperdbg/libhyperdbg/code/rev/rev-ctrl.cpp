@@ -12,6 +12,11 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsVmmModuleLoaded;
+
 /**
  * @brief Request service from the reversing machine
  *
@@ -28,7 +33,7 @@ RevRequestService(REVERSING_MACHINE_RECONSTRUCT_MEMORY_REQUEST * RevRequest)
     //
     // Check if debugger is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send the request to the kernel

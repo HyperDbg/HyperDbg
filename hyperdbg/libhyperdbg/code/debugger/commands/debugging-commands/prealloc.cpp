@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsKdModuleLoaded;
+
 /**
  * @brief help of the prealloc command
  *
@@ -133,7 +138,7 @@ CommandPrealloc(vector<CommandToken> CommandTokens, string Command)
     //
     PreallocRequest.Count = (UINT32)Count;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
     // Send IOCTL

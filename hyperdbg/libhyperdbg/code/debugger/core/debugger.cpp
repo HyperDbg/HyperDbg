@@ -26,6 +26,8 @@ extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN                  g_IsConnectedToRemoteDebugger;
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN                  g_IsKdModuleLoaded;
+extern BOOLEAN                  g_IsVmmModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -1383,8 +1385,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // It's either a debuggee or a local debugging instance
         //
-
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTL
@@ -1548,8 +1549,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // It's either a local debugger to in vmi-mode remote connection
         //
-
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTLs

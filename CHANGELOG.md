@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.19.0.0] - 2026-XX-XX
+## [0.19.0.0-beta] - 2026-XX-XX
 New release of the HyperDbg Debugger.
 
 ### Added
@@ -32,6 +32,7 @@ New release of the HyperDbg Debugger.
 - Fix action cleanup list removal in debugger events ([link](https://github.com/HyperDbg/HyperDbg/pull/601))
 - Added transparent-mode evade mask selection thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/602))
 - Added synthetic MSR handling thanks to [@Idov31](https://github.com/Idov31) ([link](https://github.com/HyperDbg/HyperDbg/pull/605))
+- Added use of relative RSDS fixture paths when loading PDB symbols, thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/607))
 
 ### Changed
 - Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
@@ -50,6 +51,7 @@ New release of the HyperDbg Debugger.
 - The pool manager moved from 'hyperhv' to 'hyperkd'
 - The 'load' command could load all modules using a new alias 'load all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
 - The 'unload' command could remove all modules using two new aliases 'unload all' and 'unload remove all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/unload))
+- Change device handle checks with module loading status checks for IOCTLs
 
 ## [0.18.1.0] - 2026-04-09
 New release of the HyperDbg Debugger.

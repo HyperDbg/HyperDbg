@@ -193,7 +193,7 @@ HyperDbgInitHyperTraceModule()
     DWORD                           BytesReturned;
     DEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTracePacket = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     //
     // Send IOCTL to initialize HyperTrace module
@@ -242,7 +242,7 @@ HyperDbgInitVmmModule()
     DWORD                    BytesReturned;
     DEBUGGER_INIT_VMM_PACKET InitVmmPacket = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     //
     // Create event to show if the kd module is loaded or not
@@ -390,7 +390,7 @@ HyperDbgUnloadVmm()
     BOOL  Status;
     DWORD BytesReturned;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     ShowMessages("start terminating vmm...\n");
 
@@ -459,7 +459,7 @@ HyperDbgUnloadHyperTrace()
     BOOL  Status;
     DWORD BytesReturned;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     ShowMessages("start terminating trace module...\n");
 
@@ -507,7 +507,7 @@ HyperDbgUnloadKd()
     BOOL  Status;
     DWORD BytesReturned;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     //
     // Check if HyperTrace module is loaded, if so we need to unload it before unloading KD because KD is used by HyperTrace

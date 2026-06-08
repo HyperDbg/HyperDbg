@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsKdModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -455,7 +456,7 @@ CommandSearchMemory(vector<CommandToken> CommandTokens, string Command)
 
     if (!g_IsSerialConnectedToRemoteDebuggee)
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
     }
 
     //
