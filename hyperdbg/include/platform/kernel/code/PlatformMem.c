@@ -17,6 +17,31 @@
 #    include "../header/PlatformMem.h"
 #endif // defined(__linux__)
 
+/**
+ * @brief Platform independent wrapper for sprintf_s / snprintf
+ *
+ * @param Buffer output buffer
+ * @param BufferSize size of the output buffer
+ * @param Format format string
+ * @return INT number of characters written, or -1 on error
+ */
+INT
+PlatformSprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...)
+{
+    va_list Args;
+    va_start(Args, Format);
+    INT Result;
+#if defined(_WIN32) || defined(_WIN64)
+    Result = vsprintf_s(Buffer, BufferSize, Format, Args);
+#elif defined(__linux__)
+    Result = vsnprintf(Buffer, BufferSize, Format, Args);
+#else
+#    error "Unsupported platform"
+#endif
+    va_end(Args);
+    return Result;
+}
+
 /////////////////////////////////////////////////
 /// ...  New Unified API ...
 /////////////////////////////////////////////////
