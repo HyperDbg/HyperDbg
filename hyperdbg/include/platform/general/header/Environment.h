@@ -32,9 +32,45 @@
 
 
 
-// Windows source annotation language (SAL) not present in Linux, so defining them here for the compiler
 #ifdef HYPERDBG_ENV_LINUX
+
+// SAL annotations
 #  define _In_
 #  define _Out_
 #  define _Inout_
-#endif
+#  define _In_opt_
+#  define _Out_opt_
+#  define _In_z_
+#  define _Outptr_
+#  define _In_reads_bytes_(x)
+#  define _Out_writes_bytes_(x)
+#  define _Inout_updates_bytes_all_(x)
+
+// wchar_t is a C++ built-in but needs this header in C
+#  include <wchar.h>
+
+// Windows string/char types
+typedef char            TCHAR;
+typedef char *          LPTSTR;
+typedef const char *    LPCTSTR;
+typedef const char *    LPCSTR;
+typedef char *          LPSTR;
+typedef const char *    PCSTR;
+typedef char *          PSTR;
+typedef wchar_t *       PWCHAR;
+
+// Windows socket type (Linux sockets are plain int)
+typedef int             SOCKET;
+#  define INVALID_SOCKET  ((SOCKET)(-1))
+#  define SOCKET_ERROR    (-1)
+
+// Windows calling convention (no-op on Linux)
+#  define WINAPI
+
+// Windows module handle (equivalent to dlopen's void * on Linux)
+typedef void * HMODULE;
+
+// Misc Windows macros
+#  define UNREFERENCED_PARAMETER(P) ((void)(P))
+
+#endif // HYPERDBG_ENV_LINUX

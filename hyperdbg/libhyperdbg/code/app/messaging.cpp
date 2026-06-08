@@ -103,7 +103,7 @@ ShowMessages(const CHAR * Fmt, ...)
 
     va_start(ArgList, Fmt);
 
-    INT SprintfResult = vsprintf_s(TempMessage, Fmt, ArgList);
+    INT SprintfResult = PlatformVsnprintf(TempMessage, sizeof(TempMessage), Fmt, ArgList);
 
     va_end(ArgList);
 

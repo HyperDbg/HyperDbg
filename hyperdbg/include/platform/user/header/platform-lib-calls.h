@@ -35,3 +35,33 @@ PlatformStrDup(const char * Str);
 //
 VOID
 PlatformZeroMemory(PVOID Buffer, SIZE_T Size);
+
+//
+// SPRINTF
+//
+INT
+PlatformSprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...);
+
+//
+// HIGH-RESOLUTION PERFORMANCE COUNTER
+//
+BOOLEAN
+PlatformQueryPerformanceFrequency(LARGE_INTEGER * Frequency);
+
+BOOLEAN
+PlatformQueryPerformanceCounter(LARGE_INTEGER * Count);
+
+//
+// PROCESS / THREAD IDENTITY
+//
+UINT32
+PlatformGetCurrentThreadId(VOID);
+
+UINT32
+PlatformGetCurrentProcessorNumber(VOID);
+
+UINT32
+PlatformGetCurrentProcessId(VOID);
+
+CHAR *
+PlatformGetCurrentProcessName(VOID);
