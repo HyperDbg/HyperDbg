@@ -850,7 +850,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
         // Check if we're waiting for an NMI on this core and if the guest is NOT in
         // a instrument step-in ('i' command) routine
         //
-        if (!VCpu->RegisterBreakOnMtf &&
+        if (!VCpu->InstrumentationStepInMtf &&
             VmxBroadcastNmiHandler(VCpu, FALSE))
         {
             return;
@@ -885,7 +885,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // So, we'll ignore the injection of Exception in this case
     //
-    if (VCpu->RegisterBreakOnMtf)
+    if (VCpu->InstrumentationStepInMtf)
     {
         return;
     }

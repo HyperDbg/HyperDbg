@@ -100,11 +100,6 @@ typedef UINT64 (*POOL_MANAGER_REQUEST_POOL)(POOL_ALLOCATION_INTENTION Intention,
  */
 typedef BOOLEAN (*POOL_MANAGER_FREE_POOL)(UINT64 AddressToFree);
 
-/**
- * @brief Handle registered MTF callback
- *
- */
-typedef VOID (*VMM_CALLBACK_REGISTERED_MTF_HANDLER)(UINT32 CoreId);
 
 /**
  * @brief Check for user-mode access for loaded module details
@@ -119,6 +114,12 @@ typedef BOOLEAN (*VMM_CALLBACK_RESTORE_EPT_STATE)(UINT32 CoreId);
 typedef BOOLEAN (*VMM_CALLBACK_CHECK_UNHANDLED_EPT_VIOLATION)(UINT32 CoreId, UINT64 ViolationQualification, UINT64 GuestPhysicalAddr);
 
 /**
+ * @brief Handle MTF callback
+ *
+ */
+typedef BOOLEAN (*VMM_CALLBACK_HANDLE_MTF_CALLBACK)(UINT32 CoreId);
+
+/**
  * @brief Handle cr3 process change callbacks
  *
  */
@@ -130,11 +131,6 @@ typedef VOID (*INTERCEPTION_CALLBACK_TRIGGER_CR3_CHANGE)(UINT32 CoreId);
  */
 typedef BOOLEAN (*INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI)(_In_ UINT32 CoreId);
 
-/**
- * @brief Check and handle reapplying breakpoint
- *
- */
-typedef BOOLEAN (*BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT)(UINT32 CoreId);
 
 /**
  * @brief Handle NMI broadcast
@@ -142,11 +138,6 @@ typedef BOOLEAN (*BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT)(UINT32 Core
  */
 typedef VOID (*VMM_CALLBACK_NMI_BROADCAST_REQUEST_HANDLER)(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
 
-/**
- * @brief Check and handle NMI callbacks
- *
- */
-typedef BOOLEAN (*KD_CHECK_AND_HANDLE_NMI_CALLBACK)(UINT32 CoreId);
 
 /**
  * @brief Set the top-level driver's error status
@@ -200,7 +191,7 @@ typedef struct _VMM_CALLBACKS
     //
     // HyperTrace callback(s)
     //
-    HYPERTRACE_LBR_IS_SUPPORTED HyperTraceLbrIsSupported; // Fixed
+    HYPERTRACE_LBR_IS_SUPPORTED HyperTraceCallbackLbrIsSupported; // Fixed
 
     //
     // VMM callbacks
@@ -212,6 +203,7 @@ typedef struct _VMM_CALLBACKS
     VMM_CALLBACK_QUERY_TERMINATE_PROTECTED_RESOURCE VmmCallbackQueryTerminateProtectedResource; // Fixed
     VMM_CALLBACK_RESTORE_EPT_STATE                  VmmCallbackRestoreEptState;                 // Fixed
     VMM_CALLBACK_CHECK_UNHANDLED_EPT_VIOLATION      VmmCallbackCheckUnhandledEptViolations;     // Fixed
+    VMM_CALLBACK_HANDLE_MTF_CALLBACK                VmmCallbackHandleMtfCallback;               // Fixed
 
     //
     // Debugging callbacks
@@ -223,9 +215,9 @@ typedef struct _VMM_CALLBACKS
     //
     // Pool manager callbacks
     //
-    POOL_MANAGER_REQUEST_ALLOCATION PoolManagerRequestAllocation; // Fixed
-    POOL_MANAGER_REQUEST_POOL       PoolManagerRequestPool;       // Fixed
-    POOL_MANAGER_FREE_POOL          PoolManagerFreePool;          // Fixed
+    POOL_MANAGER_REQUEST_ALLOCATION PoolManagerCallbackRequestAllocation; // Fixed
+    POOL_MANAGER_REQUEST_POOL       PoolManagerCallbackRequestPool;       // Fixed
+    POOL_MANAGER_FREE_POOL          PoolManagerCallbackFreePool;          // Fixed
 
     //
     // Interception callbacks
@@ -235,9 +227,6 @@ typedef struct _VMM_CALLBACKS
     //
     // Callbacks to be removed
     //
-    BREAKPOINT_CHECK_AND_HANDLE_REAPPLYING_BREAKPOINT              BreakpointCheckAndHandleReApplyingBreakpoint;
-    KD_CHECK_AND_HANDLE_NMI_CALLBACK                               KdCheckAndHandleNmiCallback;
-    VMM_CALLBACK_REGISTERED_MTF_HANDLER                            VmmCallbackRegisteredMtfHandler; // Fixed but not good
     INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI                    DebuggerCheckProcessOrThreadChange;
     KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
 

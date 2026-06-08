@@ -87,27 +87,6 @@ VmmCallbackVmcallHandler(UINT32 CoreId,
 }
 
 /**
- * @brief routine callback to handle registered MTF
- *
- * @param CoreId
- *
- * @return VOID
- */
-VOID
-VmmCallbackRegisteredMtfHandler(UINT32 CoreId)
-{
-    if (g_Callbacks.VmmCallbackRegisteredMtfHandler == NULL)
-    {
-        //
-        // ignore it
-        //
-        return;
-    }
-
-    g_Callbacks.VmmCallbackRegisteredMtfHandler(CoreId);
-}
-
-/**
  * @brief routine callback to handle NMI requests
  *
  * @param CoreId
@@ -201,6 +180,26 @@ VmmCallbackUnhandledEptViolation(UINT32 CoreId,
 }
 
 /**
+ * @brief routine callback to handle MTF callback
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmmCallbackHandleMtfCallback(UINT32 CoreId)
+{
+    if (g_Callbacks.VmmCallbackHandleMtfCallback == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+
+    return g_Callbacks.VmmCallbackHandleMtfCallback(CoreId);
+}
+
+/**
  * @brief routine callback to check if LBR is supported and get the LBR capacity if supported
  *
  * @param Capacity
@@ -211,14 +210,14 @@ VmmCallbackUnhandledEptViolation(UINT32 CoreId,
 BOOLEAN
 HyperTraceCallbackLbrIsSupported(UINT32 * Capacity, BOOLEAN * IsArchLbr)
 {
-    if (g_Callbacks.HyperTraceLbrIsSupported == NULL)
+    if (g_Callbacks.HyperTraceCallbackLbrIsSupported == NULL)
     {
         //
         // ignore it as it's not handled
         //
         return FALSE;
     }
-    return g_Callbacks.HyperTraceLbrIsSupported(Capacity, IsArchLbr);
+    return g_Callbacks.HyperTraceCallbackLbrIsSupported(Capacity, IsArchLbr);
 }
 
 /**
@@ -296,14 +295,14 @@ DebuggingCallbackCheckThreadInterception(UINT32 CoreId)
 BOOLEAN
 PoolManagerCallbackRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention)
 {
-    if (g_Callbacks.PoolManagerRequestAllocation == NULL)
+    if (g_Callbacks.PoolManagerCallbackRequestAllocation == NULL)
     {
         //
         // ignore it as it's not handled
         //
         return FALSE;
     }
-    return g_Callbacks.PoolManagerRequestAllocation(Size, Count, Intention);
+    return g_Callbacks.PoolManagerCallbackRequestAllocation(Size, Count, Intention);
 }
 
 /**
@@ -319,14 +318,14 @@ PoolManagerCallbackRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 UINT64
 PoolManagerCallbackRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size)
 {
-    if (g_Callbacks.PoolManagerRequestPool == NULL)
+    if (g_Callbacks.PoolManagerCallbackRequestPool == NULL)
     {
         //
         // ignore it as it's not handled
         //
         return 0;
     }
-    return g_Callbacks.PoolManagerRequestPool(Intention, RequestNewPool, Size);
+    return g_Callbacks.PoolManagerCallbackRequestPool(Intention, RequestNewPool, Size);
 }
 
 /**
@@ -339,14 +338,14 @@ PoolManagerCallbackRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN Requ
 BOOLEAN
 PoolManagerCallbackFreePool(UINT64 AddressToFree)
 {
-    if (g_Callbacks.PoolManagerFreePool == NULL)
+    if (g_Callbacks.PoolManagerCallbackFreePool == NULL)
     {
         //
         // ignore it as it's not handled
         //
         return FALSE;
     }
-    return g_Callbacks.PoolManagerFreePool(AddressToFree);
+    return g_Callbacks.PoolManagerCallbackFreePool(AddressToFree);
 }
 
 /**

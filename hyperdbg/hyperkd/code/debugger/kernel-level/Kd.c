@@ -1076,19 +1076,57 @@ KdHandleBreakpointAndDebugBreakpointsCallback(UINT32                            
 }
 
 /**
- * @brief Handle #DBs and #BPs for kernel debugger
- * @details This function can be used in vmx-root
+ * @brief Handle NMI state for MTF
+ * @param DbgState The state of the debugger on the current core
  *
- * @param CoreId
+ * @details This function should be called in vmx-root mode
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckAndHandleNmiStateForMtf(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    BOOLEAN Result = FALSE;
+
+    if (DbgState->NmiState.WaitingToBeLocked)
+    {
+        //
+        // The NMI wait is handled here
+        //
+        Result = TRUE;
+
+        //
+        // Handle break of the core
+        //
+        if (DbgState->NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            //
+            // Handle it like an NMI is received from VMX root
+            //
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(DbgState);
+        }
+        else
+        {
+            //
+            // Handle halt of the current core as an NMI
+            //
+            KdHandleNmi(DbgState);
+        }
+    }
+
+    return Result;
+}
+
+/**
+ * @brief Handle instrumentation step-in for kernel debugger
+ * @details This function will be called from vmx-root mode
+ *
+ * @param DbgState The state of the debugger on the current core
  *
  * @return VOID
  */
-_Use_decl_annotations_
 VOID
-KdHandleRegisteredMtfCallback(UINT32 CoreId)
+KdHandleInstrumentationStepIn(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
-
     //
     // Check for tracing instructions
     //
@@ -1107,7 +1145,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
         //
         UINT64                           CsSel         = NULL64_ZERO;
         DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
-        UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
+        UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
         //
         // Check if the cs selector changed or not, which indicates that the
@@ -1142,6 +1180,82 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
                                                   &TargetContext);
         }
     }
+}
+
+/**
+ * @brief Handle Monitor Trap Flag (MTF) callback for kernel debugger
+ * @details This function will be called from vmx-root mode
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdHandleMtfCallback(UINT32 CoreId)
+{
+    PROCESSOR_DEBUGGING_STATE * DbgState     = &g_DbgState[CoreId];
+    BOOLEAN                     IsMtfHandled = FALSE;
+
+    //
+    // *** Check if we need to re-apply a breakpoint or not
+    // We check it separately because the guest might step
+    // instructions on an MTF so we want to check for the step too ***
+    //
+    if (BreakpointCheckAndHandleReApplyingBreakpoint(DbgState))
+    {
+        //
+        // Check for re-enabling external interrupts
+        //
+        VmFuncEnableAndCheckForPreviousExternalInterrupts(DbgState->CoreId);
+
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+    }
+
+    //
+    // *** Check for instrumentation step-in ***
+    //
+    if (VmFuncQueryInstrumentationStepInState(DbgState->CoreId))
+    {
+        //
+        // Unset the MTF instrumentation state (might be changed in the caller)
+        //
+        VmFuncUnsetInstrumentationStepInState(DbgState->CoreId);
+
+        //
+        // Handle MTF in the debugger
+        //
+        KdHandleInstrumentationStepIn(DbgState);
+
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+    }
+
+    //
+    // check the condition of passing the execution to NMIs
+    //
+    // This one wastes one week of my life!
+    // During the testing we realized the !epthook command in Debugger Mode
+    // is not working. After some tests, it's because if in the middle of a
+    // command in vmx-root and NMI is sent and the debugger waits for another
+    // MTF, we'll ignore that MTF and a new MTF is not set again.
+    // That's why we moved this check here so every command that needs a task
+    // from MTF is doing its tasks and when we reached here, the check for halting
+    // the debuggee in MTF is performed
+    //
+    else if (KdCheckAndHandleNmiStateForMtf(DbgState))
+    {
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+    }
+
+    return IsMtfHandled;
 }
 
 /**
@@ -1256,49 +1370,6 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
 }
 
 /**
- * @brief Handle NMI vm-exits
- * @param CoreId
- *
- * @details This function should be called in vmx-root mode
- * @return BOOLEAN
- */
-_Use_decl_annotations_
-BOOLEAN
-KdCheckAndHandleNmiCallback(UINT32 CoreId)
-{
-    BOOLEAN                     Result   = FALSE;
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
-
-    if (DbgState->NmiState.WaitingToBeLocked)
-    {
-        //
-        // The NMI wait is handled here
-        //
-        Result = TRUE;
-
-        //
-        // Handle break of the core
-        //
-        if (DbgState->NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-        {
-            //
-            // Handle it like an NMI is received from VMX root
-            //
-            KdHandleHaltsWhenNmiReceivedFromVmxRoot(DbgState);
-        }
-        else
-        {
-            //
-            // Handle halt of the current core as an NMI
-            //
-            KdHandleNmi(DbgState);
-        }
-    }
-
-    return Result;
-}
-
-/**
  * @brief Handle NMI Vm-exits
  * @param DbgState The state of the debugger on the current core
  *
@@ -1365,9 +1436,9 @@ KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     DbgState->InstrumentationStepInTrace.CsSel = (UINT16)CsSel;
 
     //
-    // Set an indicator of a break in the case of an MTF
+    // Set an indicator of instrumentation step-in MTF
     //
-    VmFuncRegisterMtfBreak(DbgState->CoreId);
+    VmFuncSetInstrumentationStepInState(DbgState->CoreId);
 
     //
     // Not unset MTF again

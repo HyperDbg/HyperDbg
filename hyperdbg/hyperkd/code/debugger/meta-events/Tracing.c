@@ -26,9 +26,9 @@ TracingPerformInstrumentationStepIn(PROCESSOR_DEBUGGING_STATE * DbgState)
     DbgState->TracingMode = TRUE;
 
     //
-    // Register break on MTF
+    // Set instrumentation step-in state
     //
-    VmFuncRegisterMtfBreak(DbgState->CoreId);
+    VmFuncSetInstrumentationStepInState(DbgState->CoreId);
 
     VmFuncEnableMtfAndChangeExternalInterruptState(DbgState->CoreId);
 }
@@ -73,9 +73,9 @@ TracingRestoreSystemState(PROCESSOR_DEBUGGING_STATE * DbgState)
     DbgState->TracingMode = FALSE;
 
     //
-    // Unregister break on MTF
+    // Uset the instrumentation step-in state
     //
-    VmFuncUnRegisterMtfBreak(DbgState->CoreId);
+    VmFuncUnsetInstrumentationStepInState(DbgState->CoreId);
 
     //
     // Check for reenabling external interrupts

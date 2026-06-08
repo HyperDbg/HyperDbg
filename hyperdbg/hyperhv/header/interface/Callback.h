@@ -44,11 +44,12 @@ VmmCallbackUnhandledEptViolation(UINT32 CoreId,
                                  UINT64 ViolationQualification,
                                  UINT64 GuestPhysicalAddr);
 
+BOOLEAN
+VmmCallbackHandleMtfCallback(UINT32 CoreId);
+
 VOID
 VmmCallbackSetLastError(UINT32 LastError);
 
-VOID
-VmmCallbackRegisteredMtfHandler(UINT32 CoreId);
 
 VOID
 VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
