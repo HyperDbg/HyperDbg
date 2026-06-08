@@ -73,4 +73,8 @@ typedef void * HMODULE;
 // Misc Windows macros
 #  define UNREFERENCED_PARAMETER(P) ((void)(P))
 
+// Win32 wait/event constants (used by the cross-platform sync wrappers)
+#  define INFINITE       0xFFFFFFFF
+#  define WAIT_OBJECT_0  0x00000000
+
 #endif // HYPERDBG_ENV_LINUX
