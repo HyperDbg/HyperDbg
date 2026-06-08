@@ -157,6 +157,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "platform/user/header/platform-intrinsics.h"
 
 //
+// Platform serial transport (cross-platform kernel-debugger serial I/O)
+//
+#include "platform/user/header/platform-serial.h"
+
+//
 // Platform-specific intrinsics
 //
 #ifdef _WIN32
