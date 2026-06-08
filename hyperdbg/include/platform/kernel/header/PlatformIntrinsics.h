@@ -208,6 +208,25 @@ extern inline UINT64
 CpuReadTscp(UINT32 * Aux);
 
 //////////////////////////////////////////////////
+//          Interlocked (Atomic) Operations     //
+//////////////////////////////////////////////////
+
+extern inline INT64
+CpuInterlockedExchange64(INT64 volatile * Target, INT64 Value);
+
+extern inline INT64
+CpuInterlockedExchangeAdd64(INT64 volatile * Addend, INT64 Value);
+
+extern inline INT64
+CpuInterlockedIncrement64(INT64 volatile * Addend);
+
+extern inline INT64
+CpuInterlockedDecrement64(INT64 volatile * Addend);
+
+extern inline INT64
+CpuInterlockedCompareExchange64(INT64 volatile * Destination, INT64 ExChange, INT64 Comparand);
+
+//////////////////////////////////////////////////
 //           Descriptor Table Instructions      //
 //////////////////////////////////////////////////
 

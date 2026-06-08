@@ -22,6 +22,9 @@
 //                 Functions                    //
 //////////////////////////////////////////////////
 
+INT
+PlatformSprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...);
+
 VOID
 PlatformFreeMemory(PVOID Memory);
 

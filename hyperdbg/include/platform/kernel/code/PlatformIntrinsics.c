@@ -326,6 +326,87 @@ CpuReadTscp(UINT32 * Aux)
 }
 
 //////////////////////////////////////////////////
+//          Interlocked (Atomic) Operations     //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Atomic 64-bit exchange
+ */
+inline INT64
+CpuInterlockedExchange64(INT64 volatile * Target, INT64 Value)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedExchange64(Target, Value);
+#elif defined(__linux__)
+    return __atomic_exchange_n(Target, Value, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Atomic 64-bit exchange-add
+ */
+inline INT64
+CpuInterlockedExchangeAdd64(INT64 volatile * Addend, INT64 Value)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedExchangeAdd64(Addend, Value);
+#elif defined(__linux__)
+    return __atomic_fetch_add(Addend, Value, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Atomic 64-bit increment
+ */
+inline INT64
+CpuInterlockedIncrement64(INT64 volatile * Addend)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedIncrement64(Addend);
+#elif defined(__linux__)
+    return __atomic_add_fetch(Addend, 1LL, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Atomic 64-bit decrement
+ */
+inline INT64
+CpuInterlockedDecrement64(INT64 volatile * Addend)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedDecrement64(Addend);
+#elif defined(__linux__)
+    return __atomic_sub_fetch(Addend, 1LL, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Atomic 64-bit compare-exchange
+ */
+inline INT64
+CpuInterlockedCompareExchange64(INT64 volatile * Destination, INT64 ExChange, INT64 Comparand)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedCompareExchange64(Destination, ExChange, Comparand);
+#elif defined(__linux__)
+    INT64 Expected = Comparand;
+    __atomic_compare_exchange_n(Destination, &Expected, ExChange, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+    return Expected;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+//////////////////////////////////////////////////
 //           Descriptor Table Instructions      //
 //////////////////////////////////////////////////
 
