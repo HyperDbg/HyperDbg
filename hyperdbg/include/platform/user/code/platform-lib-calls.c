@@ -204,24 +204,28 @@ PlatformGetCurrentProcessName(VOID)
     static CHAR ProcessNameBuf[MAX_PATH] = {0};
 
 #if defined(_WIN32)
-    HANDLE Handle = OpenProcess(
-        PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-        FALSE,
-        GetCurrentProcessId());
-
-    if (Handle)
+    //
+    // Use base kernel32 only (no psapi/shlwapi) so this compiles in every
+    // project that builds platform-lib-calls.c (e.g. script-engine, which has
+    // a minimal include set). GetModuleFileNameA(NULL, ...) returns the full
+    // path of the current process image.
+    //
+    if (GetModuleFileNameA(NULL, ProcessNameBuf, MAX_PATH) == 0)
     {
-        CHAR ModulePath[MAX_PATH] = {0};
-        if (GetModuleFileNameEx(Handle, 0, ModulePath, MAX_PATH))
-        {
-            CloseHandle(Handle);
-            strncpy(ProcessNameBuf, PathFindFileNameA(ModulePath), MAX_PATH - 1);
-            ProcessNameBuf[MAX_PATH - 1] = '\0';
-            return ProcessNameBuf;
-        }
-        CloseHandle(Handle);
+        return NULL;
     }
-    return NULL;
+
+    //
+    // Return the basename (strip the directory part)
+    //
+    {
+        char * LastSeparator = strrchr(ProcessNameBuf, '\\');
+        if (LastSeparator)
+        {
+            return LastSeparator + 1;
+        }
+    }
+    return ProcessNameBuf;
 
 #elif defined(__linux__)
     FILE * f = fopen("/proc/self/comm", "r");
