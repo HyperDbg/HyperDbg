@@ -16,6 +16,8 @@
 #    include <unistd.h>
 #    include <sched.h>
 #    include <sys/syscall.h>
+#    include <errno.h>
+#    include <stdint.h>
 #endif // defined(__linux__)
 
 /**
@@ -236,6 +238,118 @@ PlatformGetCurrentProcessName(VOID)
     }
     return NULL;
 
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for CreateEvent
+ *
+ * @param ManualReset  TRUE for a manual-reset event, FALSE for auto-reset
+ * @param InitialState TRUE if the event starts signaled
+ * @return HANDLE to the event, or NULL on failure
+ */
+HANDLE
+PlatformCreateEvent(BOOLEAN ManualReset, BOOLEAN InitialState)
+{
+#if defined(_WIN32)
+    return CreateEvent(NULL, ManualReset, InitialState, NULL);
+#elif defined(__linux__)
+    //
+    // TODO: back this with a pthread mutex+cond (or eventfd) when the Linux
+    //       kernel-debugger transport is implemented. For now return a dummy
+    //       non-NULL handle so existing NULL-checks treat creation as success.
+    //
+    (void)ManualReset;
+    (void)InitialState;
+    return (HANDLE)(uintptr_t)1;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for SetEvent
+ */
+BOOLEAN
+PlatformSetEvent(HANDLE EventHandle)
+{
+#if defined(_WIN32)
+    return (BOOLEAN)SetEvent(EventHandle);
+#elif defined(__linux__)
+    (void)EventHandle; // TODO: signal the underlying cond/eventfd
+    return TRUE;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for ResetEvent
+ */
+BOOLEAN
+PlatformResetEvent(HANDLE EventHandle)
+{
+#if defined(_WIN32)
+    return (BOOLEAN)ResetEvent(EventHandle);
+#elif defined(__linux__)
+    (void)EventHandle; // TODO: clear the underlying cond/eventfd
+    return TRUE;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for WaitForSingleObject
+ *
+ * @return 0 (WAIT_OBJECT_0) on success
+ */
+DWORD
+PlatformWaitForSingleObject(HANDLE Handle, DWORD TimeoutMilliseconds)
+{
+#if defined(_WIN32)
+    return WaitForSingleObject(Handle, TimeoutMilliseconds);
+#elif defined(__linux__)
+    //
+    // TODO: wait on the underlying cond/eventfd. For now return immediately as
+    //       success — no real transport exists yet to wait on.
+    //
+    (void)Handle;
+    (void)TimeoutMilliseconds;
+    return 0;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for CloseHandle
+ */
+BOOLEAN
+PlatformCloseHandle(HANDLE Handle)
+{
+#if defined(_WIN32)
+    return (BOOLEAN)CloseHandle(Handle);
+#elif defined(__linux__)
+    (void)Handle; // TODO: free the underlying cond/eventfd or close the fd
+    return TRUE;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for GetLastError
+ */
+DWORD
+PlatformGetLastError(VOID)
+{
+#if defined(_WIN32)
+    return GetLastError();
+#elif defined(__linux__)
+    return (DWORD)errno;
 #else
 #    error "Unsupported platform"
 #endif

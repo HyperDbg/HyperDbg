@@ -52,6 +52,30 @@ BOOLEAN
 PlatformQueryPerformanceCounter(LARGE_INTEGER * Count);
 
 //
+// EVENT / SYNCHRONIZATION OBJECTS
+//
+HANDLE
+PlatformCreateEvent(BOOLEAN ManualReset, BOOLEAN InitialState);
+
+BOOLEAN
+PlatformSetEvent(HANDLE EventHandle);
+
+BOOLEAN
+PlatformResetEvent(HANDLE EventHandle);
+
+DWORD
+PlatformWaitForSingleObject(HANDLE Handle, DWORD TimeoutMilliseconds);
+
+BOOLEAN
+PlatformCloseHandle(HANDLE Handle);
+
+//
+// LAST OS ERROR
+//
+DWORD
+PlatformGetLastError(VOID);
+
+//
 // PROCESS / THREAD IDENTITY
 //
 UINT32
