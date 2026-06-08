@@ -176,9 +176,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/inipp.h"
 #include "header/commands.h"
 #include "header/common.h"
-#ifdef _WIN32
-#    include "header/symbol.h"
-#endif
+#include "header/symbol.h"
 #include "header/debugger.h"
 #include "header/script-engine.h"
 #include "header/help.h"
@@ -193,9 +191,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/communication.h"
 #include "header/namedpipe.h"
 #include "header/forwarding.h"
-#ifdef _WIN32
-#    include "header/kd.h"
-#endif
+#include "header/kd.h"
 
 //
 // Components

@@ -353,7 +353,7 @@ CommandDtShowDataBasedOnSymbolTypes(
             //
             // Use the current process for the pid
             //
-            TargetPid = GetCurrentProcessId();
+            TargetPid = PlatformGetCurrentProcessId();
         }
     }
 
