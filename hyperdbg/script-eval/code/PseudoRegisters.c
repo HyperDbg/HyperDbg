@@ -25,7 +25,7 @@ UINT64
 ScriptEnginePseudoRegGetTid()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return (UINT64)GetCurrentThreadId();
+    return (UINT64)PlatformGetCurrentThreadId();
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -42,7 +42,7 @@ UINT64
 ScriptEnginePseudoRegGetCore()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return (UINT64)GetCurrentProcessorNumber();
+    return (UINT64)PlatformGetCurrentProcessorNumber();
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -59,7 +59,7 @@ UINT64
 ScriptEnginePseudoRegGetPid()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    return (UINT64)GetCurrentProcessId();
+    return (UINT64)PlatformGetCurrentProcessId();
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -76,39 +76,7 @@ CHAR *
 ScriptEnginePseudoRegGetPname()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-
-    HANDLE Handle = OpenProcess(
-        PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-        FALSE,
-        GetCurrentProcessId() /* Current process */
-    );
-
-    if (Handle)
-    {
-        CHAR CurrentModulePath[MAX_PATH] = {0};
-        if (GetModuleFileNameEx(Handle, 0, CurrentModulePath, MAX_PATH))
-        {
-            //
-            // At this point, buffer contains the full path to the executable
-            //
-            CloseHandle(Handle);
-            return PathFindFileNameA(CurrentModulePath);
-        }
-        else
-        {
-            //
-            // error might be shown by GetLastError()
-            //
-            CloseHandle(Handle);
-            return NULL;
-        }
-    }
-
-    //
-    // unable to get handle
-    //
-    return NULL;
-
+    return PlatformGetCurrentProcessName();
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -159,6 +127,7 @@ UINT64
 ScriptEnginePseudoRegGetPeb()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
+#    ifdef _WIN32
     //
     // Hand-rolled structs ( may cause conflict depending on your dev env )
     //
@@ -268,6 +237,22 @@ ScriptEnginePseudoRegGetPeb()
     PebPtr = (struct PEB *)BasicInfo.PebBaseAddress;
 
     return (UINT64)PebPtr;
+
+#    else // !_WIN32
+
+    //
+    // The PEB (Process Environment Block) is a Windows NT-specific structure
+    // maintained by the kernel for every user-mode process. It holds loader
+    // data, heap pointers, the image path, and other process-wide state that
+    // has no direct equivalent in the Linux process model.
+    //
+    // TODO: investigate whether a meaningful substitute exists on Linux
+    //       (e.g. /proc/self/maps, dl_iterate_phdr, or a custom auxv walk)
+    //       and implement it here if HyperDbg user-mode on Linux ever needs $peb.
+    //
+    return 0;
+
+#    endif // _WIN32
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
