@@ -29,6 +29,7 @@ set(SourceFiles
     "pch.h"
     "../include/platform/user/code/platform-intrinsics.c"
     "../include/platform/user/code/platform-lib-calls.c"
+    "../include/platform/user/code/platform-serial.c"
     "../script-eval/code/Functions.c"
     "../script-eval/code/Keywords.c"
     "../script-eval/code/PseudoRegisters.c"
@@ -171,6 +172,7 @@ include_directories(
 set_source_files_properties(
     "../include/platform/user/code/platform-intrinsics.c"
     "../include/platform/user/code/platform-lib-calls.c"
+    "../include/platform/user/code/platform-serial.c"
     "../script-eval/code/Functions.c"
     "../script-eval/code/Keywords.c"
     "../script-eval/code/PseudoRegisters.c"
@@ -178,5 +180,10 @@ set_source_files_properties(
     "../script-eval/code/ScriptEngineEval.c"
     PROPERTIES LANGUAGE CXX
 )
+
+if(UNIX)
+    list(REMOVE_ITEM SourceFiles "code/debugger/script-engine/symbol.cpp")
+    list(APPEND SourceFiles "code/debugger/script-engine/symbol-linux.cpp")
+endif()
 
 add_library(libhyperdbg SHARED ${SourceFiles})

@@ -317,10 +317,12 @@ DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfAddingActionsToEvent = {
  * to write simultaneously but it's needed for write)
  *
  */
+#ifdef _WIN32
 OVERLAPPED g_OverlappedIoStructureForReadDebugger  = {0};
 OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
 
 OVERLAPPED g_OverlappedIoStructureForReadDebuggee = {0};
+#endif // _WIN32
 
 /**
  * @brief Shows whether the queried event is enabled or disabled

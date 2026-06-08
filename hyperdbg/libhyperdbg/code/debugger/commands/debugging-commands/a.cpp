@@ -238,7 +238,6 @@ CommandAssemble(vector<CommandToken> CommandTokens, string Command)
     //
     if (!CMD.AddressStr.empty()) // was any address provided to assemble to?
     {
-#ifdef _WIN32
         if (!SymbolConvertNameOrExprToAddress(CMD.AddressStr, &Address))
         {
             ShowMessages("err, couldn't resolve Address at '%s'\n\n",
@@ -246,15 +245,9 @@ CommandAssemble(vector<CommandToken> CommandTokens, string Command)
             CommandAssembleHelp();
             return;
         }
-#else
-        // TODO: symbol resolution is not yet implemented on Linux
-        ShowMessages("err, symbol resolution is not supported on Linux yet\n\n");
-        return;
-#endif
     }
     else if (!CMD.StartAddressStr.empty()) // was a custom start_address provided?
     {
-#ifdef _WIN32
         if (!SymbolConvertNameOrExprToAddress(CMD.StartAddressStr, &StartAddress))
         {
             ShowMessages("err, couldn't resolve Address at '%s'\n\n",
@@ -263,11 +256,6 @@ CommandAssemble(vector<CommandToken> CommandTokens, string Command)
             return;
         }
         Address = StartAddress;
-#else
-        // TODO: symbol resolution is not yet implemented on Linux
-        ShowMessages("err, symbol resolution is not supported on Linux yet\n\n");
-        return;
-#endif
     }
     else
     {

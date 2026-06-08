@@ -21,9 +21,11 @@ extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
                                         g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern BOOLEAN                          g_IsConnectedToHyperDbgLocally;
+#ifdef _WIN32
 extern OVERLAPPED                       g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED                       g_OverlappedIoStructureForWriteDebugger;
 extern OVERLAPPED                       g_OverlappedIoStructureForReadDebuggee;
+#endif // _WIN32
 extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_RESULT
                g_DebuggeeResultOfAddingActionsToEvent;
@@ -1565,6 +1567,7 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
     //
     do
     {
+#ifdef _WIN32
         //
         // It's in the debugger
         //
@@ -1600,6 +1603,18 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
         // Reset event for next try
         //
         ResetEvent(g_OverlappedIoStructureForReadDebugger.hEvent);
+#else
+        //
+        // Linux: read one byte through the cross-platform serial transport
+        //
+        if (!PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                    &ReadData,
+                                    &NoBytesRead,
+                                    PLATFORM_SERIAL_IO_DEBUGGER))
+        {
+            return FALSE;
+        }
+#endif
 
         //
         // We already now that the maximum packet size is MaxSerialPacketSize
@@ -1650,6 +1665,7 @@ KdReceivePacketFromDebugger(CHAR *   BufferToSave,
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
 
+#ifdef _WIN32
     //
     // Set the timeout in milliseconds (e.g., 5000 ms = 5 seconds)
     //
@@ -1666,12 +1682,14 @@ KdReceivePacketFromDebugger(CHAR *   BufferToSave,
     Timeouts.WriteTotalTimeoutConstant   = 0;
     Timeouts.WriteTotalTimeoutMultiplier = 0;
     SetCommTimeouts(g_SerialRemoteComPortHandle, &Timeouts);
+#endif
 
     //
     // Read data and store in a buffer
     //
     do
     {
+#ifdef _WIN32
         //
         // It's in the debuggee
         //
@@ -1707,6 +1725,19 @@ KdReceivePacketFromDebugger(CHAR *   BufferToSave,
         // Reset event for next try
         //
         ResetEvent(g_OverlappedIoStructureForReadDebuggee.hEvent);
+#else
+        //
+        // Linux: read one byte through the cross-platform serial transport
+        // (the 5s read timeout is applied inside the platform layer)
+        //
+        if (!PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                    &ReadData,
+                                    &NoBytesRead,
+                                    PLATFORM_SERIAL_IO_DEBUGGEE))
+        {
+            return FALSE;
+        }
+#endif
 
         //
         // We already now that the maximum packet size is MaxSerialPacketSize
@@ -1781,6 +1812,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
         return FALSE;
     }
 
+#ifdef _WIN32
     if (g_IsSerialConnectedToRemoteDebugger || g_IsDebuggeeInHandshakingPhase)
     {
         //
@@ -1846,6 +1878,20 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
         //
         ResetEvent(g_OverlappedIoStructureForWriteDebugger.hEvent);
     }
+#else
+    //
+    // Linux: write through the cross-platform serial transport. The debuggee /
+    // handshaking path is synchronous; the debugger path is overlapped (handled
+    // inside the platform layer).
+    //
+    {
+        BOOLEAN Synchronous = (g_IsSerialConnectedToRemoteDebugger || g_IsDebuggeeInHandshakingPhase);
+        if (!PlatformSerialWrite(g_SerialRemoteComPortHandle, Buffer, Length, Synchronous))
+        {
+            return FALSE;
+        }
+    }
+#endif
 
 Out:
     if (SendEndOfBuffer)
