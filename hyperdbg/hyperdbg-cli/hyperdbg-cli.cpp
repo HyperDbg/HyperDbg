@@ -11,8 +11,8 @@
  */
 
 #ifdef _WIN32
-#include <Windows.h>
-#include <conio.h>
+#    include <Windows.h>
+#    include <conio.h>
 #endif
 
 #include <string>
@@ -49,6 +49,11 @@ main(int argc, char * argv[])
     printf("HyperDbg Debugger [version: %s, build: %s]\n", CompleteVersion, BuildVersion);
     printf("Please visit https://docs.hyperdbg.org for more information...\n");
     printf("HyperDbg is released under the GNU Public License v3 (GPLv3).\n\n");
+
+#if BETA_VERSION == 1
+    printf("Notice: This is a beta release and may contain bugs or stability issues. ");
+    printf("If you encounter any problems, please report them and consider using the previous stable release.\n\n");
+#endif
 
     if (argc != 1)
     {
