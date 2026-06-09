@@ -107,7 +107,7 @@ CommandLogopen(vector<CommandToken> CommandTokens, string Command)
  * @return VOID
  */
 VOID
-LogopenSaveToFile(const char * Text)
+LogopenSaveToFile(const CHAR * Text)
 {
     g_LogOpenFile << Text;
 }

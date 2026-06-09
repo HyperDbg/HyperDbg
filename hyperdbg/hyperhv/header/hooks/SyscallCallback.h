@@ -1,6 +1,7 @@
 /**
  * @file SyscallHook.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Header for syscall hook callbacks
  * @details
  *
@@ -77,6 +78,9 @@ typedef struct _SYSCALL_CALLBACK_TRAP_FLAG_STATE
 
 BOOLEAN
 SyscallCallbackInitialize();
+
+BOOLEAN
+SyscallCallbackIsInitialized();
 
 BOOLEAN
 SyscallCallbackUninitialize();

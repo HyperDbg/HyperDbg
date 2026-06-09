@@ -1,6 +1,7 @@
 /**
  * @file Constants.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief HyperDbg's SDK constants
  * @details This file contains definitions of constants
  * used in HyperDbg
@@ -17,8 +18,10 @@
 //////////////////////////////////////////////////
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 18
-#define VERSION_PATCH 1
+#define VERSION_MINOR 19
+#define VERSION_PATCH 0
+
+#define BETA_VERSION 1
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
@@ -76,9 +79,9 @@
 #define BUILD_SEC_CH0 (__TIME__[6])
 #define BUILD_SEC_CH1 (__TIME__[7])
 
-#ifdef __cplusplus // becasue it's not valid in C
+#ifdef __cplusplus // because it's not valid in C
 
-const unsigned char BuildDateTime[] = {
+const UCHAR BuildDateTime[] = {
     BUILD_YEAR_CH0,
     BUILD_YEAR_CH1,
     BUILD_YEAR_CH2,
@@ -106,11 +109,16 @@ const unsigned char BuildDateTime[] = {
 #    define TOSTRING(x)  STRINGIFY(x)
 
 // Complete version as a string
-#    define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "\0"
 
-const unsigned char CompleteVersion[] = HYPERDBG_COMPLETE_VERSION;
+#    if BETA_VERSION == 0
+#        define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "\0"
+#    else
+#        define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "-beta\0"
+#    endif
 
-const unsigned char BuildVersion[] = {
+const UCHAR CompleteVersion[] = HYPERDBG_COMPLETE_VERSION;
+
+const UCHAR BuildVersion[] = {
     BUILD_YEAR_CH0,
     BUILD_YEAR_CH1,
     BUILD_YEAR_CH2,
@@ -127,7 +135,7 @@ const unsigned char BuildVersion[] = {
 
     '\0'};
 
-const unsigned char BuildSignature[] = {
+const UCHAR BuildSignature[] = {
     TOSTRING(VERSION_MAJOR)[0],
     '.',
     TOSTRING(VERSION_MINOR)[0],
@@ -611,34 +619,34 @@ typedef enum _SEGMENT_REGISTERS
 /**
  * @brief Intel CPU flags in CR0
  */
-#define X86_CR0_PE 0x00000001 /* Enable Protected Mode    (RW) */
-#define X86_CR0_MP 0x00000002 /* Monitor Coprocessor      (RW) */
-#define X86_CR0_EM 0x00000004 /* Require FPU Emulation    (RO) */
-#define X86_CR0_TS 0x00000008 /* Task Switched            (RW) */
-#define X86_CR0_ET 0x00000010 /* Extension type           (RO) */
-#define X86_CR0_NE 0x00000020 /* Numeric Error Reporting  (RW) */
-#define X86_CR0_WP 0x00010000 /* Supervisor Write Protect (RW) */
-#define X86_CR0_AM 0x00040000 /* Alignment Checking       (RW) */
-#define X86_CR0_NW 0x20000000 /* Not Write-Through        (RW) */
-#define X86_CR0_CD 0x40000000 /* Cache Disable            (RW) */
-#define X86_CR0_PG 0x80000000 /* Paging                         */
+#define REG_CR0_PE 0x00000001 /* Enable Protected Mode    (RW) */
+#define REG_CR0_MP 0x00000002 /* Monitor Coprocessor      (RW) */
+#define REG_CR0_EM 0x00000004 /* Require FPU Emulation    (RO) */
+#define REG_CR0_TS 0x00000008 /* Task Switched            (RW) */
+#define REG_CR0_ET 0x00000010 /* Extension type           (RO) */
+#define REG_CR0_NE 0x00000020 /* Numeric Error Reporting  (RW) */
+#define REG_CR0_WP 0x00010000 /* Supervisor Write Protect (RW) */
+#define REG_CR0_AM 0x00040000 /* Alignment Checking       (RW) */
+#define REG_CR0_NW 0x20000000 /* Not Write-Through        (RW) */
+#define REG_CR0_CD 0x40000000 /* Cache Disable            (RW) */
+#define REG_CR0_PG 0x80000000 /* Paging                         */
 
 /**
  * @brief Intel CPU features in CR4
  *
  */
-#define X86_CR4_VME        0x0001 /* enable vm86 extensions */
-#define X86_CR4_PVI        0x0002 /* virtual interrupts flag enable */
-#define X86_CR4_TSD        0x0004 /* disable time stamp at ipl 3 */
-#define X86_CR4_DE         0x0008 /* enable debugging extensions */
-#define X86_CR4_PSE        0x0010 /* enable page size extensions */
-#define X86_CR4_PAE        0x0020 /* enable physical address extensions */
-#define X86_CR4_MCE        0x0040 /* Machine check enable */
-#define X86_CR4_PGE        0x0080 /* enable global pages */
-#define X86_CR4_PCE        0x0100 /* enable performance counters at ipl 3 */
-#define X86_CR4_OSFXSR     0x0200 /* enable fast FPU save and restore */
-#define X86_CR4_OSXMMEXCPT 0x0400 /* enable unmasked SSE exceptions */
-#define X86_CR4_VMXE       0x2000 /* enable VMX */
+#define REG_CR4_VME        0x0001 /* enable vm86 extensions */
+#define REG_CR4_PVI        0x0002 /* virtual interrupts flag enable */
+#define REG_CR4_TSD        0x0004 /* disable time stamp at ipl 3 */
+#define REG_CR4_DE         0x0008 /* enable debugging extensions */
+#define REG_CR4_PSE        0x0010 /* enable page size extensions */
+#define REG_CR4_PAE        0x0020 /* enable physical address extensions */
+#define REG_CR4_MCE        0x0040 /* Machine check enable */
+#define REG_CR4_PGE        0x0080 /* enable global pages */
+#define REG_CR4_PCE        0x0100 /* enable performance counters at ipl 3 */
+#define REG_CR4_OSFXSR     0x0200 /* enable fast FPU save and restore */
+#define REG_CR4_OSXMMEXCPT 0x0400 /* enable unmasked SSE exceptions */
+#define REG_CR4_VMXE       0x2000 /* enable VMX */
 
 /*
  * @brief Segment register and corresponding GDT meaning in Windows
@@ -667,6 +675,18 @@ typedef enum _SEGMENT_REGISTERS
  */
 #define CPUID_HV_VENDOR_AND_MAX_FUNCTIONS 0x40000000
 #define CPUID_HV_INTERFACE                0x40000001
+
+/**
+ * @brief Transparent-mode feature mask
+ *
+ */
+#define TRANSPARENT_EVADE_MASK_SYSCALL_HOOK 0x00000001
+#define TRANSPARENT_EVADE_MASK_CPUID        0x00000002
+#define TRANSPARENT_EVADE_MASK_MSR          0x00000004
+#define TRANSPARENT_EVADE_MASK_TRAP_FLAG    0x00000008
+#define TRANSPARENT_EVADE_MASK_ALL \
+    (TRANSPARENT_EVADE_MASK_SYSCALL_HOOK | TRANSPARENT_EVADE_MASK_CPUID | TRANSPARENT_EVADE_MASK_MSR | TRANSPARENT_EVADE_MASK_TRAP_FLAG)
+#define TRANSPARENT_EVADE_MASK_DEFAULT TRANSPARENT_EVADE_MASK_ALL
 
 /**
  * @brief Cpuid to get virtual address width

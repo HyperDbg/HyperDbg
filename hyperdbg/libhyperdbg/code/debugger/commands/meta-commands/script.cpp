@@ -47,9 +47,9 @@ CommandScriptHelp()
 VOID
 CommandScriptRunCommand(std::string Input, vector<string> PathAndArgs)
 {
-    int    CommandExecutionResult = 0;
-    char * LineContent            = NULL;
-    int    i                      = 0;
+    INT    CommandExecutionResult = 0;
+    CHAR * LineContent            = NULL;
+    INT    i                      = 0;
 
     //
     // Replace the $arg*s
@@ -69,7 +69,7 @@ CommandScriptRunCommand(std::string Input, vector<string> PathAndArgs)
     //
     // Convert script to char*
     //
-    LineContent = (char *)Input.c_str();
+    LineContent = (CHAR *)Input.c_str();
 
     if (IsEmptyString(LineContent))
     {
@@ -109,7 +109,7 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
 {
     std::string Line;
     BOOLEAN     IsOpened         = FALSE;
-    bool        Reset            = false;
+    BOOLEAN     Reset            = FALSE;
     string      CommandToExecute = "";
     string      PathOfScriptFile = "";
 
@@ -134,7 +134,7 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
         //
         // Reset multiline command
         //
-        Reset = true;
+        Reset = TRUE;
 
         while (std::getline(File, Line))
         {
@@ -154,7 +154,7 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
                 //
                 // The command is expected to be continued
                 //
-                Reset = false;
+                Reset = FALSE;
 
                 //
                 // Append to the previous command
@@ -168,7 +168,7 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
                 //
                 // Reset for the next commands round
                 //
-                Reset = true;
+                Reset = TRUE;
 
                 //
                 // Append this line too
@@ -222,14 +222,14 @@ HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
  * @return INT
  */
 INT
-ScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[])
+HyperDbgScriptReadFileAndExecuteCommandline(INT argc, CHAR * argv[])
 {
     vector<string> Args;
 
     //
     // Convert it to the array
     //
-    for (size_t i = 2; i < argc; i++)
+    for (SIZE_T i = 2; i < argc; i++)
     {
         std::string TempStr(argv[i]);
         Args.push_back(TempStr);

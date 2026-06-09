@@ -17,7 +17,7 @@
  *
  * @param Address Address to check
  *
- * @param UINT32 ProcId
+ * @param ProcId
  * @return BOOLEAN Returns true if the address is valid; otherwise, false
  */
 BOOLEAN
@@ -192,8 +192,8 @@ CheckAccessValidityAndSafetyWrapper(UINT64 TargetAddress, UINT32 Size, UINT32 Pr
     //
     // Move to new cr3
     //
-    OriginalCr3 = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3 = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // We'll only check address with TSX if the address is a kernel-mode
@@ -210,7 +210,7 @@ CheckAccessValidityAndSafetyWrapper(UINT64 TargetAddress, UINT32 Size, UINT32 Pr
     //     UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
     //     UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
     //
-    //     for (size_t i = 0; i <= PageCount; i++)
+    //     for (SIZE_T i = 0; i <= PageCount; i++)
     //     {
     //         UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
     //         if (!CheckAddressValidityUsingTsx(CheckAddr))
@@ -301,7 +301,7 @@ RestoreCr3:
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3);
+    CpuWriteCr3(OriginalCr3);
 
 Return:
     return Result;

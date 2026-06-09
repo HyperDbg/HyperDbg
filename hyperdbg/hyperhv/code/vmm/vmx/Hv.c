@@ -24,7 +24,7 @@ HvAdjustControls(UINT32 Ctl, UINT32 Msr)
 {
     MSR MsrValue = {0};
 
-    MsrValue.Flags = __readmsr(Msr);
+    MsrValue.Flags = CpuReadMsr(Msr);
     Ctl &= MsrValue.Fields.High; /* bit == 0 in high word ==> must be zero */
     Ctl |= MsrValue.Fields.Low;  /* bit == 1 in low word  ==> must be one  */
     return Ctl;
@@ -73,7 +73,7 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     // Otherwise, issue the CPUID to the logical processor based on the indexes
     // on the VP's GPRs.
     //
-    __cpuidex(CpuInfo, (INT32)Regs->rax, (INT32)Regs->rcx);
+    CpuCpuIdEx(CpuInfo, (INT32)Regs->rax, (INT32)Regs->rcx);
 
     //
     // check whether we are in transparent mode or not
@@ -158,7 +158,7 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
     /*
     if (CrExitQualification->Fields.Register == 4)
     {
-        __vmx_vmread(VMCS_GUEST_RSP, &GuestRsp);
+        VmxVmread64P(VMCS_GUEST_RSP, &GuestRsp);
         *RegPtr = GuestRsp;
     }
     */
@@ -229,19 +229,19 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
 
-            __vmx_vmread(VMCS_GUEST_CR0, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR0, RegPtr);
 
             break;
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
 
-            __vmx_vmread(VMCS_GUEST_CR3, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR3, RegPtr);
 
             break;
 
         case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
 
-            __vmx_vmread(VMCS_GUEST_CR4, RegPtr);
+            VmxVmread64P(VMCS_GUEST_CR4, RegPtr);
 
             break;
 
@@ -299,10 +299,10 @@ HvResumeToNextInstruction()
 {
     UINT64 ResumeRIP             = NULL64_ZERO;
     UINT64 CurrentRIP            = NULL64_ZERO;
-    size_t ExitInstructionLength = 0;
+    SIZE_T ExitInstructionLength = 0;
 
-    __vmx_vmread(VMCS_GUEST_RIP, &CurrentRIP);
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
+    VmxVmread64P(VMCS_GUEST_RIP, &CurrentRIP);
+    VmxVmread64P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
 
     ResumeRIP = CurrentRIP + ExitInstructionLength;
 
@@ -391,12 +391,28 @@ HvSetRflagTrapFlag(BOOLEAN Set)
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
+ * @param VCpu
  * @param Set Set or unset
  * @return VOID
  */
 VOID
-HvSetLoadDebugControls(BOOLEAN Set)
+HvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
+    ProtectedHvSetLoadDebugControls(VCpu, Set);
+}
+
+/**
+ * @brief Set LOAD GUEST IA32_LBR_CTL on Vm-entry controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @return VOID
+ */
+VOID
+HvSetLoadGuestIa32LbrCtl(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+{
+    UNREFERENCED_PARAMETER(VCpu);
+
     UINT32 VmentryControls = 0;
 
     //
@@ -406,28 +422,44 @@ HvSetLoadDebugControls(BOOLEAN Set)
 
     if (Set)
     {
-        VmentryControls |= IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG;
+        VmentryControls |= IA32_VMX_ENTRY_CTLS_LOAD_IA32_LBR_CTL_FLAG;
     }
     else
     {
-        VmentryControls &= ~IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG;
+        VmentryControls &= ~IA32_VMX_ENTRY_CTLS_LOAD_IA32_LBR_CTL_FLAG;
     }
 
     //
     // Set the new value
     //
-    VmxVmwrite64(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
+    VmxVmwrite32(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
 }
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
+ * @param VCpu
  * @param Set Set or unset
  * @return VOID
  */
 VOID
-HvSetSaveDebugControls(BOOLEAN Set)
+HvSetSaveDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
+    ProtectedHvSetSaveDebugControls(VCpu, Set);
+}
+
+/**
+ * @brief Set SAVE GUEST IA32_LBR_CTL on Vm-exit controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @return VOID
+ */
+VOID
+HvSetClearGuestIa32LbrCtl(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+{
+    UNREFERENCED_PARAMETER(VCpu);
+
     UINT32 VmexitControls = 0;
 
     //
@@ -437,17 +469,17 @@ HvSetSaveDebugControls(BOOLEAN Set)
 
     if (Set)
     {
-        VmexitControls |= IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG;
+        VmexitControls |= IA32_VMX_EXIT_CTLS_CLEAR_IA32_LBR_CTL_FLAG;
     }
     else
     {
-        VmexitControls &= ~IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG;
+        VmexitControls &= ~IA32_VMX_EXIT_CTLS_CLEAR_IA32_LBR_CTL_FLAG;
     }
 
     //
     // Set the new value
     //
-    VmxVmwrite64(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
+    VmxVmwrite32(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
 }
 
 /**
@@ -472,22 +504,22 @@ HvRestoreRegisters()
     //
     // Restore FS Base
     //
-    __vmx_vmread(VMCS_GUEST_FS_BASE, &FsBase);
-    __writemsr(IA32_FS_BASE, FsBase);
+    VmxVmread64P(VMCS_GUEST_FS_BASE, &FsBase);
+    CpuWriteMsr(IA32_FS_BASE, FsBase);
 
     //
     // Restore Gs Base
     //
-    __vmx_vmread(VMCS_GUEST_GS_BASE, &GsBase);
-    __writemsr(IA32_GS_BASE, GsBase);
+    VmxVmread64P(VMCS_GUEST_GS_BASE, &GsBase);
+    CpuWriteMsr(IA32_GS_BASE, GsBase);
 
     //
     // Restore GDTR
     //
-    __vmx_vmread(VMCS_GUEST_GDTR_BASE, &GdtrBase);
-    __vmx_vmread(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
+    VmxVmread64P(VMCS_GUEST_GDTR_BASE, &GdtrBase);
+    VmxVmread64P(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
 
-    AsmReloadGdtr((void *)GdtrBase, (unsigned long)GdtrLimit);
+    AsmReloadGdtr((PVOID)GdtrBase, (ULONG)GdtrLimit);
 
     //
     // Restore Segment Selector
@@ -504,10 +536,10 @@ HvRestoreRegisters()
     //
     // Restore IDTR
     //
-    __vmx_vmread(VMCS_GUEST_IDTR_BASE, &IdtrBase);
-    __vmx_vmread(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
+    VmxVmread64P(VMCS_GUEST_IDTR_BASE, &IdtrBase);
+    VmxVmread64P(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
 
-    AsmReloadIdtr((void *)IdtrBase, (unsigned long)IdtrLimit);
+    AsmReloadIdtr((PVOID)IdtrBase, (ULONG)IdtrLimit);
 }
 
 /**
@@ -860,11 +892,11 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
     if (Dr7.GeneralDetect)
     {
         DR6 Dr6 = {
-            .AsUInt                      = __readdr(6),
+            .AsUInt                      = CpuReadDr(6),
             .BreakpointCondition         = 0,
             .DebugRegisterAccessDetected = TRUE};
 
-        __writedr(6, Dr6.AsUInt);
+        CpuWriteDr(6, Dr6.AsUInt);
 
         Dr7.GeneralDetect = FALSE;
 
@@ -906,22 +938,22 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         switch (ExitQualification.DebugRegister)
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_DR0:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR0, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR0, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR1:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR1, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR1, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR2:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR2, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR2, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR3:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR3, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR3, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR6:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR6, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR6, GpRegister);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR7:
-            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR7, GpRegister);
+            CpuWriteDr(VMX_EXIT_QUALIFICATION_REGISTER_DR7, GpRegister);
             break;
         default:
             break;
@@ -932,22 +964,22 @@ HvHandleMovDebugRegister(VIRTUAL_MACHINE_STATE * VCpu)
         switch (ExitQualification.DebugRegister)
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_DR0:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR0);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR0);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR1:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR1);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR1);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR2:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR2);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR2);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR3:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR3);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR3);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR6:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR6);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR6);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_DR7:
-            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR7);
+            GpRegister = CpuReadDr(VMX_EXIT_QUALIFICATION_REGISTER_DR7);
             break;
         default:
             break;
@@ -1079,7 +1111,6 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  * @brief Checks to enable and reinject previous interrupts
  *
  * @param VCpu The virtual processor's state
- * @param Set Set or unset the External Interrupt Exiting
  *
  * @return VOID
  */
@@ -1152,7 +1183,7 @@ HvGetCsSelector()
     //
     UINT64 CsSel = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
+    VmxVmread64P(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
     return CsSel & 0xffff;
 }
@@ -1167,7 +1198,7 @@ HvGetRflags()
 {
     UINT64 Rflags = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+    VmxVmread64P(VMCS_GUEST_RFLAGS, &Rflags);
 
     return Rflags;
 }
@@ -1194,7 +1225,7 @@ HvGetRip()
 {
     UINT64 Rip = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
+    VmxVmread64P(VMCS_GUEST_RIP, &Rip);
 
     return Rip;
 }
@@ -1221,7 +1252,7 @@ HvGetInterruptibilityState()
 {
     UINT64 InterruptibilityState = NULL64_ZERO;
 
-    __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
+    VmxVmread64P(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 
     return InterruptibilityState;
 }
@@ -1504,6 +1535,69 @@ HvGetDebugctl()
 }
 
 /**
+ * @brief Get the guest state of IA32_LBR_CTL
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetGuestIa32LbrCtl()
+{
+    UINT64 GuestIa32LbrCtl;
+
+    VmxVmread64P(VMCS_GUEST_LBR_CTL, &GuestIa32LbrCtl);
+
+    return GuestIa32LbrCtl;
+}
+
+/**
+ * @brief Get and store the guest state of IA32_DEBUGCTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @param StoreDebugctl
+ *
+ * @return VOID
+ */
+VOID
+HvGetAndStoreDebugctl(UINT64 * StoreDebugctl)
+{
+    UINT64 DebugctlValue;
+
+    //
+    // Read DEBUGCTL from VMCS
+    //
+    DebugctlValue = HvGetDebugctl();
+
+    //
+    // Store the DEBUGCTL
+    //
+    *StoreDebugctl = DebugctlValue;
+}
+
+/**
+ * @brief Get and store the guest state of IA32_LBR_CTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @param StoreGuestIa32Lbr
+ *
+ * @return VOID
+ */
+VOID
+HvGetAndStoreGuestIa32LbrCtl(UINT64 * StoreGuestIa32Lbr)
+{
+    UINT64 GuestIa32LbrCtl;
+
+    //
+    // Read IA32_LBR_CTL from VMCS
+    //
+    GuestIa32LbrCtl = HvGetGuestIa32LbrCtl();
+
+    //
+    // Store the IA32_LBR_CTL
+    //
+    *StoreGuestIa32Lbr = GuestIa32LbrCtl;
+}
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value The new state
  *
@@ -1512,8 +1606,141 @@ HvGetDebugctl()
 VOID
 HvSetDebugctl(UINT64 Value)
 {
-    VmxVmwrite64(VMCS_GUEST_DEBUGCTL, Value & 0xFFFFFFFF);
-    VmxVmwrite64(VMCS_GUEST_DEBUGCTL_HIGH, Value >> 32);
+    VmxVmwrite32(VMCS_GUEST_DEBUGCTL, Value & 0xFFFFFFFF);
+    VmxVmwrite32(VMCS_GUEST_DEBUGCTL_HIGH, Value >> 32);
+}
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL
+ * @param Value The new state
+ *
+ * @return VOID
+ */
+VOID
+HvSetGuestIa32LbrCtl(UINT64 Value)
+{
+    VmxVmwrite64(VMCS_GUEST_LBR_CTL, Value);
+}
+
+/**
+ * @brief Set LBR selector
+ * @details If VMM is active, this should be done in vmx-root, otherwise, it doesn't work
+ * @param FilterOptions The value to write on MSR_LEGACY_LBR_SELECT
+ *
+ * @return VOID
+ */
+VOID
+HvSetLbrSelect(UINT64 FilterOptions)
+{
+    CpuWriteMsr(MSR_LEGACY_LBR_SELECT, FilterOptions);
+}
+
+/**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForSaveAndLoadDebugControls()
+{
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
+
+    //
+    // Reading IA32_VMX_BASIC_MSR
+    //
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
+
+    //
+    // Read 1-settings of save debug controls (exit controls)
+    //
+    UINT32 ExitCtls = HvAdjustControls(
+        IA32_VMX_EXIT_CTLS_SAVE_DEBUG_CONTROLS_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS);
+
+    //
+    // Read 1-settings of load debug controls (entry controls)
+    //
+    UINT32 EntryCtls = HvAdjustControls(
+        IA32_VMX_ENTRY_CTLS_LOAD_DEBUG_CONTROLS_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS);
+
+    //
+    // Check if entry and exit controls are supported on this system
+    //
+    if (ExitCtls != NULL_ZERO && EntryCtls != NULL_ZERO)
+    {
+        //
+        // Supported
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not supported
+        //
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Check if CPU support load and clear guest IA32_LBR_CTL controls on entry and exit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls()
+{
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
+
+    //
+    // Reading IA32_VMX_BASIC_MSR
+    //
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
+
+    //
+    // Read 1-settings of save debug controls (exit controls)
+    //
+    UINT32 ExitCtls = HvAdjustControls(
+        IA32_VMX_EXIT_CTLS_CLEAR_IA32_LBR_CTL_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS);
+
+    //
+    // Read 1-settings of load debug controls (entry controls)
+    //
+    UINT32 EntryCtls = HvAdjustControls(
+        IA32_VMX_ENTRY_CTLS_LOAD_IA32_LBR_CTL_FLAG,
+        VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS);
+
+    //
+    // Check if entry and exit controls are supported on this system
+    //
+    if (ExitCtls != NULL_ZERO && EntryCtls != NULL_ZERO)
+    {
+        //
+        // Supported
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not supported
+        //
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Set the guest state of DR7
+ * @param Value The new value for DR7
+ *
+ * @return VOID
+ */
+VOID
+HvSetDebugReg7(UINT64 Value)
+{
+    VmxVmwrite64(VMCS_GUEST_DR7, Value);
 }
 
 /**

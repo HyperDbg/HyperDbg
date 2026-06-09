@@ -21,7 +21,7 @@
 double
 Median(vector<double> Cases)
 {
-    size_t Size = Cases.size();
+    SIZE_T Size = Cases.size();
 
     if (Size == 0)
     {
@@ -52,7 +52,7 @@ template <typename T>
 T
 Average(const vector<T> & vec)
 {
-    size_t Sz;
+    SIZE_T Sz;
     T      Mean;
     Sz = vec.size();
     if (Sz == 1)
@@ -122,11 +122,11 @@ Randn(double mu, double sigma)
 {
     double        U1, U2, W, mult;
     static double X1, X2;
-    static int    call = 0;
+    static INT    Call = 0;
 
-    if (call == 1)
+    if (Call == 1)
     {
-        call = !call;
+        Call = !Call;
         return (mu + sigma * (double)X2);
     }
 
@@ -141,7 +141,7 @@ Randn(double mu, double sigma)
     X1   = U1 * mult;
     X2   = U2 * mult;
 
-    call = !call;
+    Call = !Call;
 
     return (mu + sigma * (double)X1);
 }
@@ -158,7 +158,7 @@ VOID
 GuassianGenerateRandom(vector<double> Data, UINT64 * AverageOfData, UINT64 * StandardDeviationOfData, UINT64 * MedianOfData)
 {
     vector<double> FinalData;
-    int            CountOfOutliers = 0;
+    INT            CountOfOutliers = 0;
     double         Medians;
     double         Mad;
     double         StandardDeviation;

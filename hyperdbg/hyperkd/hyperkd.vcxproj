@@ -108,7 +108,11 @@
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformProcess.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
     <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
@@ -133,6 +137,7 @@
     <ClCompile Include="code\debugger\events\ValidateEvents.c" />
     <ClCompile Include="code\debugger\kernel-level\Kd.c" />
     <ClCompile Include="code\debugger\memory\Allocations.c" />
+    <ClCompile Include="code\debugger\memory\PoolManager.c" />
     <ClCompile Include="code\debugger\meta-events\MetaDispatch.c" />
     <ClCompile Include="code\debugger\meta-events\Tracing.c" />
     <ClCompile Include="code\debugger\objects\Process.c" />
@@ -154,11 +159,13 @@
     <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h" />
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformProcess.h" />
     <ClInclude Include="header\assembly\Assembly.h" />
     <ClInclude Include="header\common\Common.h" />
-    <ClInclude Include="header\common\Dpc.h" />
     <ClInclude Include="header\common\Synchronization.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
     <ClInclude Include="header\debugger\broadcast\HaltedBroadcast.h" />
@@ -179,6 +186,7 @@
     <ClInclude Include="header\debugger\kernel-level\Kd.h" />
     <ClInclude Include="header\debugger\memory\Allocations.h" />
     <ClInclude Include="header\debugger\memory\Memory.h" />
+    <ClInclude Include="header\debugger\memory\PoolManager.h" />
     <ClInclude Include="header\debugger\meta-events\MetaDispatch.h" />
     <ClInclude Include="header\debugger\meta-events\Tracing.h" />
     <ClInclude Include="header\debugger\objects\Process.h" />

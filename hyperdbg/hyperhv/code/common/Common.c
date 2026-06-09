@@ -61,30 +61,30 @@ CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess)
 /**
  * @brief Detects whether the string starts with another string
  *
- * @param const char * pre
- * @param const char * str
+ * @param pre
+ * @param str
  * @return BOOLEAN Returns true if it starts with and false if not strats with
  */
 BOOLEAN
-CommonIsStringStartsWith(const char * pre, const char * str)
+CommonIsStringStartsWith(const CHAR * pre, const CHAR * str)
 {
-    size_t lenpre = strlen(pre),
-           lenstr = strlen(str);
-    return lenstr < lenpre ? FALSE : memcmp(pre, str, lenpre) == 0;
+    SIZE_T LenPre = strlen(pre),
+           LenStr = strlen(str);
+    return LenStr < LenPre ? FALSE : memcmp(pre, str, LenPre) == 0;
 }
 
 /**
  * @brief Get cpuid results
  *
- * @param UINT32 Func
- * @param UINT32 SubFunc
- * @param int * CpuInfo
+ * @param Func
+ * @param SubFunc
+ * @param CpuInfo
  * @return VOID
  */
 VOID
-CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, INT * CpuInfo)
 {
-    __cpuidex(CpuInfo, Func, SubFunc);
+    CpuCpuIdEx(CpuInfo, Func, SubFunc);
 }
 
 /**
@@ -156,7 +156,7 @@ CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu)
 
     MemoryMapperReadMemorySafeOnTargetProcess(VCpu->LastVmexitRip, Instruction, MAXIMUM_INSTR_SIZE);
 
-    for (size_t i = 0; i < MAXIMUM_INSTR_SIZE; i++)
+    for (SIZE_T i = 0; i < MAXIMUM_INSTR_SIZE; i++)
     {
         Log("%02X ", Instruction[i] & 0xffU);
     }

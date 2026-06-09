@@ -118,20 +118,42 @@ HvSetRflagTrapFlag(BOOLEAN Set);
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
+ * @param VCpu
  * @param Set Set or unset
  * @return VOID
  */
 VOID
-HvSetLoadDebugControls(BOOLEAN Set);
+HvSetLoadDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+
+/**
+ * @brief Set LOAD GUEST IA32_LBR_CTL on Vm-entry controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @return VOID
+ */
+VOID
+HvSetLoadGuestIa32LbrCtl(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
+ * @param VCpu
  * @param Set Set or unset
  * @return VOID
  */
 VOID
-HvSetSaveDebugControls(BOOLEAN Set);
+HvSetSaveDebugControls(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+
+/**
+ * @brief Set SAVE GUEST IA32_LBR_CTL on Vm-exit controls
+ *
+ * @param VCpu
+ * @param Set Set or unset
+ * @return VOID
+ */
+VOID
+HvSetClearGuestIa32LbrCtl(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
  * @brief Reset GDTR/IDTR and other old when you do vmxoff as the patchguard
@@ -457,6 +479,36 @@ UINT64
 HvGetDebugctl();
 
 /**
+ * @brief Get the guest state of IA32_LBR_CTL
+ *
+ * @return UINT64
+ */
+UINT64
+HvGetGuestIa32LbrCtl();
+
+/**
+ * @brief Get and store the guest state of IA32_DEBUGCTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @param StoreDebugctl
+ *
+ * @return VOID
+ */
+VOID
+HvGetAndStoreDebugctl(UINT64 * StoreDebugctl);
+
+/**
+ * @brief Get and store the guest state of IA32_LBR_CTL
+ * @details mainly used from the VMCALL handler
+ *
+ * @param StoreGuestIa32Lbr
+ *
+ * @return VOID
+ */
+VOID
+HvGetAndStoreGuestIa32LbrCtl(UINT64 * StoreGuestIa32Lbr);
+
+/**
  * @brief Set the guest state of IA32_DEBUGCTL
  * @param Value The new state
  *
@@ -464,6 +516,50 @@ HvGetDebugctl();
  */
 VOID
 HvSetDebugctl(UINT64 Value);
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL
+ * @param Value The new state
+ *
+ * @return VOID
+ */
+VOID
+HvSetGuestIa32LbrCtl(UINT64 Value);
+
+/**
+ * @brief Set LBR selector
+ * @details If VMM is active, this should be done in vmx-root, otherwise, it doesn't work
+ * @param FilterOptions The value to write on MSR_LEGACY_LBR_SELECT
+ *
+ * @return VOID
+ */
+VOID
+HvSetLbrSelect(UINT64 FilterOptions);
+
+/**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForSaveAndLoadDebugControls();
+
+/**
+ * @brief Check if CPU support load and clear guest IA32_LBR_CTL controls on VM-entry and VM-exit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls();
+
+/**
+ * @brief Set the guest state of DR7
+ * @param Value The new value for DR7
+ *
+ * @return VOID
+ */
+VOID
+HvSetDebugReg7(UINT64 Value);
 
 /**
  * @brief Handle the case when the trap flag is set, and

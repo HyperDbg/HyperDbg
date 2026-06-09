@@ -11,11 +11,6 @@
  */
 #include "pch.h"
 
-//
-// Global Variables
-//
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-
 /**
  * @brief help of the !ioapic command
  *

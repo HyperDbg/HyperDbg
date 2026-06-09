@@ -1,5 +1,5 @@
 /**
- * @file test-semanitc-scripts.cpp
+ * @file test-semantic-scripts.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Perform test on semantic scripts
  * @details
@@ -21,7 +21,7 @@ namespace fs = std::filesystem;
  * @return VOID
  */
 VOID
-ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
+ReadDirectoryAndTestSemanticTestCases(const CHAR * ScriptSemanticPath)
 {
     //
     // Iterate through the directory
@@ -38,7 +38,7 @@ ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
                 //
                 // Get the file path
                 //
-                std::string filePath = entry.path().string();
+                std::string FilePath = entry.path().string();
 
                 //
                 // Output the file name
@@ -48,10 +48,10 @@ ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
                 //
                 // Open the file and read its contents
                 //
-                std::ifstream file(filePath);
-                if (file.is_open())
+                std::ifstream File(FilePath);
+                if (File.is_open())
                 {
-                    std::string content((std::istreambuf_iterator<char>(file)),
+                    std::string Content((std::istreambuf_iterator<char>(File)),
                                         std::istreambuf_iterator<char>());
 
                     //
@@ -64,18 +64,18 @@ ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
                     //
                     // Run the test case command
                     //
-                    hyperdbg_u_run_command((CHAR *)content.c_str());
+                    hyperdbg_u_run_command((CHAR *)Content.c_str());
 
                     std::cout << "--------------------------------------------" << std::endl;
 
                     //
                     // Close the file
                     //
-                    file.close();
+                    File.close();
                 }
                 else
                 {
-                    std::cerr << "Could not open file: " << filePath << std::endl;
+                    std::cerr << "Could not open file: " << FilePath << std::endl;
                 }
             }
         }
@@ -94,8 +94,8 @@ ReadDirectoryAndTestSemanticTestcases(const char * ScriptSemanticPath)
 BOOLEAN
 TestSemanticScripts()
 {
-    int  testNum           = 0;
-    CHAR dirPath[MAX_PATH] = {0};
+    INT32 TestNum           = 0;
+    CHAR  dirPath[MAX_PATH] = {0};
 
     //
     // Parse the semantic script test cases from the file
@@ -122,7 +122,7 @@ TestSemanticScripts()
     //
     // Run test cases
     //
-    ReadDirectoryAndTestSemanticTestcases(dirPath);
+    ReadDirectoryAndTestSemanticTestCases(dirPath);
 
     //
     // Close the connection

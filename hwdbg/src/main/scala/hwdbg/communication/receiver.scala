@@ -351,7 +351,7 @@ class DebuggerPacketReceiver(
 
         //
         // The receiving is done at this stage, either
-        // was successful of unsucessful, we'll release the
+        // was successful or unsuccessful, we'll release the
         // sharing bram resource by indicating that the receiving
         // module is no longer using the bram line
         //

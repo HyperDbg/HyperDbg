@@ -24,7 +24,7 @@ LoaderInitVmmAndReversingMachine()
     //
     // Allow to server IOCTL
     //
-    g_AllowIOCTLFromUsermode = TRUE;
+    g_VmmInitialized = TRUE;
 
     //
     // Fill the callbacks for the message tracer
@@ -90,7 +90,7 @@ LoaderInitVmmAndReversingMachine()
     //
     // Not loaded
     //
-    g_AllowIOCTLFromUsermode = FALSE;
+    g_VmmInitialized = FALSE;
 
     return FALSE;
 }
@@ -101,7 +101,7 @@ LoaderInitVmmAndReversingMachine()
  * @return VOID
  */
 VOID
-LoaderUninitializeLogTracer()
+LoaderUninitLogTracer()
 {
     LogDebugInfo("Unloading HyperDbg's debugger...\n");
 

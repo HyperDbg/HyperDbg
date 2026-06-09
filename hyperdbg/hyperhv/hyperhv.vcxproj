@@ -126,12 +126,15 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
+    <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c" />
     <ClCompile Include="..\include\components\optimizations\code\AvlTree.c" />
     <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c" />
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsicsVmx.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
@@ -162,7 +165,6 @@
     <ClCompile Include="code\memory\Layout.c" />
     <ClCompile Include="code\memory\MemoryManager.c" />
     <ClCompile Include="code\memory\MemoryMapper.c" />
-    <ClCompile Include="code\memory\PoolManager.c" />
     <ClCompile Include="code\memory\Segmentation.c" />
     <ClCompile Include="code\memory\SwitchLayout.c" />
     <ClCompile Include="code\mmio\MmioShadowing.c" />
@@ -172,6 +174,7 @@
     <ClCompile Include="code\vmm\ept\Invept.c" />
     <ClCompile Include="code\vmm\ept\Vpid.c" />
     <ClCompile Include="code\vmm\vmx\Counters.c" />
+    <ClCompile Include="code\vmm\vmx\CrossVmcalls.c" />
     <ClCompile Include="code\vmm\vmx\CrossVmexits.c" />
     <ClCompile Include="code\vmm\vmx\Events.c" />
     <ClCompile Include="code\vmm\vmx\Hv.c" />
@@ -230,21 +233,22 @@
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Status.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Utils.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Zydis.h" />
-    <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
+    <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h" />
     <ClInclude Include="..\include\components\optimizations\header\AvlTree.h" />
     <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h" />
     <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h" />
     <ClInclude Include="..\include\components\optimizations\header\OptimizationsExamples.h" />
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsicsVmx.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="header\assembly\InlineAsm.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />
     <ClInclude Include="header\broadcast\DpcRoutines.h" />
     <ClInclude Include="header\common\Bitwise.h" />
     <ClInclude Include="header\common\Common.h" />
-    <ClInclude Include="header\common\Dpc.h" />
     <ClInclude Include="header\common\Msr.h" />
     <ClInclude Include="header\common\State.h" />
     <ClInclude Include="header\common\Trace.h" />
@@ -267,7 +271,6 @@
     <ClInclude Include="header\memory\Conversion.h" />
     <ClInclude Include="header\memory\Layout.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
-    <ClInclude Include="header\memory\PoolManager.h" />
     <ClInclude Include="header\memory\Segmentation.h" />
     <ClInclude Include="header\memory\SwitchLayout.h" />
     <ClInclude Include="header\mmio\MmioShadowing.h" />
@@ -277,6 +280,7 @@
     <ClInclude Include="header\vmm\ept\Invept.h" />
     <ClInclude Include="header\vmm\ept\Vpid.h" />
     <ClInclude Include="header\vmm\vmx\Counters.h" />
+    <ClInclude Include="header\vmm\vmx\CrossVmcalls.h" />
     <ClInclude Include="header\vmm\vmx\Events.h" />
     <ClInclude Include="header\vmm\vmx\Hv.h" />
     <ClInclude Include="header\vmm\vmx\HypervTlfs.h" />

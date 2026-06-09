@@ -42,8 +42,8 @@
  */
 #define RPL_MASK 3
 
-#define BITS_PER_LONG (sizeof(unsigned long) * 8)
-#define ORDER_LONG    (sizeof(unsigned long) == 4 ? 5 : 6)
+#define BITS_PER_LONG (sizeof(ULONG) * 8)
+#define ORDER_LONG    (sizeof(ULONG) == 4 ? 5 : 6)
 
 #define BITMAP_ENTRY(_nr, _bmap) ((_bmap))[(_nr) / BITS_PER_LONG]
 #define BITMAP_SHIFT(_nr)        ((_nr) % BITS_PER_LONG)
@@ -82,10 +82,10 @@ typedef SEGMENT_DESCRIPTOR_32 * PSEGMENT_DESCRIPTOR;
  */
 typedef struct _CPUID
 {
-    int eax;
-    int ebx;
-    int ecx;
-    int edx;
+    INT eax;
+    INT ebx;
+    INT ecx;
+    INT edx;
 } CPUID, *PCPUID;
 
 typedef union _CR_FIXED
@@ -94,8 +94,8 @@ typedef union _CR_FIXED
 
     struct
     {
-        unsigned long Low;
-        long          High;
+        ULONG Low;
+        LONG  High;
 
     } Fields;
 
@@ -125,7 +125,7 @@ typedef struct _NT_KPROCESS
  * @brief Prototype to run a function on a logical core
  *
  */
-typedef void (*RunOnLogicalCoreFunc)(ULONG ProcessorId);
+typedef VOID (*RunOnLogicalCoreFunc)(ULONG ProcessorId);
 
 //////////////////////////////////////////////////
 //				External Functions				//
@@ -153,7 +153,7 @@ BOOLEAN
 CommonAffinityBroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogicalCoreFunc Routine);
 
 BOOLEAN
-CommonIsStringStartsWith(const char * pre, const char * str);
+CommonIsStringStartsWith(const CHAR * pre, const CHAR * str);
 
 BOOLEAN
 CommonIsGuestOnUsermode32Bit();
@@ -162,7 +162,7 @@ PCHAR
 CommonGetProcessNameFromProcessControlBlock(PEPROCESS eprocess);
 
 VOID
-CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, INT * CpuInfo);
 
 VOID
 CommonWriteDebugInformation(VIRTUAL_MACHINE_STATE * VCpu);

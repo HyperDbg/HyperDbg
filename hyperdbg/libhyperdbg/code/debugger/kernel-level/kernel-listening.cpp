@@ -15,11 +15,7 @@
 //
 // Global Variables
 //
-extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-                                        g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
-extern OVERLAPPED                       g_OverlappedIoStructureForReadDebugger;
-extern OVERLAPPED                       g_OverlappedIoStructureForWriteDebugger;
 extern HANDLE                           g_SerialRemoteComPortHandle;
 extern BOOLEAN                          g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN                          g_IsDebuggeeRunning;
@@ -33,6 +29,8 @@ extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfAddingActionsToEvent;
 extern UINT64                           g_ResultOfEvaluatedExpression;
 extern UINT32                           g_ErrorStateOfResultOfEvaluatedExpression;
 extern UINT64                           g_KernelBaseAddress;
+extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
+    g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -70,7 +68,8 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_SHORT_CIRCUITING_EVENT             ShortCircuitingPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS    PtePacket;
     PSMI_OPERATION_PACKETS                       SmiOperationPacket;
-    PHYPERTRACE_OPERATION_PACKETS                HyperTraceOperationPacket;
+    PHYPERTRACE_LBR_DUMP_PACKETS                 HyperTraceLbrdumpPacket;
+    PHYPERTRACE_PT_OPERATION_PACKETS             HyperTracePtOperationPacket;
     PDEBUGGER_PAGE_IN_REQUEST                    PageinPacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS           Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET           ListOrModifyBreakpointPacket;
@@ -1007,24 +1006,45 @@ StartAgain:
 
             break;
 
-        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_OPERATION_REQUESTS:
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_LBR_DUMP_REQUESTS:
 
-            HyperTraceOperationPacket = (HYPERTRACE_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            HyperTraceLbrdumpPacket = (HYPERTRACE_LBR_DUMP_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Get the address and size of the caller
             //
-            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_OPERATION_RESULT, &CallerAddress, &CallerSize);
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT, &CallerAddress, &CallerSize);
 
             //
             // Copy the memory buffer for the caller
             //
-            memcpy(CallerAddress, HyperTraceOperationPacket, CallerSize);
+            memcpy(CallerAddress, HyperTraceLbrdumpPacket, CallerSize);
 
             //
-            // Signal the event relating to receiving result of HyperTrace operation
+            // Signal the event relating to receiving result of HyperTrace LBR dump
             //
-            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_OPERATION_RESULT);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_PT_OPERATION_REQUESTS:
+
+            HyperTracePtOperationPacket = (HYPERTRACE_PT_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Get the address and size of the caller
+            //
+            DbgWaitGetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT, &CallerAddress, &CallerSize);
+
+            //
+            // Copy the memory buffer for the caller
+            //
+            memcpy(CallerAddress, HyperTracePtOperationPacket, CallerSize);
+
+            //
+            // Signal the event relating to receiving result of HyperTrace PT operation
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT);
 
             break;
 
@@ -1176,8 +1196,8 @@ StartAgain:
             if (PcidevinfoPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
                 // For some reason, MSVC refuses to initialize these at top of case
-                const char * PciHeaderTypeAsString[]  = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
-                const char * PciMmioBarTypeAsString[] = {"32-bit Wide",
+                const CHAR * PciHeaderTypeAsString[]  = {"Endpoint", "PCI-to-PCI Bridge", "PCI-to-CardBus Bridge"};
+                const CHAR * PciMmioBarTypeAsString[] = {"32-bit Wide",
                                                          "Reserved",
                                                          "64-bit Wide",
                                                          "Reserved"};
@@ -1358,7 +1378,7 @@ StartAgain:
                         // Replace non-printable characters with "."
                         for (UINT8 j = 0; j < 16; j++)
                         {
-                            char c = (char)*(cs + j);
+                            CHAR c = (CHAR) * (cs + j);
                             if (c >= 32 && c <= 126)
                             {
                                 ShowMessages("%c", c);
@@ -1419,7 +1439,7 @@ ListeningSerialPortInDebuggee()
 StartAgain:
 
     BOOL Status; /* Status */
-    char SerialBuffer[MaxSerialPacketSize] = {
+    CHAR SerialBuffer[MaxSerialPacketSize] = {
         0};                                         /* Buffer to send and receive data */
     DWORD                   EventMask       = 0;    /* Event mask to trigger */
     char                    ReadData        = NULL; /* temperory Character */

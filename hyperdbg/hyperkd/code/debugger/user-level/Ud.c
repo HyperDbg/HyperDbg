@@ -582,7 +582,7 @@ UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
     // Here, we're sure that this thread is looking for command, let
     // see if we find anything
     //
-    for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
+    for (SIZE_T i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
     {
         if (ThreadDebuggingDetails->UdAction[i].ActionType != DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
         {

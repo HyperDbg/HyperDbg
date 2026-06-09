@@ -21,10 +21,10 @@
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_VMM NTSTATUS
-VmFuncVmxVmcall(unsigned long long VmcallNumber,
-                unsigned long long OptionalParam1,
-                unsigned long long OptionalParam2,
-                unsigned long long OptionalParam3);
+VmFuncVmxVmcall(UINT64 VmcallNumber,
+                UINT64 OptionalParam1,
+                UINT64 OptionalParam2,
+                UINT64 OptionalParam3);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncPerformRipIncrement(UINT32 CoreId);
@@ -45,16 +45,22 @@ IMPORT_EXPORT_VMM VOID
 VmFuncSetRflagTrapFlag(BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncRegisterMtfBreak(UINT32 CoreId);
+VmFuncSetInstrumentationStepInState(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncUnRegisterMtfBreak(UINT32 CoreId);
+VmFuncUnsetInstrumentationStepInState(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncSetLoadDebugControls(BOOLEAN Set);
+VmFuncSetLoadDebugControls(UINT32 CoreId, BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncSetSaveDebugControls(BOOLEAN Set);
+VmFuncSetLoadGuestIa32LbrCtl(UINT32 CoreId, BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetSaveDebugControls(UINT32 CoreId, BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetClearGuestIa32LbrCtl(UINT32 CoreId, BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncSetPmcVmexit(BOOLEAN Set);
@@ -100,6 +106,39 @@ VmFuncSetRflags(UINT64 Rflags);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncSetRip(UINT64 Rip);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetDebugReg7(UINT64 Value);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetDebugctl(UINT64 Value);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetGuestIa32LbrCtl(UINT64 Value);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore(UINT64 Value);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetLbrSelect(UINT64 FilterOptions);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetLbrSelectVmcallOnTargetCore(UINT64 FilterOptions);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set);
+
+IMPORT_EXPORT_VMM VOID
+VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncSetTriggerEventForVmcalls(BOOLEAN Set);
@@ -182,6 +221,18 @@ IMPORT_EXPORT_VMM UINT64
 VmFuncGetRip();
 
 IMPORT_EXPORT_VMM UINT64
+VmFuncGetDebugctl();
+
+IMPORT_EXPORT_VMM UINT64
+VmFuncGetDebugctlVmcallOnTargetCore();
+
+IMPORT_EXPORT_VMM UINT64
+VmFuncGetGuestIa32LbrCtl();
+
+IMPORT_EXPORT_VMM UINT64
+VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore();
+
+IMPORT_EXPORT_VMM UINT64
 VmFuncGetInterruptibilityState();
 
 IMPORT_EXPORT_VMM UINT64
@@ -194,7 +245,7 @@ IMPORT_EXPORT_VMM UINT32
 VmFuncVmxCompatibleStrlen(const CHAR * s);
 
 IMPORT_EXPORT_VMM UINT32
-VmFuncVmxCompatibleWcslen(const wchar_t * s);
+VmFuncVmxCompatibleWcslen(const WCHAR * s);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncVmxCompatibleMicroSleep(UINT64 us);
@@ -214,6 +265,15 @@ VmFuncVmxGetCurrentExecutionMode();
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncQueryModeExecTrap();
 
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncCheckCpuSupportForSaveAndLoadDebugControls();
+
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncQueryInstrumentationStepInState(UINT32 CoreId);
+
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls();
+
 IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleStrcmp(const CHAR * Address1, const CHAR * Address2);
 
@@ -221,13 +281,13 @@ IMPORT_EXPORT_VMM INT32
 VmFuncVmxCompatibleStrncmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Num);
 
 IMPORT_EXPORT_VMM INT32
-VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2);
+VmFuncVmxCompatibleWcscmp(const WCHAR * Address1, const WCHAR * Address2);
 
 IMPORT_EXPORT_VMM INT32
-VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, SIZE_T Num);
+VmFuncVmxCompatibleWcsncmp(const WCHAR * Address1, const WCHAR * Address2, SIZE_T Num);
 
 IMPORT_EXPORT_VMM INT32
-VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count);
+VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncApicStoreLocalApicFields(PLAPIC_PAGE LocalApicBuffer, PBOOLEAN IsUsingX2APIC);
@@ -698,25 +758,6 @@ ReadPhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T Bu
 
 IMPORT_EXPORT_VMM BOOLEAN
 WritePhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T BufferSize);
-
-//////////////////////////////////////////////////
-//                 Pool Manager     	   		//
-//////////////////////////////////////////////////
-
-IMPORT_EXPORT_VMM BOOLEAN
-PoolManagerCheckAndPerformAllocationAndDeallocation();
-
-IMPORT_EXPORT_VMM BOOLEAN
-PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
-
-IMPORT_EXPORT_VMM UINT64
-PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size);
-
-IMPORT_EXPORT_VMM BOOLEAN
-PoolManagerFreePool(UINT64 AddressToFree);
-
-IMPORT_EXPORT_VMM VOID
-PoolManagerShowPreAllocatedPools();
 
 //////////////////////////////////////////////////
 //          VMX Registers Modification  		//

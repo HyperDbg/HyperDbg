@@ -19,9 +19,14 @@
 /**
  * @brief Tests with test tags wrapper
  *
+ * @param Param1
+ * @param Param2
+ * @param Param3
+ * @param Param4
+ * @return UINT64
  */
-extern unsigned long long
-AsmTestWrapperWithTestTags(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3, unsigned long long Param4);
+extern UINT64
+AsmTestWrapperWithTestTags(UINT64 Param1, UINT64 Param2, UINT64 Param3, UINT64 Param4);
 
 //
 // ====================  Kernel Test Functions ====================
@@ -35,10 +40,10 @@ AsmTestWrapperWithTestTags(unsigned long long Param1, unsigned long long Param2,
  * @param Param2
  * @param Param3
  * @param Param4
- * @return unsigned long long
+ * @return VOID
  */
-extern void
-AsmDebuggerCustomCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3, unsigned long long Param4);
+extern VOID
+AsmDebuggerCustomCodeHandler(UINT64 Param1, UINT64 Param2, UINT64 Param3, UINT64 Param4);
 
 /**
  * @brief default condition code handler
@@ -46,14 +51,14 @@ AsmDebuggerCustomCodeHandler(unsigned long long Param1, unsigned long long Param
  * @param Param1
  * @param Param2
  * @param Param3
- * @return unsigned long long
+ * @return UINT64
  */
-extern unsigned long long
-AsmDebuggerConditionCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3);
+extern UINT64
+AsmDebuggerConditionCodeHandler(UINT64 Param1, UINT64 Param2, UINT64 Param3);
 
 /**
  * @brief Spin on thread
  *
  */
-extern void
+extern VOID
 AsmDebuggerSpinOnThread();

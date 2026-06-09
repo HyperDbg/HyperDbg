@@ -43,10 +43,25 @@ main(int argc, char * argv[])
             printf("\n[x] The main command parser test cases failed\n");
         }
     }
-    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES))
+    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_PE_PARSER))
     {
         //
         // # Test case 2
+        // Testing PE parser helpers
+        //
+        if (TestPeParser())
+        {
+            printf("\n[*] The PE parser test cases passed successfully\n");
+        }
+        else
+        {
+            printf("\n[x] The PE parser test cases failed\n");
+        }
+    }
+    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES))
+    {
+        //
+        // # Test case 3
         // Testing script semantic test cases
         //
         if (TestSemanticScripts())
@@ -56,6 +71,21 @@ main(int argc, char * argv[])
         else
         {
             printf("\n[x] The script semantic test cases failed\n");
+        }
+    }
+    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_CODEVIEW_RSDS_PARSER))
+    {
+        //
+        // # Test case 4
+        // Testing CodeView RSDS parser helpers
+        //
+        if (TestCodeViewRsdsParser())
+        {
+            printf("\n[*] The CodeView RSDS parser test cases passed successfully\n");
+        }
+        else
+        {
+            printf("\n[x] The CodeView RSDS parser test cases failed\n");
         }
     }
     else if (!strcmp(argv[1], TEST_HWDBG_FUNCTIONALITIES))

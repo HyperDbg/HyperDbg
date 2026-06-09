@@ -35,13 +35,13 @@ CommandDtHelp()
                  "[pid ProcessId (hex)] [padding Padding (yesno)] [offset Offset (yesno)] "
                  "[bitfield Bitfield (yesno)] [native Native (yesno)] [decl Declaration (yesno)] "
                  "[def Definitions (yesno)] [func Functions (yesno)] [pragma Pragma (yesno)] "
-                 "[prefix Prefix (string)] [suffix Suffix (string)] [inline Expantion (string)] "
+                 "[prefix Prefix (string)] [suffix Suffix (string)] [inline Expansion (string)] "
                  "[output FileName (string)]\n\n");
     ShowMessages("syntax : \t!dt [Module!SymbolName (string)] [AddressExpression (string)] "
                  "[padding Padding (yesno)] [offset Offset (yesno)] [bitfield Bitfield (yesno)] "
                  "[native Native (yesno)] [decl Declaration (yesno)] [def Definitions (yesno)] "
                  "[func Functions (yesno)] [pragma Pragma (yesno)] [prefix Prefix (string)] "
-                 "[suffix Suffix (string)] [inline Expantion (string)] [output FileName (string)]\n");
+                 "[suffix Suffix (string)] [inline Expansion (string)] [output FileName (string)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS\n");
@@ -183,9 +183,9 @@ CommandDtAndStructConvertHyperDbgArgsToPdbex(vector<CommandToken> ExtraArgs,
             else
             {
                 //
-                // none/inline/all expected but didn't see it
+                // none/unnamed/all expected but didn't see it
                 //
-                ShowMessages("err, please insert 'none', 'inline', or 'all' as the argument\n\n");
+                ShowMessages("err, please insert 'none', 'unnamed', or 'all' as the argument\n\n");
                 return FALSE;
             }
 
@@ -314,13 +314,13 @@ CommandDtAndStructConvertHyperDbgArgsToPdbex(vector<CommandToken> ExtraArgs,
  */
 BOOLEAN
 CommandDtShowDataBasedOnSymbolTypes(
-    const char * TypeName,
+    const CHAR * TypeName,
     UINT64       Address,
     BOOLEAN      IsStruct,
     PVOID        BufferAddress,
     UINT32       TargetPid,
     BOOLEAN      IsPhysicalAddress,
-    const char * AdditionalParameters)
+    const CHAR * AdditionalParameters)
 {
     UINT64                      StructureSize       = 0;
     BOOLEAN                     ResultOfFindingSize = FALSE;

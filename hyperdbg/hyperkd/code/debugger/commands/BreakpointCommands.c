@@ -50,7 +50,7 @@ BreakpointCheckAndPerformActionsOnTrapFlags(UINT32 ProcessId, UINT32 ThreadId, B
     Result = BinarySearchPerformSearchItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                            g_TrapFlagState.NumberOfItems,
                                            &Index,
-                                           ProcThrdInfo.asUInt);
+                                           ProcThrdInfo.AsUInt);
 
     //
     // Indicate whether the trap flag is set by the debugger or not
@@ -195,7 +195,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
     Result = BinarySearchPerformSearchItem((UINT64 *)&g_TrapFlagState.ThreadInformation[0],
                                            g_TrapFlagState.NumberOfItems,
                                            &Index,
-                                           ProcThrdInfo.asUInt);
+                                           ProcThrdInfo.AsUInt);
 
     if (Result)
     {
@@ -215,7 +215,7 @@ BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId)
                                                      &g_TrapFlagState.NumberOfItems,
                                                      MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS,
                                                      &Index, // not used
-                                                     ProcThrdInfo.asUInt);
+                                                     ProcThrdInfo.AsUInt);
         goto Return;
     }
 
@@ -432,15 +432,14 @@ BreakpointClearAndDeallocateMemory(PDEBUGGEE_BP_DESCRIPTOR BreakpointDesc)
 /**
  * @brief Check and reapply breakpoint
  *
- * @param CoreId
+ * @param DbgState The state of the debugger on the current core
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId)
+BreakpointCheckAndHandleReApplyingBreakpoint(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    BOOLEAN                     Result   = FALSE;
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+    BOOLEAN Result = FALSE;
 
     if (DbgState->SoftwareBreakpointState != NULL)
     {

@@ -16,26 +16,21 @@
 //
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern CommandType              g_CommandsList;
-
-extern BOOLEAN g_ShouldPreviousCommandBeContinued;
-extern BOOLEAN g_IsCommandListInitialized;
-extern BOOLEAN g_LogOpened;
-extern BOOLEAN g_ExecutingScript;
-extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsDebuggeeRunning;
-extern BOOLEAN g_BreakPrintingOutput;
-extern BOOLEAN g_IsInterpreterOnString;
-extern BOOLEAN g_IsInterpreterPreviousCharacterABackSlash;
-extern BOOLEAN g_RtmSupport;
-
-extern UINT32 g_VirtualAddressWidth;
-extern UINT32 g_InterpreterCountOfOpenCurlyBrackets;
-extern ULONG  g_CurrentRemoteCore;
-
-extern string g_ServerPort;
-extern string g_ServerIp;
+extern BOOLEAN                  g_ShouldPreviousCommandBeContinued;
+extern BOOLEAN                  g_IsCommandListInitialized;
+extern BOOLEAN                  g_LogOpened;
+extern BOOLEAN                  g_ExecutingScript;
+extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_BreakPrintingOutput;
+extern BOOLEAN                  g_IsInterpreterOnString;
+extern BOOLEAN                  g_IsInterpreterPreviousCharacterABackSlash;
+extern BOOLEAN                  g_RtmSupport;
+extern UINT32                   g_VirtualAddressWidth;
+extern UINT32                   g_InterpreterCountOfOpenCurlyBrackets;
+extern ULONG                    g_CurrentRemoteCore;
+extern string                   g_ServerPort;
+extern string                   g_ServerIp;
 
 class CommandParser
 {
@@ -50,16 +45,16 @@ public:
     {
         std::vector<CommandToken> tokens;
         std::string               current;
-        bool                      InQuotes   = FALSE;
-        int                       IdxBracket = 0;
+        BOOLEAN                   InQuotes   = FALSE;
+        INT                       IdxBracket = 0;
 
         //
         // mainly for removing \ from escaped chars
         //
         std::string input = ConstInput;
-        for (size_t i = 0; i < input.length(); ++i)
+        for (SIZE_T i = 0; i < input.length(); ++i)
         {
-            char c = input[i];
+            CHAR c = input[i];
 
             if (c == '/') // start comment parse
             {
@@ -68,16 +63,16 @@ public:
                 //
                 if (!InQuotes)
                 {
-                    size_t j  = i;
-                    char   c2 = input[++j];
+                    SIZE_T j  = i;
+                    CHAR   c2 = input[++j];
 
                     if (c2 == '/') // start to look for comments
                     {
                         //
                         // to solve cases like: //"}"
                         //
-                        size_t StrLitEnd = 0;
-                        size_t StrLitBeg = input.find("\"", i);
+                        SIZE_T StrLitEnd = 0;
+                        SIZE_T StrLitBeg = input.find("\"", i);
                         if (StrLitBeg != std::string::npos)
                         {
                             if (i)
@@ -104,8 +99,8 @@ public:
                         //
                         // assuming " }" as the end of a line comment aka //, if we are within {}
                         //
-                        bool   CmntEndBrkt  = false;
-                        size_t CloseBrktPos = 0;
+                        BOOLEAN CmntEndBrkt  = FALSE;
+                        SIZE_T  CloseBrktPos = 0;
                         if (IdxBracket)
                         {
                             //
@@ -131,16 +126,16 @@ public:
                             CloseBrktPos = std::string::npos;
                         }
 
-                        size_t NewLineSrtPos = input.find("\\n", i);                               // "\\n" entered by user
+                        SIZE_T NewLineSrtPos = input.find("\\n", i);                               // "\\n" entered by user
                         if (StrLitBeg && StrLitBeg <= NewLineSrtPos && NewLineSrtPos <= StrLitEnd) // is it within the string literal?
                         {
                             NewLineSrtPos = std::string::npos;
                         }
-                        size_t NewLineChrPos = input.find('\n', i);
+                        SIZE_T NewLineChrPos = input.find('\n', i);
 
-                        std::vector<size_t> PosVec = {CloseBrktPos, NewLineSrtPos, NewLineChrPos};
+                        std::vector<SIZE_T> PosVec = {CloseBrktPos, NewLineSrtPos, NewLineChrPos};
 
-                        auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occures first
+                        auto min = *(min_element(PosVec.begin(), PosVec.end())); // see which one occurs first
 
                         if (min != std::string::npos && input[min - 1] != '\\')
                         {
@@ -167,7 +162,7 @@ public:
                         }
                         else
                         {
-                            bool IsNewLineEsc = false;
+                            BOOLEAN IsNewLineEsc = FALSE;
                             if (NewLineSrtPos != std::string::npos)
                             {
                                 IsNewLineEsc = input[NewLineSrtPos - 1] == '\\';
@@ -227,14 +222,14 @@ public:
                             // fix the escaped newline
                             if (IsNewLineEsc)
                             {
-                                size_t start_pos = 0;
+                                SIZE_T start_pos = 0;
                                 while ((start_pos = comment.find("\\\\n", start_pos)) != std::string::npos)
                                 {
                                     comment.replace(start_pos, 3, "\\n");
                                     start_pos += 2; // Handles case where 'to' is a substring of 'from'
                                 }
 
-                                IsNewLineEsc = false;
+                                IsNewLineEsc = FALSE;
                             }
 
                             //
@@ -256,7 +251,7 @@ public:
                     }
                     else if (c2 == '*')
                     {
-                        size_t EndPose = input.find("*/", i + 2); // +2 for cases like /*/
+                        SIZE_T EndPose = input.find("*/", i + 2); // +2 for cases like /*/
 
                         if (EndPose != std::string::npos)
                         {
@@ -361,7 +356,7 @@ public:
                 }
             }
 
-            if (((c == ' ' && !InQuotes) || c == '    ') && !InQuotes && !IdxBracket) // finding seperator space char // Tab seperator added too
+            if (((c == ' ' && !InQuotes) || c == '    ') && !InQuotes && !IdxBracket) // finding separator space char // Tab separator added too
             {
                 if (!current.empty() && current != " ")
                 {
@@ -503,10 +498,10 @@ public:
         //
         // get len of longest string
         //
-        const int sz      = 200; // size
-        int       g_s1Len = 0, g_s2Len = 0, g_s3Len = 0;
-        int       s1 = 0, s2 = 0, s3 = 0;
-        char      LineToPrint1[sz], LineToPrint2[sz], LineToPrint3[sz];
+        const INT sz      = 200; // size
+        INT       g_s1Len = 0, g_s2Len = 0, g_s3Len = 0;
+        INT       s1 = 0, s2 = 0, s3 = 0;
+        CHAR      LineToPrint1[sz], LineToPrint2[sz], LineToPrint3[sz];
 
         for (const auto & Token : Tokens)
         {
@@ -671,10 +666,10 @@ private:
  *
  * @return The position of the first difference, or -1 if the strings are equal
  */
-int
-FindDifferencePosition(const char * prsTok, const char * fileTok)
+INT
+FindDifferencePosition(const CHAR * prsTok, const CHAR * fileTok)
 {
-    int i = 0;
+    INT i = 0;
 
     //
     // Loop until a difference is found or until the end of any string is reached
@@ -711,7 +706,7 @@ FindDifferencePosition(const char * prsTok, const char * fileTok)
  * @param FailedTokenNum The failed token number (if any)
  * @param FailedTokenPosition The failed token position (if any)
  *
- * @return BOOLEAN returns true if the command was parsed successfully and false if there was an error
+ * @return BOOLEAN returns TRUE if the command was parsed successfully and FALSE if there was an error
  */
 BOOLEAN
 HyperDbgTestCommandParser(CHAR *   Command,
@@ -947,7 +942,7 @@ HyperDbgInterpreter(CHAR * Command)
     // Detect whether it's a .help command or not
     //
     if (!FirstCommand.compare(".help") || !FirstCommand.compare("help") ||
-        !FirstCommand.compare(".hh"))
+        !FirstCommand.compare(".hh") || !FirstCommand.compare("!help"))
     {
         if (Tokens.size() == 2)
         {
@@ -1022,14 +1017,14 @@ HyperDbgInterpreter(CHAR * Command)
  * @return VOID
  */
 VOID
-InterpreterRemoveComments(char * CommandText)
+InterpreterRemoveComments(CHAR * CommandText)
 {
     BOOLEAN IsComment         = FALSE;
     BOOLEAN IsOnBracketString = FALSE;
     BOOLEAN IsOnString        = FALSE;
     UINT32  LengthOfCommand   = (UINT32)strlen(CommandText);
 
-    for (size_t i = 0; i < LengthOfCommand; i++)
+    for (SIZE_T i = 0; i < LengthOfCommand; i++)
     {
         if (IsComment)
         {
@@ -1041,7 +1036,7 @@ InterpreterRemoveComments(char * CommandText)
             {
                 if (CommandText[i] != '\0')
                 {
-                    memmove((void *)&CommandText[i], (const void *)&CommandText[i + 1], strlen(CommandText) - i);
+                    memmove((PVOID)&CommandText[i], (const PVOID)&CommandText[i + 1], strlen(CommandText) - i);
                     i--;
                 }
             }
@@ -1148,7 +1143,7 @@ CheckMultilineCommand(CHAR * CurrentCommand, BOOLEAN Reset)
 
     CurrentCommandLen = (UINT32)CurrentCommandStr.length();
 
-    for (size_t i = 0; i < CurrentCommandLen; i++)
+    for (SIZE_T i = 0; i < CurrentCommandLen; i++)
     {
         switch (CurrentCommandStr.at(i))
         {
@@ -1236,7 +1231,7 @@ ContinuePreviousCommand()
     BOOLEAN Result = g_ShouldPreviousCommandBeContinued;
 
     //
-    // We should keep it false for the next command
+    // We should keep it FALSE for the next command
     //
     g_ShouldPreviousCommandBeContinued = FALSE;
 
@@ -1345,6 +1340,7 @@ InitializeCommandsDictionary()
     g_CommandsList[".help"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
     g_CommandsList[".hh"]   = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
     g_CommandsList["help"]  = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
+    g_CommandsList["!help"] = {NULL, &CommandHelpHelp, DEBUGGER_COMMAND_HELP_ATTRIBUTES};
 
     g_CommandsList["clear"] = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
     g_CommandsList[".cls"]  = {&CommandCls, &CommandClsHelp, DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};
@@ -1630,6 +1626,12 @@ InitializeCommandsDictionary()
     g_CommandsList["!smi"] = {&CommandSmi, &CommandSmiHelp, DEBUGGER_COMMAND_SMI_ATTRIBUTES};
 
     g_CommandsList["!lbr"] = {&CommandLbr, &CommandLbrHelp, DEBUGGER_COMMAND_LBR_ATTRIBUTES};
+
+    g_CommandsList["!lbrdump"]  = {&CommandLbrdump, &CommandLbrdumpHelp, DEBUGGER_COMMAND_LBRDUMP_ATTRIBUTES};
+    g_CommandsList["!lbrdmp"]   = {&CommandLbrdump, &CommandLbrdumpHelp, DEBUGGER_COMMAND_LBRDUMP_ATTRIBUTES};
+    g_CommandsList["!lbrprint"] = {&CommandLbrdump, &CommandLbrdumpHelp, DEBUGGER_COMMAND_LBRDUMP_ATTRIBUTES};
+
+    g_CommandsList["!pt"] = {&CommandPt, &CommandPtHelp, DEBUGGER_COMMAND_PT_ATTRIBUTES};
 
     //
     // hwdbg commands

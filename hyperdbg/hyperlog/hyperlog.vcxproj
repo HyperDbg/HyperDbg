@@ -104,14 +104,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformDpc.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformEvent.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIo.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIrql.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformSpinlock.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformTime.c" />
     <ClCompile Include="code\Logging.c" />
     <ClCompile Include="code\UnloadDll.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformDpc.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformEvent.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIo.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIrql.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformSpinlock.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformTime.h" />
     <ClInclude Include="header\Logging.h" />
     <ClInclude Include="header\pch.h" />
     <ClInclude Include="header\UnloadDll.h" />

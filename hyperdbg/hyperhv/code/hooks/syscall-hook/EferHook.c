@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file EferHook.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of the functions related to the EFER Syscall Hook
@@ -38,7 +38,7 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
 
     //
     // Read previous VM-Entry and VM-Exit controls
@@ -46,7 +46,7 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
     VmxVmread32P(VMCS_CTRL_VMENTRY_CONTROLS, &VmEntryControls);
     VmxVmread32P(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
-    MsrValue.AsUInt = __readmsr(IA32_EFER);
+    MsrValue.AsUInt = CpuReadMsr(IA32_EFER);
 
     if (EnableEFERSyscallHook)
     {
@@ -55,17 +55,17 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
         //
         // Set VM-Entry controls to load EFER
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls | IA32_VMX_ENTRY_CTLS_LOAD_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+        VmxVmwrite32(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls | IA32_VMX_ENTRY_CTLS_LOAD_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
         //
         // Set VM-Exit controls to save EFER
         //
-        __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls | IA32_VMX_EXIT_CTLS_SAVE_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+        VmxVmwrite32(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls | IA32_VMX_EXIT_CTLS_SAVE_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
         //
         // Set the GUEST EFER to use this value as the EFER
         //
-        __vmx_vmwrite(VMCS_GUEST_EFER, MsrValue.AsUInt);
+        VmxVmwrite64(VMCS_GUEST_EFER, MsrValue.AsUInt);
 
         //
         // also, we have to set exception bitmap to cause vm-exit on #UDs
@@ -79,23 +79,23 @@ SyscallHookConfigureEFER(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN EnableEFERSyscall
         //
         // Set VM-Entry controls to load EFER
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~IA32_VMX_ENTRY_CTLS_LOAD_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+        VmxVmwrite32(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~IA32_VMX_ENTRY_CTLS_LOAD_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
         //
         // Set VM-Exit controls to save EFER
         //
-        __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls & ~IA32_VMX_EXIT_CTLS_SAVE_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+        VmxVmwrite32(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls & ~IA32_VMX_EXIT_CTLS_SAVE_IA32_EFER_FLAG, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
         //
         // Set the GUEST EFER to use this value as the EFER
         //
-        __vmx_vmwrite(VMCS_GUEST_EFER, MsrValue.AsUInt);
+        VmxVmwrite64(VMCS_GUEST_EFER, MsrValue.AsUInt);
 
         //
         // Because we're not save or load EFER on vm-exits so
         // we have to set it manually
         //
-        __writemsr(IA32_EFER, MsrValue.AsUInt);
+        CpuWriteMsr(IA32_EFER, MsrValue.AsUInt);
 
         //
         // unset the exception to not cause vm-exit on #UDs
@@ -125,7 +125,7 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+    VmxVmread64P(VMCS_GUEST_RIP, &GuestRip);
 
     //
     // Reading instruction length
@@ -135,47 +135,47 @@ SyscallHookEmulateSYSCALL(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading guest's Rflags
     //
-    __vmx_vmread(VMCS_GUEST_RFLAGS, &GuestRflags);
+    VmxVmread64P(VMCS_GUEST_RFLAGS, &GuestRflags);
 
     //
     // Save the address of the instruction following SYSCALL into RCX and then
     // load RIP from IA32_LSTAR.
     //
-    MsrValue        = __readmsr(IA32_LSTAR);
+    MsrValue        = CpuReadMsr(IA32_LSTAR);
     VCpu->Regs->rcx = GuestRip + InstructionLength;
     GuestRip        = MsrValue;
-    __vmx_vmwrite(VMCS_GUEST_RIP, GuestRip);
+    VmxVmwrite64(VMCS_GUEST_RIP, GuestRip);
 
     //
     // Save RFLAGS into R11 and then mask RFLAGS using IA32_FMASK
     //
-    MsrValue        = __readmsr(IA32_FMASK);
+    MsrValue        = CpuReadMsr(IA32_FMASK);
     VCpu->Regs->r11 = GuestRflags;
     GuestRflags &= ~(MsrValue | X86_FLAGS_RF);
-    __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
+    VmxVmwrite64(VMCS_GUEST_RFLAGS, GuestRflags);
 
     //
-    // Peform emulation of Intel CET (Shadow stacks)
+    // Perform emulation of Intel CET (Shadow stacks)
     //
     if (g_CompatibilityCheck.CetShadowStackSupport)
     {
-        UcetMsr.AsUInt = __readmsr(IA32_U_CET);
+        UcetMsr.AsUInt = CpuReadMsr(IA32_U_CET);
 
         //
         // If the shadow stack is enabled, we have to save the current
         //
         if (UcetMsr.ShStkEn)
         {
-            __vmx_vmread(VMCS_GUEST_SSP, &Ssp);
-            __writemsr(IA32_PL3_SSP, Ssp);
-            __vmx_vmwrite(VMCS_GUEST_SSP, 0);
+            VmxVmread64P(VMCS_GUEST_SSP, &Ssp);
+            CpuWriteMsr(IA32_PL3_SSP, Ssp);
+            VmxVmwrite64(VMCS_GUEST_SSP, 0);
         }
     }
 
     //
     // Load the CS and SS selectors with values derived from bits 47:32 of IA32_STAR
     //
-    MsrValue             = __readmsr(IA32_STAR);
+    MsrValue             = CpuReadMsr(IA32_STAR);
     Cs.Selector          = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
     Cs.Base              = 0;                               // flat segment
     Cs.Limit             = (UINT32)~0;                      // 4GB limit
@@ -212,35 +212,35 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     // Load RIP from RCX
     //
     GuestRip = VCpu->Regs->rcx;
-    __vmx_vmwrite(VMCS_GUEST_RIP, GuestRip);
+    VmxVmwrite64(VMCS_GUEST_RIP, GuestRip);
 
     //
     // Load RFLAGS from R11. Clear RF, VM, reserved bits
     //
     GuestRflags = (VCpu->Regs->r11 & ~(X86_FLAGS_RF | X86_FLAGS_VM | X86_FLAGS_RESERVED_BITS)) | X86_FLAGS_FIXED;
-    __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
+    VmxVmwrite64(VMCS_GUEST_RFLAGS, GuestRflags);
 
     //
     // Restore user-mode SPP
     //
     if (g_CompatibilityCheck.CetShadowStackSupport)
     {
-        UcetMsr.AsUInt = __readmsr(IA32_U_CET);
+        UcetMsr.AsUInt = CpuReadMsr(IA32_U_CET);
 
         //
         // If the shadow stack is enabled, we have to restore the current
         //
         if (UcetMsr.ShStkEn)
         {
-            Ssp = __readmsr(IA32_PL3_SSP);
-            __vmx_vmwrite(VMCS_GUEST_SSP, Ssp);
+            Ssp = CpuReadMsr(IA32_PL3_SSP);
+            VmxVmwrite64(VMCS_GUEST_SSP, Ssp);
         }
     }
 
     //
     // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of IA32_STAR
     //
-    MsrValue             = __readmsr(IA32_STAR);
+    MsrValue             = CpuReadMsr(IA32_STAR);
     Cs.Selector          = (UINT16)(((MsrValue >> 48) + 16) | 3); // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
     Cs.Base              = 0;                                     // Flat segment
     Cs.Limit             = (UINT32)~0;                            // 4GB limit
@@ -273,7 +273,7 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
+    VmxVmread64P(VMCS_GUEST_RIP, &Rip);
 
     if (g_IsUnsafeSyscallOrSysretHandling)
     {
@@ -311,9 +311,9 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
 
-        OriginalCr3 = __readcr3();
+        OriginalCr3 = CpuReadCr3();
 
-        __writecr3(GuestCr3.Flags);
+        CpuWriteCr3(GuestCr3.Flags);
 
         //
         // Read the memory
@@ -352,7 +352,7 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
             return FALSE;
         }
 
-        __writecr3(OriginalCr3);
+        CpuWriteCr3(OriginalCr3);
 
         if (InstructionBuffer[0] == 0x0F &&
             InstructionBuffer[1] == 0x05)

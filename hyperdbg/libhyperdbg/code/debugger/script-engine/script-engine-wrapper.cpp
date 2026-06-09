@@ -23,7 +23,6 @@ extern UINT64 * g_ScriptStackBuffer;
 extern UINT64   g_CurrentExprEvalResult;
 extern BOOLEAN  g_CurrentExprEvalResultHasError;
 extern UINT64 * g_HwdbgPinsStatus;
-extern BOOLEAN  g_HwdbgInstanceInfoIsValid;
 
 //
 // Temporary structures used only for testing
@@ -52,7 +51,7 @@ typedef struct _ALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING
  * @return UINT64
  */
 UINT64
-ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound)
+ScriptEngineConvertNameToAddressWrapper(const CHAR * FunctionOrVariableName, PBOOLEAN WasFound)
 {
     return ScriptEngineConvertNameToAddress(FunctionOrVariableName, WasFound);
 }
@@ -66,7 +65,7 @@ ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBO
  * @return UINT32
  */
 UINT32
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName)
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const CHAR * PdbFileName, const CHAR * CustomModuleName)
 {
     return ScriptEngineLoadFileSymbol(BaseAddress, PdbFileName, CustomModuleName);
 }
@@ -102,7 +101,7 @@ ScriptEngineUnloadAllSymbolsWrapper()
  * @return UINT32
  */
 UINT32
-ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName)
+ScriptEngineUnloadModuleSymbolWrapper(CHAR * ModuleName)
 {
     return ScriptEngineUnloadModuleSymbol(ModuleName);
 }
@@ -115,7 +114,7 @@ ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName)
  * @return UINT32
  */
 UINT32
-ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask)
+ScriptEngineSearchSymbolForMaskWrapper(const CHAR * SearchMask)
 {
     return ScriptEngineSearchSymbolForMask(SearchMask);
 }
@@ -158,7 +157,7 @@ ScriptEngineGetDataTypeSizeWrapper(CHAR * TypeName, UINT64 * TypeSize)
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction)
+ScriptEngineCreateSymbolTableForDisassemblerWrapper(PVOID CallbackFunction)
 {
     return ScriptEngineCreateSymbolTableForDisassembler(CallbackFunction);
 }
@@ -172,7 +171,7 @@ ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction)
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize)
+ScriptEngineConvertFileToPdbPathWrapper(const CHAR * LocalFilePath, CHAR * ResultPath, SIZE_T ResultPathSize)
 
 {
     return ScriptEngineConvertFileToPdbPath(LocalFilePath, ResultPath, ResultPathSize);
@@ -193,7 +192,7 @@ BOOLEAN
 ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   UINT32                StoredLength,
                                   BOOLEAN               DownloadIfAvailable,
-                                  const char *          SymbolPath,
+                                  const CHAR *          SymbolPath,
                                   BOOLEAN               IsSilentLoad)
 {
     return ScriptEngineSymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath, IsSilentLoad);
@@ -212,11 +211,11 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
  */
 BOOLEAN
 ScriptEngineShowDataBasedOnSymbolTypesWrapper(
-    const char * TypeName,
+    const CHAR * TypeName,
     UINT64       Address,
     BOOLEAN      IsStruct,
     PVOID        BufferAddress,
-    const char * AdditionalParameters)
+    const CHAR * AdditionalParameters)
 {
     return ScriptEngineShowDataBasedOnSymbolTypes(TypeName, Address, IsStruct, BufferAddress, AdditionalParameters);
 }
@@ -244,13 +243,43 @@ ScriptEngineSymbolAbortLoadingWrapper()
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
-                                                            char *       PdbFilePath,
-                                                            char *       GuidAndAgeDetails,
+ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const CHAR * LocalFilePath,
+                                                            CHAR *       PdbFilePath,
+                                                            CHAR *       GuidAndAgeDetails,
                                                             BOOLEAN      Is32BitModule)
 
 {
     return ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails, Is32BitModule);
+}
+
+/**
+ * @brief ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetails wrapper
+ *
+ * @param LoadedImageBytes
+ * @param LoadedImageSize
+ * @param LocalFilePath
+ * @param PdbFilePath
+ * @param GuidAndAgeDetails
+ * @param Is32BitModule
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetailsWrapper(const BYTE * LoadedImageBytes,
+                                                                    SIZE_T       LoadedImageSize,
+                                                                    const CHAR * LocalFilePath,
+                                                                    CHAR *       PdbFilePath,
+                                                                    CHAR *       GuidAndAgeDetails,
+                                                                    BOOLEAN      Is32BitModule)
+
+{
+    return ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(
+        LoadedImageBytes,
+        LoadedImageSize,
+        LocalFilePath,
+        PdbFilePath,
+        GuidAndAgeDetails,
+        Is32BitModule);
 }
 
 //
@@ -266,7 +295,7 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFi
  * @return PVOID
  */
 PVOID
-ScriptEngineParseWrapper(char * Expr, BOOLEAN ShowErrorMessageIfAny)
+ScriptEngineParseWrapper(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny)
 {
     PSYMBOL_BUFFER SymbolBuffer;
     SymbolBuffer = (PSYMBOL_BUFFER)ScriptEngineParse(Expr);
@@ -357,7 +386,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     // Run Parser
     //
-    PSYMBOL_BUFFER CodeBuffer = (PSYMBOL_BUFFER)ScriptEngineParse((char*)Expr.c_str());
+    PSYMBOL_BUFFER CodeBuffer = (PSYMBOL_BUFFER)ScriptEngineParse((char *)Expr.c_str());
 
 #ifdef _SCRIPT_ENGINE_IR_PRINT_EN
     //
@@ -394,8 +423,8 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
 #ifdef _SCRIPT_ENGINE_CODEEXEC_DBG_EN
             printf("Address = %lld, StackIndx = %lld, StackBaseIndx = %lld\n", i, ScriptGeneralRegisters.StackIndx, ScriptGeneralRegisters.StackBaseIndx);
-            PSYMBOL Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                                         (unsigned long long)(i * sizeof(SYMBOL)));
+            PSYMBOL Operator = (PSYMBOL)((UINT64)CodeBuffer->Head +
+                                         (UINT64)(i * sizeof(SYMBOL)));
             printf("Function = %s\n", FunctionNames[Operator->Value]);
             printf("Stack Buffer:\n");
             for (UINT64 j = 0; j < ScriptGeneralRegisters.StackIndx; j++)
@@ -668,12 +697,12 @@ ScriptEngineWrapperTestParser(const string & Expr)
 
     GUEST_REGS GuestRegs = {0};
 
-    char    test[] = "Hello world !";
-    wchar_t testw[] =
+    CHAR  test[] = "Hello world !";
+    WCHAR testw[] =
         L"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 "
         L"9 a b c d e f g h i j k l m n o p q r s t u v w x y z";
 
-    char * RspReg = (char *)malloc(0x100);
+    CHAR * RspReg = (CHAR *)malloc(0x100);
 
     if (RspReg == NULL)
     {

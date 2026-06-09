@@ -127,7 +127,9 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\platform\user\header\Environment.h" />
+    <ClInclude Include="..\include\components\pe\header\pe-image-reader.h" />
+    <ClInclude Include="..\include\platform\user\header\platform-intrinsics.h" />
+    <ClInclude Include="..\include\platform\user\header\windows-only\windows-privilege.h" />
     <ClInclude Include="..\include\platform\user\header\Windows.h" />
     <ClInclude Include="header\assembler.h" />
     <ClInclude Include="header\commands.h" />
@@ -145,8 +147,10 @@
     <ClInclude Include="header\kd.h" />
     <ClInclude Include="header\libhyperdbg.h" />
     <ClInclude Include="header\list.h" />
+    <ClInclude Include="header\messaging.h" />
     <ClInclude Include="header\namedpipe.h" />
     <ClInclude Include="header\objects.h" />
+    <ClInclude Include="header\packets.h" />
     <ClInclude Include="header\pci-id.h" />
     <ClInclude Include="header\pe-parser.h" />
     <ClInclude Include="header\rev-ctrl.h" />
@@ -159,11 +163,16 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\components\pe\code\pe-image-reader.cpp" />
+    <ClCompile Include="..\include\platform\user\code\platform-intrinsics.c" />
+    <ClCompile Include="..\include\platform\user\code\windows-only\windows-privilege.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
     <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
     <ClCompile Include="..\script-eval\code\Regs.c" />
     <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
+    <ClCompile Include="code\app\messaging.cpp" />
+    <ClCompile Include="code\app\packets.cpp" />
     <ClCompile Include="code\common\spinlock.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\a.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\continue.cpp" />
@@ -179,8 +188,10 @@
     <ClCompile Include="code\debugger\commands\extension-commands\idt.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\ioapic.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\lbr.cpp" />
+    <ClCompile Include="code\debugger\commands\extension-commands\lbrdump.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\pcicam.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\pcitree.cpp" />
+    <ClCompile Include="code\debugger\commands\extension-commands\pt.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\rev.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\smi.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\trace.cpp" />

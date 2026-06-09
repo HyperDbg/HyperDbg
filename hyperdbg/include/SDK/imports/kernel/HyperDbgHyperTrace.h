@@ -24,7 +24,7 @@
 // Initialize the hypertrace module with the provided callbacks
 //
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks);
+HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HyperTraceCallbacks, BOOLEAN RunningOnHypervisorEnvironment);
 
 //
 // Uninitialize the HyperTrace module
@@ -32,19 +32,83 @@ HyperTraceInitCallback(HYPERTRACE_CALLBACKS * HypertraceCallbacks);
 IMPORT_EXPORT_HYPERTRACE VOID
 HyperTraceUninit();
 
-//
-// Perform operations related to HyperTrace based on the request type and parameters
-//
-IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTracePerformOperation(HYPERTRACE_OPERATION_PACKETS * LbrOperationRequest,
-                           BOOLEAN                        ApplyFromVmxRootMode);
-
 //////////////////////////////////////////////////
 //                LBR Functions 	    		//
 //////////////////////////////////////////////////
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceStartLbr(BOOLEAN ApplyFromVmxRootMode);
+HyperTraceLbrIsSupported(UINT32 * Capacity, BOOLEAN * IsArchLbr);
 
 IMPORT_EXPORT_HYPERTRACE BOOLEAN
-HyperTraceStopLbr(BOOLEAN ApplyFromVmxRootMode);
+HyperTraceLbrCheck();
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrRestore();
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrRestoreByFilter(UINT64 FilterOptions);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrSave(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrPrint(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrFlush(HYPERTRACE_LBR_OPERATION_PACKETS * HyperTraceOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(UINT32 CoreId);
+
+//
+// Perform operations related to HyperTrace LBR dumping
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrPerformDump(HYPERTRACE_LBR_DUMP_PACKETS * LbrDumpRequest);
+
+//
+// Perform operations related to HyperTrace LBR based on the request type and parameters
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTraceLbrPerformOperation(HYPERTRACE_LBR_OPERATION_PACKETS * LbrOperationRequest);
+
+//////////////////////////////////////////////////
+//                 PT Functions 	    		//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtEnable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtDisable(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtPause(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtResume(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtSize(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtDump(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtFlush(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+//
+// Perform operations related to HyperTrace PT based on the request type and parameters
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtPerformOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtOperationRequest);
+
+//
+// Map every per-CPU PT main output + overflow buffer into the calling
+// user process. See HYPERTRACE_PT_MMAP_PACKETS for the lifetime contract.
+//
+IMPORT_EXPORT_HYPERTRACE BOOLEAN
+HyperTracePtMmap(HYPERTRACE_PT_MMAP_PACKETS * Req);

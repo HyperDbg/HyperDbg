@@ -80,22 +80,22 @@ EptHookReservePreallocatedPoolsForEptHooks(UINT32 Count)
     // Request pages to be allocated for converting 2MB to 4KB pages
     // Each core needs its own splitting page-tables
     //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), Count * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
+    PoolManagerCallbackRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), Count * ProcessorsCount, SPLIT_2MB_PAGING_TO_4KB_PAGE);
 
     //
     // Request pages to be allocated for paged hook details
     //
-    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), Count, TRACKING_HOOKED_PAGES);
+    PoolManagerCallbackRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), Count, TRACKING_HOOKED_PAGES);
 
     //
     // Request pages to be allocated for Trampoline of Executable hooked pages
     //
-    PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, Count, EXEC_TRAMPOLINE);
+    PoolManagerCallbackRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, Count, EXEC_TRAMPOLINE);
 
     //
     // Request pages to be allocated for detour hooked pages details
     //
-    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), Count, DETOUR_HOOK_DETAILS);
+    PoolManagerCallbackRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), Count, DETOUR_HOOK_DETAILS);
 }
 
 /**
@@ -120,16 +120,16 @@ EptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count)
     // Request pages to be allocated for converting 2MB to 4KB pages
     // Each core needs its own splitting page-tables
     //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
-                                 Count * ProcessorsCount,
-                                 SPLIT_2MB_PAGING_TO_4KB_PAGE);
+    PoolManagerCallbackRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
+                                         Count * ProcessorsCount,
+                                         SPLIT_2MB_PAGING_TO_4KB_PAGE);
 
     //
     // Request pages to be allocated for paged hook details
     //
-    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
-                                 Count,
-                                 TRACKING_HOOKED_PAGES);
+    PoolManagerCallbackRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
+                                         Count,
+                                         TRACKING_HOOKED_PAGES);
 }
 
 /**
@@ -199,7 +199,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Save the detail of hooked page to keep track of it
     //
-    HookedPage = (EPT_HOOKED_PAGE_DETAIL *)PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
+    HookedPage = (EPT_HOOKED_PAGE_DETAIL *)PoolManagerCallbackRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
 
     if (!HookedPage)
     {
@@ -274,14 +274,14 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Split the 2MB page-table of each core to 4KB page-table
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         //
         // We need to split the large page to 4KB page using pre-allocated pools
         //
         if (!EptSplitLargePage(g_GuestState[i].EptPageTable, TRUE, PhysicalBaseAddress))
         {
-            PoolManagerFreePool((UINT64)HookedPage);
+            PoolManagerCallbackFreePool((UINT64)HookedPage);
 
             //
             // Here also other previous pools should be specified, but we forget it for now
@@ -302,7 +302,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
         //
         if (!TargetPage)
         {
-            PoolManagerFreePool((UINT64)HookedPage);
+            PoolManagerCallbackFreePool((UINT64)HookedPage);
 
             //
             // Here also other previous pools should be specified, but we forget it for now
@@ -907,7 +907,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     //
     // Allocate some executable memory for the trampoline
     //
-    Hook->Trampoline = (CHAR *)PoolManagerRequestPool(EXEC_TRAMPOLINE, TRUE, MAX_EXEC_TRAMPOLINE_SIZE);
+    Hook->Trampoline = (CHAR *)PoolManagerCallbackRequestPool(EXEC_TRAMPOLINE, TRUE, MAX_EXEC_TRAMPOLINE_SIZE);
 
     if (!Hook->Trampoline)
     {
@@ -956,7 +956,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     // function that changes the original function and if our structure is no ready after this
     // function then we probably see BSOD on other cores
     //
-    DetourHookDetails                        = (HIDDEN_HOOKS_DETOUR_DETAILS *)PoolManagerRequestPool(DETOUR_HOOK_DETAILS, TRUE, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
+    DetourHookDetails                        = (HIDDEN_HOOKS_DETOUR_DETAILS *)PoolManagerCallbackRequestPool(DETOUR_HOOK_DETAILS, TRUE, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
     DetourHookDetails->HookedFunctionAddress = TargetFunction;
     DetourHookDetails->ReturnAddress         = Hook->Trampoline;
 
@@ -1104,7 +1104,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Save the detail of hooked page to keep track of it
     //
-    HookedPage = (EPT_HOOKED_PAGE_DETAIL *)PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
+    HookedPage = (EPT_HOOKED_PAGE_DETAIL *)PoolManagerCallbackRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
 
     if (!HookedPage)
     {
@@ -1155,7 +1155,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
 
         if (!HookedPage->StartOfTargetPhysicalAddress)
         {
-            PoolManagerFreePool((UINT64)HookedPage);
+            PoolManagerCallbackFreePool((UINT64)HookedPage);
 
             VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
             return FALSE;
@@ -1183,7 +1183,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
 
         if (!HookedPage->EndOfTargetPhysicalAddress)
         {
-            PoolManagerFreePool((UINT64)HookedPage);
+            PoolManagerCallbackFreePool((UINT64)HookedPage);
 
             VmmCallbackSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
             return FALSE;
@@ -1244,21 +1244,21 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         //
         if (!EptHookInstructionMemory(HookedPage, ProcessCr3, TargetAddress, (PVOID)TargetAddressInSafeMemory, HookFunction))
         {
-            PoolManagerFreePool((UINT64)HookedPage);
+            PoolManagerCallbackFreePool((UINT64)HookedPage);
 
             VmmCallbackSetLastError(DEBUGGER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK);
             return FALSE;
         }
     }
 
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         //
         // We need to split the large page to 4KB page using pre-allocated pools
         //
         if (!EptSplitLargePage(g_GuestState[i].EptPageTable, TRUE, PhysicalBaseAddress))
         {
-            PoolManagerFreePool((UINT64)HookedPage);
+            PoolManagerCallbackFreePool((UINT64)HookedPage);
 
             //
             // Here also other previous pools should be specified, but we forget it for now
@@ -1278,7 +1278,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         //
         if (!TargetPage)
         {
-            PoolManagerFreePool((UINT64)HookedPage);
+            PoolManagerCallbackFreePool((UINT64)HookedPage);
 
             //
             // Here also other previous pools should be specified, but we forget it for now
@@ -1862,7 +1862,7 @@ EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address)
             //
             // Free the pool in next ioctl
             //
-            if (!PoolManagerFreePool((UINT64)CurrentHookedDetails))
+            if (!PoolManagerCallbackFreePool((UINT64)CurrentHookedDetails))
             {
                 LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
             }
@@ -1964,7 +1964,7 @@ EptHookUnHookSingleAddressDetoursAndMonitor(PEPT_HOOKED_PAGE_DETAIL             
     // we add the hooked entry to the list
     // of pools that will be deallocated on next IOCTL
     //
-    if (!PoolManagerFreePool((UINT64)HookedEntry))
+    if (!PoolManagerCallbackFreePool((UINT64)HookedEntry))
     {
         LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
         return FALSE;
@@ -2069,7 +2069,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
     // is the HookedEntry that should be remove (not the first one as it has the
     // correct PreviousByte)
     //
-    for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+    for (SIZE_T i = 0; i < HookedEntry->CountOfBreakpoints; i++)
     {
         if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
         {
@@ -2113,7 +2113,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 // we add the hooked entry to the list
                 // of pools that will be deallocated on next IOCTL
                 //
-                if (!PoolManagerFreePool((UINT64)HookedEntry))
+                if (!PoolManagerCallbackFreePool((UINT64)HookedEntry))
                 {
                     LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
                 }
@@ -2162,7 +2162,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 // in the array, then we'll ignore setting the previous bit as previous bit might
                 // be modified for the previous command
                 //
-                for (size_t j = 0; j < HookedEntry->CountOfBreakpoints; j++)
+                for (SIZE_T j = 0; j < HookedEntry->CountOfBreakpoints; j++)
                 {
                     if (HookedEntry->BreakpointAddresses[j] == VirtualAddress)
                     {
@@ -2189,7 +2189,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                 // all addresses to a lower array index (because one entry is
                 // missing and might) be in the middle of the array
                 //
-                for (size_t j = i /* IndexToRemove */; j < HookedEntry->CountOfBreakpoints - 1; j++)
+                for (SIZE_T j = i /* IndexToRemove */; j < HookedEntry->CountOfBreakpoints - 1; j++)
                 {
                     HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
                     HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
@@ -2274,7 +2274,7 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
             //
             // It's a hidden breakpoint
             //
-            for (size_t i = 0; i < CurrEntity->CountOfBreakpoints; i++)
+            for (SIZE_T i = 0; i < CurrEntity->CountOfBreakpoints; i++)
             {
                 if (CurrEntity->BreakpointAddresses[i] == VirtualAddress)
                 {
@@ -2485,7 +2485,7 @@ EptHookUnHookAll()
         // As we are in vmx-root here, we add the hooked entry to the list
         // of pools that will be deallocated on next IOCTL
         //
-        if (!PoolManagerFreePool((UINT64)CurrEntity))
+        if (!PoolManagerCallbackFreePool((UINT64)CurrEntity))
         {
             LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
         }

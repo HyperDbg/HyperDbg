@@ -60,7 +60,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "headers", "headers", "{D67D
 		include\SDK\Headers\Events.h = include\SDK\Headers\Events.h
 		include\SDK\Headers\HardwareDebugger.h = include\SDK\Headers\HardwareDebugger.h
 		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
+		include\SDK\headers\LbrDefinitions.h = include\SDK\headers\LbrDefinitions.h
 		include\SDK\headers\Pcie.h = include\SDK\headers\Pcie.h
+		include\SDK\headers\PortableExecutable.h = include\SDK\headers\PortableExecutable.h
+		include\SDK\headers\PtDefinitions.h = include\SDK\headers\PtDefinitions.h
 		include\SDK\Headers\RequestStructures.h = include\SDK\Headers\RequestStructures.h
 		include\SDK\Headers\ScriptEngineCommonDefinitions.h = include\SDK\Headers\ScriptEngineCommonDefinitions.h
 		include\SDK\Headers\Symbols.h = include\SDK\Headers\Symbols.h
@@ -147,22 +150,49 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{D0E5A2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{6498728B-D9B0-4CAB-A9E3-ACE5BC371010}"
 	ProjectSection(SolutionItems) = preProject
+		include\platform\kernel\code\PlatformBroadcast.c = include\platform\kernel\code\PlatformBroadcast.c
+		include\platform\kernel\code\PlatformCpu.c = include\platform\kernel\code\PlatformCpu.c
+		include\platform\kernel\code\PlatformDbg.c = include\platform\kernel\code\PlatformDbg.c
+		include\platform\kernel\code\PlatformDpc.c = include\platform\kernel\code\PlatformDpc.c
+		include\platform\kernel\code\PlatformEvent.c = include\platform\kernel\code\PlatformEvent.c
+		include\platform\kernel\code\PlatformIntrinsics.c = include\platform\kernel\code\PlatformIntrinsics.c
+		include\platform\kernel\code\PlatformIntrinsicsVmx.c = include\platform\kernel\code\PlatformIntrinsicsVmx.c
+		include\platform\kernel\code\PlatformIo.c = include\platform\kernel\code\PlatformIo.c
+		include\platform\kernel\code\PlatformIrql.c = include\platform\kernel\code\PlatformIrql.c
 		include\platform\kernel\code\PlatformMem.c = include\platform\kernel\code\PlatformMem.c
+		include\platform\kernel\code\PlatformProcess.c = include\platform\kernel\code\PlatformProcess.c
+		include\platform\kernel\code\PlatformSpinlock.c = include\platform\kernel\code\PlatformSpinlock.c
+		include\platform\kernel\code\PlatformTime.c = include\platform\kernel\code\PlatformTime.c
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AA41FFF1-A730-433E-8D26-13DA5B653825}"
 	ProjectSection(SolutionItems) = preProject
-		include\platform\kernel\header\Environment.h = include\platform\kernel\header\Environment.h
+		include\platform\kernel\header\pch.h = include\platform\kernel\header\pch.h
+		include\platform\kernel\header\PlatformBroadcast.h = include\platform\kernel\header\PlatformBroadcast.h
+		include\platform\kernel\header\PlatformCpu.h = include\platform\kernel\header\PlatformCpu.h
+		include\platform\kernel\header\PlatformDbg.h = include\platform\kernel\header\PlatformDbg.h
+		include\platform\kernel\header\PlatformDpc.h = include\platform\kernel\header\PlatformDpc.h
+		include\platform\kernel\header\PlatformEvent.h = include\platform\kernel\header\PlatformEvent.h
+		include\platform\kernel\header\PlatformIntrinsics.h = include\platform\kernel\header\PlatformIntrinsics.h
+		include\platform\kernel\header\PlatformIntrinsicsVmx.h = include\platform\kernel\header\PlatformIntrinsicsVmx.h
+		include\platform\kernel\header\PlatformIo.h = include\platform\kernel\header\PlatformIo.h
+		include\platform\kernel\header\PlatformIrql.h = include\platform\kernel\header\PlatformIrql.h
 		include\platform\kernel\header\PlatformMem.h = include\platform\kernel\header\PlatformMem.h
 		include\platform\kernel\header\PlatformModuleInfo.h = include\platform\kernel\header\PlatformModuleInfo.h
-		include\platform\kernel\header\PlatformTypes.h = include\platform\kernel\header\PlatformTypes.h
+		include\platform\kernel\header\PlatformProcess.h = include\platform\kernel\header\PlatformProcess.h
+		include\platform\kernel\header\PlatformSpinlock.h = include\platform\kernel\header\PlatformSpinlock.h
+		include\platform\kernel\header\PlatformTime.h = include\platform\kernel\header\PlatformTime.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{4BF590C3-1032-4DD2-BF87-BB9E5781977C}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\user\code\platform-intrinsics.c = include\platform\user\code\platform-intrinsics.c
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{DBE32379-8D5A-4454-A1B6-ACC407881898}"
 	ProjectSection(SolutionItems) = preProject
-		include\platform\user\header\Environment.h = include\platform\user\header\Environment.h
+		include\platform\user\header\platform-intrinsics.h = include\platform\user\header\platform-intrinsics.h
+		include\platform\user\header\Windows.h = include\platform\user\header\Windows.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user", "user", "{3C04357D-93B5-4472-94BB-8D22A1EB16DB}"
@@ -235,6 +265,67 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{035508
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hypertrace", "hypertrace\hypertrace.vcxproj", "{9FA45E25-DAEB-4C2D-806C-7908A180195D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "general", "general", "{17652C16-00A0-40D4-A227-697E595DE053}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{9E1A2FAF-696A-4CA7-8C2E-F6B80107A143}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\general\header\Environment.h = include\platform\general\header\Environment.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "linux", "linux", "{63D4BB7A-C404-4A35-A302-20034DD8BA77}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mock", "mock", "{770B65D6-5307-478C-A9EB-3E4A64B67225}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{848FE945-4F37-4B5B-98C8-F22CA3AA7184}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user", "user", "{D3722A82-0A54-4172-A0C1-1EA6500E9F1E}"
+	ProjectSection(SolutionItems) = preProject
+		linux\mock\user\Makefile = linux\mock\user\Makefile
+		linux\mock\user\mock.c = linux\mock\user\mock.c
+		linux\mock\user\pch.h = linux\mock\user\pch.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{09E02C0A-6A6C-408A-8136-C787FDC58A5F}"
+	ProjectSection(SolutionItems) = preProject
+		linux\mock\kernel\Makefile = linux\mock\kernel\Makefile
+		linux\mock\kernel\mock.c = linux\mock\kernel\mock.c
+		linux\mock\kernel\pch.h = linux\mock\kernel\pch.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows-only", "windows-only", "{C95E342A-9622-4351-8177-CDA43A52E7B2}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\user\header\windows-only\windows-privilege.h = include\platform\user\header\windows-only\windows-privilege.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows-only", "windows-only", "{45ABB14F-86B9-40BE-9C0F-213653CE6A93}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\user\code\windows-only\windows-privilege.c = include\platform\user\code\windows-only\windows-privilege.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "callback", "callback", "{1AA10217-07BF-490B-A688-1D1D6A267D52}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{78821DCF-DCFE-45B7-A9DD-3543BDF1FB9E}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\callback\hyperlog\code\HyperLogCallback.c = include\components\callback\hyperlog\code\HyperLogCallback.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AD02B952-0D75-47FE-8FF7-18B3E081E2C1}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\callback\hyperlog\header\HyperLogCallback.h = include\components\callback\hyperlog\header\HyperLogCallback.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pe", "pe", "{9A0232BB-B06B-47EE-A096-E7B475956437}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{824DF7C7-18B5-48DE-99D7-AD6B612D6204}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\pe\code\pe-image-reader.cpp = include\components\pe\code\pe-image-reader.cpp
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{CA2D9C24-F90A-48ED-8ABC-F296674EA2B7}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\pe\header\pe-image-reader.h = include\components\pe\header\pe-image-reader.h
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -329,6 +420,20 @@ Global
 		{991B8FA7-F75E-4D8A-A0BD-636FE68B6AF4} = {2104BCF9-035E-45AA-B744-68A5B8FEFF13}
 		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
 		{03550856-D63F-4069-87E1-8BF2F129DBE3} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{17652C16-00A0-40D4-A227-697E595DE053} = {9A711E36-8A78-4CE6-A34D-F681AF89A919}
+		{9E1A2FAF-696A-4CA7-8C2E-F6B80107A143} = {17652C16-00A0-40D4-A227-697E595DE053}
+		{770B65D6-5307-478C-A9EB-3E4A64B67225} = {63D4BB7A-C404-4A35-A302-20034DD8BA77}
+		{848FE945-4F37-4B5B-98C8-F22CA3AA7184} = {17652C16-00A0-40D4-A227-697E595DE053}
+		{D3722A82-0A54-4172-A0C1-1EA6500E9F1E} = {770B65D6-5307-478C-A9EB-3E4A64B67225}
+		{09E02C0A-6A6C-408A-8136-C787FDC58A5F} = {770B65D6-5307-478C-A9EB-3E4A64B67225}
+		{C95E342A-9622-4351-8177-CDA43A52E7B2} = {DBE32379-8D5A-4454-A1B6-ACC407881898}
+		{45ABB14F-86B9-40BE-9C0F-213653CE6A93} = {4BF590C3-1032-4DD2-BF87-BB9E5781977C}
+		{1AA10217-07BF-490B-A688-1D1D6A267D52} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
+		{78821DCF-DCFE-45B7-A9DD-3543BDF1FB9E} = {1AA10217-07BF-490B-A688-1D1D6A267D52}
+		{AD02B952-0D75-47FE-8FF7-18B3E081E2C1} = {1AA10217-07BF-490B-A688-1D1D6A267D52}
+		{9A0232BB-B06B-47EE-A096-E7B475956437} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
+		{824DF7C7-18B5-48DE-99D7-AD6B612D6204} = {9A0232BB-B06B-47EE-A096-E7B475956437}
+		{CA2D9C24-F90A-48ED-8ABC-F296674EA2B7} = {9A0232BB-B06B-47EE-A096-E7B475956437}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

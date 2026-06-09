@@ -15,23 +15,23 @@ namespace fs = std::filesystem;
 
 /**
  * @brief function to comment each line by adding ';' at the start
- * @param content
+ * @param Content the content to comment out
  *
  * @return std::string
  */
 std::string
-commentContent(const std::string & content)
+CommentContent(const std::string & Content)
 {
-    std::istringstream iss(content);
-    std::string        line;
-    std::string        commentedContent;
+    std::istringstream Iss(Content);
+    std::string        Line;
+    std::string        CommentedContent;
 
-    while (std::getline(iss, line))
+    while (std::getline(Iss, Line))
     {
-        commentedContent += line + "\n; ";
+        CommentedContent += Line + "\n; ";
     }
 
-    return commentedContent;
+    return CommentedContent;
 }
 
 /**
@@ -42,9 +42,9 @@ commentContent(const std::string & content)
  * @return BOOLEAN
  */
 BOOLEAN
-ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
+ReadDirectoryAndCreateHwdbgTestCases(const CHAR * HwdbgScriptTestCasesPath)
 {
-    CHAR tempFilePath[MAX_PATH] = {0};
+    CHAR TempFilePath[MAX_PATH] = {0};
 
     //
     // Iterate through the directory
@@ -61,7 +61,7 @@ ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
                 //
                 // Get the file path
                 //
-                std::string filePath = entry.path().string();
+                std::string FilePath = entry.path().string();
 
                 //
                 // Output the file name
@@ -71,10 +71,10 @@ ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
                 //
                 // Open the file and read its contents
                 //
-                std::ifstream file(filePath);
-                if (file.is_open())
+                std::ifstream File(FilePath);
+                if (File.is_open())
                 {
-                    std::string content((std::istreambuf_iterator<char>(file)),
+                    std::string Content((std::istreambuf_iterator<char>(File)),
                                         std::istreambuf_iterator<char>());
 
                     //
@@ -84,19 +84,19 @@ ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
 
                     // std::cout << content << std::endl;
 
-                    std::string compiled_version_file_path = HWDBG_SCRIPT_TEST_CASE_COMPILED_SCRIPTS_DIRECTORY "\\" + entry.path().filename().string() + ".hex.txt";
+                    std::string CompiledVersionFilePath = HWDBG_SCRIPT_TEST_CASE_COMPILED_SCRIPTS_DIRECTORY "\\" + entry.path().filename().string() + ".hex.txt";
 
                     //
                     // Run the test case command
                     //
-                    printf("File content: %s\n", content.c_str());
+                    printf("File content: %s\n", Content.c_str());
 
-                    if (!hwdbg_script_run_script(content.c_str(),
+                    if (!hwdbg_script_run_script(Content.c_str(),
                                                  HWDBG_TEST_READ_INSTANCE_INFO_PATH,
-                                                 compiled_version_file_path.c_str(),
+                                                 CompiledVersionFilePath.c_str(),
                                                  DEFAULT_INITIAL_BRAM_BUFFER_SIZE))
                     {
-                        std::cout << "[-] Could not run the script: " << filePath << std::endl;
+                        std::cout << "[-] Could not run the script: " << FilePath << std::endl;
                         return FALSE;
                     }
 
@@ -107,7 +107,7 @@ ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
                     //
                     // Parse the hwdbg compiled test cases from the file
                     //
-                    if (!hyperdbg_u_setup_path_for_filename(compiled_version_file_path.c_str(), tempFilePath, MAX_PATH, FALSE))
+                    if (!hyperdbg_u_setup_path_for_filename(CompiledVersionFilePath.c_str(), TempFilePath, MAX_PATH, FALSE))
                     {
                         //
                         // Error could not find the test case files
@@ -116,48 +116,48 @@ ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
                         return FALSE;
                     }
 
-                    std::ifstream compiledFile(tempFilePath);
-                    if (compiledFile.is_open())
+                    std::ifstream CompiledFile(TempFilePath);
+                    if (CompiledFile.is_open())
                     {
                         //
                         // Read the existing content of the compiled file
                         //
-                        std::string compiledContent((std::istreambuf_iterator<char>(compiledFile)),
+                        std::string CompiledContent((std::istreambuf_iterator<char>(CompiledFile)),
                                                     std::istreambuf_iterator<char>());
-                        compiledFile.close(); // Close the file after reading
+                        CompiledFile.close(); // Close the file after reading
 
                         //
                         // Comment the content
                         //
-                        std::string commentedContent = commentContent(content);
+                        std::string CommentedContent = CommentContent(Content);
 
                         //
                         // Concatenate the new content (prepend the original content)
                         //
-                        std::string newContent = "; The raw script file is available at: " HWDBG_SCRIPT_TEST_CASE_COMPILED_SCRIPTS_DIRECTORY "\\" +
+                        std::string NewContent = "; The raw script file is available at: " HWDBG_SCRIPT_TEST_CASE_COMPILED_SCRIPTS_DIRECTORY "\\" +
                                                  entry.path().filename().string() +
                                                  "\n;\n; !hw script " +
-                                                 commentedContent +
+                                                 CommentedContent +
                                                  "\n" +
-                                                 compiledContent;
+                                                 CompiledContent;
 
                         //
                         // Write the new content back to the file (overwriting it)
                         //
-                        std::ofstream compiledFileOut(tempFilePath);
-                        if (compiledFileOut.is_open())
+                        std::ofstream CompiledFileOut(TempFilePath);
+                        if (CompiledFileOut.is_open())
                         {
-                            compiledFileOut << newContent;
-                            compiledFileOut.close();
+                            CompiledFileOut << NewContent;
+                            CompiledFileOut.close();
                         }
                         else
                         {
-                            std::cerr << "Could not open file for writing: " << compiled_version_file_path << std::endl;
+                            std::cerr << "Could not open file for writing: " << CompiledVersionFilePath << std::endl;
                         }
                     }
                     else
                     {
-                        std::cerr << "Could not open compiled file: " << compiled_version_file_path << std::endl;
+                        std::cerr << "Could not open compiled file: " << CompiledVersionFilePath << std::endl;
                     }
 
                     std::cout << "--------------------------------------------" << std::endl;
@@ -165,11 +165,11 @@ ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
                     //
                     // Close the file
                     //
-                    file.close();
+                    File.close();
                 }
                 else
                 {
-                    std::cerr << "Could not open file: " << filePath << std::endl;
+                    std::cerr << "Could not open file: " << FilePath << std::endl;
                 }
             }
         }
@@ -194,8 +194,8 @@ ReadDirectoryAndCreateHwdbgTestCases(const char * HwdbgScriptTestCasesPath)
 BOOLEAN
 HwdbgTestCreateTestCases()
 {
-    int  testNum           = 0;
-    CHAR dirPath[MAX_PATH] = {0};
+    INT32 TestNum           = 0;
+    CHAR  dirPath[MAX_PATH] = {0};
 
     //
     // Parse the hwdbg test cases from the file

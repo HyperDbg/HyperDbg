@@ -15,11 +15,11 @@
 //					Functions					//
 //////////////////////////////////////////////////
 
-int
-TestBit(int BitNumber, unsigned long * Addr);
+INT
+TestBit(INT BitNumber, ULONG * Addr);
 
-void
-ClearBit(int BitNumber, unsigned long * Addr);
+VOID
+ClearBit(INT BitNumber, ULONG * Addr);
 
-void
-SetBit(int BitNumber, unsigned long * Addr);
+VOID
+SetBit(INT BitNumber, ULONG * Addr);

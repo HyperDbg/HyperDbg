@@ -29,6 +29,39 @@ typedef enum _PAGING_LEVEL
 } PAGING_LEVEL;
 
 //////////////////////////////////////////////////
+//               CPU Information                //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Different processor vendors
+ *
+ */
+typedef enum _GENERIC_PROCESSOR_VENDOR
+{
+    GENERIC_PROCESSOR_VENDOR_INTEL,
+    GENERIC_PROCESSOR_VENDOR_AMD,
+    GENERIC_PROCESSOR_VENDOR_OTHERS,
+} GENERIC_PROCESSOR_VENDOR;
+
+//////////////////////////////////////////////////
+//                 List Entries      			//
+//////////////////////////////////////////////////
+
+//
+//  Doubly linked list structure.  Can be used as either a list head, or
+//  as link words.
+//
+#if defined(__linux__)
+
+typedef struct _LIST_ENTRY
+{
+    struct _LIST_ENTRY * Flink;
+    struct _LIST_ENTRY * Blink;
+} LIST_ENTRY, *PLIST_ENTRY;
+
+#endif // defined(__linux__)
+
+//////////////////////////////////////////////////
 //                 Pool Manager      			//
 //////////////////////////////////////////////////
 
@@ -126,7 +159,7 @@ typedef int (*SendMessageWithParamCallback)(const char * Text);
  * as a custom ShowMessages function (using shared buffer)
  *
  */
-typedef int (*SendMessageWWithSharedBufferCallback)();
+typedef int (*SendMessageWithSharedBufferCallback)(VOID);
 
 //////////////////////////////////////////////////
 //                Communications                //

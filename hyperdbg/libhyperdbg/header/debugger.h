@@ -1,6 +1,7 @@
 /**
  * @file debugger.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief General debugger functions
  * @details
  * @version 0.1
@@ -61,7 +62,8 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT                   0x1d
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES                         0x1e
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT                0x1f
-#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_OPERATION_RESULT         0x20
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT          0x20
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT      0x21
 
 //////////////////////////////////////////////////
 //               Event Details                  //
@@ -195,7 +197,7 @@ DWORD WINAPI
 ListeningSerialPauseDebuggerThread(PVOID Param);
 
 VOID
-LogopenSaveToFile(const char * Text);
+LogopenSaveToFile(const CHAR * Text);
 
 BOOL
 BreakController(DWORD CtrlType);
@@ -234,13 +236,13 @@ BOOLEAN
 CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer);
 
 VOID
-CommandTrackHandleReceivedInstructions(unsigned char * BufferToDisassemble,
-                                       UINT32          BuffLength,
-                                       BOOLEAN         Isx86_64,
-                                       UINT64          RipAddress);
+CommandTrackHandleReceivedInstructions(UCHAR * BufferToDisassemble,
+                                       UINT32  BuffLength,
+                                       BOOLEAN Isx86_64,
+                                       UINT64  RipAddress);
 
 VOID
-CommandTrackHandleReceivedCallInstructions(const char * NameOfFunctionFromSymbols,
+CommandTrackHandleReceivedCallInstructions(const CHAR * NameOfFunctionFromSymbols,
                                            UINT64       ComputedAbsoluteAddress);
 
 VOID
@@ -310,4 +312,10 @@ BOOLEAN
 HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
 
 BOOLEAN
+HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId, UINT32 EvadeMask);
+
+BOOLEAN
 HyperDbgDisableTransparentMode();
+
+BOOLEAN
+HyperDbgLbrdumpSendRequest(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest);

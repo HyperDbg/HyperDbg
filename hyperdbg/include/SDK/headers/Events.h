@@ -199,8 +199,6 @@ typedef enum _DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE
 
 } DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE;
 
-#define SIZEOF_DEBUGGER_MODIFY_EVENTS sizeof(DEBUGGER_MODIFY_EVENTS)
-
 /**
  * @brief Type of mode change traps
  *
@@ -252,6 +250,8 @@ typedef struct _DEBUGGER_MODIFY_EVENTS
     BOOLEAN IsEnabled; // Determines what's the action (enable | disable | clear)
 
 } DEBUGGER_MODIFY_EVENTS, *PDEBUGGER_MODIFY_EVENTS;
+
+#define SIZEOF_DEBUGGER_MODIFY_EVENTS sizeof(DEBUGGER_MODIFY_EVENTS)
 
 /**
  * @brief request for performing a short-circuiting event
@@ -340,6 +340,8 @@ typedef enum _PROTECTED_HV_RESOURCES_TYPE
 
     PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING,
 
+    PROTECTED_HV_RESOURCES_SAVE_AND_LOAD_DEBUG_CONTROLS,
+
 } PROTECTED_HV_RESOURCES_TYPE;
 
 //////////////////////////////////////////////////
@@ -356,8 +358,6 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
     LIST_ENTRY
     CommandsEventList; // Linked-list of commands list (used for tracing purpose
                        // in user mode)
-
-    time_t CreationTime; // Date of creating this event
 
     UINT32 CoreId; // determines the core index to apply this event to, if it's
                    // 0xffffffff means that we have to apply it to all cores
@@ -401,6 +401,8 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
 
 } DEBUGGER_GENERAL_EVENT_DETAIL, *PDEBUGGER_GENERAL_EVENT_DETAIL;
 
+#define SIZEOF_DEBUGGER_GENERAL_EVENT_DETAIL sizeof(DEBUGGER_GENERAL_EVENT_DETAIL)
+
 /**
  * @brief Each event can have multiple actions
  * @details THIS STRUCTURE IS ONLY USED IN USER MODE
@@ -419,6 +421,8 @@ typedef struct _DEBUGGER_GENERAL_ACTION
     UINT32 ScriptBufferPointer;
 
 } DEBUGGER_GENERAL_ACTION, *PDEBUGGER_GENERAL_ACTION;
+
+#define SIZEOF_DEBUGGER_GENERAL_ACTION sizeof(DEBUGGER_GENERAL_ACTION)
 
 /**
  * @brief Status of register buffers

@@ -29,13 +29,13 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
                                                 SOCKET * ClientSocketArg,
                                                 SOCKET * ListenSocketArg);
 
-int
-CommunicationServerReceiveMessage(SOCKET ClientSocket, char * recvbuf, int recvbuflen);
+INT
+CommunicationServerReceiveMessage(SOCKET ClientSocket, CHAR * recvbuf, INT recvbuflen);
 
-int
-CommunicationServerSendMessage(SOCKET ClientSocket, const char * sendbuf, int length);
+INT
+CommunicationServerSendMessage(SOCKET ClientSocket, const CHAR * sendbuf, INT length);
 
-int
+INT
 CommunicationServerShutdownAndCleanupConnection(SOCKET ClientSocket,
                                                 SOCKET ListenSocket);
 
@@ -43,19 +43,19 @@ CommunicationServerShutdownAndCleanupConnection(SOCKET ClientSocket,
 //                Client                //
 //////////////////////////////////////////
 
-int
+INT
 CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketArg);
 
-int
-CommunicationClientSendMessage(SOCKET ConnectSocket, const char * sendbuf, int buflen);
+INT
+CommunicationClientSendMessage(SOCKET ConnectSocket, const CHAR * sendbuf, INT buflen);
 
-int
+INT
 CommunicationClientShutdownConnection(SOCKET ConnectSocket);
 
-int
+INT
 CommunicationClientReceiveMessage(SOCKET ConnectSocket, CHAR * RecvBuf, UINT32 MaxBuffLen, PUINT32 BuffLenRecvd);
 
-int
+INT
 CommunicationClientCleanup(SOCKET ConnectSocket);
 
 //////////////////////////////////////////
@@ -68,11 +68,11 @@ RemoteConnectionListen(PCSTR Port);
 VOID
 RemoteConnectionConnect(PCSTR Ip, PCSTR Port);
 
-int
-RemoteConnectionSendCommand(const char * sendbuf, int len);
+INT
+RemoteConnectionSendCommand(const CHAR * sendbuf, INT len);
 
-int
-RemoteConnectionSendResultsToHost(const char * sendbuf, int len);
+INT
+RemoteConnectionSendResultsToHost(const CHAR * sendbuf, INT len);
 
-int
+INT
 RemoteConnectionCloseTheConnectionWithDebuggee();

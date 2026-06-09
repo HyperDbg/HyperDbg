@@ -30,13 +30,13 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64                  AlignedVmxonRegion;
     UINT64                  AlignedVmxonRegionPhysicalAddr;
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
     //
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
         KeRaiseIrqlToDpcLevel();
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
 
     //
     // Allocating a 4-KByte Contiguous Memory region
@@ -63,7 +63,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
     LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
@@ -74,7 +74,8 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Execute Vmxon instruction
     //
-    VmxonStatus = __vmx_on(&AlignedVmxonRegionPhysicalAddr);
+    VmxonStatus = VmxVmxon(&AlignedVmxonRegionPhysicalAddr);
+
     if (VmxonStatus)
     {
         LogError("Err, executing vmxon instruction failed with status : %d", VmxonStatus);
@@ -109,13 +110,13 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
     UINT64                  AlignedVmcsRegion;
     UINT64                  AlignedVmcsRegionPhysicalAddr;
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
     //
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
         KeRaiseIrqlToDpcLevel();
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
 
     //
     // Allocating a 4-KByte Contiguous Memory region
@@ -139,7 +140,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
     LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
@@ -276,11 +277,11 @@ VmxAllocateInvalidMsrBimap()
     {
         __try
         {
-            __readmsr(i);
+            CpuReadMsr(i);
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
-            SetBit(i, (unsigned long *)InvalidMsrBitmap);
+            SetBit(i, (ULONG *)InvalidMsrBitmap);
         }
     }
 

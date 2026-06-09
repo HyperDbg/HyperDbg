@@ -182,7 +182,7 @@ class LL1Parser:
         # Push start variable into stack
         Stack.append(self.Start)
 
-        # Assign top variale an invalid value 
+        # Assign top variable an invalid value 
         Top = ""
 
         # Read input

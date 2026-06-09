@@ -15,6 +15,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
@@ -49,11 +50,11 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
     UINT32               SizeOfTargetBuffer;
 
     //
-    // Check if driver is loaded if it's in VMI mode
+    // Check if driver is loaded if it's in local debugging mode
     //
     if (!g_IsSerialConnectedToRemoteDebuggee)
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
     }
 
     //
@@ -104,9 +105,8 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
     else
     {
         //
-        // It's on VMI mode
+        // It's on local debugging mode
         //
-
         Status = DeviceIoControl(g_DeviceHandle,              // Handle to device
                                  IOCTL_DEBUGGER_READ_MEMORY,  // IO Control Code (IOCTL)
                                  MemReadRequest,              // Input Buffer to driver.
@@ -164,7 +164,7 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
         // Copy the buffer
         //
         memcpy(TargetBufferToStore,
-               ((unsigned char *)MemReadRequest) + sizeof(DEBUGGER_READ_MEMORY),
+               ((UCHAR *)MemReadRequest) + sizeof(DEBUGGER_READ_MEMORY),
                *ReturnLength);
 
         //
@@ -413,11 +413,13 @@ HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
  * @param Address location of where to read the memory
  * @param MemoryType type of memory (phyical or virtual)
  * @param Length Length of memory to show
+ *
+ * @return VOID
  */
-void
-ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+VOID
+ShowMemoryCommandDB(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    unsigned int Character;
+    UINT32 Character;
 
     for (UINT32 i = 0; i < Size; i += 16)
     {
@@ -434,7 +436,7 @@ ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
         //
         // Print the hex code
         //
-        for (size_t j = 0; j < 16; j++)
+        for (SIZE_T j = 0; j < 16; j++)
         {
             //
             // check to see if the address is valid or not
@@ -453,7 +455,7 @@ ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
         // Print the character
         //
         ShowMessages(" ");
-        for (size_t j = 0; j < 16; j++)
+        for (SIZE_T j = 0; j < 16; j++)
         {
             Character = (OutputBuffer[i + j]);
             if (isprint(Character))
@@ -481,11 +483,13 @@ ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
  * @param Address location of where to read the memory
  * @param MemoryType type of memory (phyical or virtual)
  * @param Length Length of memory to show
+ *
+ * @return VOID
  */
-void
-ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+VOID
+ShowMemoryCommandDC(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    unsigned int Character;
+    UINT32 Character;
     for (UINT32 i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
@@ -501,7 +505,7 @@ ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
         //
         // Print the hex code
         //
-        for (size_t j = 0; j < 16; j += 4)
+        for (SIZE_T j = 0; j < 16; j += 4)
         {
             //
             // check to see if the address is valid or not
@@ -522,7 +526,7 @@ ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
         //
 
         ShowMessages(" ");
-        for (size_t j = 0; j < 16; j++)
+        for (SIZE_T j = 0; j < 16; j++)
         {
             Character = (OutputBuffer[i + j]);
             if (isprint(Character))
@@ -550,9 +554,11 @@ ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
  * @param Address location of where to read the memory
  * @param MemoryType type of memory (phyical or virtual)
  * @param Length Length of memory to show
+ *
+ * @return VOID
  */
-void
-ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+VOID
+ShowMemoryCommandDD(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
     for (UINT32 i = 0; i < Size; i += 16)
     {
@@ -569,7 +575,7 @@ ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
         //
         // Print the hex code
         //
-        for (size_t j = 0; j < 16; j += 4)
+        for (SIZE_T j = 0; j < 16; j += 4)
         {
             //
             // check to see if the address is valid or not
@@ -599,9 +605,11 @@ ShowMemoryCommandDD(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
  * @param Address location of where to read the memory
  * @param MemoryType type of memory (phyical or virtual)
  * @param Length Length of memory to show
+ *
+ * @return VOID
  */
-void
-ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+VOID
+ShowMemoryCommandDQ(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
     for (UINT32 i = 0; i < Size; i += 16)
     {
@@ -618,7 +626,7 @@ ShowMemoryCommandDQ(unsigned char * OutputBuffer, UINT32 Size, UINT64 Address, D
         //
         // Print the hex code
         //
-        for (size_t j = 0; j < 16; j += 8)
+        for (SIZE_T j = 0; j < 16; j += 8)
         {
             //
             // check to see if the address is valid or not

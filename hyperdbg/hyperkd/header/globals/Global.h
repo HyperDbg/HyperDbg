@@ -17,6 +17,30 @@
 PROCESSOR_DEBUGGING_STATE * g_DbgState;
 
 /**
+ * @brief Shows whether the hyperlog module is initialized or not
+ *
+ */
+BOOLEAN g_HyperLogInitialized;
+
+/**
+ * @brief Shows whether the KD module is initialized or not
+ *
+ */
+BOOLEAN g_KdInitialized;
+
+/**
+ * @brief Shows whether the VMM is initialized or not
+ *
+ */
+BOOLEAN g_VmmInitialized;
+
+/**
+ * @brief Shows whether the hypertrace module is initialized or not
+ *
+ */
+BOOLEAN g_HyperTraceInitialized;
+
+/**
  * @brief Event to show whether the user debugger is waiting for a command or not
  *
  */
@@ -58,12 +82,6 @@ DEBUGGER_TRAP_FLAG_STATE g_TrapFlagState;
  *
  */
 BOOLEAN g_HandleInUse;
-
-/**
- * @brief Determines whether the clients are allowed to send IOCTL to the drive or not
- *
- */
-BOOLEAN g_AllowIOCTLFromUsermode;
 
 /**
  * @brief events list (for debugger)
@@ -112,7 +130,7 @@ UINT32 g_LastError;
  * @brief Determines whether the debugger events should be active or not
  *
  */
-BOOLEAN g_EnableDebuggerEvents;
+BOOLEAN g_EnableDebuggerVmxEvents;
 
 /**
  * @brief List header of breakpoints for debugger-mode

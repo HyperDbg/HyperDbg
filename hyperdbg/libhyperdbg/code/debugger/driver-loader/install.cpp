@@ -59,7 +59,7 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
         {
             //
             // The service is already been created
-            // means that, the driver is previosuly installed
+            // means that, the driver is previously installed
             //
             ShowMessages("the service (driver) already exists\n");
 
@@ -477,7 +477,7 @@ SetupPathForFileName(const CHAR *                                  FileName,
     HANDLE  FileHandle;
     DWORD   FileLocLen = 0;
     HMODULE ProcHandle = GetModuleHandle(NULL);
-    char *  Pos;
+    CHAR *  Pos;
 
     //
     // Get the current directory.

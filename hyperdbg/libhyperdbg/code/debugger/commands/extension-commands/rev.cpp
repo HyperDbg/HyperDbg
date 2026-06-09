@@ -14,10 +14,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN      g_IsSerialConnectedToRemoteDebugger;
-extern std::wstring g_StartCommandPath;
-extern std::wstring g_StartCommandPathAndArguments;
-extern BOOLEAN      g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
 /**
  * @brief help of the !rev command

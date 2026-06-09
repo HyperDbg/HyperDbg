@@ -29,7 +29,7 @@ ScriptEnginePseudoRegGetTid()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return (UINT64)PsGetCurrentThreadId();
+    return (UINT64)PlatformProcessGetCurrentThreadId();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -46,7 +46,7 @@ ScriptEnginePseudoRegGetCore()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return (UINT64)KeGetCurrentProcessorNumberEx(NULL);
+    return (UINT64)PlatformCpuGetCurrentProcessorNumber();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -63,7 +63,7 @@ ScriptEnginePseudoRegGetPid()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return (UINT64)PsGetCurrentProcessId();
+    return (UINT64)PlatformProcessGetCurrentProcessId();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -112,7 +112,7 @@ ScriptEnginePseudoRegGetPname()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
+    return CommonGetProcessNameFromProcessControlBlock(PlatformProcessGetCurrentProcess());
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -129,7 +129,7 @@ ScriptEnginePseudoRegGetProc()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return (UINT64)PsGetCurrentProcess();
+    return (UINT64)PlatformProcessGetCurrentProcess();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -146,7 +146,7 @@ ScriptEnginePseudoRegGetThread()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return (UINT64)PsGetCurrentThread();
+    return (UINT64)PlatformProcessGetCurrentThread();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -293,7 +293,7 @@ ScriptEnginePseudoRegGetTeb()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    return (UINT64)PsGetCurrentThreadTeb();
+    return (UINT64)PlatformProcessGetCurrentThreadTeb();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 

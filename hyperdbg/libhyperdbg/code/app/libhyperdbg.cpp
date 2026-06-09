@@ -18,550 +18,80 @@ using namespace std;
 //
 extern HANDLE     g_DeviceHandle;
 extern HANDLE     g_IsDriverLoadedSuccessfully;
-extern BOOLEAN    g_IsVmxOffProcessStart;
-extern PVOID      g_MessageHandler;
-extern PVOID      g_MessageHandlerSharedBuffer;
+extern BOOLEAN    g_IsMessageLoggingWindowClosed;
 extern TCHAR      g_DriverLocation[MAX_PATH];
 extern TCHAR      g_DriverName[MAX_PATH];
 extern BOOLEAN    g_UseCustomDriverLocation;
 extern LIST_ENTRY g_EventTrace;
-extern BOOLEAN    g_LogOpened;
-extern BOOLEAN    g_BreakPrintingOutput;
-extern BOOLEAN    g_IsConnectedToRemoteDebugger;
-extern BOOLEAN    g_OutputSourcesInitialized;
-extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
-extern BOOLEAN    g_IsDebuggerModulesLoaded;
-extern BOOLEAN    g_IsReversingMachineModulesLoaded;
-extern BOOLEAN    g_PrivilegesAlreadyAdjusted;
-extern LIST_ENTRY g_OutputSources;
-extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-    g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
+extern BOOLEAN    g_IsKdModuleLoaded;
+extern BOOLEAN    g_IsVmmModuleLoaded;
+extern BOOLEAN    g_IsHyperTraceModuleLoaded;
 
 /**
- * @brief Set the function callback that will be called if any message
- * needs to be shown
- *
- * @param Handler Function that handles the messages
- * @return VOID
- */
-VOID
-SetTextMessageCallback(PVOID Handler)
-{
-    g_MessageHandler = Handler;
-}
-
-/**
- * @brief Set the function callback that will be called if any message
- * needs to be shown
- *
- * @param Handler Function that handles the messages
- * @return PVOID
- */
-PVOID
-SetTextMessageCallbackUsingSharedBuffer(PVOID Handler)
-{
-    g_MessageHandler             = Handler;
-    g_MessageHandlerSharedBuffer = malloc(COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
-
-    if (!g_MessageHandlerSharedBuffer)
-    {
-        g_MessageHandler = NULL;
-        return NULL;
-    }
-
-    RtlZeroMemory(g_MessageHandlerSharedBuffer, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
-
-    return g_MessageHandlerSharedBuffer;
-}
-
-/**
- * @brief Unset the function callback that will be called if any message
- * needs to be shown
- *
- * @return VOID
- */
-VOID
-UnsetTextMessageCallback()
-{
-    g_MessageHandler = NULL;
-    free(g_MessageHandlerSharedBuffer);
-    g_MessageHandlerSharedBuffer = NULL;
-}
-
-/**
- * @brief Show messages
- *
- * @param Fmt format string message
- * @param ... arguments
- * @return VOID
- */
-VOID
-ShowMessages(const char * Fmt, ...)
-{
-    va_list ArgList;
-    va_list Args;
-    char    TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
-
-    if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger && !g_IsSerialConnectedToRemoteDebugger)
-    {
-        va_start(Args, Fmt);
-
-        vprintf(Fmt, Args);
-
-        va_end(Args);
-
-        if (!g_LogOpened)
-        {
-            return;
-        }
-    }
-
-    va_start(ArgList, Fmt);
-
-    int SprintfResult = vsprintf_s(TempMessage, Fmt, ArgList);
-
-    va_end(ArgList);
-
-    if (SprintfResult != -1)
-    {
-        if (g_IsConnectedToRemoteDebugger)
-        {
-            //
-            // vsprintf_s and vswprintf_s return the number of characters written,
-            // not including the terminating null character, or a negative value
-            // if an output error occurs.
-            //
-            RemoteConnectionSendResultsToHost(TempMessage, SprintfResult);
-        }
-        else if (g_IsSerialConnectedToRemoteDebugger)
-        {
-            KdSendUsermodePrints(TempMessage, SprintfResult);
-        }
-
-        if (g_LogOpened)
-        {
-            //
-            // .logopen command executed
-            //
-            LogopenSaveToFile(TempMessage);
-        }
-        if (g_MessageHandler != NULL)
-        {
-            //
-            // There is another handler
-            //
-            if (g_MessageHandlerSharedBuffer == NULL)
-            {
-                ((SendMessageWithParamCallback)g_MessageHandler)(TempMessage);
-            }
-            else
-            {
-                memcpy(g_MessageHandlerSharedBuffer, TempMessage, strlen(TempMessage) + 1);
-                ((SendMessageWWithSharedBufferCallback)g_MessageHandler)();
-            }
-        }
-    }
-}
-
-/**
- * @brief Read kernel buffers using IRP Pending
- *
- * @param Device Driver handle
- * @return VOID
- */
-VOID
-ReadIrpBasedBuffer()
-{
-    BOOL                   Status;
-    ULONG                  ReturnedLength;
-    REGISTER_NOTIFY_BUFFER RegisterEvent;
-    DWORD                  ErrorNum;
-    HANDLE                 Handle;
-    UINT32                 OperationCode;
-
-    RegisterEvent.hEvent = NULL;
-    RegisterEvent.Type   = IRP_BASED;
-
-    //
-    // Create another handle to be used in for reading kernel messages,
-    // it is because I noticed that if I use a same handle for IRP Pending
-    // and other IOCTLs then if I complete that IOCTL then both of the current
-    // IOCTL and the Pending IRP are completed and return to user mode,
-    // even if it's odd but that what happens, so this way we can solve it
-    // if you know why this problem happens, then contact me !
-    //
-    Handle = CreateFileA(
-        "\\\\.\\HyperDbgDebuggerDevice",
-        GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE,
-        NULL, /// lpSecurityAttirbutes
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
-        NULL); /// lpTemplateFile
-
-    if (Handle == INVALID_HANDLE_VALUE)
-    {
-        ErrorNum = GetLastError();
-
-        if (ErrorNum == ERROR_ACCESS_DENIED)
-        {
-            ShowMessages("err, access denied\nare you sure you have administrator "
-                         "rights?\n");
-        }
-        else if (ErrorNum == ERROR_GEN_FAILURE)
-        {
-            ShowMessages("err, a device attached to the system is not functioning\n"
-                         "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
-        }
-        else
-        {
-            ShowMessages("err, CreateFile failed with (%x)\n", ErrorNum);
-        }
-
-        g_DeviceHandle = NULL;
-        Handle         = NULL;
-
-        return;
-    }
-
-    //
-    // allocate buffer for transferring messages
-    //
-    char * OutputBuffer = (char *)malloc(UsermodeBufferSize);
-
-    try
-    {
-        while (TRUE)
-        {
-            if (!g_IsVmxOffProcessStart)
-            {
-                //
-                // Clear the buffer
-                //
-                ZeroMemory(OutputBuffer, UsermodeBufferSize);
-
-                Status = DeviceIoControl(
-                    Handle,                    // Handle to device
-                    IOCTL_REGISTER_EVENT,      // IO Control Code (IOCTL)
-                    &RegisterEvent,            // Input Buffer to driver.
-                    SIZEOF_REGISTER_EVENT * 2, // Length of input buffer in bytes. (x 2 is bcuz as the
-                                               // driver is x64 and has 64 bit values)
-                    OutputBuffer,              // Output Buffer from driver.
-                    UsermodeBufferSize,        // Length of output buffer in bytes.
-                    &ReturnedLength,           // Bytes placed in buffer.
-                    NULL                       // synchronous call
-                );
-
-                if (!Status)
-                {
-                    //
-                    // Error occurred for second time, and we show the error message
-                    //
-                    // ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-
-                    //
-                    // if we reach here, the packet is probably failed, it might
-                    // be because of using flush command
-                    //
-                    continue;
-                }
-
-                //
-                // Compute the received buffer's operation code
-                //
-                memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
-
-                // ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
-                // ShowMessages("Operation Code : 0x%x \n", OperationCode);
-
-                //
-                // Check if the operation code contains mandatory debuggee bit
-                // If that's the case, we shouldn't wait (sleep) for new messages
-                //
-                if ((OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT) == 0)
-                {
-                    Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
-                }
-
-                switch (OperationCode)
-                {
-                case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
-
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_LOG_MESSAGE_MANDATORY:
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_LOG_INFO_MESSAGE:
-
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_LOG_ERROR_MESSAGE:
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_LOG_WARNING_MESSAGE:
-
-                    if (g_BreakPrintingOutput)
-                    {
-                        //
-                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                        // we shouldn't show or save anything in this case
-                        //
-                        continue;
-                    }
-
-                    ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-
-                    break;
-
-                case OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM:
-
-                    KdCloseConnection();
-
-                    break;
-
-                case OPERATION_DEBUGGEE_USER_INPUT:
-
-                    KdHandleUserInputInDebuggee((DEBUGGEE_USER_INPUT_PACKET *)(OutputBuffer + sizeof(UINT32)));
-
-                    break;
-
-                case OPERATION_DEBUGGEE_REGISTER_EVENT:
-
-                    KdRegisterEventInDebuggee(
-                        (PDEBUGGER_GENERAL_EVENT_DETAIL)(OutputBuffer + sizeof(UINT32)),
-                        ReturnedLength);
-
-                    break;
-
-                case OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT:
-
-                    KdAddActionToEventInDebuggee(
-                        (PDEBUGGER_GENERAL_ACTION)(OutputBuffer + sizeof(UINT32)),
-                        ReturnedLength);
-
-                    break;
-
-                case OPERATION_DEBUGGEE_CLEAR_EVENTS:
-
-                    KdSendModifyEventInDebuggee(
-                        (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)),
-                        TRUE);
-
-                    break;
-
-                case OPERATION_DEBUGGEE_CLEAR_EVENTS_WITHOUT_NOTIFYING_DEBUGGER:
-
-                    KdSendModifyEventInDebuggee(
-                        (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)),
-                        FALSE);
-
-                    break;
-
-                case OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED:
-
-                    //
-                    // Indicate that driver (Hypervisor) is loaded successfully
-                    //
-                    SetEvent(g_IsDriverLoadedSuccessfully);
-
-                    break;
-
-                case OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS:
-
-                    //
-                    // End of receiving messages (IRPs), nothing to do
-                    //
-                    break;
-
-                case OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL:
-
-                    //
-                    // Pause debugger after getting the results
-                    //
-                    KdReloadSymbolsInDebuggee(TRUE,
-                                              ((PDEBUGGEE_SYMBOL_REQUEST_PACKET)(OutputBuffer + sizeof(UINT32)))->ProcessId);
-
-                    break;
-
-                case OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE:
-
-                    //
-                    // handle pausing packet from user debugger
-                    //
-                    UdHandleUserDebuggerPausing(
-                        (PDEBUGGEE_UD_PAUSED_PACKET)(OutputBuffer + sizeof(UINT32)));
-
-                    break;
-
-                default:
-
-                    //
-                    // Check if there are available output sources
-                    //
-                    if (!g_OutputSourcesInitialized || !ForwardingCheckAndPerformEventForwarding(OperationCode,
-                                                                                                 OutputBuffer + sizeof(UINT32),
-                                                                                                 ReturnedLength - sizeof(UINT32) - 1))
-                    {
-                        if (g_BreakPrintingOutput)
-                        {
-                            //
-                            // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                            // we shouldn't show or save anything in this case
-                            //
-                            continue;
-                        }
-
-                        ShowMessages("%s", OutputBuffer + sizeof(UINT32));
-                    }
-
-                    break;
-                }
-            }
-            else
-            {
-                //
-                // the thread should not work anymore
-                //
-                free(OutputBuffer);
-
-                //
-                // closeHandle
-                //
-                if (!CloseHandle(Handle))
-                {
-                    ShowMessages("err, closing handle 0x%x\n", GetLastError());
-                }
-
-                return;
-            }
-        }
-    }
-    catch (const std::exception &)
-    {
-        ShowMessages("err, exception occurred in creating handle or parsing buffer\n");
-    }
-
-    free(OutputBuffer);
-
-    //
-    // closeHandle
-    //
-    if (!CloseHandle(Handle))
-    {
-        ShowMessages("err, closing handle 0x%x\n", GetLastError());
-    };
-}
-
-/**
- * @brief Create a thread for pending buffers
- *
- * @param Data
- * @return DWORD Device Handle
- */
-DWORD WINAPI
-IrpBasedBufferThread(void * data)
-{
-    //
-    // Do stuff.  This will be the first function called on the new
-    // thread. When this function returns, the thread goes away.  See
-    // MSDN for more details. Test Irp Based Notifications
-    //
-    ReadIrpBasedBuffer();
-
-    return 0;
-}
-
-/**
- * @brief Adjust kernel debug privilege
- *
- * @return BOOLEAN return TRUE if it was successful or FALSE if there
- */
-BOOLEAN
-SetDebugPrivilege()
-{
-    BOOL   Status;
-    HANDLE Token;
-
-    //
-    // Check if we already adjusted the privilege
-    //
-    if (g_PrivilegesAlreadyAdjusted)
-    {
-        return TRUE;
-    }
-
-    //
-    // Enable Debug privilege
-    //
-    Status = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &Token);
-    if (!Status)
-    {
-        ShowMessages("err, OpenProcessToken failed (%x)\n", GetLastError());
-        return FALSE;
-    }
-
-    Status = SetPrivilege(Token, SE_DEBUG_NAME, TRUE);
-    if (!Status)
-    {
-        CloseHandle(Token);
-        return FALSE;
-    }
-
-    //
-    // Indicate that the privilege is already adjusted
-    //
-    g_PrivilegesAlreadyAdjusted = TRUE;
-
-    CloseHandle(Token);
-    return TRUE;
-}
-
-/**
- * @brief Install VMM driver
+ * @brief Install (start) VMM driver
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
  */
 INT
-HyperDbgInstallVmmDriver()
+HyperDbgStartDriver()
 {
+    if (!ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    {
+        //
+        // Error - remove driver
+        //
+        ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE);
+
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Stop the driver
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgStopDriver(LPCTSTR DriverName)
+{
+    //
+    // Unload the driver if loaded
+    //
+    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP))
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+/**
+ * @brief Install KD (Kernel Debugger) driver
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgInstallKdDriver()
+{
+    //
+    // Check if the driver is already loaded, if that's the case, we shouldn't try to load it again
+    //
+    if (g_IsKdModuleLoaded)
+    {
+        //
+        // The driver is already loaded, so we shouldn't try to load it again
+        // but we can consider it as success and return zero
+        //
+        return 0;
+    }
+
     //
     // The driver is not started yet so let us the install driver
     // First setup full path to driver name
@@ -584,14 +114,9 @@ HyperDbgInstallVmmDriver()
         strcpy_s(g_DriverName, KERNEL_DEBUGGER_DRIVER_NAME);
     }
 
-    if (!ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    if (HyperDbgStartDriver() != 0)
     {
-        ShowMessages("unable to install VMM driver\n");
-
-        //
-        // Error - remove driver
-        //
-        ManageDriver(g_DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE);
+        ShowMessages("unable to install KD driver\n");
 
         return 1;
     }
@@ -600,35 +125,23 @@ HyperDbgInstallVmmDriver()
 }
 
 /**
- * @brief Stop the driver
+ * @brief Start KD driver
  *
- * @return int return zero if it was successful or non-zero if there
- * was error
+ * @return INT return zero if it was successful or non-zero if there was error
  */
-int
-HyperDbgStopDriver(LPCTSTR DriverName)
+INT
+HyperDbgStartKdDriver()
 {
-    //
-    // Unload the driver if loaded
-    //
-    if (g_DriverLocation[0] != (TCHAR)0 && ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP))
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
+    return HyperDbgStartDriver();
 }
 
 /**
- * @brief Stop VMM driver
+ * @brief Stop KD driver
  *
- * @return INT return zero if it was successful or non-zero if there
- * was error
+ * @return INT return zero if it was successful or non-zero if there was error
  */
 INT
-HyperDbgStopVmmDriver()
+HyperDbgStopKdDriver()
 {
     return HyperDbgStopDriver(g_DriverName);
 }
@@ -636,10 +149,10 @@ HyperDbgStopVmmDriver()
 /**
  * @brief Remove the driver
  *
- * @return int return zero if it was successful or non-zero if there
+ * @return INT return zero if it was successful or non-zero if there
  * was error
  */
-int
+INT
 HyperDbgUninstallDriver(LPCTSTR DriverName)
 {
     //
@@ -656,33 +169,154 @@ HyperDbgUninstallDriver(LPCTSTR DriverName)
 }
 
 /**
- * @brief Remove the VMM driver
+ * @brief Remove the KD (Kernel Debugger) driver
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
  */
 INT
-HyperDbgUninstallVmmDriver()
+HyperDbgUninstallKdDriver()
 {
     return HyperDbgUninstallDriver(g_DriverName);
 }
 
 /**
- * @brief Create handle from VMM module
+ * @brief Initialize VMM module
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
  */
 INT
-HyperDbgCreateHandleFromVmmModule()
+HyperDbgInitHyperTraceModule()
+{
+    BOOL                            Status;
+    DWORD                           BytesReturned;
+    DEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTracePacket = {0};
+
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    //
+    // Send IOCTL to initialize HyperTrace module
+    //
+    Status = DeviceIoControl(g_DeviceHandle,                         // Handle to device
+                             IOCTL_INIT_HYPERTRACE,                  // IO Control Code (IOCTL)
+                             &InitHyperTracePacket,                  // Input Buffer to driver.
+                             SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, // Length of input buffer in bytes.
+                             &InitHyperTracePacket,                  // Output Buffer from driver.
+                             SIZEOF_DEBUGGER_INIT_HYPERTRACE_PACKET, // Length of output buffer in bytes.
+                             &BytesReturned,                         // Bytes placed in buffer.
+                             NULL                                    // synchronous call
+    );
+
+    //
+    // Check if the IOCTL was successful, if not show the error message and return
+    //
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return 1;
+    }
+
+    //
+    // Check the kernel status
+    //
+    if (InitHyperTracePacket.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        ShowErrorMessage(InitHyperTracePacket.KernelStatus);
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Initialize VMM module
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgInitVmmModule()
+{
+    BOOL                     Status;
+    DWORD                    BytesReturned;
+    DEBUGGER_INIT_VMM_PACKET InitVmmPacket = {0};
+
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    //
+    // Create event to show if the kd module is loaded or not
+    //
+    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    //
+    // Send IOCTL to initialize VMM module
+    //
+    Status = DeviceIoControl(g_DeviceHandle,                  // Handle to device
+                             IOCTL_INIT_VMM,                  // IO Control Code (IOCTL)
+                             &InitVmmPacket,                  // Input Buffer to driver.
+                             SIZEOF_DEBUGGER_INIT_VMM_PACKET, // Length of input buffer in bytes.
+                             &InitVmmPacket,                  // Output Buffer from driver.
+                             SIZEOF_DEBUGGER_INIT_VMM_PACKET, // Length of output buffer in bytes.
+                             &BytesReturned,                  // Bytes placed in buffer.
+                             NULL                             // synchronous call
+    );
+
+    //
+    // check if the IOCTL was successful, if not show the error message and return
+    //
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        CloseHandle(g_IsDriverLoadedSuccessfully);
+        return 1;
+    }
+
+    //
+    // Check the kernel status for early errors (e.g., HyperTrace already loaded)
+    //
+    if (InitVmmPacket.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL &&
+        InitVmmPacket.KernelStatus != 0)
+    {
+        ShowErrorMessage(InitVmmPacket.KernelStatus);
+        CloseHandle(g_IsDriverLoadedSuccessfully);
+        return 1;
+    }
+
+    //
+    // We wait for the first message from the kernel debugger to continue
+    //
+    WaitForSingleObject(
+        g_IsDriverLoadedSuccessfully,
+        INFINITE);
+
+    //
+    // No need to handle anymore
+    //
+    CloseHandle(g_IsDriverLoadedSuccessfully);
+
+    //
+    // VMM module is initialized at this point
+    //
+    return 0;
+}
+
+/**
+ * @brief Create handle from KD (HyperKD) module
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgCreateHandleFromKdModule()
 {
     DWORD ErrorNum;
     DWORD ThreadId;
 
     if (g_DeviceHandle)
     {
-        ShowMessages("handle of the driver found, if you use 'load' before, please "
-                     "unload it using 'unload'\n");
+        ShowMessages("handle of the driver found, if you use the 'load' command before, please "
+                     "unload it using the 'unload' command\n");
         return 1;
     }
 
@@ -690,7 +324,7 @@ HyperDbgCreateHandleFromVmmModule()
     // Make sure that this variable is false, because it might be set to
     // true as the result of a previous load
     //
-    g_IsVmxOffProcessStart = FALSE;
+    g_IsMessageLoggingWindowClosed = FALSE;
 
     //
     // Init entering vmx
@@ -701,7 +335,7 @@ HyperDbgCreateHandleFromVmmModule()
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL, /// lpSecurityAttirbutes
         OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+        FILE_ATTRIBUTE_NORMAL,
         NULL); /// lpTemplateFile
 
     if (g_DeviceHandle == INVALID_HANDLE_VALUE)
@@ -745,7 +379,7 @@ HyperDbgCreateHandleFromVmmModule()
 }
 
 /**
- * @brief Unload VMM driver
+ * @brief Unload VMM module
  *
  * @return INT return zero if it was successful or non-zero if there
  * was error
@@ -753,11 +387,27 @@ HyperDbgCreateHandleFromVmmModule()
 INT
 HyperDbgUnloadVmm()
 {
-    BOOL Status;
+    BOOL  Status;
+    DWORD BytesReturned;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
-    ShowMessages("start terminating...\n");
+    ShowMessages("start terminating vmm...\n");
+
+    //
+    // Check if HyperTrace module is loaded, if so we need to unload it before unloading VMM
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages(
+            "the trace module is currently loaded and will be unloaded before the vmm module\nnote that hypertrace (trace) "
+            "use the hypervisor (vmm) features when it is loaded after vmm, however, hypertrace can also operate without the vmm "
+            "module, although hypervisor-specific features will not be available\n"
+            "the 'trace' module will now be unloaded automatically. You can reload it later "
+            "using the command 'load trace', which will load the trace module again without enabling hypervisor-dependent features\n");
+
+        HyperDbgUnloadHyperTrace();
+    }
 
     //
     // Uninitialize the user debugger if it's initialized
@@ -765,7 +415,7 @@ HyperDbgUnloadVmm()
     UdUninitializeUserDebugger();
 
     //
-    // Send IOCTL to mark complete all IRP Pending
+    // Send IOCTL terminate VMX
     //
     Status = DeviceIoControl(g_DeviceHandle,      // Handle to device
                              IOCTL_TERMINATE_VMX, // IO Control Code (IOCTL)
@@ -774,7 +424,7 @@ HyperDbgUnloadVmm()
                                                   // as the driver is x64 and has 64 bit values)
                              NULL,                // Output Buffer from driver.
                              0,                   // Length of output buffer in bytes.
-                             NULL,                // Bytes placed in buffer.
+                             &BytesReturned,      // Bytes placed in buffer.
                              NULL                 // synchronous call
     );
 
@@ -788,19 +438,116 @@ HyperDbgUnloadVmm()
     }
 
     //
+    // Hypervisor (VMM) module is not loaded anymore
+    //
+    g_IsVmmModuleLoaded = FALSE;
+
+    ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
+}
+
+/**
+ * @brief Unload HyperTrace module
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgUnloadHyperTrace()
+{
+    BOOL  Status;
+    DWORD BytesReturned;
+
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    ShowMessages("start terminating trace module...\n");
+
+    //
+    // Send IOCTL to unload HyperTrace module
+    //
+    Status = DeviceIoControl(g_DeviceHandle,                  // Handle to device
+                             IOCTL_PERFORM_HYPERTRACE_UNLOAD, // IO Control Code (IOCTL)
+                             NULL,                            // Input Buffer to driver.
+                             0,                               // Length of input buffer in bytes. (x 2 is bcuz
+                                                              // as the driver is x64 and has 64 bit values)
+                             NULL,                            // Output Buffer from driver.
+                             0,                               // Length of output buffer in bytes.
+                             &BytesReturned,                  // Bytes placed in buffer.
+                             NULL                             // synchronous call
+    );
+
+    //
+    // wait to make sure we don't use an invalid handle in another Ioctl
+    //
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return 1;
+    }
+
+    //
+    // HyperTrace module is not loaded anymore
+    //
+    g_IsHyperTraceModuleLoaded = FALSE;
+
+    ShowMessages("the trace module is unloaded!\n");
+
+    return 0;
+}
+
+/**
+ * @brief Unload KD driver
+ *
+ * @return INT return zero if it was successful or non-zero if there was error
+ */
+INT
+HyperDbgUnloadKd()
+{
+    BOOL  Status;
+    DWORD BytesReturned;
+
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
+
+    //
+    // Check if HyperTrace module is loaded, if so we need to unload it before unloading KD because KD is used by HyperTrace
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages("err, unable to unload the kd module because the trace module is currently loaded "
+                     "and uses the kd module, if you want to unload the kd module, please first unload "
+                     "the trace module using the 'unload trace' command\n");
+        return 1;
+    }
+
+    //
+    // Check if VMM module is loaded, if so we need to unload it before unloading KD because KD is used by VMM
+    //
+    if (g_IsVmmModuleLoaded)
+    {
+        ShowMessages("err, unable to unload the kd module because the vmm module is currently loaded "
+                     "and uses the kd module, if you want to unload the kd module, please first unload "
+                     "the vmm module using the 'unload vmm' command\n");
+        return 1;
+    }
+
+    //
+    // Indicate that the message logging window is closed
+    //
+    g_IsMessageLoggingWindowClosed = TRUE;
+
+    //
     // Send IOCTL to mark complete all IRP Pending
     //
     Status = DeviceIoControl(
         g_DeviceHandle,                                      // Handle to device
-        IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO
-                                                             // Control
-                                                             // code
+        IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO Control Code (IOCTL)
         NULL,                                                // Input Buffer to driver.
         0,                                                   // Length of input buffer in bytes. (x 2 is bcuz as the
                                                              // driver is x64 and has 64 bit values)
         NULL,                                                // Output Buffer from driver.
         0,                                                   // Length of output buffer in bytes.
-        NULL,                                                // Bytes placed in buffer.
+        &BytesReturned,                                      // Bytes placed in buffer.
         NULL                                                 // synchronous call
     );
 
@@ -814,11 +561,9 @@ HyperDbgUnloadVmm()
     }
 
     //
-    // Indicate that the finish process start or not
+    // Wait for a while to make sure that all IRP pending are completed and the driver is ready to be unloaded
     //
-    g_IsVmxOffProcessStart = TRUE;
-
-    Sleep(1000); // Wait so next thread can return from IRP Pending
+    Sleep(1000);
 
     //
     // Send IRP_MJ_CLOSE to driver to terminate Vmxs
@@ -838,16 +583,126 @@ HyperDbgUnloadVmm()
     //
     // Debugger module is not loaded anymore
     //
-    g_IsDebuggerModulesLoaded = FALSE;
+    g_IsKdModuleLoaded = FALSE;
 
     //
     // Check if we found an already built symbol table
     //
     SymbolDeleteSymTable();
 
-    ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+    ShowMessages("the debugger module is unloaded!\n");
 
     return 0;
+}
+
+/**
+ * @brief unload all modules (KD, VMM, HyperTrace, etc.)
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgUnloadAllModules()
+{
+    INT RetVal = 0;
+
+    //
+    // Unload HyperTrace module if loaded
+    //
+    if (g_IsHyperTraceModuleLoaded && HyperDbgUnloadHyperTrace() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Unload VMM module if loaded
+    //
+    if (g_IsVmmModuleLoaded && HyperDbgUnloadVmm() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Unload KD module if loaded
+    //
+    if (g_IsKdModuleLoaded && HyperDbgUnloadKd() != 0)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief load kd module
+ *
+ * @return int return zero if it was successful or non-zero if there
+ */
+INT
+HyperDbgLoadKdModule()
+{
+    //
+    // Check if the module is already loaded, if that's the case, we don't
+    // need to handle anymore
+    //
+    if (g_IsKdModuleLoaded)
+    {
+        //
+        // Return zero to indicate that the module is loaded successfully,
+        //  and we no need to re-load it anymore
+        //
+        return 0;
+    }
+
+    if (HyperDbgCreateHandleFromKdModule() == 1)
+    {
+        //
+        // No need to handle anymore
+        //
+        return 1;
+    }
+
+    //
+    // KD module is loaded at this point
+    //
+
+    //
+    // If we reach here so the module are loaded
+    //
+    g_IsKdModuleLoaded = TRUE;
+
+    return 0;
+}
+
+/**
+ * @brief Get the vendor of the current processor
+ *
+ * @return GENERIC_PROCESSOR_VENDOR the vendor of the processor
+ */
+GENERIC_PROCESSOR_VENDOR
+HyperDbgGetProcessorVendor()
+{
+    CHAR CpuId[13] = {0};
+
+    //
+    // Read the vendor string
+    //
+    CpuReadVendorString(CpuId);
+
+    // ShowMessages("current processor vendor is : %s\n", CpuId);
+
+    if (strcmp(CpuId, "GenuineIntel") == 0)
+    {
+        return GENERIC_PROCESSOR_VENDOR_INTEL;
+    }
+    else if (strcmp(CpuId, "AuthenticAMD") == 0)
+    {
+        return GENERIC_PROCESSOR_VENDOR_AMD;
+    }
+    else
+    {
+        return GENERIC_PROCESSOR_VENDOR_OTHERS;
+    }
 }
 
 /**
@@ -858,34 +713,53 @@ HyperDbgUnloadVmm()
 INT
 HyperDbgLoadVmmModule()
 {
-    char CpuId[13] = {0};
+    //
+    // Check if the module is already loaded, if that's the case, we don't
+    // need to handle anymore
+    //
+    if (g_IsVmmModuleLoaded)
+    {
+        //
+        // Return zero to indicate that the module is loaded successfully,
+        //  and we no need to re-load it anymore
+        //
+        return 0;
+    }
+
+    //
+    // Check if the HyperTrace module is loaded or not
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        ShowMessages(
+            "err, the trace module is currently loaded and should be unloaded before loading the vmm module\n"
+            "Note that HyperTrace (trace) uses the hypervisor (vmm) features when it is loaded after the vmm module, "
+            "however, HyperTrace can also operate without the vmm module, although hypervisor-specific features will not be available\n"
+            "to solve this problem, first unload the trace module using the 'unload trace' command, next, load "
+            "the vmm module and then load the trace module again. This way, the trace module is reloaded with hypervisor APIs\n");
+        return 1;
+    }
 
     //
     // Enable Debug privilege to the current token
     //
-    if (!SetDebugPrivilege())
+    if (!WindowsSetDebugPrivilege())
     {
         ShowMessages("err, couldn't set debug privilege\n");
         return 1;
     }
 
     //
-    // Read the vendor string
+    // Check if the processor is a genuine Intel processor (required for VT-x)
     //
-    CpuReadVendorString(CpuId);
-
-    ShowMessages("current processor vendor is : %s\n", CpuId);
-
-    if (strcmp(CpuId, "GenuineIntel") == 0)
+    if (HyperDbgGetProcessorVendor() != GENERIC_PROCESSOR_VENDOR_INTEL)
     {
-        ShowMessages("virtualization technology is vt-x\n");
-    }
-    else
-    {
-        ShowMessages("this program is not designed to run in a non-VT-x "
-                     "environment !\n");
+        ShowMessages("err, this program is not designed to run in a non-VT-x "
+                     "environment. It needs an Intel processor.\n");
         return 1;
     }
+
+    ShowMessages("virtualization technology is vt-x\n");
 
     if (VmxSupportDetection())
     {
@@ -893,7 +767,7 @@ HyperDbgLoadVmmModule()
     }
     else
     {
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
         ShowMessages("vmx operation is not supported by your processor "
                      "(if you are using an Intel processor, it might be because VBS is not disabled!)\n");
 #endif
@@ -901,41 +775,137 @@ HyperDbgLoadVmmModule()
     }
 
     //
-    // Create event to show if the hypervisor is loaded or not
+    // Load the KD module and create handle to it
     //
-    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-    if (HyperDbgCreateHandleFromVmmModule() == 1)
+    if (HyperDbgLoadKdModule() == 1)
     {
-        //
-        // No need to handle anymore
-        //
-        CloseHandle(g_IsDriverLoadedSuccessfully);
         return 1;
     }
 
     //
-    // Vmm module (Hypervisor) is loaded
+    // Initialize VMM module
     //
+    if (HyperDbgInitVmmModule() == 1)
+    {
+        ShowMessages("err, initializing VMM module\n");
 
-    //
-    // We wait for the first message from the kernel debugger to continue
-    //
-    WaitForSingleObject(
-        g_IsDriverLoadedSuccessfully,
-        INFINITE);
-
-    //
-    // No need to handle anymore
-    //
-    CloseHandle(g_IsDriverLoadedSuccessfully);
+        return 1;
+    }
 
     //
     // If we reach here so the module are loaded
     //
-    g_IsDebuggerModulesLoaded = TRUE;
+    g_IsVmmModuleLoaded = TRUE;
 
     ShowMessages("vmm module is running...\n");
+
+    return 0;
+}
+
+/**
+ * @brief load hypertrace module
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgLoadHyperTraceModule()
+{
+    //
+    // Check if the module is already loaded, if that's the case, we don't
+    // need to handle anymore
+    //
+    if (g_IsHyperTraceModuleLoaded)
+    {
+        //
+        // Return zero to indicate that the module is loaded successfully,
+        //  and we no need to re-load it anymore
+        //
+        return 0;
+    }
+
+    //
+    // Enable Debug privilege to the current token
+    //
+    if (!WindowsSetDebugPrivilege())
+    {
+        ShowMessages("err, couldn't set debug privilege\n");
+        return 1;
+    }
+
+    //
+    // Check if the processor is a genuine Intel processor (required for HyperTrace)
+    //
+    if (HyperDbgGetProcessorVendor() != GENERIC_PROCESSOR_VENDOR_INTEL)
+    {
+        ShowMessages("err, this program is not designed to run in a non-Intel "
+                     "environment as it needs Intel PT (Processor Trace) and Intel LBR "
+                     "(Last Branch Record). It needs an Intel processor.\n");
+        return 1;
+    }
+
+    //
+    // Load the KD module and create handle to it
+    //
+    if (HyperDbgLoadKdModule() == 1)
+    {
+        return 1;
+    }
+
+    //
+    // Initialize HyperTrace module
+    //
+    if (HyperDbgInitHyperTraceModule() == 1)
+    {
+        ShowMessages("err, initializing hypertrace module\n");
+
+        return 1;
+    }
+
+    //
+    // If we reach here so the module are loaded
+    //
+    g_IsHyperTraceModuleLoaded = TRUE;
+
+    ShowMessages("hypertrace (trace) module is running...\n");
+
+    return 0;
+}
+
+/**
+ * @brief load all modules (KD, VMM, HyperTrace, etc.)
+ *
+ * @return INT return zero if it was successful or non-zero if there
+ * was error
+ */
+INT
+HyperDbgLoadAllModules()
+{
+    INT RetVal = 0;
+
+    //
+    // Load KD module if not loaded
+    //
+    if (!g_IsKdModuleLoaded && HyperDbgLoadKdModule() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Load VMM module if not loaded
+    //
+    if (!g_IsVmmModuleLoaded && HyperDbgLoadVmmModule() != 0)
+    {
+        return 1;
+    }
+
+    //
+    // Load HyperTrace module if not loaded
+    //
+    if (!g_IsHyperTraceModuleLoaded && HyperDbgLoadHyperTraceModule() != 0)
+    {
+        return 1;
+    }
 
     return 0;
 }

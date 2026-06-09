@@ -63,29 +63,42 @@ VmFuncChangeIgnoreOneMtfState(UINT32 CoreId, BOOLEAN Set)
 }
 
 /**
- * @brief Register for break in the case of an MTF
+ * @brief Set instrumentation step in MTF (used for single stepping with MTF)
  *
  * @param CoreId Target core's ID
  *
  * @return VOID
  */
 VOID
-VmFuncRegisterMtfBreak(UINT32 CoreId)
+VmFuncSetInstrumentationStepInState(UINT32 CoreId)
 {
-    g_GuestState[CoreId].RegisterBreakOnMtf = TRUE;
+    g_GuestState[CoreId].InstrumentationStepInMtf = TRUE;
 }
 
 /**
- * @brief Unregister for break in the case of an MTF
+ * @brief Unset instrumentation step in MTF (used for single stepping with MTF)
  *
  * @param CoreId Target core's ID
  *
  * @return VOID
  */
 VOID
-VmFuncUnRegisterMtfBreak(UINT32 CoreId)
+VmFuncUnsetInstrumentationStepInState(UINT32 CoreId)
 {
-    g_GuestState[CoreId].RegisterBreakOnMtf = FALSE;
+    g_GuestState[CoreId].InstrumentationStepInMtf = FALSE;
+}
+
+/**
+ * @brief Query instrumentation step in MTF state
+ *
+ * @param CoreId Target core's ID
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncQueryInstrumentationStepInState(UINT32 CoreId)
+{
+    return g_GuestState[CoreId].InstrumentationStepInMtf;
 }
 
 /**
@@ -115,25 +128,57 @@ VmFuncSetRflagTrapFlag(BOOLEAN Set)
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
  *
+ * @param CoreId target core id
  * @param Set Set or unset
+ *
  * @return VOID
  */
 VOID
-VmFuncSetLoadDebugControls(BOOLEAN Set)
+VmFuncSetLoadDebugControls(UINT32 CoreId, BOOLEAN Set)
 {
-    HvSetLoadDebugControls(Set);
+    HvSetLoadDebugControls(&g_GuestState[CoreId], Set);
+}
+
+/**
+ * @brief Set LOAD GUEST IA32_LBR_CTL on Vm-entry controls
+ *
+ * @param CoreId target core id
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLoadGuestIa32LbrCtl(UINT32 CoreId, BOOLEAN Set)
+{
+    HvSetLoadGuestIa32LbrCtl(&g_GuestState[CoreId], Set);
 }
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
  *
+ * @param CoreId target core id
  * @param Set Set or unset
+ *
  * @return VOID
  */
 VOID
-VmFuncSetSaveDebugControls(BOOLEAN Set)
+VmFuncSetSaveDebugControls(UINT32 CoreId, BOOLEAN Set)
 {
-    HvSetSaveDebugControls(Set);
+    HvSetSaveDebugControls(&g_GuestState[CoreId], Set);
+}
+
+/**
+ * @brief Set CLEAR GUEST IA32_LBR_CTL on Vm-exit controls
+ *
+ * @param CoreId target core id
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetClearGuestIa32LbrCtl(UINT32 CoreId, BOOLEAN Set)
+{
+    HvSetClearGuestIa32LbrCtl(&g_GuestState[CoreId], Set);
 }
 
 /**
@@ -390,6 +435,211 @@ VmFuncSetRip(UINT64 Rip)
 }
 
 /**
+ * @brief Get the guest state of IA32_DEBUGCTL
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetDebugctl()
+{
+    return HvGetDebugctl();
+}
+
+/**
+ * @brief Get the guest state of IA32_DEBUGCTL on the target core from VMCS
+ * using VMCALL
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetDebugctlVmcallOnTargetCore()
+{
+    return CrossVmcallGetDebugctlVmcallOnTargetCore();
+}
+
+/**
+ * @brief Get the guest state of IA32_LBR_CTL
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetGuestIa32LbrCtl()
+{
+    return HvGetGuestIa32LbrCtl();
+}
+
+/**
+ * @brief Get the guest state of IA32_LBR_CTL on the target core from VMCS
+ *
+ * @return UINT64
+ */
+UINT64
+VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore()
+{
+    return CrossVmcallGetGuestIa32LbrCtlVmcallOnTargetCore();
+}
+
+/**
+ * @brief Check if CPU support save and load debug controls on exit and load entries
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncCheckCpuSupportForSaveAndLoadDebugControls()
+{
+    return HvCheckCpuSupportForSaveAndLoadDebugControls();
+}
+
+/**
+ * @brief Check if CPU support load and clear guest IA32_LBR_CTL controls on VM-entry and VM-exit
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls()
+{
+    return HvCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls();
+}
+
+/**
+ * @brief Set the guest state of IA32_DEBUGCTL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetDebugctl(UINT64 Value)
+{
+    HvSetDebugctl(Value);
+}
+
+/**
+ * @brief Set the guest state of IA32_DEBUGCTL on the target core from VMCS
+ * using VMCALL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetDebugctlVmcallOnTargetCore(UINT64 Value)
+{
+    CrossVmcallSetDebugctlVmcallOnTargetCore(Value);
+}
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetGuestIa32LbrCtl(UINT64 Value)
+{
+    HvSetGuestIa32LbrCtl(Value);
+}
+
+/**
+ * @brief Set the guest state of IA32_LBR_CTL on the target core from VMCS
+ * using VMCALL
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore(UINT64 Value)
+{
+    CrossVmcallSetGuestIa32LbrCtlVmcallOnTargetCore(Value);
+}
+
+/**
+ * @brief Set the guest state of MSR_LEGACY_LBR_SELECT
+ * @param FilterOptions
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLbrSelect(UINT64 FilterOptions)
+{
+    HvSetLbrSelect(FilterOptions);
+}
+
+/**
+ * @brief Set the guest state of MSR_LEGACY_LBR_SELECT on the target core from VMCS using VMCALL
+ * @param FilterOptions
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLbrSelectVmcallOnTargetCore(UINT64 FilterOptions)
+{
+    CrossVmcallSetLbrSelectVmcallOnTargetCore(FilterOptions);
+}
+
+/**
+ * @brief Set LOAD DEBUG CONTROLS on VM-entry controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLoadDebugControlsVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetLoadDebugControlsVmcallOnTargetCore(Set);
+}
+
+/**
+ * @brief Set LOAD GUEST IA32_LBR_CTL on VM-entry controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetLoadGuestIa32LbrCtlVmcallOnTargetCore(Set);
+}
+
+/**
+ * @brief Set SAVE DEBUG CONTROLS on VM-exit controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetSaveDebugControlsVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetSaveDebugControlsVmcallOnTargetCore(Set);
+}
+
+/**
+ * @brief Set CLEAR GUEST IA32_LBR_CTL on VM-exit controls on the target core from VMCS using VMCALL
+ *
+ * @param Set Set or unset
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore(BOOLEAN Set)
+{
+    CrossVmcallSetClearGuestIa32LbrCtlVmcallOnTargetCore(Set);
+}
+
+/**
+ * @brief Set the guest state of DR7
+ * @param Value
+ *
+ * @return VOID
+ */
+VOID
+VmFuncSetDebugReg7(UINT64 Value)
+{
+    HvSetDebugReg7(Value);
+}
+
+/**
  * @brief Read guest's interruptibility state
  *
  * @return UINT64
@@ -620,7 +870,7 @@ VmFuncVmxCompatibleStrlen(const CHAR * s)
  * @return UINT32
  */
 UINT32
-VmFuncVmxCompatibleWcslen(const wchar_t * s)
+VmFuncVmxCompatibleWcslen(const WCHAR * s)
 {
     return VmxCompatibleWcslen(s);
 }
@@ -704,10 +954,10 @@ VmFuncEventInjectInterruption(UINT32  InterruptionType,
  * @return NTSTATUS
  */
 NTSTATUS
-VmFuncVmxVmcall(unsigned long long VmcallNumber,
-                unsigned long long OptionalParam1,
-                unsigned long long OptionalParam2,
-                unsigned long long OptionalParam3)
+VmFuncVmxVmcall(UINT64 VmcallNumber,
+                UINT64 OptionalParam1,
+                UINT64 OptionalParam2,
+                UINT64 OptionalParam3)
 {
     return AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
 }
@@ -780,7 +1030,7 @@ VmFuncVmxCompatibleStrncmp(const CHAR * Address1, const CHAR * Address2, SIZE_T 
  * @return INT32
  */
 INT32
-VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+VmFuncVmxCompatibleWcscmp(const WCHAR * Address1, const WCHAR * Address2)
 {
     return VmxCompatibleWcscmp(Address1, Address2, NULL_ZERO, FALSE);
 }
@@ -794,7 +1044,7 @@ VmFuncVmxCompatibleWcscmp(const wchar_t * Address1, const wchar_t * Address2)
  * @return INT32
  */
 INT32
-VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, SIZE_T Num)
+VmFuncVmxCompatibleWcsncmp(const WCHAR * Address1, const WCHAR * Address2, SIZE_T Num)
 {
     return VmxCompatibleWcscmp(Address1, Address2, Num, TRUE);
 }
@@ -808,14 +1058,14 @@ VmFuncVmxCompatibleWcsncmp(const wchar_t * Address1, const wchar_t * Address2, S
  * @return INT32
  */
 INT32
-VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
+VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
 {
     return VmxCompatibleMemcmp(Address1, Address2, Count);
 }
 
 /**
  * @brief Enables MTF and adjust external interrupt state
- * @param UINT32 CoreId
+ * @param CoreId
  *
  * @return VOID
  */
@@ -828,7 +1078,7 @@ VmFuncEnableMtfAndChangeExternalInterruptState(UINT32 CoreId)
 /**
  * @brief Checks to enable and reinject previous interrupts
  *
- * @param UINT32 CoreId
+ * @param CoreId
  *
  * @return VOID
  */

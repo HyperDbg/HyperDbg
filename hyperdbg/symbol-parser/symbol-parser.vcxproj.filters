@@ -23,6 +23,12 @@
     <ClCompile Include="code\casting.cpp">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="code\codeview-rsds.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\pdb-identity.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>code</Filter>
     </ClCompile>
@@ -37,8 +43,11 @@
     <ClInclude Include="header\symbol-parser.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\platform\user\header\Environment.h">
-      <Filter>header\platform</Filter>
+    <ClInclude Include="header\codeview-rsds.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\pdb-identity.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

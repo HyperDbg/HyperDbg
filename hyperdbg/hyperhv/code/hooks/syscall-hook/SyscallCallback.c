@@ -1,6 +1,7 @@
-/**
+﻿/**
  * @file SyscallCallback.c
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Implementation of the functions related to the callback for Syscall
  * @details
  *
@@ -30,7 +31,7 @@ SyscallCallbackInitialize()
         //
         // Insert EPT memory page hook for Windows system call handler, KiSystemCall64()
         //
-        Msr.Flags = __readmsr(IA32_LSTAR);
+        Msr.Flags = CpuReadMsr(IA32_LSTAR);
 
         //
         // We set the hook at the address of the system call handler + 3
@@ -76,6 +77,17 @@ SyscallCallbackInitialize()
 }
 
 /**
+ * @brief Check whether the syscall callback is initialized
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+SyscallCallbackIsInitialized()
+{
+    return g_SyscallCallbackStatus;
+}
+
+/**
  * @brief Uninitialize the syscall callback
  *
  * @return BOOLEAN
@@ -86,9 +98,14 @@ SyscallCallbackUninitialize()
     if (g_SyscallCallbackStatus)
     {
         //
-        // Disable the syscall callback
+        // Unset the EPT hook from the syscall entry before disabling state.
         //
-        g_SyscallCallbackStatus = FALSE;
+        if (!ConfigureEptHookUnHookSingleAddress((UINT64)g_SystemCallHookAddress, (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
+        {
+            LogInfo("Error while removing the EPT hook from windows syscall handler at address 0x%p", g_SystemCallHookAddress);
+
+            return FALSE;
+        }
 
         //
         // Unset the trap flags #DBs and #BPs for the syscall callback
@@ -100,15 +117,9 @@ SyscallCallbackUninitialize()
         //
         PlatformMemFreePool(g_SyscallCallbackTrapFlagState);
 
-        MSR Msr   = {0};
-        Msr.Flags = __readmsr(IA32_LSTAR);
-
-        if (!ConfigureEptHookUnHookSingleAddress((UINT64)(Msr.Flags + 3), (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
-        {
-            LogInfo("Error while removing the EPT hook from windows syscall handler at address 0x%p+3", Msr.Flags);
-
-            return FALSE;
-        }
+        g_SyscallCallbackTrapFlagState = NULL;
+        g_SystemCallHookAddress        = NULL;
+        g_SyscallCallbackStatus        = FALSE;
 
         return TRUE;
     }

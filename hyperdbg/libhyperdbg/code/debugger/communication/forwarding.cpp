@@ -211,7 +211,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
  *
  * @return HANDLE returns handle of the source
  */
-VOID *
+PVOID
 ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
                              const string &                 Description,
                              SOCKET *                       Socket,
@@ -232,7 +232,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
         // The handle might be INVALID_HANDLE_VALUE which will be
         // checked by the caller
         //
-        return (void *)FileHandle;
+        return (PVOID)FileHandle;
     }
     else if (SourceType == EVENT_FORWARDING_MODULE)
     {
@@ -260,7 +260,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
         //
         // The handle is the location of the hyperdbg_event_forwarding function
         //
-        return (void *)hyperdbg_event_forwarding;
+        return (PVOID)hyperdbg_event_forwarding;
     }
     else if (SourceType == EVENT_FORWARDING_NAMEDPIPE)
     {
@@ -274,7 +274,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
             return INVALID_HANDLE_VALUE;
         }
 
-        return (void *)PipeHandle;
+        return (PVOID)PipeHandle;
     }
     else if (SourceType == EVENT_FORWARDING_TCP)
     {
@@ -287,7 +287,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
             // Split the ip and port by : delimiter
             //
             IpPortDelimiter = ':';
-            size_t find     = Description.find(IpPortDelimiter);
+            SIZE_T find     = Description.find(IpPortDelimiter);
             Ip              = Description.substr(0, find);
             Port            = Description.substr(find + 1, find + Description.size());
 
@@ -302,7 +302,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
                 // because this functionality doesn't work with handlers; however,
                 // send 1 or TRUE is a valid handle
                 //
-                return (void *)TRUE;
+                return (PVOID)TRUE;
             }
             else
             {
@@ -347,7 +347,7 @@ ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
     BOOLEAN     Result   = FALSE;
     PLIST_ENTRY TempList = 0;
 
-    for (size_t i = 0; i < DebuggerOutputSourceMaximumRemoteSourceForSingleEvent; i++)
+    for (SIZE_T i = 0; i < DebuggerOutputSourceMaximumRemoteSourceForSingleEvent; i++)
     {
         //
         // Check whether we reached to the end of the events

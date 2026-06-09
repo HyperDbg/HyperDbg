@@ -19,16 +19,9 @@
 //
 // Environment headers
 //
-#include "platform/kernel/header/Environment.h"
+#include "platform/general/header/Environment.h"
 
-#ifdef ENV_WINDOWS
-
-//
-// The DLL is flagged by antivirus software, since it contains anti-debugging and anti-hypervisor methods
-// as well as different anti-debugging strings
-// For now, we disable the HyperDbg Hyperevade module
-//
-#    define DISABLE_HYPERDBG_HYPEREVADE TRUE
+#ifdef HYPERDBG_ENV_WINDOWS
 
 //
 // Windows defined functions
@@ -37,7 +30,7 @@
 #    include <ntstrsafe.h>
 #    include <Windef.h>
 
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
 
 //
 // Scope definitions
@@ -68,13 +61,14 @@
 //
 // Hyperlog headers
 //
-#include "components/interface/HyperLogCallback.h"
+#include "components/callback/header/HyperLogCallback.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
 
 //
 // Platform independent headers
 //
 #include "platform/kernel/header/PlatformMem.h"
+#include "platform/kernel/header/PlatformIntrinsics.h"
 
 //
 // Hyperevade Callbacks

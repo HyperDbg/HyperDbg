@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file SwitchLayout.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Functions for switching memory layouts
@@ -46,12 +46,12 @@ SwitchToProcessMemoryLayout(UINT32 ProcessId)
     //
     // Read the current cr3
     //
-    CurrentProcessCr3.Flags = __readcr3();
+    CurrentProcessCr3.Flags = CpuReadCr3();
 
     //
     // Change to a new cr3 (of target process)
     //
-    __writecr3(GuestCr3);
+    CpuWriteCr3(GuestCr3);
 
     ObDereferenceObject(TargetEprocess);
 
@@ -77,12 +77,12 @@ SwitchToCurrentProcessMemoryLayout()
     //
     // Read the current cr3
     //
-    CurrentProcessCr3.Flags = __readcr3();
+    CurrentProcessCr3.Flags = CpuReadCr3();
 
     //
     // Change to a new cr3 (of target process)
     //
-    __writecr3(GuestCr3.Flags);
+    CpuWriteCr3(GuestCr3.Flags);
 
     return CurrentProcessCr3;
 }
@@ -103,12 +103,12 @@ SwitchToProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
     //
     // Read the current cr3
     //
-    CurrentProcessCr3.Flags = __readcr3();
+    CurrentProcessCr3.Flags = CpuReadCr3();
 
     //
     // Change to a new cr3 (of target process)
     //
-    __writecr3(TargetCr3.Flags);
+    CpuWriteCr3(TargetCr3.Flags);
 
     return CurrentProcessCr3;
 }
@@ -127,5 +127,5 @@ SwitchToPreviousProcess(CR3_TYPE PreviousProcess)
     //
     // Restore the original cr3
     //
-    __writecr3(PreviousProcess.Flags);
+    CpuWriteCr3(PreviousProcess.Flags);
 }

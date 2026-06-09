@@ -52,7 +52,7 @@ typedef enum _LOG_TYPE
         DbgPrint("[!] Error (%s:%d) | " format "\n", \
                  __func__,                           \
                  __LINE__,                           \
-                 ##__VA_ARGS__);                       \
+                 ##__VA_ARGS__);                     \
         DbgBreakPoint()
 
 /**
@@ -118,7 +118,7 @@ typedef enum _LOG_TYPE
                                                 "[!] Error (%s:%d) | " format "\n", \
                                                 __func__,                           \
                                                 __LINE__,                           \
-                                                ##__VA_ARGS__);                       \
+                                                ##__VA_ARGS__);                     \
         if (DebugMode)                                                              \
         DbgBreakPoint()
 

@@ -10,10 +10,20 @@
  */
 #pragma once
 
-#ifdef HYPERDBG_SCRIPT_ENGINE
-#    define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __declspec(dllexport)
+#ifdef _WIN32
+    // MSVC (Windows)
+#   ifdef HYPERDBG_SCRIPT_ENGINE
+#       define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __declspec(dllexport)
+#   else
+#       define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __declspec(dllimport)
+#   endif
 #else
-#    define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __declspec(dllimport)
+    // GCC/Clang (Linux)
+#   ifdef HYPERDBG_SCRIPT_ENGINE
+#       define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE __attribute__((visibility("default")))
+#   else
+#       define IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE
+#   endif
 #endif
 
 //
@@ -40,53 +50,53 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 HardwareScriptInterpreterCompressBuffer(UINT64 * Buffer,
-                                        size_t   BufferLength,
+                                        SIZE_T   BufferLength,
                                         UINT32   ScriptVariableLength,
                                         UINT32   BramDataWidth,
-                                        size_t * NewBufferSize,
-                                        size_t * NumberOfBytesPerChunk);
+                                        SIZE_T * NewBufferSize,
+                                        SIZE_T * NumberOfBytesPerChunk);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
     HWDBG_INSTANCE_INFORMATION * InstanceInfo,
     SYMBOL *                     SymbolBuffer,
-    size_t                       SymbolBufferLength,
+    SIZE_T                       SymbolBufferLength,
     UINT32                       NumberOfStages,
     HWDBG_SHORT_SYMBOL **        NewShortSymbolBuffer,
-    size_t *                     NewBufferSize);
+    SIZE_T *                     NewBufferSize);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE VOID
 HardwareScriptInterpreterFreeHwdbgShortSymbolBuffer(HWDBG_SHORT_SYMBOL * NewShortSymbolBuffer);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE PVOID
-ScriptEngineParse(char * str);
+ScriptEngineParse(CHAR * Str);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 ScriptEngineSetHwdbgInstanceInfo(HWDBG_INSTANCE_INFORMATION * InstancInfo);
 
-IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE void
+IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE VOID
 PrintSymbolBuffer(const PVOID SymbolBuffer);
 
-IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE void
+IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE VOID
 RemoveSymbolBuffer(PVOID SymbolBuffer);
 
-IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE void
+IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE VOID
 PrintSymbol(PVOID Symbol);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE UINT64
-ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
+ScriptEngineConvertNameToAddress(const CHAR * FunctionOrVariableName, PBOOLEAN WasFound);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE UINT32
-ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
+ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const CHAR * PdbFileName, const CHAR * CustomModuleName);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE UINT32
 ScriptEngineUnloadAllSymbols();
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE UINT32
-ScriptEngineUnloadModuleSymbol(char * ModuleName);
+ScriptEngineUnloadModuleSymbol(CHAR * ModuleName);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE UINT32
-ScriptEngineSearchSymbolForMask(const char * SearchMask);
+ScriptEngineSearchSymbolForMask(const CHAR * SearchMask);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
@@ -95,19 +105,27 @@ IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
 ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
-ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
+ScriptEngineCreateSymbolTableForDisassembler(PVOID CallbackFunction);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
-ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize);
+ScriptEngineConvertFileToPdbPath(const CHAR * LocalFilePath, CHAR * ResultPath, SIZE_T ResultPathSize);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
-ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails, BOOLEAN Is32BitModule);
+ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const CHAR * LocalFilePath, CHAR * PdbFilePath, CHAR * GuidAndAgeDetails, BOOLEAN Is32BitModule);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
-ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
+ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(const BYTE * LoadedImageBytes,
+                                                             SIZE_T       LoadedImageSize,
+                                                             const CHAR * LocalFilePath,
+                                                             CHAR *       PdbFilePath,
+                                                             CHAR *       GuidAndAgeDetails,
+                                                             BOOLEAN      Is32BitModule);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
-ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const char * AdditionalParameters);
+ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const CHAR * SymbolPath, BOOLEAN IsSilentLoad);
+
+IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE BOOLEAN
+ScriptEngineShowDataBasedOnSymbolTypes(const CHAR * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const CHAR * AdditionalParameters);
 
 IMPORT_EXPORT_HYPERDBG_SCRIPT_ENGINE VOID
 ScriptEngineSymbolAbortLoading();

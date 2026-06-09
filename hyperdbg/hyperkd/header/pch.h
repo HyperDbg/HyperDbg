@@ -22,9 +22,9 @@
 //
 // Environment headers
 //
-#include "platform/kernel/header/Environment.h"
+#include "platform/general/header/Environment.h"
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
 
 //
 // General WDK headers
@@ -33,7 +33,7 @@
 #    include <ntstrsafe.h>
 #    include <Windef.h>
 
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
 
 //
 // Definition of Intel primitives (External header)
@@ -85,6 +85,10 @@
 // Platform independent headers
 //
 #include "platform/kernel/header/PlatformMem.h"
+#include "platform/kernel/header/PlatformIntrinsics.h"
+#include "platform/kernel/header/PlatformBroadcast.h"
+#include "platform/kernel/header/PlatformProcess.h"
+#include "platform/kernel/header/PlatformCpu.h"
 
 //
 // Optimization algorithms
@@ -111,6 +115,7 @@
 #include "header/debugger/memory/Memory.h"
 #include "header/common/Common.h"
 #include "header/common/Synchronization.h"
+#include "header/debugger/memory/PoolManager.h"
 #include "header/debugger/memory/Allocations.h"
 #include "header/debugger/kernel-level/Kd.h"
 #include "header/debugger/user-level/Ud.h"
@@ -133,11 +138,6 @@
 #include "header/debugger/broadcast/DpcRoutines.h"
 #include "header/debugger/broadcast/HaltedRoutines.h"
 #include "header/debugger/broadcast/HaltedBroadcast.h"
-
-//
-// DPC Headers
-//
-#include "header/common/Dpc.h"
 
 //
 // Events & Meta events

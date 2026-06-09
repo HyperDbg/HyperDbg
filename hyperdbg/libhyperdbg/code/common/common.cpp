@@ -44,11 +44,11 @@ SeparateTo64BitValue(UINT64 Value)
  * @return VOID
  */
 VOID
-PrintBits(const UINT32 Size, const void * Ptr)
+PrintBits(const UINT32 Size, const VOID * Ptr)
 {
-    unsigned char * Buf = (unsigned char *)Ptr;
-    unsigned char   Byte;
-    int             i, j;
+    UCHAR * Buf = (UCHAR *)Ptr;
+    UCHAR   Byte;
+    INT     i, j;
 
     for (i = Size - 1; i >= 0; i--)
     {
@@ -72,10 +72,10 @@ PrintBits(const UINT32 Size, const void * Ptr)
 BOOL
 Replace(std::string & str, const std::string & from, const std::string & to)
 {
-    size_t start_pos = str.find(from);
-    if (start_pos == std::string::npos)
+    SIZE_T StartPos = str.find(from);
+    if (StartPos == std::string::npos)
         return FALSE;
-    str.replace(start_pos, from.size(), to);
+    str.replace(StartPos, from.size(), to);
     return TRUE;
 }
 
@@ -90,7 +90,7 @@ Replace(std::string & str, const std::string & from, const std::string & to)
 VOID
 ReplaceAll(string & str, const string & from, const string & to)
 {
-    size_t SartPos = 0;
+    SIZE_T SartPos = 0;
 
     if (from.empty())
         return;
@@ -114,7 +114,7 @@ ReplaceAll(string & str, const string & from, const string & to)
  * @return const vector<string>
  */
 const vector<string>
-Split(const string & s, const char & c)
+Split(const string & s, const CHAR & c)
 {
     string         buff {""};
     vector<string> v;
@@ -210,18 +210,18 @@ IsDecimalNotation(const string & s)
  * @brief converts hex to bytes
  *
  * @param hex
- * @return vector<char>
+ * @return vector<CHAR>
  */
-vector<char>
+vector<CHAR>
 HexToBytes(const string & hex)
 {
-    vector<char> Bytes;
+    vector<CHAR> Bytes;
 
-    for (unsigned int i = 0; i < hex.length(); i += 2)
+    for (UINT32 i = 0; i < hex.length(); i += 2)
     {
         std::string byteString = hex.substr(i, 2);
-        char        byte       = (char)strtol(byteString.c_str(), NULL, 16);
-        Bytes.push_back(byte);
+        CHAR        Byte       = (CHAR)strtol(byteString.c_str(), NULL, 16);
+        Bytes.push_back(Byte);
     }
 
     return Bytes;
@@ -283,19 +283,19 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
         }
         else
         {
-            errno                                 = 0;
-            char *                       unparsed = NULL;
-            const char *                 s        = TextToConvert.c_str();
-            const unsigned long long int n        = strtoull(s, &unparsed, 10);
+            errno                 = 0;
+            CHAR *       Unparsed = NULL;
+            const CHAR * S        = TextToConvert.c_str();
+            const UINT64 N        = strtoull(S, &Unparsed, 10);
 
-            if (errno || (!n && s == unparsed))
+            if (errno || (!N && S == Unparsed))
             {
                 // fflush(stdout);
                 // perror(s);
                 return FALSE;
             }
 
-            *Result = n;
+            *Result = N;
             return TRUE;
         }
     }
@@ -316,11 +316,11 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
             //
             // It's a hex number
             //
-            const char * Text         = TextToConvert.c_str();
-            errno                     = 0;
-            unsigned long long result = strtoull(Text, NULL, 16);
+            const CHAR * Text  = TextToConvert.c_str();
+            errno              = 0;
+            UINT64 ResultValue = strtoull(Text, NULL, 16);
 
-            *Result = result;
+            *Result = ResultValue;
 
             if (errno == EINVAL)
             {
@@ -386,8 +386,8 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
         {
             try
             {
-                int i   = std::stoi(TextToConvert);
-                *Result = i;
+                INT I   = std::stoi(TextToConvert);
+                *Result = I;
                 return TRUE;
             }
             catch (std::invalid_argument const &)
@@ -500,7 +500,7 @@ GetLowerStringFromCommandToken(CommandToken TargetToken)
  * @return BOOLEAN shows whether text is equal or not
  */
 BOOLEAN
-CompareLowerCaseStrings(CommandToken TargetToken, const char * StringToCompare)
+CompareLowerCaseStrings(CommandToken TargetToken, const CHAR * StringToCompare)
 {
     //
     // Extract the token type and value from the tuple
@@ -687,7 +687,7 @@ SetPrivilege(HANDLE  Token,          // access token handle
  *
  * @param s
  */
-static inline void
+static inline VOID
 ltrim(std::string & s)
 {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
@@ -698,7 +698,7 @@ ltrim(std::string & s)
  *
  * @param s
  */
-static inline void
+static inline VOID
 rtrim(std::string & s)
 {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); })
@@ -711,7 +711,7 @@ rtrim(std::string & s)
  *
  * @param s
  */
-void
+VOID
 Trim(std::string & s)
 {
     ltrim(s);
@@ -737,7 +737,7 @@ RemoveSpaces(std::string str)
  * @return BOOLEAN shows whether the file exist or not
  */
 BOOLEAN
-IsFileExistA(const char * FileName)
+IsFileExistA(const CHAR * FileName)
 {
     struct stat buffer;
     return (stat(FileName, &buffer) == 0);
@@ -750,7 +750,7 @@ IsFileExistA(const char * FileName)
  * @return BOOLEAN shows whether the file exist or not
  */
 BOOLEAN
-IsFileExistW(const wchar_t * FileName)
+IsFileExistW(const WCHAR * FileName)
 {
     struct _stat64i32 buffer;
     return (_wstat(FileName, &buffer) == 0);
@@ -762,9 +762,9 @@ IsFileExistW(const wchar_t * FileName)
  * @param Text
  */
 BOOLEAN
-IsEmptyString(char * Text)
+IsEmptyString(CHAR * Text)
 {
-    size_t Len;
+    SIZE_T Len;
 
     if (Text == NULL || Text[0] == '\0')
     {
@@ -772,7 +772,7 @@ IsEmptyString(char * Text)
     }
 
     Len = strlen(Text);
-    for (size_t i = 0; i < Len; i++)
+    for (SIZE_T i = 0; i < Len; i++)
     {
         if (Text[i] != ' ' && Text[i] != '\t' && Text[i] != '\n')
         {
@@ -860,10 +860,10 @@ StringToWString(std::wstring & ws, const std::string & s)
  * @param Input
  * @param ToSearch
  * @param Pos
- * @return size_t
+ * @return SIZE_T
  */
-size_t
-FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos)
+SIZE_T
+FindCaseInsensitive(std::string Input, std::string ToSearch, SIZE_T Pos)
 {
     // Convert complete given String to lower case
     std::transform(Input.begin(), Input.end(), Input.begin(), ::tolower);
@@ -879,10 +879,10 @@ FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos)
  * @param Input
  * @param ToSearch
  * @param Pos
- * @return size_t
+ * @return SIZE_T
  */
-size_t
-FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos)
+SIZE_T
+FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, SIZE_T Pos)
 {
     // Convert complete given String to lower case
     std::transform(Input.begin(), Input.end(), Input.begin(), ::tolower);
@@ -898,31 +898,29 @@ FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos)
  *  std::transform(vs.begin(), vs.end(), std::back_inserter(vc), ConvertStringVectorToCharPointerArray);
  *  from: https://stackoverflow.com/questions/7048888/stdvectorstdstring-to-char-array
  *
- * @param Input
- * @param ToSearch
- * @param Pos
- * @return size_t
+ * @param s
+ * @return CHAR*
  */
-char *
+CHAR *
 ConvertStringVectorToCharPointerArray(const std::string & s)
 {
-    char * pc = new char[s.size() + 1];
-    std::strcpy(pc, s.c_str());
-    return pc;
+    CHAR * Pc = new CHAR[s.size() + 1];
+    std::strcpy(Pc, s.c_str());
+    return Pc;
 }
 
 /**
  * @brief Get cpuid results
  *
- * @param UINT32 Func
- * @param UINT32 SubFunc
- * @param int * CpuInfo
+ * @param Func
+ * @param SubFunc
+ * @param CpuInfo
  * @return VOID
  */
 VOID
-CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, INT * CpuInfo)
 {
-    __cpuidex(CpuInfo, Func, SubFunc);
+    CpuIdEx(CpuInfo, Func, SubFunc);
 }
 
 /**
@@ -933,7 +931,7 @@ CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
 UINT32
 Getx86VirtualAddressWidth()
 {
-    int Regs[4];
+    INT Regs[4];
 
     CommonCpuidInstruction(CPUID_ADDR_WIDTH, 0, Regs);
 
@@ -951,8 +949,8 @@ Getx86VirtualAddressWidth()
 BOOLEAN
 CheckCpuSupportRtm()
 {
-    int     Regs1[4];
-    int     Regs2[4];
+    INT     Regs1[4];
+    INT     Regs2[4];
     BOOLEAN Result;
 
     //

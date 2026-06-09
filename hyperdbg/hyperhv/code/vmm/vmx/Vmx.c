@@ -12,152 +12,6 @@
 #include "pch.h"
 
 /**
- * @brief VMX VMREAD instruction (64-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmread64(size_t Field,
-            UINT64 FieldValue)
-{
-    return __vmx_vmread((size_t)Field, (size_t *)FieldValue);
-}
-
-/**
- * @brief VMX VMREAD instruction (32-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmread32(size_t Field,
-            UINT32 FieldValue)
-{
-    UINT64 TargetField = 0ull;
-
-    TargetField = FieldValue;
-
-    return __vmx_vmread((size_t)Field, (size_t *)TargetField);
-}
-
-/**
- * @brief VMX VMREAD instruction (16-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmread16(size_t Field,
-            UINT16 FieldValue)
-{
-    UINT64 TargetField = 0ull;
-
-    TargetField = FieldValue;
-
-    return __vmx_vmread((size_t)Field, (size_t *)TargetField);
-}
-
-/**
- * @brief VMX VMREAD instruction (64-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmread64P(size_t   Field,
-             UINT64 * FieldValue)
-{
-    return __vmx_vmread((size_t)Field, (size_t *)FieldValue);
-}
-
-/**
- * @brief VMX VMREAD instruction (32-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmread32P(size_t   Field,
-             UINT32 * FieldValue)
-{
-    UINT64 TargetField = 0ull;
-
-    TargetField = (UINT64)FieldValue;
-
-    return __vmx_vmread((size_t)Field, (size_t *)TargetField);
-}
-
-/**
- * @brief VMX VMREAD instruction (16-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmread16P(size_t   Field,
-             UINT16 * FieldValue)
-{
-    UINT64 TargetField = 0ull;
-
-    TargetField = (UINT64)FieldValue;
-
-    return __vmx_vmread((size_t)Field, (size_t *)TargetField);
-}
-
-/**
- * @brief VMX VMWRITE instruction (64-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmwrite64(size_t Field,
-             UINT64 FieldValue)
-{
-    return __vmx_vmwrite((size_t)Field, (size_t)FieldValue);
-}
-
-/**
- * @brief VMX VMWRITE instruction (32-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmwrite32(size_t Field,
-             UINT32 FieldValue)
-{
-    UINT64 TargetValue = NULL64_ZERO;
-    TargetValue        = (UINT64)FieldValue;
-    return __vmx_vmwrite((size_t)Field, (size_t)TargetValue);
-}
-
-/**
- * @brief VMX VMWRITE instruction (16-bit)
- * @param Field
- * @param FieldValue
- *
- * @return UCHAR
- */
-inline UCHAR
-VmxVmwrite16(size_t Field,
-             UINT16 FieldValue)
-{
-    UINT64 TargetValue = NULL64_ZERO;
-    TargetValue        = (UINT64)FieldValue;
-    return __vmx_vmwrite((size_t)Field, (size_t)TargetValue);
-}
-
-/**
  * @brief Check whether VMX Feature is supported or not
  *
  * @return BOOLEAN Returns true if vmx is supported or false if it's not supported
@@ -171,7 +25,7 @@ VmxCheckVmxSupport()
     //
     // Gets Processor Info and Feature Bits
     //
-    __cpuid((int *)&Data, 1);
+    CpuCpuId((INT *)&Data, 1);
 
     //
     // Check For VMX Bit CPUID.ECX[5]
@@ -184,7 +38,7 @@ VmxCheckVmxSupport()
         return FALSE;
     }
 
-    FeatureControlMsr.AsUInt = __readmsr(IA32_FEATURE_CONTROL);
+    FeatureControlMsr.AsUInt = CpuReadMsr(IA32_FEATURE_CONTROL);
 
     //
     // Commented because of https://stackoverflow.com/questions/34900224/
@@ -201,7 +55,7 @@ VmxCheckVmxSupport()
     // {
     //     FeatureControlMsr.Fields.Lock        = TRUE;
     //     FeatureControlMsr.Fields.EnableVmxon = TRUE;
-    //     __writemsr(IA32_FEATURE_CONTROL, FeatureControlMsr.Flags);
+    //     CpuWriteMsr(IA32_FEATURE_CONTROL, FeatureControlMsr.Flags);
     // }
 
     if (FeatureControlMsr.EnableVmxOutsideSmx == FALSE)
@@ -278,7 +132,7 @@ VmxInitialize()
 
     ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    for (size_t ProcessorID = 0; ProcessorID < ProcessorsCount; ProcessorID++)
+    for (SIZE_T ProcessorID = 0; ProcessorID < ProcessorsCount; ProcessorID++)
     {
         //
         // *** Launching VM for Test (in the all logical processor) ***
@@ -463,15 +317,6 @@ VmxPerformVirtualizationOnAllCores()
         LogDebugInfo("MTRR memory map built successfully");
     }
 
-    //
-    // Initialize Pool Manager
-    //
-    if (!PoolManagerInitialize())
-    {
-        LogError("Err, could not initialize pool manager");
-        return FALSE;
-    }
-
     if (!EptLogicalProcessorInitialize())
     {
         //
@@ -547,22 +392,22 @@ VmxFixCr4AndCr0Bits()
     //
     // Fix Cr0
     //
-    CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED0);
-    Cr0.AsUInt    = __readcr0();
+    CrFixed.Flags = CpuReadMsr(IA32_VMX_CR0_FIXED0);
+    Cr0.AsUInt    = CpuReadCr0();
     Cr0.AsUInt |= CrFixed.Fields.Low;
-    CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED1);
+    CrFixed.Flags = CpuReadMsr(IA32_VMX_CR0_FIXED1);
     Cr0.AsUInt &= CrFixed.Fields.Low;
-    __writecr0(Cr0.AsUInt);
+    CpuWriteCr0(Cr0.AsUInt);
 
     //
     // Fix Cr4
     //
-    CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED0);
-    Cr4.AsUInt    = __readcr4();
+    CrFixed.Flags = CpuReadMsr(IA32_VMX_CR4_FIXED0);
+    Cr4.AsUInt    = CpuReadCr4();
     Cr4.AsUInt |= CrFixed.Fields.Low;
-    CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED1);
+    CrFixed.Flags = CpuReadMsr(IA32_VMX_CR4_FIXED1);
     Cr4.AsUInt &= CrFixed.Fields.Low;
-    __writecr4(Cr4.AsUInt);
+    CpuWriteCr4(Cr4.AsUInt);
 }
 
 /**
@@ -579,7 +424,7 @@ VmxCheckIsOnVmxRoot()
 
     __try
     {
-        if (!__vmx_vmread(VMCS_GUEST_VMCS_LINK_POINTER, &VmcsLink))
+        if (!VmxVmread64P(VMCS_GUEST_VMCS_LINK_POINTER, &VmcsLink))
         {
             if (VmcsLink != 0)
             {
@@ -662,7 +507,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     VCpu->HasLaunched = TRUE;
 
-    __vmx_vmlaunch();
+    VmxVmlaunch();
 
     //
     // ******** if Vmlaunch succeed will never be here ! ********
@@ -676,14 +521,14 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // Read error code firstly
     //
-    __vmx_vmread(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
+    VmxVmread64P(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
 
     LogError("Err, unable to execute VMLAUNCH, status : 0x%llx", ErrorCode);
 
     //
     // Then Execute Vmxoff
     //
-    __vmx_off();
+    VmxVmxoff();
     LogError("Err, VMXOFF Executed Successfully but it was because of an error");
 
     return FALSE;
@@ -745,11 +590,11 @@ VmxTerminate()
  * @return VOID
  */
 VOID
-VmxVmptrst()
+VmxPerformVmptrst()
 {
     PHYSICAL_ADDRESS VmcsPhysicalAddr;
     VmcsPhysicalAddr.QuadPart = 0;
-    __vmx_vmptrst((unsigned __int64 *)&VmcsPhysicalAddr);
+    VmxVmptrst((UINT64 *)&VmcsPhysicalAddr);
 
     LogDebugInfo("VMPTRST result : %llx", VmcsPhysicalAddr);
 }
@@ -770,7 +615,7 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Clear the state of the VMCS to inactive
     //
-    VmclearStatus = __vmx_vmclear(&VCpu->VmcsRegionPhysicalAddress);
+    VmclearStatus = VmxVmclear(&VCpu->VmcsRegionPhysicalAddress);
 
     LogDebugInfo("VMCS VMCLEAR status : 0x%x", VmclearStatus);
 
@@ -780,7 +625,8 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * VCpu)
         // Otherwise terminate the VMX
         //
         LogDebugInfo("VMCS failed to clear, status : 0x%x", VmclearStatus);
-        __vmx_off();
+        VmxVmxoff();
+
         return FALSE;
     }
     return TRUE;
@@ -799,7 +645,8 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * VCpu)
 {
     int VmptrldStatus;
 
-    VmptrldStatus = __vmx_vmptrld(&VCpu->VmcsRegionPhysicalAddress);
+    VmptrldStatus = VmxVmptrld(&VCpu->VmcsRegionPhysicalAddress);
+
     if (VmptrldStatus)
     {
         LogDebugInfo("VMCS failed to load, status : 0x%x", VmptrldStatus);
@@ -829,7 +676,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
 
     VmxVmwrite64(VMCS_HOST_ES_SELECTOR, AsmGetEs() & 0xF8);
     VmxVmwrite64(VMCS_HOST_CS_SELECTOR, AsmGetCs() & 0xF8);
@@ -844,8 +691,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     //
     VmxVmwrite64(VMCS_GUEST_VMCS_LINK_POINTER, ~0ULL);
 
-    VmxVmwrite64(VMCS_GUEST_DEBUGCTL, __readmsr(IA32_DEBUGCTL) & 0xFFFFFFFF);
-    VmxVmwrite64(VMCS_GUEST_DEBUGCTL_HIGH, __readmsr(IA32_DEBUGCTL) >> 32);
+    VmxVmwrite64(VMCS_GUEST_DEBUGCTL, CpuReadMsr(IA32_DEBUGCTL) & 0xFFFFFFFF);
+    VmxVmwrite64(VMCS_GUEST_DEBUGCTL_HIGH, CpuReadMsr(IA32_DEBUGCTL) >> 32);
 
     //
     // ******* Time-stamp counter offset *******
@@ -872,8 +719,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     HvFillGuestSelectorData((PVOID)GdtBase, LDTR, AsmGetLdtr());
     HvFillGuestSelectorData((PVOID)GdtBase, TR, AsmGetTr());
 
-    VmxVmwrite64(VMCS_GUEST_FS_BASE, __readmsr(IA32_FS_BASE));
-    VmxVmwrite64(VMCS_GUEST_GS_BASE, __readmsr(IA32_GS_BASE));
+    VmxVmwrite64(VMCS_GUEST_FS_BASE, CpuReadMsr(IA32_FS_BASE));
+    VmxVmwrite64(VMCS_GUEST_GS_BASE, CpuReadMsr(IA32_GS_BASE));
 
     CpuBasedVmExecControls = HvAdjustControls(
         IA32_VMX_PROCBASED_CTLS_USE_IO_BITMAPS_FLAG |
@@ -923,14 +770,14 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     VmxVmwrite64(VMCS_CTRL_CR0_READ_SHADOW, 0);
     VmxVmwrite64(VMCS_CTRL_CR4_READ_SHADOW, 0);
 
-    VmxVmwrite64(VMCS_GUEST_CR0, __readcr0());
-    VmxVmwrite64(VMCS_GUEST_CR3, __readcr3());
-    VmxVmwrite64(VMCS_GUEST_CR4, __readcr4());
+    VmxVmwrite64(VMCS_GUEST_CR0, CpuReadCr0());
+    VmxVmwrite64(VMCS_GUEST_CR3, CpuReadCr3());
+    VmxVmwrite64(VMCS_GUEST_CR4, CpuReadCr4());
 
     VmxVmwrite64(VMCS_GUEST_DR7, 0x400);
 
-    VmxVmwrite64(VMCS_HOST_CR0, __readcr0());
-    VmxVmwrite64(VMCS_HOST_CR4, __readcr4());
+    VmxVmwrite64(VMCS_HOST_CR0, CpuReadCr0());
+    VmxVmwrite64(VMCS_HOST_CR4, CpuReadCr4());
 
     //
     // Because we may be executing in an arbitrary user-mode, process as part
@@ -947,9 +794,9 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 
     VmxVmwrite64(VMCS_GUEST_RFLAGS, AsmGetRflags());
 
-    VmxVmwrite64(VMCS_GUEST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
-    VmxVmwrite64(VMCS_GUEST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
-    VmxVmwrite64(VMCS_GUEST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
+    VmxVmwrite64(VMCS_GUEST_SYSENTER_CS, CpuReadMsr(IA32_SYSENTER_CS));
+    VmxVmwrite64(VMCS_GUEST_SYSENTER_EIP, CpuReadMsr(IA32_SYSENTER_EIP));
+    VmxVmwrite64(VMCS_GUEST_SYSENTER_ESP, CpuReadMsr(IA32_SYSENTER_ESP));
 
 #if USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
@@ -967,8 +814,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 
 #endif // USE_DEFAULT_OS_GDT_AS_HOST_GDT == FALSE
 
-    VmxVmwrite64(VMCS_HOST_FS_BASE, __readmsr(IA32_FS_BASE));
-    VmxVmwrite64(VMCS_HOST_GS_BASE, __readmsr(IA32_GS_BASE));
+    VmxVmwrite64(VMCS_HOST_FS_BASE, CpuReadMsr(IA32_FS_BASE));
+    VmxVmwrite64(VMCS_HOST_GS_BASE, CpuReadMsr(IA32_GS_BASE));
 
 #if USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
 
@@ -980,9 +827,9 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 
 #endif // USE_DEFAULT_OS_IDT_AS_HOST_IDT == FALSE
 
-    VmxVmwrite64(VMCS_HOST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
-    VmxVmwrite64(VMCS_HOST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
-    VmxVmwrite64(VMCS_HOST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
+    VmxVmwrite64(VMCS_HOST_SYSENTER_CS, CpuReadMsr(IA32_SYSENTER_CS));
+    VmxVmwrite64(VMCS_HOST_SYSENTER_EIP, CpuReadMsr(IA32_SYSENTER_EIP));
+    VmxVmwrite64(VMCS_HOST_SYSENTER_ESP, CpuReadMsr(IA32_SYSENTER_ESP));
 
     //
     // Set MSR Bitmaps
@@ -1032,23 +879,24 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
 }
 
 /**
- * @brief Resume VM using VMRESUME instruction
+ * @brief Resume VM using the VMRESUME instruction
  *
  * @return VOID
  */
 VOID
-VmxVmresume()
+VmxPerformVmresume()
 {
-    UINT64 ErrorCode = 0;
+    UINT32 ErrorCode = 0;
 
-    __vmx_vmresume();
+    VmxVmresume();
 
     //
     // if VMRESUME succeed will never be here !
     //
 
-    __vmx_vmread(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
-    __vmx_off();
+    VmxVmread32P(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
+
+    VmxVmxoff();
 
     //
     // It's such a bad error because we don't where to go !
@@ -1121,7 +969,7 @@ VmxVmfunc(UINT32 EptpIndex, UINT32 Function)
  * @return VOID
  */
 VOID
-VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
+VmxPerformVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
 {
     UINT64 GuestRSP              = 0; // Save a pointer to guest rsp for times that we want to return to previous guest stateS
     UINT64 GuestRIP              = 0; // Save a pointer to guest rip for times that we want to return to previous guest state
@@ -1139,19 +987,19 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     //  	process continues to run with its expected address space mappings.
     //
 
-    __vmx_vmread(VMCS_GUEST_CR3, &GuestCr3);
-    __writecr3(GuestCr3);
+    VmxVmread64P(VMCS_GUEST_CR3, &GuestCr3);
+    CpuWriteCr3(GuestCr3);
 
     //
     // Read guest rsp and rip
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &GuestRIP);
-    __vmx_vmread(VMCS_GUEST_RSP, &GuestRSP);
+    VmxVmread64P(VMCS_GUEST_RIP, &GuestRIP);
+    VmxVmread64P(VMCS_GUEST_RSP, &GuestRSP);
 
     //
     // Read instruction length
     //
-    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
+    VmxVmread64P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
     GuestRIP += ExitInstructionLength;
 
     //
@@ -1177,7 +1025,7 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     // since immediately after vmxoff, an interrupt might occur and context switch
     // might change the XMM registers
     //
-    AsmVmxoffRestoreXmmRegs((unsigned long long)VCpu->XmmRegs);
+    AsmVmxoffRestoreXmmRegs((UINT64)VCpu->XmmRegs);
 
     //
     // Before using vmxoff, you first need to use vmclear on any VMCSes that you want to be able to use again.
@@ -1188,7 +1036,7 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Execute Vmxoff
     //
-    __vmx_off();
+    VmxVmxoff();
 
     //
     // *** Note: After executing VMXOFF, XMM registers should not be used anymore
@@ -1203,7 +1051,7 @@ VmxVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Now that VMX is OFF, we have to unset vmx-enable bit on cr4
     //
-    __writecr4(__readcr4() & (~X86_CR4_VMXE));
+    CpuWriteCr4(CpuReadCr4() & (~REG_CR4_VMXE));
 }
 
 /**
@@ -1285,7 +1133,7 @@ VmxPerformTermination()
     //
     // Free Identity Page Table
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (g_GuestState[i].EptPageTable != NULL)
         {
@@ -1300,11 +1148,6 @@ VmxPerformTermination()
     //
     PlatformMemFreePool(g_EptState);
     g_EptState = NULL;
-
-    //
-    // Free the Pool manager
-    //
-    PoolManagerUninitialize();
 
     //
     // Uninitialize memory mapper
@@ -1345,8 +1188,8 @@ VmxCompatibleStrlen(const CHAR * S)
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // First check
@@ -1360,7 +1203,7 @@ VmxCompatibleStrlen(const CHAR * S)
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0;
     }
 
@@ -1381,7 +1224,7 @@ VmxCompatibleStrlen(const CHAR * S)
             //
             // Move back to original cr3
             //
-            __writecr3(OriginalCr3.Flags);
+            CpuWriteCr3(OriginalCr3.Flags);
             return Count;
         }
 
@@ -1396,7 +1239,7 @@ VmxCompatibleStrlen(const CHAR * S)
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0;
             }
         }
@@ -1405,7 +1248,7 @@ VmxCompatibleStrlen(const CHAR * S)
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
 }
 
 /**
@@ -1416,9 +1259,9 @@ VmxCompatibleStrlen(const CHAR * S)
  * string
  */
 UINT32
-VmxCompatibleWcslen(const wchar_t * S)
+VmxCompatibleWcslen(const WCHAR * S)
 {
-    wchar_t  Temp  = NULL_ZERO;
+    WCHAR    Temp  = NULL_ZERO;
     UINT32   Count = 0;
     UINT64   AlignedAddress;
     CR3_TYPE GuestCr3;
@@ -1434,15 +1277,15 @@ VmxCompatibleWcslen(const wchar_t * S)
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
 
     //
     // First check
     //
-    if (!CheckAccessValidityAndSafety(AlignedAddress, sizeof(wchar_t)))
+    if (!CheckAccessValidityAndSafety(AlignedAddress, sizeof(WCHAR)))
     {
         //
         // Error
@@ -1451,7 +1294,7 @@ VmxCompatibleWcslen(const wchar_t * S)
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0;
     }
 
@@ -1460,7 +1303,7 @@ VmxCompatibleWcslen(const wchar_t * S)
         /*
         Temp = *S;
         */
-        MemoryMapperReadMemorySafe((UINT64)S, &Temp, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)S, &Temp, sizeof(WCHAR));
 
         if (Temp != '\0\0')
         {
@@ -1472,13 +1315,13 @@ VmxCompatibleWcslen(const wchar_t * S)
             //
             // Move back to original cr3
             //
-            __writecr3(OriginalCr3.Flags);
+            CpuWriteCr3(OriginalCr3.Flags);
             return Count;
         }
 
         if (!((UINT64)S & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)S, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)S, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1487,7 +1330,7 @@ VmxCompatibleWcslen(const wchar_t * S)
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0;
             }
         }
@@ -1496,7 +1339,7 @@ VmxCompatibleWcslen(const wchar_t * S)
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
 }
 
 /**
@@ -1556,8 +1399,8 @@ VmxCompatibleStrcmp(const CHAR * Address1,
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // First check
@@ -1571,7 +1414,7 @@ VmxCompatibleStrcmp(const CHAR * Address1,
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0x2;
     }
 
@@ -1622,7 +1465,7 @@ VmxCompatibleStrcmp(const CHAR * Address1,
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1638,7 +1481,7 @@ VmxCompatibleStrcmp(const CHAR * Address1,
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1657,7 +1500,7 @@ VmxCompatibleStrcmp(const CHAR * Address1,
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
     return Result;
 }
 
@@ -1671,12 +1514,12 @@ VmxCompatibleStrcmp(const CHAR * Address1,
  * @return INT32 0x2 indicates error, otherwise the same result as wcscmp in string.h
  */
 INT32
-VmxCompatibleWcscmp(const wchar_t * Address1,
-                    const wchar_t * Address2,
-                    SIZE_T          Num,
-                    BOOLEAN         IsWcsncmp)
+VmxCompatibleWcscmp(const WCHAR * Address1,
+                    const WCHAR * Address2,
+                    SIZE_T        Num,
+                    BOOLEAN       IsWcsncmp)
 {
-    wchar_t  C1 = NULL_ZERO, C2 = NULL_ZERO;
+    WCHAR    C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
     UINT32   Count  = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
@@ -1694,13 +1537,13 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // First check
     //
-    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(wchar_t)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(wchar_t)))
+    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(WCHAR)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(WCHAR)))
     {
         //
         // Error
@@ -1709,7 +1552,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0x2;
     }
 
@@ -1739,19 +1582,19 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
         /*
         C1 = *Address1;
         */
-        MemoryMapperReadMemorySafe((UINT64)Address1, &C1, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)Address1, &C1, sizeof(WCHAR));
 
         /*
         C2 = *Address2;
         */
-        MemoryMapperReadMemorySafe((UINT64)Address2, &C2, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)Address2, &C2, sizeof(WCHAR));
 
         Address1++;
         Address2++;
 
         if (!((UINT64)AlignedAddress1 & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1760,14 +1603,14 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
 
         if (!((UINT64)AlignedAddress2 & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1776,7 +1619,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1796,7 +1639,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
     return Result;
 }
 
@@ -1809,7 +1652,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
  * @return INT32 0x2 indicates error, otherwise the same result as memcmp in string.h
  */
 INT32
-VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
+VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
 {
     CHAR     C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
@@ -1828,13 +1671,13 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
     //
     // Move to new cr3
     //
-    OriginalCr3.Flags = __readcr3();
-    __writecr3(GuestCr3.Flags);
+    OriginalCr3.Flags = CpuReadCr3();
+    CpuWriteCr3(GuestCr3.Flags);
 
     //
     // First check
     //
-    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(wchar_t)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(wchar_t)))
+    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(WCHAR)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(WCHAR)))
     {
         //
         // Error
@@ -1843,7 +1686,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
         //
         // Move back to original cr3
         //
-        __writecr3(OriginalCr3.Flags);
+        CpuWriteCr3(OriginalCr3.Flags);
         return 0x2;
     }
 
@@ -1864,7 +1707,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
 
         if (!((UINT64)AlignedAddress1 & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1873,14 +1716,14 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
 
         if (!((UINT64)AlignedAddress2 & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1889,7 +1732,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
                 //
                 // Move back to original cr3
                 //
-                __writecr3(OriginalCr3.Flags);
+                CpuWriteCr3(OriginalCr3.Flags);
                 return 0x2;
             }
         }
@@ -1909,6 +1752,6 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
     //
     // Move back to original cr3
     //
-    __writecr3(OriginalCr3.Flags);
+    CpuWriteCr3(OriginalCr3.Flags);
     return Result;
 }

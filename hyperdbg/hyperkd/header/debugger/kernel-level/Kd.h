@@ -167,8 +167,6 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
 VOID
 KdManageSystemHaltOnVmxRoot(PROCESSOR_DEBUGGING_STATE *       DbgState,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
-BOOLEAN
-KdCheckAndHandleNmiCallback(_In_ UINT32 CoreId);
 
 VOID
 KdHandleNmi(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState);
@@ -198,10 +196,10 @@ KdHandleBreakpointAndDebugBreakpoints(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgSta
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS   EventDetails);
 
 VOID
-KdHandleRegisteredMtfCallback(_In_ UINT32 CoreId);
-
-VOID
 KdHandleHaltsWhenNmiReceivedFromVmxRoot(_Inout_ PROCESSOR_DEBUGGING_STATE * DbgState);
+
+BOOLEAN
+KdHandleMtfCallback(UINT32 CoreId);
 
 BOOLEAN
 KdCheckImmediateMessagingMechanism(UINT32 OperationCode);
@@ -235,3 +233,6 @@ KdCheckTheHaltedCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 BOOLEAN
 KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                          CoreId,
                                                           DEBUGGER_THREAD_PROCESS_TRACING TracingType);
+
+BOOLEAN
+KdQueryIgnoreHandlingMov2DebugRegs(UINT32 CoreId);

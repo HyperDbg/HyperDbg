@@ -53,7 +53,7 @@ DirtyLoggingInitialize()
     // the 4 - KByte aligned physical address of the page - modification log.The page modification
     // log comprises 512 64 - bit entries
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (g_GuestState[i].PmlBufferAddress == NULL)
         {
@@ -65,7 +65,7 @@ DirtyLoggingInitialize()
             //
             // Allocation failed
             //
-            for (size_t j = 0; j < ProcessorsCount; j++)
+            for (SIZE_T j = 0; j < ProcessorsCount; j++)
             {
                 if (g_GuestState[j].PmlBufferAddress != NULL)
                 {
@@ -119,12 +119,12 @@ DirtyLoggingEnable(VIRTUAL_MACHINE_STATE * VCpu)
 
     // LogInfo("PML Buffer Address = %llx", PmlPhysAddr);
 
-    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, PmlPhysAddr);
+    VmxVmwrite64(VMCS_CTRL_PML_ADDRESS, PmlPhysAddr);
 
     //
     // Clear the PML index
     //
-    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
+    VmxVmwrite64(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
 
     //
     // If the "enable PML" VM-execution control is 1 and bit 6 of EPT pointer (EPTP)
@@ -160,12 +160,12 @@ DirtyLoggingDisable(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Clear the address
     //
-    __vmx_vmwrite(VMCS_CTRL_PML_ADDRESS, NULL64_ZERO);
+    VmxVmwrite64(VMCS_CTRL_PML_ADDRESS, NULL64_ZERO);
 
     //
     // Clear the PML index
     //
-    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, 0x0);
+    VmxVmwrite64(VMCS_GUEST_PML_INDEX, 0x0);
 
     //
     // Disable PML Enable bit
@@ -196,7 +196,7 @@ DirtyLoggingUninitialize()
     //
     // Free the allocated pool buffers
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (g_GuestState[i].PmlBufferAddress != NULL)
         {
@@ -218,7 +218,7 @@ DirtyLoggingHandlePageModificationLog(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // The guest-physical address of the access is written to the page-modification log
     //
-    for (size_t i = 0; i < PML_ENTITY_NUM; i++)
+    for (SIZE_T i = 0; i < PML_ENTITY_NUM; i++)
     {
         LogInfo("Address : %llx", VCpu->PmlBufferAddress[i]);
     }
@@ -284,7 +284,7 @@ DirtyLoggingFlushPmlBuffer(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // reset PML index
     //
-    __vmx_vmwrite(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
+    VmxVmwrite64(VMCS_GUEST_PML_INDEX, PML_ENTITY_NUM - 1);
 
     return TRUE;
 }

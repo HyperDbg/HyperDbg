@@ -14,7 +14,7 @@
 //
 // Environment headers
 //
-#include "platform/user/header/Environment.h"
+#include "platform/general/header/Environment.h"
 
 //
 // Windows SDK headers
@@ -72,7 +72,6 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include <tlhelp32.h>
 #include <shlwapi.h>
 #include <VersionHelpers.h>
-#include <tchar.h>
 #include <psapi.h>
 #include <time.h>
 #include <conio.h>
@@ -142,6 +141,12 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "SDK/imports/user/HyperDbgLibImports.h"
 
 //
+// Platform-specific intrinsics
+//
+#include "platform/user/header/platform-intrinsics.h"
+#include "platform/user/header/windows-only/windows-privilege.h"
+
+//
 // PCI IDs
 //
 #include "header/pci-id.h"
@@ -161,6 +166,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/install.h"
 #include "header/list.h"
 #include "header/tests.h"
+#include "header/messaging.h"
+#include "header/packets.h"
 #include "header/transparency.h"
 #include "header/communication.h"
 #include "header/namedpipe.h"
@@ -174,6 +181,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/assembler.h"
 
 //
+// Components
+//
+#include "../include/components/pe/header/pe-image-reader.h"
+
+//
 // hwdbg
 //
 #include "header/hwdbg-interpreter.h"
@@ -183,7 +195,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 // Libraries
 //
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
 
 #    pragma comment(lib, "ntdll.lib")
 
@@ -208,4 +220,4 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #    pragma comment(lib, "Psapi.lib")
 #    pragma comment(lib, "Kernel32.lib")
 
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS

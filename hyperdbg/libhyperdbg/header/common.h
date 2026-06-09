@@ -26,6 +26,12 @@
 
 #define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded. Did you use 'load' command?\n"
 
+#define ASSERT_MESSAGE_KD_NOT_LOADED "the kd (kernel debugger) module is not loaded. Did you use 'load kd' command?\n"
+
+#define ASSERT_MESSAGE_VMM_NOT_LOADED "the vmm (virtualization) module is not loaded. Did you use 'load vmm' command?\n"
+
+#define ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED "the trace (hypertrace) module is not loaded. Did you use 'load trace' command?\n"
+
 #define ASSERT_MESSAGE_BUILD_SIGNATURE_DOESNT_MATCH "the handshaking process was successful; however, there is a mismatch between " \
                                                     "the version/build of the debuggee and the debugger. please use the same "      \
                                                     "version/build for both the debuggee and debugger\n"
@@ -50,18 +56,21 @@
         }                                \
     } while (0)
 
-#define AssertShowMessageReturnStmt(expr, message, rc) \
-    do                                                 \
-    {                                                  \
-        if (expr)                                      \
-        {                                              \
-            /* likely */                               \
-        }                                              \
-        else                                           \
-        {                                              \
-            ShowMessages(message);                     \
-            rc;                                        \
-        }                                              \
+#define AssertShowMessageReturnStmt(expr1, expr2, message1, message2, rc) \
+    do                                                                     \
+    {                                                                      \
+        if (expr1 && expr2)                                                \
+        {                                                                  \
+            /* likely */                                                   \
+        }                                                                  \
+        else                                                               \
+        {                                                                  \
+            if (!expr1)                                                    \
+                ShowMessages(message1);                                    \
+            else if (!expr2)                                               \
+                ShowMessages(message2);                                    \
+            rc;                                                            \
+        }                                                                  \
     } while (0)
 
 /**
@@ -184,7 +193,7 @@
 extern "C" {
 #endif
 
-extern bool
+extern BOOLEAN
 AsmVmxSupportDetection();
 
 #ifdef __cplusplus
@@ -195,13 +204,13 @@ AsmVmxSupportDetection();
 //			    	 Spinlocks                  //
 //////////////////////////////////////////////////
 
-void
+VOID
 SpinlockLock(volatile LONG * Lock);
 
-void
-SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait);
+VOID
+SpinlockLockWithCustomWait(volatile LONG * Lock, UINT32 MaximumWait);
 
-void
+VOID
 SpinlockUnlock(volatile LONG * Lock);
 
 //////////////////////////////////////////////////
@@ -209,7 +218,7 @@ SpinlockUnlock(volatile LONG * Lock);
 //////////////////////////////////////////////////
 
 VOID
-PrintBits(const UINT32 size, const void * ptr);
+PrintBits(const UINT32 size, const VOID * ptr);
 
 BOOL
 Replace(std::string & str, const std::string & from, const std::string & to);
@@ -218,7 +227,7 @@ VOID
 ReplaceAll(string & str, const string & from, const string & to);
 
 const vector<string>
-Split(const string & s, const char & c);
+Split(const string & s, const CHAR & c);
 
 BOOLEAN
 IsNumber(const string & str);
@@ -229,7 +238,7 @@ Log2Ceil(UINT32 n);
 BOOLEAN
 IsHexNotation(const string & s);
 
-vector<char>
+vector<CHAR>
 HexToBytes(const string & hex);
 
 BOOLEAN
@@ -251,7 +260,7 @@ std::string
 GetLowerStringFromCommandToken(CommandToken TargetToken);
 
 BOOLEAN
-CompareLowerCaseStrings(CommandToken TargetToken, const char * StringToCompare);
+CompareLowerCaseStrings(CommandToken TargetToken, const CHAR * StringToCompare);
 
 BOOLEAN
 IsTokenBracketString(CommandToken TargetToken);
@@ -268,17 +277,17 @@ SetPrivilege(HANDLE  Token,          // access token handle
              BOOL    EnablePrivilege // to enable or disable privilege
 );
 
-void
+VOID
 Trim(std::string & s);
 
 std::string
 RemoveSpaces(std::string str);
 
 BOOLEAN
-IsFileExistA(const char * FileName);
+IsFileExistA(const CHAR * FileName);
 
 BOOLEAN
-IsFileExistW(const wchar_t * FileName);
+IsFileExistW(const WCHAR * FileName);
 
 VOID
 GetConfigFilePath(PWCHAR ConfigPath);
@@ -286,23 +295,23 @@ GetConfigFilePath(PWCHAR ConfigPath);
 VOID
 StringToWString(std::wstring & ws, const std::string & s);
 
-size_t
-FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos);
+SIZE_T
+FindCaseInsensitive(std::string Input, std::string ToSearch, SIZE_T Pos);
 
-size_t
-FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos);
+SIZE_T
+FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, SIZE_T Pos);
 
-char *
+CHAR *
 ConvertStringVectorToCharPointerArray(const std::string & s);
 
 std::vector<std::string>
 ListDirectory(const std::string & Directory, const std::string & Extension);
 
 BOOLEAN
-IsEmptyString(char * Text);
+IsEmptyString(CHAR * Text);
 
 VOID
-CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, INT * CpuInfo);
 
 BOOLEAN
 CheckCpuSupportRtm();

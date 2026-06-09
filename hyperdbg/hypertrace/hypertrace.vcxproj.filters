@@ -15,57 +15,138 @@
     <Filter Include="code\platform">
       <UniqueIdentifier>{21f0281e-fc2a-4e13-97ac-e4b35a05a31e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\interface">
-      <UniqueIdentifier>{a78ce9ac-3c19-4f57-889a-3c5ec3234cb4}</UniqueIdentifier>
+    <Filter Include="code\api">
+      <UniqueIdentifier>{09d5457a-bade-4a3f-a171-641110492d57}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\interface">
-      <UniqueIdentifier>{50dcf65c-eea2-4bf3-b57e-d6689999b39d}</UniqueIdentifier>
+    <Filter Include="code\broadcast">
+      <UniqueIdentifier>{b8b32a09-61fb-433a-ad79-eb7cfc5f3437}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\common">
+      <UniqueIdentifier>{32ea8333-847b-443d-8992-4140d54dc1d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\lbr">
+      <UniqueIdentifier>{2271439b-db98-4351-9457-77225ccee301}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\pt">
+      <UniqueIdentifier>{d2eb3e6f-49d6-49c6-a255-a0158414ff54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\api">
+      <UniqueIdentifier>{df6eb164-34b2-4f2a-9530-b88443662fb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\broadcast">
+      <UniqueIdentifier>{cb4e742a-6e43-4798-af4a-72bcb11089c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\common">
+      <UniqueIdentifier>{ab21116d-5f5b-4ef8-82bb-6585ac3dec95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\globals">
+      <UniqueIdentifier>{57d56081-eede-41a3-b9f0-e7019d32c986}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\lbr">
+      <UniqueIdentifier>{a59b8bf9-45ee-49c9-bbac-9b065f41f1a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\pt">
+      <UniqueIdentifier>{7d49a3f4-a2eb-48b1-8f41-220b9ccf30dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components">
+      <UniqueIdentifier>{4f62540b-d186-479e-83a0-1b550134f487}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\callback">
+      <UniqueIdentifier>{9fe877a7-e261-4579-9752-a3156b6e69d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components">
+      <UniqueIdentifier>{8bc2336a-b1c5-4e93-9793-23a5cfdc741d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\callback">
+      <UniqueIdentifier>{fc73555b-2be3-4898-bcdb-df83fa3e1388}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\Tracing.c">
-      <Filter>code</Filter>
-    </ClCompile>
-    <ClCompile Include="..\include\components\spinlock\code\Spinlock.c">
-      <Filter>code</Filter>
-    </ClCompile>
-    <ClCompile Include="code\UnloadDll.c">
-      <Filter>code</Filter>
-    </ClCompile>
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
-      <Filter>code\interface</Filter>
+    <ClCompile Include="code\api\LbrApi.c">
+      <Filter>code\api</Filter>
     </ClCompile>
-    <ClCompile Include="code\Lbr.c">
-      <Filter>code</Filter>
+    <ClCompile Include="code\api\PtApi.c">
+      <Filter>code\api</Filter>
+    </ClCompile>
+    <ClCompile Include="code\broadcast\Broadcast.c">
+      <Filter>code\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="code\broadcast\DpcRoutines.c">
+      <Filter>code\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="code\common\UnloadDll.c">
+      <Filter>code\common</Filter>
+    </ClCompile>
+    <ClCompile Include="code\lbr\Lbr.c">
+      <Filter>code\lbr</Filter>
+    </ClCompile>
+    <ClCompile Include="code\pt\Pt.c">
+      <Filter>code\pt</Filter>
+    </ClCompile>
+    <ClCompile Include="code\api\TraceApi.c">
+      <Filter>code\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c">
+      <Filter>code\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c">
+      <Filter>code\components\callback</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="header\Tracing.h">
-      <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\components\spinlock\header\Spinlock.h">
-      <Filter>header</Filter>
-    </ClInclude>
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="header\UnloadDll.h">
-      <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\platform\kernel\header\Environment.h">
-      <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
       <Filter>header\platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
-      <Filter>header\interface</Filter>
+    <ClInclude Include="header\api\LbrApi.h">
+      <Filter>header\api</Filter>
     </ClInclude>
-    <ClInclude Include="header\Lbr.h">
-      <Filter>header</Filter>
+    <ClInclude Include="header\broadcast\Broadcast.h">
+      <Filter>header\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\broadcast\DpcRoutines.h">
+      <Filter>header\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\common\UnloadDll.h">
+      <Filter>header\common</Filter>
+    </ClInclude>
+    <ClInclude Include="header\globals\GlobalVariables.h">
+      <Filter>header\globals</Filter>
+    </ClInclude>
+    <ClInclude Include="header\lbr\Lbr.h">
+      <Filter>header\lbr</Filter>
+    </ClInclude>
+    <ClInclude Include="header\pt\Pt.h">
+      <Filter>header\pt</Filter>
+    </ClInclude>
+    <ClInclude Include="header\api\PtApi.h">
+      <Filter>header\api</Filter>
+    </ClInclude>
+    <ClInclude Include="header\api\TraceApi.h">
+      <Filter>header\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h">
+      <Filter>header\components\callback</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

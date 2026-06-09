@@ -24,7 +24,7 @@ typedef BOOLEAN (*LOG_CALLBACK_PREPARE_AND_SEND_MESSAGE_TO_QUEUE)(UINT32       O
                                                                   BOOLEAN      IsImmediateMessage,
                                                                   BOOLEAN      ShowCurrentSystemTime,
                                                                   BOOLEAN      Priority,
-                                                                  const char * Fmt,
+                                                                  const CHAR * Fmt,
                                                                   va_list      ArgList);
 
 /**
@@ -47,6 +47,12 @@ typedef BOOLEAN (*LOG_CALLBACK_SEND_BUFFER)(_In_ UINT32                         
  *
  */
 typedef BOOLEAN (*LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL)(BOOLEAN Priority);
+
+/**
+ * @brief A function that checks if LBR is supported on the current CPU and gets its capacity
+ *
+ */
+typedef BOOLEAN (*HYPERTRACE_LBR_IS_SUPPORTED)(UINT32 * Capacity, BOOLEAN * IsArchLbr);
 
 /**
  * @brief A function that checks the validity and safety of the target address
@@ -111,6 +117,11 @@ typedef struct _HYPEREVADE_CALLBACKS
     LOG_CALLBACK_SEND_MESSAGE_TO_QUEUE             LogCallbackSendMessageToQueue;
     LOG_CALLBACK_SEND_BUFFER                       LogCallbackSendBuffer;
     LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL           LogCallbackCheckIfBufferIsFull;
+
+    //
+    // HyperTrace callback(s)
+    //
+    HYPERTRACE_LBR_IS_SUPPORTED HyperTraceLbrIsSupported;
 
     //
     // *** HYPEREVADE callbacks ***

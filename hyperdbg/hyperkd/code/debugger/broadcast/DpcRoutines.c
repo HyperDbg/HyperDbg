@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file DpcRoutines.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief All the dpc routines which relates to executing on a single core
@@ -138,7 +138,7 @@ DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
     //
     // write on MSR
     //
-    __writemsr(CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
+    CpuWriteMsr((ULONG)CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
 
     //
     // As this function is designed for a single,
@@ -170,7 +170,7 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
     //
     // read on MSR
     //
-    CurrentDebuggingState->MsrState.Value = __readmsr(CurrentDebuggingState->MsrState.Msr);
+    CurrentDebuggingState->MsrState.Value = CpuReadMsr((ULONG)CurrentDebuggingState->MsrState.Msr);
 
     //
     // As this function is designed for a single,
@@ -200,17 +200,12 @@ DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgu
     //
     // write on MSR
     //
-    __writemsr(CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
+    CpuWriteMsr((ULONG)CurrentDebuggingState->MsrState.Msr, CurrentDebuggingState->MsrState.Value);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -234,17 +229,12 @@ DpcRoutineReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgum
     //
     // read msr
     //
-    CurrentDebuggingState->MsrState.Value = __readmsr(CurrentDebuggingState->MsrState.Msr);
+    CurrentDebuggingState->MsrState.Value = CpuReadMsr((ULONG)CurrentDebuggingState->MsrState.Msr);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -267,15 +257,10 @@ DpcRoutineVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
     //
     VmFuncVmxVmcall(DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 }
 
 /**
@@ -298,15 +283,10 @@ DpcRoutineSetHardwareDebugRegisters(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
     //
     UdApplyHardwareDebugRegister(DeferredContext);
 
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
     //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
 
     return TRUE;
 }

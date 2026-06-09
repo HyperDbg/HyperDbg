@@ -107,7 +107,7 @@ CommandSympath(vector<CommandToken> CommandTokens, string Command)
         //
         // Check if the string contains '*'
         //
-        char Delimiter = '*';
+        CHAR Delimiter = '*';
         if (Command.find(Delimiter) != std::string::npos)
         {
             //

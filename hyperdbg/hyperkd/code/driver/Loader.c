@@ -13,10 +13,12 @@
 /**
  * @brief Initialize the hyper trace module
  *
+ * @param RunningOnHypervisorEnvironment Whether the initialization is being done for hypervisor environment or not
+ *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitHyperTrace()
+LoaderInitHyperTrace(PDEBUGGER_INIT_HYPERTRACE_PACKET InitHyperTracePacket, BOOLEAN RunningOnHypervisorEnvironment)
 {
     HYPERTRACE_CALLBACKS HyperTraceCallbacks = {0};
 
@@ -34,23 +36,62 @@ LoaderInitHyperTrace()
     HyperTraceCallbacks.LogCallbackCheckIfBufferIsFull                 = LogCallbackCheckIfBufferIsFull;
 
     //
-    // Memory callbacks
+    // Fill the callbacks for using hyperhv in hypertrace
     //
-    HyperTraceCallbacks.CheckAccessValidityAndSafety               = CheckAccessValidityAndSafety;
-    HyperTraceCallbacks.MemoryMapperReadMemorySafeOnTargetProcess  = MemoryMapperReadMemorySafeOnTargetProcess;
-    HyperTraceCallbacks.MemoryMapperWriteMemorySafeOnTargetProcess = MemoryMapperWriteMemorySafeOnTargetProcess;
+    HyperTraceCallbacks.VmFuncVmxGetCurrentExecutionMode = VmFuncVmxGetCurrentExecutionMode;
 
     //
-    // Common callbacks
+    // *** Legacy LBR callbacks ***
     //
-    HyperTraceCallbacks.CommonGetProcessNameFromProcessControlBlock = CommonGetProcessNameFromProcessControlBlock;
+
+    HyperTraceCallbacks.VmFuncCheckCpuSupportForSaveAndLoadDebugControls = VmFuncCheckCpuSupportForSaveAndLoadDebugControls;
+
+    HyperTraceCallbacks.VmFuncGetDebugctl                   = VmFuncGetDebugctl;
+    HyperTraceCallbacks.VmFuncGetDebugctlVmcallOnTargetCore = VmFuncGetDebugctlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetDebugctl                   = VmFuncSetDebugctl;
+    HyperTraceCallbacks.VmFuncSetDebugctlVmcallOnTargetCore = VmFuncSetDebugctlVmcallOnTargetCore;
+
+    HyperTraceCallbacks.VmFuncSetLoadDebugControls                   = VmFuncSetLoadDebugControls;
+    HyperTraceCallbacks.VmFuncSetLoadDebugControlsVmcallOnTargetCore = VmFuncSetLoadDebugControlsVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetSaveDebugControls                   = VmFuncSetSaveDebugControls;
+    HyperTraceCallbacks.VmFuncSetSaveDebugControlsVmcallOnTargetCore = VmFuncSetSaveDebugControlsVmcallOnTargetCore;
+
+    HyperTraceCallbacks.VmFuncSetLbrSelect                   = VmFuncSetLbrSelect;
+    HyperTraceCallbacks.VmFuncSetLbrSelectVmcallOnTargetCore = VmFuncSetLbrSelectVmcallOnTargetCore;
+
+    //
+    // *** Architectural LBR callbacks ***
+    //
+
+    HyperTraceCallbacks.VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls = VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls;
+
+    HyperTraceCallbacks.VmFuncGetGuestIa32LbrCtl                   = VmFuncGetGuestIa32LbrCtl;
+    HyperTraceCallbacks.VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore = VmFuncGetGuestIa32LbrCtlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetGuestIa32LbrCtl                   = VmFuncSetGuestIa32LbrCtl;
+    HyperTraceCallbacks.VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore = VmFuncSetGuestIa32LbrCtlVmcallOnTargetCore;
+
+    HyperTraceCallbacks.VmFuncSetLoadGuestIa32LbrCtl                    = VmFuncSetLoadGuestIa32LbrCtl;
+    HyperTraceCallbacks.VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore  = VmFuncSetLoadGuestIa32LbrCtlVmcallOnTargetCore;
+    HyperTraceCallbacks.VmFuncSetClearGuestIa32LbrCtl                   = VmFuncSetClearGuestIa32LbrCtl;
+    HyperTraceCallbacks.VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore = VmFuncSetClearGuestIa32LbrCtlVmcallOnTargetCore;
 
     //
     // Initialize hypertrace module
     //
-    if (HyperTraceInitCallback(&HyperTraceCallbacks))
+    if (HyperTraceInitCallback(&HyperTraceCallbacks, RunningOnHypervisorEnvironment))
     {
         LogDebugInfo("HyperDbg's hypertrace loaded successfully");
+
+        //
+        // Mark hypertrace as initialized
+        //
+        g_HyperTraceInitialized = TRUE;
+
+        //
+        // Set the kernel status to success
+        //
+        InitHyperTracePacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
         return TRUE;
     }
     else
@@ -59,25 +100,25 @@ LoaderInitHyperTrace()
         // We won't fail the loading just because of hypertrace, so we just log the error and continue without loading hypertrace
         //
         LogDebugInfo("Err, HyperDbg's hypertrace was not loaded");
+
+        //
+        // Set the kernel status to indicate failure
+        //
+        InitHyperTracePacket->KernelStatus = DEBUGGER_ERROR_HYPERTRACE_NOT_INITIALIZED;
+
         return FALSE;
     }
 }
 
 /**
- * @brief Initialize the VMM and Debugger
+ * @brief Initialize the hyper log module
  *
  * @return BOOLEAN
  */
 BOOLEAN
-LoaderInitVmmAndDebugger()
+LoaderInitHyperLog()
 {
     MESSAGE_TRACING_CALLBACKS MsgTracingCallbacks = {0};
-    VMM_CALLBACKS             VmmCallbacks        = {0};
-
-    //
-    // Allow to server IOCTL
-    //
-    g_AllowIOCTLFromUsermode = TRUE;
 
     //
     // *** Fill the callbacks for the message tracer ***
@@ -85,6 +126,58 @@ LoaderInitVmmAndDebugger()
     MsgTracingCallbacks.VmxOperationCheck            = VmFuncVmxGetCurrentExecutionMode;
     MsgTracingCallbacks.CheckImmediateMessageSending = KdCheckImmediateMessagingMechanism;
     MsgTracingCallbacks.SendImmediateMessage         = KdLoggingResponsePacketToDebugger;
+
+    //
+    // Initialize message tracer (if not already initialized)
+    //
+    if (g_HyperLogInitialized == FALSE && LogInitialize(&MsgTracingCallbacks))
+    {
+        g_HyperLogInitialized = TRUE;
+
+        LogDebugInfo("HyperDbg's hyperlog loaded successfully");
+
+        return TRUE;
+    }
+    else
+    {
+        //
+        // We use DbgPrint here because if the hyperlog is not loaded we can't use it to log the error
+        // so we just log the error with DbgPrint and continue without loading hyperlog
+        //
+        DbgPrint("Err, HyperDbg's hyperlog was not loaded or already loaded");
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Initialize the VMM
+ *
+ * @param InitVmmPacket The packet to fill the result of the initialization
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LoaderInitVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
+{
+    VMM_CALLBACKS VmmCallbacks = {0};
+
+    //
+    // Check if KD is not already initialized, if so we cannot initialize VMM
+    //
+    if (!g_KdInitialized)
+    {
+        InitVmmPacket->KernelStatus = DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_DEBUGGER_IS_NOT_LOADED;
+        return FALSE;
+    }
+
+    //
+    // Check if HyperTrace is already initialized, if so we cannot initialize VMM
+    //
+    if (g_HyperTraceInitialized)
+    {
+        InitVmmPacket->KernelStatus = DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_HYPERTRACE_IS_LOADED;
+        return FALSE;
+    }
 
     //
     // *** Fill the callbacks for using hyperlog in VMM ***
@@ -95,27 +188,37 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.LogCallbackCheckIfBufferIsFull                 = LogCallbackCheckIfBufferIsFull;
 
     //
+    // Fill the HyperTrace callback(s)
+    //
+    VmmCallbacks.HyperTraceCallbackLbrIsSupported = HyperTraceLbrIsSupported;
+
+    //
     // Fill the VMM callbacks
     //
     VmmCallbacks.VmmCallbackTriggerEvents                   = DebuggerTriggerEvents;
     VmmCallbacks.VmmCallbackSetLastError                    = DebuggerSetLastError;
     VmmCallbacks.VmmCallbackVmcallHandler                   = DebuggerVmcallHandler;
-    VmmCallbacks.VmmCallbackRegisteredMtfHandler            = KdHandleRegisteredMtfCallback;
     VmmCallbacks.VmmCallbackNmiBroadcastRequestHandler      = KdHandleNmiBroadcastDebugBreaks;
     VmmCallbacks.VmmCallbackQueryTerminateProtectedResource = TerminateQueryDebuggerResource;
     VmmCallbacks.VmmCallbackRestoreEptState                 = UserAccessCheckForLoadedModuleDetails;
     VmmCallbacks.VmmCallbackCheckUnhandledEptViolations     = AttachingCheckUnhandledEptViolation;
+    VmmCallbacks.VmmCallbackHandleMtfCallback               = KdHandleMtfCallback;
 
     //
     // Fill the debugging callbacks
     //
-    VmmCallbacks.DebuggingCallbackHandleBreakpointException                = BreakpointHandleBreakpoints;
-    VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException           = BreakpointCheckAndHandleDebugBreakpoint;
-    VmmCallbacks.BreakpointCheckAndHandleReApplyingBreakpoint              = BreakpointCheckAndHandleReApplyingBreakpoint;
-    VmmCallbacks.DebuggerCheckProcessOrThreadChange                        = DebuggerCheckProcessOrThreadChange;
-    VmmCallbacks.DebuggingCallbackCheckThreadInterception                  = AttachingCheckThreadInterceptionWithUserDebugger;
-    VmmCallbacks.KdCheckAndHandleNmiCallback                               = KdCheckAndHandleNmiCallback;
-    VmmCallbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId = KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
+    VmmCallbacks.DebuggingCallbackHandleBreakpointException      = BreakpointHandleBreakpoints;
+    VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException = BreakpointCheckAndHandleDebugBreakpoint;
+    VmmCallbacks.DebuggingCallbackCheckThreadInterception        = AttachingCheckThreadInterceptionWithUserDebugger;
+    VmmCallbacks.DebuggingCallbackTriggerOnClockAndIpiEvents     = DebuggerCheckProcessOrThreadChange;
+    VmmCallbacks.DebuggingCallbackIgnoreHandlingMov2DebugRegs    = KdQueryIgnoreHandlingMov2DebugRegs;
+
+    //
+    // Fill the pool manager callbacks
+    //
+    VmmCallbacks.PoolManagerCallbackRequestAllocation = PoolManagerRequestAllocation;
+    VmmCallbacks.PoolManagerCallbackRequestPool       = PoolManagerRequestPool;
+    VmmCallbacks.PoolManagerCallbackFreePool          = PoolManagerFreePool;
 
     //
     // Fill the interception callbacks
@@ -123,52 +226,205 @@ LoaderInitVmmAndDebugger()
     VmmCallbacks.InterceptionCallbackTriggerCr3ProcessChange = ProcessTriggerCr3ProcessChange;
 
     //
-    // Initialize message tracer
+    // Initialize VMX
     //
-    if (LogInitialize(&MsgTracingCallbacks))
+    if (VmFuncInitVmm(&VmmCallbacks))
     {
+        LogDebugInfo("HyperDbg's hypervisor loaded successfully");
+
         //
-        // Initialize VMX
+        // Initialize VMM opeartions (event related state from the debugger)
         //
-        if (VmFuncInitVmm(&VmmCallbacks))
+        if (!DebuggerInitializeVmmOperations())
         {
-            LogDebugInfo("HyperDbg's hypervisor loaded successfully");
-
-            //
-            // Initialize the debugger
-            //
-            if (DebuggerInitialize())
-            {
-                LogDebugInfo("HyperDbg's debugger loaded successfully");
-
-                //
-                // Set the variable so no one else can get a handle anymore
-                //
-                g_HandleInUse = TRUE;
-
-                return TRUE;
-            }
-            else
-            {
-                LogError("Err, HyperDbg's debugger was not loaded");
-            }
+            return FALSE;
         }
-        else
-        {
-            LogError("Err, HyperDbg's hypervisor was not loaded");
-        }
+
+        //
+        // VMM module initialized
+        //
+        g_VmmInitialized = TRUE;
+
+        return TRUE;
     }
     else
     {
-        LogError("Err, HyperDbg's message tracing module was not loaded");
+        LogError("Err, HyperDbg's hypervisor was not loaded");
+    }
+
+    return FALSE;
+}
+
+/**
+ * @brief Initialize the debugger
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LoaderInitKd()
+{
+    //
+    // If the debugger is already initialized, we don't need to initialize it again
+    // and simply return true
+    //
+    if (g_KdInitialized)
+    {
+        return TRUE;
     }
 
     //
-    // Not loaded
+    // The debugger is not initialized, so we try to initialize it
     //
-    g_AllowIOCTLFromUsermode = FALSE;
+    if (DebuggerInitialize())
+    {
+        LogDebugInfo("HyperDbg's debugger loaded successfully");
 
+        //
+        // KD module initialized
+        //
+        g_KdInitialized = TRUE;
+
+        return TRUE;
+    }
+
+    LogError("Err, HyperDbg's debugger was not loaded");
     return FALSE;
+}
+
+/**
+ * @brief Initialize the debugger and the vmm
+ *
+ * @param InitVmmPacket The packet to fill the result of the initialization
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+LoaderInitDebuggerAndVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
+{
+    //
+    // First we need to initialize the debugger
+    // because the VMM relies on the debugger for some of its functionalities,
+    // so if we cannot initialize the debugger we cannot initialize the VMM
+    //
+    if (!LoaderInitKd())
+    {
+        //
+        // Unable to initialize the debugger, so we cannot initialize the VMM, and we return false
+        //
+        InitVmmPacket->KernelStatus = DEBUGGER_ERROR_CANNOT_INITIALIZE_DEBUGGER;
+
+        return FALSE;
+    }
+
+    //
+    // Now we can initialize the VMM
+    //
+    if (!LoaderInitVmm(InitVmmPacket))
+    {
+        return FALSE;
+    }
+
+    //
+    // Set the kernel status to success
+    //
+    InitVmmPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return TRUE;
+}
+
+/**
+ * @brief Uninitialize the hyper trace module
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitHyperTrace()
+{
+    //
+    // Mark hypertrace as uninitialized before uninitializing it to avoid any potential reentrancy issues during the uninitialization process
+    //
+    g_HyperTraceInitialized = FALSE;
+
+    //
+    // Uninitialize the hypertrace
+    //
+    HyperTraceUninit();
+}
+
+/**
+ * @brief Uninitialize the VMM
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitVmm()
+{
+    //
+    // Mark VMM as uninitialized before uninitializing it to avoid any potential reentrancy issues during the uninitialization process
+    //
+    g_VmmInitialized = FALSE;
+
+    //
+    // Uninitialize the HyperTrace (if it was initialized)
+    //
+    // If the trace module is currently loaded, it must be unloaded before the VMM module can be unloaded
+    // HyperTrace can operate both with and without the VMM module. When loaded after the VMM module, HyperTrace can make
+    // use of hypervisor-specific features. Otherwise, it will operate normally, but those features will not be available
+    // The trace module will be unloaded automatically and may be reloaded later if needed
+    //
+    // Note: The user mode should automatically request to unload the 'trace' module if it is already loaded
+    // however, here we also unload it just in case if this function is directly called or the user mode
+    // code did not unload it
+    //
+    LoaderUninitHyperTrace();
+
+    //
+    // First remove all VMM related state from the debugger
+    //
+    DebuggerUninitializeVmmOperations();
+
+    //
+    // Terminate VMM and its sub-mechanisms
+    //
+    VmFuncUninitVmm();
+}
+
+/**
+ * @brief Uninitialize the debugger
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitKd()
+{
+    //
+    // Mark KD as uninitialized before uninitializing it to avoid any potential reentrancy issues during the uninitialization process
+    //
+    g_KdInitialized = FALSE;
+
+    //
+    // Uninitialize the debugger and its sub-mechanisms
+    //
+    DebuggerUninitialize();
+}
+
+/**
+ * @brief Uninitialize the VMM and the debugger
+ *
+ * @return VOID
+ */
+VOID
+LoaderUninitVmmAndDebugger()
+{
+    //
+    // Uninitialize the VMM first because it relies on the debugger for some
+    //
+    LoaderUninitVmm();
+
+    //
+    // Uninitialize the debugger
+    //
+    LoaderUninitKd();
 }
 
 /**
@@ -177,16 +433,19 @@ LoaderInitVmmAndDebugger()
  * @return VOID
  */
 VOID
-LoaderUninitializeLogTracer()
+LoaderUninitLogTracer()
 {
-    LogDebugInfo("Unloading HyperDbg's debugger...\n");
-
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
 
+    LogDebugInfo("Unloading hyperlog...\n");
+
     //
-    // Uinitialize log buffer
+    // Uinitialize log buffer if it was initialized
     //
-    LogDebugInfo("Uninitializing logs\n");
-    LogUnInitialize();
+    if (g_HyperLogInitialized)
+    {
+        g_HyperLogInitialized = FALSE;
+        LogUnInitialize();
+    }
 #endif
 }

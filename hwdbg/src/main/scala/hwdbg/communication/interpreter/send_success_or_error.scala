@@ -35,7 +35,7 @@ class InterpreterSendSuccessOrError(
     val lastSuccessOrError = Input(UInt(instanceInfo.bramDataWidth.W)) // input last error
 
     //
-    // Sending singals
+    // Sending signals
     //
     val noNewDataSender = Output(Bool()) // should sender finish sending buffers or not?
     val dataValidOutput = Output(Bool()) // should sender send next buffer or not?

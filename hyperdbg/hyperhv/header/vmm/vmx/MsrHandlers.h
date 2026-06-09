@@ -15,6 +15,9 @@
 //				    Functions					//
 //////////////////////////////////////////////////
 
+BOOLEAN
+MsrHandleIsHypervSyntheticMsr(_In_ UINT32 TargetMsr);
+
 VOID
 MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu);
 

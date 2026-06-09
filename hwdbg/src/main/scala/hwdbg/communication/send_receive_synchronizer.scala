@@ -160,7 +160,7 @@ class SendReceiveSynchronizer(
       is(sIdle) {
 
         //
-        // Peform the resource sepration of shared BRAM
+        // Perform the resource separation of shared BRAM
         // and apply priority to receive over send
         //
         when(io.plInSignal === true.B) {

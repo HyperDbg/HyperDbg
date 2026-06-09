@@ -35,7 +35,7 @@ IdtEmulationQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS I
         //
         // Since it's not in VMX Root, we can directly read the IDTR register
         //
-        __sidt(&IdtrReg);
+        CpuSidt(&IdtrReg);
 
         //
         // Get the IDT base address
@@ -55,9 +55,9 @@ IdtEmulationQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS I
     //
     for (UINT32 i = 0; i < MAX_NUMBER_OF_IDT_ENTRIES; i++)
     {
-        IdtQueryRequest->IdtEntry[i] = (UINT64)((unsigned long long)IdtEntries[i].HighestPart << 32) |
-                                       ((unsigned long long)IdtEntries[i].HighPart << 16) |
-                                       (unsigned long long)IdtEntries[i].LowPart;
+        IdtQueryRequest->IdtEntry[i] = (UINT64)((UINT64)IdtEntries[i].HighestPart << 32) |
+                                       ((UINT64)IdtEntries[i].HighPart << 16) |
+                                       (UINT64)IdtEntries[i].LowPart;
     }
 }
 
@@ -132,7 +132,7 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
                  HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
 
     /*
-    for (size_t i = 0; i < HOST_IDT_DESCRIPTOR_COUNT; i++)
+    for (SIZE_T i = 0; i < HOST_IDT_DESCRIPTOR_COUNT; i++)
     {
         SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 CurrentEntry = WindowsIdt[i];
 
@@ -217,7 +217,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         if (!VmxBroadcastHandleNmiCallback((PVOID)IntrTrapFrame, FALSE))
         {
             //
-            // We cannot just use the NMI Window Exiting here becasue
+            // We cannot just use the NMI Window Exiting here because
             // in certain scenarios, VMRESUME with Error 0x7 will happen
             // Which means that the layout of the VMCS is wrong
             //
@@ -258,7 +258,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
         //
         // host page-fault
         //
-        PageFaultCr2 = __readcr2();
+        PageFaultCr2 = CpuReadCr2();
 
         LogInfo("Page-fault received, rip: %llx, rsp: %llx, error: %llx, CR2: %llx",
                 IntrTrapFrame->rip,
@@ -309,7 +309,7 @@ IdtEmulationHandlePageFaults(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     //
     // Read the page-fault address
     //
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
+    VmxVmread64P(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
 
     // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x | %s%s%s%s",
     //         PageFaultAddress,
@@ -356,7 +356,8 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
             UINT64 GuestRip  = NULL64_ZERO;
             BYTE   TargetMem = NULL_ZERO;
 
-            __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+            VmxVmread64P(VMCS_GUEST_RIP, &GuestRip);
+
             MemoryMapperReadMemorySafe(GuestRip, &TargetMem, sizeof(BYTE));
 
             if (!EptCheckAndHandleBreakpoint(VCpu) || TargetMem == 0xcc)
@@ -434,7 +435,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
         if (VCpu->EnableExternalInterruptsOnContinue ||
             VCpu->EnableExternalInterruptsOnContinueMtf ||
-            VCpu->RegisterBreakOnMtf)
+            VCpu->InstrumentationStepInMtf)
         {
             //
             // Ignore the nmi
@@ -480,7 +481,7 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_Inout_ VIRTUAL_MACHINE_STA
     // We can't inject interrupt because the guest's state is not interruptible
     // we have to queue it an re-inject it when the interrupt window is opened !
     //
-    for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
+    for (SIZE_T i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
     {
         //
         // Find an empty space
@@ -676,7 +677,7 @@ IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (!InjectPageFault)
     {
-        for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
+        for (SIZE_T i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
         {
             //
             // Find an empty space

@@ -19,4 +19,10 @@ BOOLEAN
 TestCommandParser();
 
 BOOLEAN
+TestPeParser();
+
+BOOLEAN
+TestCodeViewRsdsParser();
+
+BOOLEAN
 TestSemanticScripts();

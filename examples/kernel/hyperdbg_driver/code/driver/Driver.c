@@ -83,6 +83,7 @@ DriverEntry(
     //
     DbgPrint("HyperDbg's device and major functions are loaded");
 
+
     ASSERT(NT_SUCCESS(Ntstatus));
     return Ntstatus;
 }
@@ -105,7 +106,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Unloading VMM and Debugger
     //
-    LoaderUninitializeLogTracer();
+    LoaderUninitLogTracer();
 }
 
 /**

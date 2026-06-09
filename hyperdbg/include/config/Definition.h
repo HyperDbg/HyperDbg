@@ -80,6 +80,16 @@
 #define TEST_CASE_PARAMETER_FOR_MAIN_COMMAND_PARSER "test-command-parser"
 
 /**
+ * @brief Test case parameter for testing PE parser
+ */
+#define TEST_CASE_PARAMETER_FOR_PE_PARSER "test-pe-parser"
+
+/**
+ * @brief Test case parameter for testing CodeView RSDS parser
+ */
+#define TEST_CASE_PARAMETER_FOR_CODEVIEW_RSDS_PARSER "test-codeview-rsds-parser"
+
+/**
  * @brief Test case parameter for testing semantic script tests
  */
 #define TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES "test-script-semantic-test-cases"

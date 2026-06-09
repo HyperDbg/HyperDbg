@@ -15,6 +15,8 @@
 // Global Variables
 //
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsKdModuleLoaded;
+extern BOOLEAN                  g_IsVmmModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -69,6 +71,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
                    UINT64 *                       BufferToEdit)
 {
     BOOL                   Status;
+    DWORD                  BytesReturned;
     BOOLEAN                StatusReturn = FALSE;
     DEBUGGER_EDIT_MEMORY * FinalBuffer;
     DEBUGGER_EDIT_MEMORY   EditMemoryRequest = {0};
@@ -79,7 +82,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
     //
     if (!g_IsSerialConnectedToRemoteDebuggee)
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
     }
 
     //
@@ -147,7 +150,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
             FinalSize,                   // Input buffer length
             FinalBuffer,                 // Output Buffer from driver.
             SIZEOF_DEBUGGER_EDIT_MEMORY, // Length of output buffer in bytes.
-            NULL,                        // Bytes placed in buffer.
+            &BytesReturned,              // Bytes placed in buffer.
             NULL                         // synchronous call
         );
 
@@ -231,7 +234,7 @@ HyperDbgWriteMemory(PVOID                     DestinationAddress,
     //
     // Copy requested memory in 64bit chunks
     //
-    for (size_t i = 0; i < NumberOfBytes; i++)
+    for (SIZE_T i = 0; i < NumberOfBytes; i++)
     {
         TargetBuffer[i] = BufferToEdit[i];
     }

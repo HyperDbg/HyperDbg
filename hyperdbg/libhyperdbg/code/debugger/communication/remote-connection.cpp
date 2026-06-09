@@ -39,7 +39,7 @@ extern HANDLE g_EndOfMessageReceivedEvent;
 VOID
 RemoteConnectionListen(PCSTR Port)
 {
-    char recvbuf[COMMUNICATION_BUFFER_SIZE] = {0};
+    CHAR recvbuf[COMMUNICATION_BUFFER_SIZE] = {0};
 
     //
     // Check if the debugger or debuggee is already active
@@ -75,7 +75,7 @@ RemoteConnectionListen(PCSTR Port)
     //
     // Check whether the signature of debuggee and debugger match or not
     //
-    if (strcmp((const char *)BuildSignature, recvbuf) != 0)
+    if (strcmp((const CHAR *)BuildSignature, recvbuf) != 0)
     {
         //
         // Build version not matched
@@ -154,12 +154,12 @@ RemoteConnectionListen(PCSTR Port)
         //
         // Execute the command
         //
-        int CommandExecutionResult = HyperDbgInterpreter(recvbuf);
+        INT CommandExecutionResult = HyperDbgInterpreter(recvbuf);
 
         //
         // Send end of buffer
         //
-        RemoteConnectionSendResultsToHost((const char *)g_EndOfBufferCheckTcp, sizeof(g_EndOfBufferCheckTcp));
+        RemoteConnectionSendResultsToHost((const CHAR *)g_EndOfBufferCheckTcp, sizeof(g_EndOfBufferCheckTcp));
 
         //
         // if the debugger encounters an exit state then the return will be 1
@@ -191,7 +191,7 @@ RemoteConnectionListen(PCSTR Port)
     //
     // Indicate that we're not in remote debugger anymore
     //
-    ShowMessages("closing the conntection...\n");
+    ShowMessages("closing the connection...\n");
 
     //
     // Close the connection
@@ -210,7 +210,7 @@ RemoteConnectionListen(PCSTR Port)
 DWORD WINAPI
 RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
 {
-    char   RecvBuf[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
+    CHAR   RecvBuf[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
     UINT32 BuffLenReceived                                                    = 0;
 
     while (g_IsConnectedToRemoteDebuggee)
@@ -229,7 +229,7 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
         //
         // Check if it's end of the buffer
         //
-        for (size_t i = 0; i < BuffLenReceived; i++)
+        for (SIZE_T i = 0; i < BuffLenReceived; i++)
         {
             if (RecvBuf[i] == g_EndOfBufferCheckTcp[0] &&
                 RecvBuf[i + 1] == g_EndOfBufferCheckTcp[1] &&
@@ -364,7 +364,7 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
         //
         // Check to see whether the version of debugger and debuggee matches together or not
         //
-        if (CommunicationClientSendMessage(g_ClientConnectSocket, (const char *)BuildSignature, sizeof(BuildSignature)) != 0)
+        if (CommunicationClientSendMessage(g_ClientConnectSocket, (const CHAR *)BuildSignature, sizeof(BuildSignature)) != 0)
         {
             //
             // Failed
@@ -388,7 +388,7 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
         //
         // Check if the handshake was successful or not
         //
-        if (strcmp((const char *)"OK", Recv) != 0)
+        if (strcmp((const CHAR *)"OK", Recv) != 0)
         {
             //
             // Build version not matched
@@ -438,11 +438,11 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
  *
  * @param sendbuf address of message buffer
  * @param len length of buffer
- * @return int returning 0 means that there was no error in
+ * @return INT returning 0 means that there was no error in
  * executing the function and 1 shows there was an error
  */
-int
-RemoteConnectionSendCommand(const char * sendbuf, int len)
+INT
+RemoteConnectionSendCommand(const CHAR * sendbuf, INT len)
 {
     //
     // Send Message
@@ -474,11 +474,11 @@ RemoteConnectionSendCommand(const char * sendbuf, int len)
  *
  * @param sendbuf buffer address
  * @param len length of buffer
- * @return int returning 0 means that there was no error in
+ * @return INT returning 0 means that there was no error in
  * executing the function and 1 shows there was an error
  */
-int
-RemoteConnectionSendResultsToHost(const char * sendbuf, int len)
+INT
+RemoteConnectionSendResultsToHost(const CHAR * sendbuf, INT len)
 {
     //
     // Send the message
@@ -497,10 +497,10 @@ RemoteConnectionSendResultsToHost(const char * sendbuf, int len)
 /**
  * @brief Close the connect from client side to the debuggee
  *
- * @return int returning 0 means that there was no error in
+ * @return INT returning 0 means that there was no error in
  * executing the function and 1 shows there was an error
  */
-int
+INT
 RemoteConnectionCloseTheConnectionWithDebuggee()
 {
     CommunicationClientShutdownConnection(g_ClientConnectSocket);

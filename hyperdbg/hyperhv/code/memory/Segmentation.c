@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Segmentation.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Functions for handling memory segmentations
@@ -47,7 +47,7 @@ SegmentGetDescriptor(PUCHAR                GdtBase,
     Descriptor32      = &DescriptorTable32[SegSelector.Index];
 
     SegmentSelector->Selector = Selector;
-    SegmentSelector->Limit    = __segmentlimit(Selector);
+    SegmentSelector->Limit    = CpuSegmentLimit(Selector);
     SegmentSelector->Base     = ((UINT64)Descriptor32->BaseAddressLow | (UINT64)Descriptor32->BaseAddressMiddle << 16 | (UINT64)Descriptor32->BaseAddressHigh << 24);
 
     SegmentSelector->Attributes.AsUInt = (AsmGetAccessRights(Selector) >> 8);

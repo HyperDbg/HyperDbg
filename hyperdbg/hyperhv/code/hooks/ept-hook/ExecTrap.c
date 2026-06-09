@@ -87,7 +87,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
         return FALSE;
     }
 
-    for (size_t i = 0; i < 512; i++)
+    for (SIZE_T i = 0; i < 512; i++)
     {
         // LogInfo("Address of Cr3Va: %llx", Cr3Va);
 
@@ -125,7 +125,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
             //
             if (PdptVa != NULL)
             {
-                for (size_t j = 0; j < 512; j++)
+                for (SIZE_T j = 0; j < 512; j++)
                 {
                     // LogInfo("Address of PdptVa: %llx", PdptVa);
 
@@ -168,7 +168,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                         //
                         if (PdVa != NULL)
                         {
-                            for (size_t k = 0; k < 512; k++)
+                            for (SIZE_T k = 0; k < 512; k++)
                             {
                                 // LogInfo("Address of PdVa: %llx", PdVa);
 
@@ -216,7 +216,7 @@ ExecTrapTraverseThroughOsPageTables(PVMM_EPT_PAGE_TABLE EptTable, CR3_TYPE Targe
                                     //
                                     if (PtVa != NULL)
                                     {
-                                        for (size_t l = 0; l < 512; l++)
+                                        for (SIZE_T l = 0; l < 512; l++)
                                         {
                                             // LogInfo("Address of PtVa: %llx", PtVa);
 
@@ -265,7 +265,7 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML4s
     //
-    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     {
         //
         // We only set the top-level PML4 for intercepting user-mode execution
@@ -276,7 +276,7 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML3s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
         EptTable->PML3[i].UserModeExecute = TRUE;
     }
@@ -284,9 +284,9 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // Set execute access for PML2s
     //
-    for (size_t i = 0; i < VMM_EPT_PML3E_COUNT; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML3E_COUNT; i++)
     {
-        for (size_t j = 0; j < VMM_EPT_PML2E_COUNT; j++)
+        for (SIZE_T j = 0; j < VMM_EPT_PML2E_COUNT; j++)
         {
             EptTable->PML2[i][j].UserModeExecute = TRUE;
         }
@@ -295,7 +295,7 @@ ExecTrapEnableExecuteOnlyPages(PVMM_EPT_PAGE_TABLE EptTable)
     //
     // *** disallow read or write for certain memory only (not MMIO) EPTP pages ***
     //
-    for (size_t i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
+    for (SIZE_T i = 0; i < MAX_PHYSICAL_RAM_RANGE_COUNT; i++)
     {
         if (PhysicalRamRegions[i].RamPhysicalAddress != NULL64_ZERO)
         {
@@ -482,7 +482,7 @@ ExecTrapRestoreToNormalEptp(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Change EPTP
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, VCpu->EptPointer.AsUInt);
+    VmxVmwrite64(VMCS_CTRL_EPT_POINTER, VCpu->EptPointer.AsUInt);
 
     //
     // It's on normal EPTP
@@ -510,7 +510,7 @@ ExecTrapChangeToUserDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Set execute access for PML4s
     //
-    // for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    // for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     // {
     VCpu->EptPageTable->PML4[0].UserModeExecute = FALSE;
 
@@ -551,7 +551,7 @@ ExecTrapChangeToKernelDisabledMbecEptp(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Set execute access for PML4s
     //
-    // for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    // for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     // {
     VCpu->EptPageTable->PML4[0].UserModeExecute = TRUE;
 
@@ -592,7 +592,7 @@ ExecTrapChangeToNormalMbecEptp(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Set execute access for PML4s
     //
-    // for (size_t i = 0; i < VMM_EPT_PML4E_COUNT; i++)
+    // for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT; i++)
     // {
     VCpu->EptPageTable->PML4[0].UserModeExecute = TRUE;
 

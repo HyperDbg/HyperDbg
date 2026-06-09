@@ -107,7 +107,7 @@
     0xc000000c
 
 /**
- * @brief error, an invalid address is specified based on anotehr process's cr3
+ * @brief error, an invalid address is specified based on another process's cr3
  * in !e* or e* commands
  *
  */
@@ -552,7 +552,7 @@
 #define DEBUGGER_ERROR_DEBUGGER_ALREADY_UNHIDE 0xc0000054
 
 /**
- * @brief error, the user debugger cannot be initalized
+ * @brief error, the user debugger cannot be initialized
  *
  */
 #define DEBUGGER_ERROR_DEBUGGER_NOT_INITIALIZED 0xc0000055
@@ -610,6 +610,48 @@
  *
  */
 #define DEBUGGER_ERROR_LBR_NOT_SUPPORTED 0xc000005e
+
+/**
+ * @brief error, LBR not supported on VMCS
+ *
+ */
+#define DEBUGGER_ERROR_LBR_NOT_SUPPORTED_ON_VMCS 0xc000005f
+
+/**
+ * @brief error, PT is already enabled
+ *
+ */
+#define DEBUGGER_ERROR_PT_ALREADY_ENABLED 0xc0000060
+
+/**
+ * @brief error, PT is already disabled
+ *
+ */
+#define DEBUGGER_ERROR_PT_ALREADY_DISABLED 0xc0000061
+
+/**
+ * @brief error, PT is not supported by the processor
+ *
+ */
+#define DEBUGGER_ERROR_PT_NOT_SUPPORTED 0xc0000062
+
+/**
+ * @brief error, VMM cannot be initialized while HyperTrace module is already loaded
+ *
+ */
+#define DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_HYPERTRACE_IS_LOADED 0xc0000063
+
+/**
+ * @brief error, VMM cannot be initialized if the debugger is not loaded
+ *
+ */
+#define DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_DEBUGGER_IS_NOT_LOADED 0xc0000064
+
+/**
+ * @brief error, cannot initialize the debugger
+ *
+ */
+#define DEBUGGER_ERROR_CANNOT_INITIALIZE_DEBUGGER 0xc0000065
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

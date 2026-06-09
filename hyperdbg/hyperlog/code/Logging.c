@@ -99,42 +99,42 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
 {
     ULONG ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Initialize buffers for trace message and data messages
     //(we have two buffers one for vmx root and one for vmx non-root)
     //
-    MessageBufferInformation = PlatformMemAllocateZeroedNonPagedPool(sizeof(LOG_BUFFER_INFORMATION) * 2);
+    g_MessageBufferInformation = PlatformMemAllocateZeroedNonPagedPool(sizeof(LOG_BUFFER_INFORMATION) * 2);
 
-    if (!MessageBufferInformation)
+    if (!g_MessageBufferInformation)
     {
         return FALSE; // STATUS_INSUFFICIENT_RESOURCES
     }
 
     //
-    // Allocate VmxTempMessage and VmxLogMessage
+    // Allocate g_VmxTempMessage and g_VmxLogMessage
     //
-    VmxTempMessage = NULL;
-    VmxTempMessage = PlatformMemAllocateZeroedNonPagedPool(PacketChunkSize * ProcessorsCount);
+    g_VmxTempMessage = NULL;
+    g_VmxTempMessage = PlatformMemAllocateZeroedNonPagedPool(PacketChunkSize * ProcessorsCount);
 
-    if (!VmxTempMessage)
+    if (!g_VmxTempMessage)
     {
-        PlatformMemFreePool(MessageBufferInformation);
-        MessageBufferInformation = NULL;
+        PlatformMemFreePool(g_MessageBufferInformation);
+        g_MessageBufferInformation = NULL;
         return FALSE; // STATUS_INSUFFICIENT_RESOURCES
     }
 
-    VmxLogMessage = NULL;
-    VmxLogMessage = PlatformMemAllocateZeroedNonPagedPool(PacketChunkSize * ProcessorsCount);
+    g_VmxLogMessage = NULL;
+    g_VmxLogMessage = PlatformMemAllocateZeroedNonPagedPool(PacketChunkSize * ProcessorsCount);
 
-    if (!VmxLogMessage)
+    if (!g_VmxLogMessage)
     {
-        PlatformMemFreePool(MessageBufferInformation);
-        MessageBufferInformation = NULL;
+        PlatformMemFreePool(g_MessageBufferInformation);
+        g_MessageBufferInformation = NULL;
 
-        PlatformMemFreePool(VmxTempMessage);
-        VmxTempMessage = NULL;
+        PlatformMemFreePool(g_VmxTempMessage);
+        g_VmxTempMessage = NULL;
 
         return FALSE; // STATUS_INSUFFICIENT_RESOURCES
     }
@@ -142,12 +142,12 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
     //
     // Initialize the lock for Vmx-root mode (HIGH_IRQL Spinlock)
     //
-    VmxRootLoggingLock = 0;
+    g_VmxRootLoggingLock = 0;
 
     //
     // Allocate buffer for messages and initialize the core buffer information
     //
-    for (int i = 0; i < 2; i++)
+    for (UINT32 i = 0; i < 2; i++)
     {
         //
         // initialize the lock
@@ -155,17 +155,17 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         // for both but the second buffer spinlock is useless
         // as we use our custom spinlock
         //
-        KeInitializeSpinLock(&MessageBufferInformation[i].BufferLock);
-        KeInitializeSpinLock(&MessageBufferInformation[i].BufferLockForNonImmMessage);
+        PlatformSpinlockInitialize(&g_MessageBufferInformation[i].BufferLock);
+        PlatformSpinlockInitialize(&g_MessageBufferInformation[i].BufferLockForNonImmMessage);
 
         //
         // allocate the buffer for regular buffers
         //
-        MessageBufferInformation[i].BufferStartAddress                   = (UINT64)PlatformMemAllocateNonPagedPool(LogBufferSize);
-        MessageBufferInformation[i].BufferForMultipleNonImmediateMessage = (UINT64)PlatformMemAllocateNonPagedPool(PacketChunkSize);
+        g_MessageBufferInformation[i].BufferStartAddress                   = (UINT64)PlatformMemAllocateNonPagedPool(LogBufferSize);
+        g_MessageBufferInformation[i].BufferForMultipleNonImmediateMessage = (UINT64)PlatformMemAllocateNonPagedPool(PacketChunkSize);
 
-        if (!MessageBufferInformation[i].BufferStartAddress ||
-            !MessageBufferInformation[i].BufferForMultipleNonImmediateMessage)
+        if (!g_MessageBufferInformation[i].BufferStartAddress ||
+            !g_MessageBufferInformation[i].BufferForMultipleNonImmediateMessage)
         {
             return FALSE; // STATUS_INSUFFICIENT_RESOURCES
         }
@@ -173,9 +173,9 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         //
         // allocate the buffer for priority buffers
         //
-        MessageBufferInformation[i].BufferStartAddressPriority = (UINT64)PlatformMemAllocateNonPagedPool(LogBufferSizePriority);
+        g_MessageBufferInformation[i].BufferStartAddressPriority = (UINT64)PlatformMemAllocateNonPagedPool(LogBufferSizePriority);
 
-        if (!MessageBufferInformation[i].BufferStartAddressPriority)
+        if (!g_MessageBufferInformation[i].BufferStartAddressPriority)
         {
             return FALSE; // STATUS_INSUFFICIENT_RESOURCES
         }
@@ -183,21 +183,21 @@ LogInitialize(MESSAGE_TRACING_CALLBACKS * MsgTracingCallbacks)
         //
         // Zeroing the buffer
         //
-        RtlZeroMemory((void *)MessageBufferInformation[i].BufferStartAddress, LogBufferSize);
-        RtlZeroMemory((void *)MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, PacketChunkSize);
-        RtlZeroMemory((void *)MessageBufferInformation[i].BufferStartAddressPriority, LogBufferSizePriority);
+        PlatformZeroMemory((PVOID)g_MessageBufferInformation[i].BufferStartAddress, LogBufferSize);
+        PlatformZeroMemory((PVOID)g_MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, PacketChunkSize);
+        PlatformZeroMemory((PVOID)g_MessageBufferInformation[i].BufferStartAddressPriority, LogBufferSizePriority);
 
         //
         // Set the end address
         //
-        MessageBufferInformation[i].BufferEndAddress         = (UINT64)MessageBufferInformation[i].BufferStartAddress + LogBufferSize;
-        MessageBufferInformation[i].BufferEndAddressPriority = (UINT64)MessageBufferInformation[i].BufferStartAddressPriority + LogBufferSizePriority;
+        g_MessageBufferInformation[i].BufferEndAddress         = (UINT64)g_MessageBufferInformation[i].BufferStartAddress + LogBufferSize;
+        g_MessageBufferInformation[i].BufferEndAddressPriority = (UINT64)g_MessageBufferInformation[i].BufferStartAddressPriority + LogBufferSizePriority;
     }
 
     //
     // Copy the callbacks into the global callback holder
     //
-    RtlCopyBytes(&g_MsgTracingCallbacks, MsgTracingCallbacks, sizeof(MESSAGE_TRACING_CALLBACKS));
+    PlatformWriteMemory(&g_MsgTracingCallbacks, MsgTracingCallbacks, sizeof(MESSAGE_TRACING_CALLBACKS));
 
     return TRUE;
 }
@@ -218,7 +218,7 @@ LogUnInitialize()
         //
         // Check if the buffer is allocated or not
         //
-        if (MessageBufferInformation == NULL64_ZERO)
+        if (g_MessageBufferInformation == NULL64_ZERO)
         {
             continue; // No need to free the buffers
         }
@@ -226,29 +226,29 @@ LogUnInitialize()
         //
         // Free each buffers
         //
-        if (MessageBufferInformation[i].BufferStartAddress != NULL64_ZERO)
+        if (g_MessageBufferInformation[i].BufferStartAddress != NULL64_ZERO)
         {
-            PlatformMemFreePool((PVOID)MessageBufferInformation[i].BufferStartAddress);
+            PlatformMemFreePool((PVOID)g_MessageBufferInformation[i].BufferStartAddress);
         }
 
-        if (MessageBufferInformation[i].BufferStartAddressPriority != NULL64_ZERO)
+        if (g_MessageBufferInformation[i].BufferStartAddressPriority != NULL64_ZERO)
         {
-            PlatformMemFreePool((PVOID)MessageBufferInformation[i].BufferStartAddressPriority);
+            PlatformMemFreePool((PVOID)g_MessageBufferInformation[i].BufferStartAddressPriority);
         }
 
-        if (MessageBufferInformation[i].BufferForMultipleNonImmediateMessage != NULL64_ZERO)
+        if (g_MessageBufferInformation[i].BufferForMultipleNonImmediateMessage != NULL64_ZERO)
         {
-            PlatformMemFreePool((PVOID)MessageBufferInformation[i].BufferForMultipleNonImmediateMessage);
+            PlatformMemFreePool((PVOID)g_MessageBufferInformation[i].BufferForMultipleNonImmediateMessage);
         }
     }
 
     //
     // de-allocate buffers for trace message and data messages if they are allocated
     //
-    if (MessageBufferInformation != NULL64_ZERO)
+    if (g_MessageBufferInformation != NULL64_ZERO)
     {
-        PlatformMemFreePool((PVOID)MessageBufferInformation);
-        MessageBufferInformation = NULL;
+        PlatformMemFreePool((PVOID)g_MessageBufferInformation);
+        g_MessageBufferInformation = NULL;
     }
 }
 
@@ -291,9 +291,9 @@ LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
     //
     if (Priority)
     {
-        CurrentIndexToWritePriority = MessageBufferInformation[Index].CurrentIndexToWritePriority;
+        CurrentIndexToWritePriority = g_MessageBufferInformation[Index].CurrentIndexToWritePriority;
 
-        if (MessageBufferInformation[Index].CurrentIndexToWritePriority > MaximumPacketsCapacityPriority - 1)
+        if (g_MessageBufferInformation[Index].CurrentIndexToWritePriority > MaximumPacketsCapacityPriority - 1)
         {
             //
             // start from the beginning
@@ -303,9 +303,9 @@ LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
     }
     else
     {
-        CurrentIndexToWrite = MessageBufferInformation[Index].CurrentIndexToWrite;
+        CurrentIndexToWrite = g_MessageBufferInformation[Index].CurrentIndexToWrite;
 
-        if (MessageBufferInformation[Index].CurrentIndexToWrite > MaximumPacketsCapacity - 1)
+        if (g_MessageBufferInformation[Index].CurrentIndexToWrite > MaximumPacketsCapacity - 1)
         {
             //
             // start from the beginning
@@ -321,11 +321,11 @@ LogCallbackCheckIfBufferIsFull(BOOLEAN Priority)
 
     if (Priority)
     {
-        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+        Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddressPriority + (CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
     }
     else
     {
-        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+        Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddress + (CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))));
     }
 
     //
@@ -384,7 +384,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
             //
             // vmx non-root
             //
-            OldIRQL = KeRaiseIrqlToDpcLevel();
+            OldIRQL = PlatformIrqlRaiseToDpcLevel();
         }
 
         //
@@ -403,7 +403,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
             //
             // vmx non-root
             //
-            KeLowerIrql(OldIRQL);
+            PlatformIrqlLower(OldIRQL);
         }
 
         return TRUE;
@@ -419,7 +419,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
         // Set the index
         //
         Index = 1;
-        SpinlockLock(&VmxRootLoggingLock);
+        SpinlockLock(&g_VmxRootLoggingLock);
     }
     else
     {
@@ -431,7 +431,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
         //
         // Acquire the lock
         //
-        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
+        PlatformSpinlockAcquire(&g_MessageBufferInformation[Index].BufferLock, &OldIRQL);
     }
 
     //
@@ -439,22 +439,22 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
     //
     if (Priority)
     {
-        if (MessageBufferInformation[Index].CurrentIndexToWritePriority > MaximumPacketsCapacityPriority - 1)
+        if (g_MessageBufferInformation[Index].CurrentIndexToWritePriority > MaximumPacketsCapacityPriority - 1)
         {
             //
             // start from the beginning
             //
-            MessageBufferInformation[Index].CurrentIndexToWritePriority = 0;
+            g_MessageBufferInformation[Index].CurrentIndexToWritePriority = 0;
         }
     }
     else
     {
-        if (MessageBufferInformation[Index].CurrentIndexToWrite > MaximumPacketsCapacity - 1)
+        if (g_MessageBufferInformation[Index].CurrentIndexToWrite > MaximumPacketsCapacity - 1)
         {
             //
             // start from the beginning
             //
-            MessageBufferInformation[Index].CurrentIndexToWrite = 0;
+            g_MessageBufferInformation[Index].CurrentIndexToWrite = 0;
         }
     }
 
@@ -465,11 +465,11 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
 
     if (Priority)
     {
-        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+        Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddressPriority + (g_MessageBufferInformation[Index].CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
     }
     else
     {
-        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+        Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddress + (g_MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))));
     }
 
     //
@@ -490,28 +490,28 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
 
     if (Priority)
     {
-        SavingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        SavingBuffer = (PVOID)((UINT64)g_MessageBufferInformation[Index].BufferStartAddressPriority + (g_MessageBufferInformation[Index].CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
     }
     else
     {
-        SavingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        SavingBuffer = (PVOID)((UINT64)g_MessageBufferInformation[Index].BufferStartAddress + (g_MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
     }
 
     //
     // Copy the buffer
     //
-    RtlCopyBytes(SavingBuffer, Buffer, BufferLength);
+    PlatformWriteMemory(SavingBuffer, Buffer, BufferLength);
 
     //
     // Increment the next index to write
     //
     if (Priority)
     {
-        MessageBufferInformation[Index].CurrentIndexToWritePriority = MessageBufferInformation[Index].CurrentIndexToWritePriority + 1;
+        g_MessageBufferInformation[Index].CurrentIndexToWritePriority = g_MessageBufferInformation[Index].CurrentIndexToWritePriority + 1;
     }
     else
     {
-        MessageBufferInformation[Index].CurrentIndexToWrite = MessageBufferInformation[Index].CurrentIndexToWrite + 1;
+        g_MessageBufferInformation[Index].CurrentIndexToWrite = g_MessageBufferInformation[Index].CurrentIndexToWrite + 1;
     }
 
     //
@@ -531,7 +531,7 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
         //
         // Insert dpc to queue
         //
-        KeInsertQueueDpc(&g_GlobalNotifyRecord->Dpc, g_GlobalNotifyRecord, NULL);
+        PlatformDpcInsertQueueDpc(&g_GlobalNotifyRecord->Dpc, g_GlobalNotifyRecord, NULL);
 
         //
         // set notify routine to null
@@ -545,14 +545,14 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
     //
     if (IsVmxRoot)
     {
-        SpinlockUnlock(&VmxRootLoggingLock);
+        SpinlockUnlock(&g_VmxRootLoggingLock);
     }
     else
     {
         //
         // Release the lock
         //
-        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+        PlatformSpinlockRelease(&g_MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 
     return TRUE;
@@ -586,7 +586,7 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         //
         // Acquire the lock
         //
-        SpinlockLock(&VmxRootLoggingLock);
+        SpinlockLock(&g_VmxRootLoggingLock);
     }
     else
     {
@@ -598,19 +598,19 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         //
         // Acquire the lock
         //
-        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
+        PlatformSpinlockAcquire(&g_MessageBufferInformation[Index].BufferLock, &OldIRQL);
     }
 
     //
     // We have iterate through the all indexes
     //
-    for (size_t i = 0; i < MaximumPacketsCapacity; i++)
+    for (SIZE_T i = 0; i < MaximumPacketsCapacity; i++)
     {
         //
         // Compute the current buffer to read
         //
-        BUFFER_HEADER * Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress +
-                                                   (MessageBufferInformation[Index].CurrentIndexToSend *
+        BUFFER_HEADER * Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddress +
+                                                   (g_MessageBufferInformation[Index].CurrentIndexToSend *
                                                     (PacketChunkSize + sizeof(BUFFER_HEADER))));
 
         if (!Header->Valid)
@@ -625,14 +625,14 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
             //
             if (IsVmxRoot)
             {
-                SpinlockUnlock(&VmxRootLoggingLock);
+                SpinlockUnlock(&g_VmxRootLoggingLock);
             }
             else
             {
                 //
                 // Release the lock
                 //
-                KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+                PlatformSpinlockRelease(&g_MessageBufferInformation[Index].BufferLock, OldIRQL);
             }
 
             return ResultsOfBuffersSetToRead;
@@ -646,7 +646,7 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         //
         // Second, save the buffer contents
         //
-        PVOID SendingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        PVOID SendingBuffer = (PVOID)((UINT64)g_MessageBufferInformation[Index].BufferStartAddress + (g_MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
 
         //
         // Finally, set the current index to invalid as we sent it
@@ -658,21 +658,21 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         // there might be multiple messages on the start of the queue that didn't read yet)
         // we don't free the header
         //
-        RtlZeroMemory(SendingBuffer, Header->BufferLength);
+        PlatformZeroMemory(SendingBuffer, Header->BufferLength);
 
         //
         // Check to see whether we passed the index or not
         //
-        if (MessageBufferInformation[Index].CurrentIndexToSend > MaximumPacketsCapacity - 2)
+        if (g_MessageBufferInformation[Index].CurrentIndexToSend > MaximumPacketsCapacity - 2)
         {
-            MessageBufferInformation[Index].CurrentIndexToSend = 0;
+            g_MessageBufferInformation[Index].CurrentIndexToSend = 0;
         }
         else
         {
             //
             // Increment the next index to read
             //
-            MessageBufferInformation[Index].CurrentIndexToSend = MessageBufferInformation[Index].CurrentIndexToSend + 1;
+            g_MessageBufferInformation[Index].CurrentIndexToSend = g_MessageBufferInformation[Index].CurrentIndexToSend + 1;
         }
     }
 
@@ -682,14 +682,14 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
     //
     if (IsVmxRoot)
     {
-        SpinlockUnlock(&VmxRootLoggingLock);
+        SpinlockUnlock(&g_VmxRootLoggingLock);
     }
     else
     {
         //
         // Release the lock
         //
-        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+        PlatformSpinlockRelease(&g_MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 
     return ResultsOfBuffersSetToRead;
@@ -725,7 +725,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         // Acquire the lock
         //
-        SpinlockLock(&VmxRootLoggingLock);
+        SpinlockLock(&g_VmxRootLoggingLock);
     }
     else
     {
@@ -737,7 +737,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         // Acquire the lock
         //
-        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
+        PlatformSpinlockAcquire(&g_MessageBufferInformation[Index].BufferLock, &OldIRQL);
     }
 
     //
@@ -748,14 +748,14 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // Check for priority message
     //
-    Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddressPriority + (g_MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
 
     if (!Header->Valid)
     {
         //
         // Check for regular message
         //
-        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+        Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddress + (g_MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
 
         if (!Header->Valid)
         {
@@ -769,14 +769,14 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
             //
             if (IsVmxRoot)
             {
-                SpinlockUnlock(&VmxRootLoggingLock);
+                SpinlockUnlock(&g_VmxRootLoggingLock);
             }
             else
             {
                 //
                 // Release the lock
                 //
-                KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+                PlatformSpinlockRelease(&g_MessageBufferInformation[Index].BufferLock, OldIRQL);
             }
 
             return FALSE;
@@ -794,7 +794,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // First copy the header
     //
-    RtlCopyBytes(BufferToSaveMessage, &Header->OperationNumber, sizeof(UINT32));
+    PlatformWriteMemory(BufferToSaveMessage, &Header->OperationNumber, sizeof(UINT32));
 
     //
     // Second, save the buffer contents
@@ -803,11 +803,11 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
 
     if (PriorityMessageIsAvailable)
     {
-        SendingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        SendingBuffer = (PVOID)((UINT64)g_MessageBufferInformation[Index].BufferStartAddressPriority + (g_MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
     }
     else
     {
-        SendingBuffer = (PVOID)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+        SendingBuffer = (PVOID)((UINT64)g_MessageBufferInformation[Index].BufferStartAddress + (g_MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
     }
 
     //
@@ -815,7 +815,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     PVOID SavingAddress = (PVOID)((UINT64)BufferToSaveMessage + sizeof(UINT32));
 
-    RtlCopyBytes(SavingAddress, SendingBuffer, Header->BufferLength);
+    PlatformWriteMemory(SavingAddress, SendingBuffer, Header->BufferLength);
 
 #if ShowMessagesOnDebugger
 
@@ -830,21 +830,21 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         if (Header->BufferLength > DbgPrintLimitation)
         {
-            for (size_t i = 0; i <= Header->BufferLength / DbgPrintLimitation; i++)
+            for (SIZE_T i = 0; i <= Header->BufferLength / DbgPrintLimitation; i++)
             {
                 if (i != 0)
                 {
-                    DbgPrint("%s", (char *)((UINT64)SendingBuffer + (DbgPrintLimitation * i) - 2));
+                    PlatformDbgPrint("%s", (CHAR *)((UINT64)SendingBuffer + (DbgPrintLimitation * i) - 2));
                 }
                 else
                 {
-                    DbgPrint("%s", (char *)((UINT64)SendingBuffer + (DbgPrintLimitation * i)));
+                    PlatformDbgPrint("%s", (CHAR *)((UINT64)SendingBuffer + (DbgPrintLimitation * i)));
                 }
             }
         }
         else
         {
-            DbgPrint("%s", (char *)SendingBuffer);
+            PlatformDbgPrint("%s", (CHAR *)SendingBuffer);
         }
     }
 #endif
@@ -864,23 +864,23 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     // there might be multiple messages on the start of the queue that didn't read yet)
     // we don't free the header
     //
-    RtlZeroMemory(SendingBuffer, Header->BufferLength);
+    PlatformZeroMemory(SendingBuffer, Header->BufferLength);
 
     if (PriorityMessageIsAvailable)
     {
         //
         // Check to see whether we passed the index or not
         //
-        if (MessageBufferInformation[Index].CurrentIndexToSendPriority > MaximumPacketsCapacityPriority - 2)
+        if (g_MessageBufferInformation[Index].CurrentIndexToSendPriority > MaximumPacketsCapacityPriority - 2)
         {
-            MessageBufferInformation[Index].CurrentIndexToSendPriority = 0;
+            g_MessageBufferInformation[Index].CurrentIndexToSendPriority = 0;
         }
         else
         {
             //
             // Increment the next index to read
             //
-            MessageBufferInformation[Index].CurrentIndexToSendPriority = MessageBufferInformation[Index].CurrentIndexToSendPriority + 1;
+            g_MessageBufferInformation[Index].CurrentIndexToSendPriority = g_MessageBufferInformation[Index].CurrentIndexToSendPriority + 1;
         }
     }
     else
@@ -888,16 +888,16 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         // Check to see whether we passed the index or not
         //
-        if (MessageBufferInformation[Index].CurrentIndexToSend > MaximumPacketsCapacity - 2)
+        if (g_MessageBufferInformation[Index].CurrentIndexToSend > MaximumPacketsCapacity - 2)
         {
-            MessageBufferInformation[Index].CurrentIndexToSend = 0;
+            g_MessageBufferInformation[Index].CurrentIndexToSend = 0;
         }
         else
         {
             //
             // Increment the next index to read
             //
-            MessageBufferInformation[Index].CurrentIndexToSend = MessageBufferInformation[Index].CurrentIndexToSend + 1;
+            g_MessageBufferInformation[Index].CurrentIndexToSend = g_MessageBufferInformation[Index].CurrentIndexToSend + 1;
         }
     }
 
@@ -907,14 +907,14 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     if (IsVmxRoot)
     {
-        SpinlockUnlock(&VmxRootLoggingLock);
+        SpinlockUnlock(&g_VmxRootLoggingLock);
     }
     else
     {
         //
         // Release the lock
         //
-        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+        PlatformSpinlockRelease(&g_MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 
     return TRUE;
@@ -950,11 +950,11 @@ LogCheckForNewMessage(BOOLEAN IsVmxRoot, BOOLEAN Priority)
 
     if (Priority)
     {
-        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+        Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddressPriority + (g_MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
     }
     else
     {
-        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+        Header = (BUFFER_HEADER *)((UINT64)g_MessageBufferInformation[Index].BufferStartAddress + (g_MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
     }
 
     if (!Header->Valid)
@@ -988,17 +988,17 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
                                                BOOLEAN      IsImmediateMessage,
                                                BOOLEAN      ShowCurrentSystemTime,
                                                BOOLEAN      Priority,
-                                               const char * Fmt,
+                                               const CHAR * Fmt,
                                                va_list      ArgList)
 {
-    int     SprintfResult;
-    size_t  WrittenSize;
+    INT32   SprintfResult;
+    SIZE_T  WrittenSize;
     BOOLEAN IsVmxRootMode;
     BOOLEAN Result         = FALSE; // by default, we assume error happens
-    char *  LogMessage     = NULL;
-    char *  TempMessage    = NULL;
-    char    TimeBuffer[20] = {0};
-    ULONG   CurrentCore    = KeGetCurrentProcessorNumberEx(NULL);
+    CHAR *  LogMessage     = NULL;
+    CHAR *  TempMessage    = NULL;
+    CHAR    TimeBuffer[20] = {0};
+    ULONG   CurrentCore    = PlatformCpuGetCurrentProcessorNumber();
 
     //
     // Set Vmx State
@@ -1011,8 +1011,8 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     //
     if (IsVmxRootMode)
     {
-        LogMessage  = &VmxLogMessage[CurrentCore * PacketChunkSize];
-        TempMessage = &VmxTempMessage[CurrentCore * PacketChunkSize];
+        LogMessage  = &g_VmxLogMessage[CurrentCore * PacketChunkSize];
+        TempMessage = &g_VmxTempMessage[CurrentCore * PacketChunkSize];
     }
     else
     {
@@ -1069,9 +1069,9 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         //
         TIME_FIELDS   TimeFields;
         LARGE_INTEGER SystemTime, LocalTime;
-        KeQuerySystemTime(&SystemTime);
-        ExSystemTimeToLocalTime(&SystemTime, &LocalTime);
-        RtlTimeToTimeFields(&LocalTime, &TimeFields);
+        PlatformTimeQuerySystemTime(&SystemTime);
+        PlatformTimeConvertToLocalTime(&SystemTime, &LocalTime);
+        PlatformTimeConvertToTimeFields(&LocalTime, &TimeFields);
 
         //
         // We won't use this because we can't use in any IRQL
@@ -1179,7 +1179,7 @@ LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
                                         BOOLEAN      IsImmediateMessage,
                                         BOOLEAN      ShowCurrentSystemTime,
                                         BOOLEAN      Priority,
-                                        const char * Fmt,
+                                        const CHAR * Fmt,
                                         ...)
 {
     va_list ArgList;
@@ -1275,7 +1275,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
             // Set the index
             //
             Index = 1;
-            SpinlockLock(&VmxRootLoggingLockForNonImmBuffers);
+            SpinlockLock(&g_VmxRootLoggingLockForNonImmBuffers);
         }
         else
         {
@@ -1287,7 +1287,7 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
             //
             // Acquire the lock
             //
-            KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLockForNonImmMessage, &OldIRQL);
+            PlatformSpinlockAcquire(&g_MessageBufferInformation[Index].BufferLockForNonImmMessage, &OldIRQL);
         }
         //
         // Set the result to True
@@ -1297,50 +1297,50 @@ LogCallbackSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, 
         //
         // If log message WrittenSize is above the buffer then we have to send the previous buffer
         //
-        if ((MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer + BufferLen) > PacketChunkSize - 1 && MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer != 0)
+        if ((g_MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer + BufferLen) > PacketChunkSize - 1 && g_MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer != 0)
         {
             //
             // Send the previous buffer (non-immediate message),
             // accumulated messages don't have priority
             //
             Result = LogCallbackSendBuffer(OPERATION_LOG_NON_IMMEDIATE_MESSAGE,
-                                           (PVOID)MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage,
-                                           MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer,
+                                           (PVOID)g_MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage,
+                                           g_MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer,
                                            FALSE);
 
             //
             // Free the immediate buffer
             //
-            MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer = 0;
-            RtlZeroMemory((void *)MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage, PacketChunkSize);
+            g_MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer = 0;
+            PlatformZeroMemory((PVOID)g_MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage, PacketChunkSize);
         }
 
         //
         // We have to save the message
         //
-        RtlCopyBytes((void *)(MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage +
-                              MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer),
-                     LogMessage,
-                     BufferLen);
+        PlatformWriteMemory((PVOID)(g_MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage +
+                                    g_MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer),
+                            LogMessage,
+                            BufferLen);
 
         //
         // add the length
         //
-        MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer += BufferLen;
+        g_MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer += BufferLen;
 
         // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
         // if not we use the windows spinlock
         //
         if (IsVmxRootMode)
         {
-            SpinlockUnlock(&VmxRootLoggingLockForNonImmBuffers);
+            SpinlockUnlock(&g_VmxRootLoggingLockForNonImmBuffers);
         }
         else
         {
             //
             // Release the lock
             //
-            KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLockForNonImmMessage, OldIRQL);
+            PlatformSpinlockRelease(&g_MessageBufferInformation[Index].BufferLockForNonImmMessage, OldIRQL);
         }
 
         return Result;
@@ -1390,18 +1390,18 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
             //
             if (!(Irp->CurrentLocation <= Irp->StackCount + 1))
             {
-                DbgPrint("Err, probably two or more functions called DPC for an object");
+                PlatformDbgPrint("Err, probably two or more functions called DPC for an object");
                 return;
             }
 
-            IrpSp         = IoGetCurrentIrpStackLocation(Irp);
+            IrpSp         = PlatformIoGetCurrentIrpStackLocation(Irp);
             InBuffLength  = IrpSp->Parameters.DeviceIoControl.InputBufferLength;
             OutBuffLength = IrpSp->Parameters.DeviceIoControl.OutputBufferLength;
 
             if (!InBuffLength || !OutBuffLength)
             {
                 Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;
-                IoCompleteRequest(Irp, IO_NO_INCREMENT);
+                PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
                 break;
             }
 
@@ -1428,14 +1428,14 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
                 // we have to return here as there is nothing to send here
                 //
                 Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;
-                IoCompleteRequest(Irp, IO_NO_INCREMENT);
+                PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
                 break;
             }
 
             Irp->IoStatus.Information = Length;
 
             Irp->IoStatus.Status = STATUS_SUCCESS;
-            IoCompleteRequest(Irp, IO_NO_INCREMENT);
+            PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
         }
         break;
 
@@ -1443,12 +1443,12 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
         //
         // Signal the Event created in user-mode.
         //
-        KeSetEvent(NotifyRecord->Message.Event, 0, FALSE);
+        PlatformEventSet(NotifyRecord->Message.Event, 0, FALSE);
 
         //
         // Dereference the object as we are done with it.
         //
-        ObDereferenceObject(NotifyRecord->Message.Event);
+        PlatformObjectDereference(NotifyRecord->Message.Event);
 
         break;
 
@@ -1488,7 +1488,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
 
     if (g_GlobalNotifyRecord == NULL)
     {
-        IrpStack      = IoGetCurrentIrpStackLocation(Irp);
+        IrpStack      = PlatformIoGetCurrentIrpStackLocation(Irp);
         RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
         //
@@ -1505,12 +1505,12 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
         NotifyRecord->Type               = IRP_BASED;
         NotifyRecord->Message.PendingIrp = Irp;
 
-        KeInitializeDpc(&NotifyRecord->Dpc,        // Dpc
-                        LogNotifyUsermodeCallback, // DeferredRoutine
-                        NotifyRecord               // DeferredContext
+        PlatformDpcInitialize(&NotifyRecord->Dpc,        // Dpc
+                              LogNotifyUsermodeCallback, // DeferredRoutine
+                              NotifyRecord               // DeferredContext
         );
 
-        IoMarkIrpPending(Irp);
+        PlatformIoMarkIrpPending(Irp);
 
         //
         // check for new message (for both Vmx-root mode or Vmx non root-mode)
@@ -1527,7 +1527,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
             //
             // Insert dpc to queue
             //
-            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
         else if (LogCheckForNewMessage(TRUE, TRUE))
         {
@@ -1538,7 +1538,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
             //
             // Insert dpc to queue
             //
-            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
         else if (LogCheckForNewMessage(FALSE, FALSE))
         {
@@ -1550,7 +1550,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
             //
             // Insert dpc to queue
             //
-            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
         else if (LogCheckForNewMessage(TRUE, FALSE))
         {
@@ -1561,7 +1561,7 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
             //
             // Insert dpc to queue
             //
-            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
         else
         {
@@ -1599,7 +1599,7 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
     PIRP                    Irp = (PIRP)TargetIrp;
 
-    IrpStack      = IoGetCurrentIrpStackLocation(Irp);
+    IrpStack      = PlatformIoGetCurrentIrpStackLocation(Irp);
     RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
     //
@@ -1609,31 +1609,31 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
 
     if (NULL == NotifyRecord)
     {
-        DbgPrint("Err, unable to allocate memory for notify record\n");
+        PlatformDbgPrint("Err, unable to allocate memory for notify record\n");
         return FALSE;
     }
 
     NotifyRecord->Type = EVENT_BASED;
 
-    KeInitializeDpc(&NotifyRecord->Dpc,        // Dpc
-                    LogNotifyUsermodeCallback, // DeferredRoutine
-                    NotifyRecord               // DeferredContext
+    PlatformDpcInitialize(&NotifyRecord->Dpc,        // Dpc
+                          LogNotifyUsermodeCallback, // DeferredRoutine
+                          NotifyRecord               // DeferredContext
     );
 
     //
     // Get the object pointer from the handle
     // Note we must be in the context of the process that created the handle
     //
-    Status = ObReferenceObjectByHandle(RegisterEvent->hEvent,
-                                       SYNCHRONIZE | EVENT_MODIFY_STATE,
-                                       *ExEventObjectType,
-                                       Irp->RequestorMode,
-                                       &NotifyRecord->Message.Event,
-                                       NULL);
+    Status = PlatformObjectReferenceByHandle(RegisterEvent->hEvent,
+                                             SYNCHRONIZE | EVENT_MODIFY_STATE,
+                                             *ExEventObjectType,
+                                             Irp->RequestorMode,
+                                             &NotifyRecord->Message.Event,
+                                             NULL);
 
     if (!NT_SUCCESS(Status))
     {
-        DbgPrint("Err, unable to reference user mode event object, status = 0x%x\n", Status);
+        PlatformDbgPrint("Err, unable to reference user mode event object, status = 0x%x\n", Status);
         PlatformMemFreePool(NotifyRecord);
         return FALSE;
     }
@@ -1641,7 +1641,7 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
     //
     // Insert dpc to the queue
     //
-    KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+    PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
 
     return TRUE;
 }

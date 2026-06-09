@@ -60,7 +60,7 @@ class DebuggerPacketInterpreter(
     val receivingData = Input(UInt(instanceInfo.bramDataWidth.W)) // data to be received in interpreter
 
     //
-    // Sending singals
+    // Sending signals
     //
     val beginSendingBuffer = Output(Bool()) // should sender start sending buffers or not?
     val noNewDataSender = Output(Bool()) // should sender finish sending buffers or not?

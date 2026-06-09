@@ -11,42 +11,89 @@
  */
 #pragma once
 
-#pragma warning(disable : 4201) // Suppress nameless struct/union warning
+#ifdef _WIN32 // Windows
+
+#    pragma warning(disable : 4201) // Suppress nameless struct/union warning
+
+#endif
 
 //////////////////////////////////////////////////
 //               Basic Datatypes                //
 //////////////////////////////////////////////////
 
 typedef unsigned long long QWORD;
-typedef unsigned __int64   UINT64, *PUINT64;
-typedef unsigned long      DWORD;
 typedef int                BOOL;
-typedef unsigned char      BYTE;
-typedef unsigned short     WORD;
-typedef int                INT;
-typedef unsigned int       UINT;
-typedef unsigned int *     PUINT;
-typedef unsigned __int64   ULONG64, *PULONG64;
-typedef unsigned __int64   DWORD64, *PDWORD64;
-typedef char               CHAR;
-typedef wchar_t            WCHAR;
-#define VOID void
 
-typedef unsigned char  UCHAR;
+typedef short SHORT;
+typedef long  LONG;
+
 typedef unsigned short USHORT;
 typedef unsigned long  ULONG;
 
-typedef UCHAR     BOOLEAN;  // winnt
-typedef BOOLEAN * PBOOLEAN; // winnt
+typedef char          CHAR;
+typedef unsigned char UCHAR;
+typedef UCHAR         BOOLEAN;
+typedef BOOLEAN *     PBOOLEAN;
 
-typedef signed char      INT8, *PINT8;
-typedef signed short     INT16, *PINT16;
-typedef signed int       INT32, *PINT32;
+typedef unsigned long  DWORD;
+typedef unsigned long  ULONG;
+typedef unsigned char  BYTE;
+typedef unsigned short USHORT;
+typedef unsigned short WORD;
+typedef int            INT;
+typedef unsigned int   UINT;
+typedef unsigned int * PUINT;
+
+typedef int          INT;
+typedef signed char  INT8, *PINT8;
+typedef signed short INT16, *PINT16;
+typedef signed int   INT32, *PINT32;
+
+typedef unsigned char  UINT8, *PUINT8;
+typedef unsigned short UINT16, *PUINT16;
+typedef unsigned int   UINT32, *PUINT32;
+
+typedef void * PVOID;
+
+#ifdef _WIN32 // Windows
+
 typedef signed __int64   INT64, *PINT64;
-typedef unsigned char    UINT8, *PUINT8;
-typedef unsigned short   UINT16, *PUINT16;
-typedef unsigned int     UINT32, *PUINT32;
 typedef unsigned __int64 UINT64, *PUINT64;
+
+typedef unsigned __int64 ULONG64, *PULONG64;
+typedef unsigned __int64 DWORD64, *PDWORD64;
+
+typedef unsigned __int64 ULONG_PTR, *PULONG_PTR;
+typedef unsigned __int64 ULONGLONG;
+
+typedef wchar_t WCHAR;
+
+#elif defined(__linux__) // Linux
+
+typedef void VOID;
+
+typedef size_t SIZE_T;
+
+typedef signed long long   INT64, *PINT64;
+typedef unsigned long long UINT64, *PUINT64;
+
+typedef unsigned long long ULONG64, *PULONG64;
+typedef unsigned long long DWORD64, *PDWORD64;
+
+typedef unsigned long long ULONGLONG;
+typedef unsigned long long ULONG_PTR, *PULONG_PTR;
+
+//
+// To be fixed later, linux wchar_t is 4 bytes, but windows wchar_t is 2 bytes
+//
+// typedef UINT16  wchar_t;
+typedef UINT16 WCHAR;
+// typedef wchar_t WCHAR;
+
+typedef PVOID    HANDLE;
+typedef HANDLE * PHANDLE;
+
+#endif
 
 #define NULL_ZERO   0
 #define NULL64_ZERO 0ull
@@ -62,6 +109,12 @@ typedef unsigned __int64 UINT64, *PUINT64;
 #define LOWER_8_BITS                   0x00000000000000ff
 #define SECOND_LOWER_8_BITS            0x000000000000ff00
 #define UPPER_48_BITS_AND_LOWER_8_BITS 0xffffffffffff00ff
+
+#if defined(__linux__) // Linux
+
+#    define MAX_PATH 260
+
+#endif
 
 //
 // DO NOT FUCKING TOUCH THIS STRUCTURE WITHOUT COORDINATION WITH SINA

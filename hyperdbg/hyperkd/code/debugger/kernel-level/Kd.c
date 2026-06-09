@@ -24,7 +24,7 @@ KdInitializeKernelDebugger()
     //
     // Allocate DPC routine
     //
-    // for (size_t i = 0; i < CoreCount; i++)
+    // for (SIZE_T i = 0; i < CoreCount; i++)
     // {
     //     g_DbgState[i].KdDpcObject = PlatformMemAllocateNonPagedPool(sizeof(KDPC));
     //
@@ -246,6 +246,24 @@ KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                
 }
 
 /**
+ * @brief Query to ignore handling mov 2 debug regs exiting
+ * @param CoreId
+ *
+ * @return BOOLEAN whether it's activated or not
+ */
+BOOLEAN
+KdQueryIgnoreHandlingMov2DebugRegs(UINT32 CoreId)
+{
+    //
+    // Handle access to debug registers, if we should not ignore it, it is
+    // because on detecting thread scheduling we ignore the hardware debug
+    // registers modifications
+    //
+    return KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(CoreId,
+                                                                     DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION);
+}
+
+/**
  * @brief calculate the checksum of received buffer from debugger
  *
  * @param Buffer
@@ -443,7 +461,7 @@ KdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLen
         //
         // Add hardware debug breakpoints on all core on vm-entry
         //
-        for (size_t i = 0; i < ProcessorsCount; i++)
+        for (SIZE_T i = 0; i < ProcessorsCount; i++)
         {
             g_DbgState[i].HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
         }
@@ -643,7 +661,7 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     // Unlock all the cores
     //
     ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         SpinlockUnlock(&g_DbgState[i].Lock);
     }
@@ -930,14 +948,14 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(PROCESSOR_DEBUGGING_STATE * DbgState)
  * @brief Tries to get the lock and won't return until successfully get the lock
  *
  * @param DbgState The state of the debugger on the current core
- * @param LONG Lock variable
+ * @param Lock The lock variable
  *
  * @return VOID
  */
 VOID
 KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile LONG * Lock)
 {
-    unsigned wait = 1;
+    UINT32 Wait = 1;
 
     //
     // *** Lock handling breaks ***
@@ -945,9 +963,9 @@ KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile
 
     while (!SpinlockTryLock(Lock))
     {
-        for (unsigned i = 0; i < wait; ++i)
+        for (UINT32 i = 0; i < Wait; ++i)
         {
-            _mm_pause();
+            CpuPause();
         }
 
         //
@@ -984,13 +1002,13 @@ KdCustomDebuggerBreakSpinlockLock(PROCESSOR_DEBUGGING_STATE * DbgState, volatile
         // clamp it to the MaxWait.
         //
 
-        if (wait * 2 > 65536)
+        if (Wait * 2 > 65536)
         {
-            wait = 65536;
+            Wait = 65536;
         }
         else
         {
-            wait = wait * 2;
+            Wait = Wait * 2;
         }
     }
 }
@@ -1076,19 +1094,57 @@ KdHandleBreakpointAndDebugBreakpointsCallback(UINT32                            
 }
 
 /**
- * @brief Handle #DBs and #BPs for kernel debugger
- * @details This function can be used in vmx-root
+ * @brief Handle NMI state for MTF
+ * @param DbgState The state of the debugger on the current core
  *
- * @param CoreId
+ * @details This function should be called in vmx-root mode
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckAndHandleNmiStateForMtf(PROCESSOR_DEBUGGING_STATE * DbgState)
+{
+    BOOLEAN Result = FALSE;
+
+    if (DbgState->NmiState.WaitingToBeLocked)
+    {
+        //
+        // The NMI wait is handled here
+        //
+        Result = TRUE;
+
+        //
+        // Handle break of the core
+        //
+        if (DbgState->NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            //
+            // Handle it like an NMI is received from VMX root
+            //
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(DbgState);
+        }
+        else
+        {
+            //
+            // Handle halt of the current core as an NMI
+            //
+            KdHandleNmi(DbgState);
+        }
+    }
+
+    return Result;
+}
+
+/**
+ * @brief Handle instrumentation step-in for kernel debugger
+ * @details This function will be called from vmx-root mode
+ *
+ * @param DbgState The state of the debugger on the current core
  *
  * @return VOID
  */
-_Use_decl_annotations_
 VOID
-KdHandleRegisteredMtfCallback(UINT32 CoreId)
+KdHandleInstrumentationStepIn(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
-
     //
     // Check for tracing instructions
     //
@@ -1107,7 +1163,7 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
         //
         UINT64                           CsSel         = NULL64_ZERO;
         DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
-        UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(CoreId);
+        UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
         //
         // Check if the cs selector changed or not, which indicates that the
@@ -1142,6 +1198,82 @@ KdHandleRegisteredMtfCallback(UINT32 CoreId)
                                                   &TargetContext);
         }
     }
+}
+
+/**
+ * @brief Handle Monitor Trap Flag (MTF) callback for kernel debugger
+ * @details This function will be called from vmx-root mode
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdHandleMtfCallback(UINT32 CoreId)
+{
+    PROCESSOR_DEBUGGING_STATE * DbgState     = &g_DbgState[CoreId];
+    BOOLEAN                     IsMtfHandled = FALSE;
+
+    //
+    // *** Check if we need to re-apply a breakpoint or not
+    // We check it separately because the guest might step
+    // instructions on an MTF so we want to check for the step too ***
+    //
+    if (BreakpointCheckAndHandleReApplyingBreakpoint(DbgState))
+    {
+        //
+        // Check for re-enabling external interrupts
+        //
+        VmFuncEnableAndCheckForPreviousExternalInterrupts(DbgState->CoreId);
+
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+    }
+
+    //
+    // *** Check for instrumentation step-in ***
+    //
+    if (VmFuncQueryInstrumentationStepInState(DbgState->CoreId))
+    {
+        //
+        // Unset the MTF instrumentation state (might be changed in the caller)
+        //
+        VmFuncUnsetInstrumentationStepInState(DbgState->CoreId);
+
+        //
+        // Handle MTF in the debugger
+        //
+        KdHandleInstrumentationStepIn(DbgState);
+
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+    }
+
+    //
+    // check the condition of passing the execution to NMIs
+    //
+    // This one wastes one week of my life!
+    // During the testing we realized the !epthook command in Debugger Mode
+    // is not working. After some tests, it's because if in the middle of a
+    // command in vmx-root and NMI is sent and the debugger waits for another
+    // MTF, we'll ignore that MTF and a new MTF is not set again.
+    // That's why we moved this check here so every command that needs a task
+    // from MTF is doing its tasks and when we reached here, the check for halting
+    // the debuggee in MTF is performed
+    //
+    else if (KdCheckAndHandleNmiStateForMtf(DbgState))
+    {
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+    }
+
+    return IsMtfHandled;
 }
 
 /**
@@ -1256,49 +1388,6 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
 }
 
 /**
- * @brief Handle NMI vm-exits
- * @param CoreId
- *
- * @details This function should be called in vmx-root mode
- * @return BOOLEAN
- */
-_Use_decl_annotations_
-BOOLEAN
-KdCheckAndHandleNmiCallback(UINT32 CoreId)
-{
-    BOOLEAN                     Result   = FALSE;
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
-
-    if (DbgState->NmiState.WaitingToBeLocked)
-    {
-        //
-        // The NMI wait is handled here
-        //
-        Result = TRUE;
-
-        //
-        // Handle break of the core
-        //
-        if (DbgState->NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-        {
-            //
-            // Handle it like an NMI is received from VMX root
-            //
-            KdHandleHaltsWhenNmiReceivedFromVmxRoot(DbgState);
-        }
-        else
-        {
-            //
-            // Handle halt of the current core as an NMI
-            //
-            KdHandleNmi(DbgState);
-        }
-    }
-
-    return Result;
-}
-
-/**
  * @brief Handle NMI Vm-exits
  * @param DbgState The state of the debugger on the current core
  *
@@ -1365,9 +1454,9 @@ KdGuaranteedStepInstruction(PROCESSOR_DEBUGGING_STATE * DbgState)
     DbgState->InstrumentationStepInTrace.CsSel = (UINT16)CsSel;
 
     //
-    // Set an indicator of a break in the case of an MTF
+    // Set an indicator of instrumentation step-in MTF
     //
-    VmFuncRegisterMtfBreak(DbgState->CoreId);
+    VmFuncSetInstrumentationStepInState(DbgState->CoreId);
 
     //
     // Not unset MTF again
@@ -1560,7 +1649,7 @@ KdQueryRflagTrapState()
             g_TrapFlagState.NumberOfItems,
             g_TrapFlagState.NumberOfItems);
 
-    for (size_t i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
+    for (SIZE_T i = 0; i < MAXIMUM_NUMBER_OF_THREAD_INFORMATION_FOR_TRAPS; i++)
     {
         LogInfo("g_TrapFlagState.ThreadInformation[%d].ProcessId = %x | ThreadId = %x",
                 i,
@@ -1584,7 +1673,7 @@ KdCheckAllCoresAreLocked()
     //
     // Query core debugging Lock info
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (!SpinlockCheckLock(&g_DbgState[i].Lock))
         {
@@ -1647,7 +1736,7 @@ KdQuerySystemState()
     //
     Log("================================================ Debugging Lock Info ================================================\n");
 
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (SpinlockCheckLock(&g_DbgState[i].Lock))
         {
@@ -1665,7 +1754,7 @@ KdQuerySystemState()
     //
     Log("\n================================================ NMI Receiver State =======+=========================================\n");
 
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (g_DbgState[i].NmiState.NmiCalledInVmxRootRelatedToHaltDebuggee)
         {
@@ -2186,7 +2275,8 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
     PSMI_OPERATION_PACKETS                              SmiOperationPacket;
-    PHYPERTRACE_OPERATION_PACKETS                       HyperTraceOperationPacket;
+    PHYPERTRACE_LBR_DUMP_PACKETS                        HyperTraceLbrdumpPacket;
+    PHYPERTRACE_PT_OPERATION_PACKETS                    HyperTracePtOperationPacket;
     PDEBUGGER_APIC_REQUEST                              ApicPacket;
     PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS         IdtEntryPacket;
     PDEBUGGER_PAGE_IN_REQUEST                           PageinPacket;
@@ -2902,22 +2992,41 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
 
                 break;
 
-            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_OPERATION:
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_LBR_DUMP:
 
-                HyperTraceOperationPacket = (HYPERTRACE_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
-
-                //
-                // Perform the HyperTrace operations (it's in vmx-root)
-                //
-                HyperTracePerformOperation(HyperTraceOperationPacket, TRUE);
+                HyperTraceLbrdumpPacket = (HYPERTRACE_LBR_DUMP_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Send the result of the HyperTrace back to the debuggee
+                // Perform the HyperTrace LBR dump (it's in vmx-root)
+                //
+                HyperTraceLbrPerformDump(HyperTraceLbrdumpPacket);
+
+                //
+                // Send the result of the HyperTrace LBR dump back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_OPERATION_REQUESTS,
-                                           (CHAR *)HyperTraceOperationPacket,
-                                           SIZEOF_HYPERTRACE_OPERATION_PACKETS);
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_LBR_DUMP_REQUESTS,
+                                           (CHAR *)HyperTraceLbrdumpPacket,
+                                           SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS);
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_PT_OPERATION:
+
+                HyperTracePtOperationPacket = (HYPERTRACE_PT_OPERATION_PACKETS *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the HyperTrace PT operations (it's in vmx-root)
+                //
+                HyperTracePtPerformOperation(HyperTracePtOperationPacket);
+
+                //
+                // Send the result of the HyperTrace PT back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_HYPERTRACE_PT_OPERATION_REQUESTS,
+                                           (CHAR *)HyperTracePtOperationPacket,
+                                           SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS);
 
                 break;
 

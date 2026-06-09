@@ -1581,6 +1581,49 @@ TerminateQueryDebuggerResourceMovToCr3Exiting(UINT32                            
 }
 
 /**
+ * @brief Check and modify state of save and load debug controls (DR7 and IA32_DEBUGCTLS)
+ * on exit and entry VM controls
+ *
+ * @param CoreId Core specific resource
+ * @param PassOver The pass over option
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+TerminateQueryDebuggerResourceSaveAndLoadDebugControls(UINT32                               CoreId,
+                                                       PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    UNREFERENCED_PARAMETER(PassOver);
+
+    //
+    // Check if debug register load and save on entry and exit controls are needed for thread interception
+    //
+    if (ThreadQueryDebugRegisterInterceptionStateByCoreId(CoreId))
+    {
+        //
+        // We should ignore it as we want this to interception of thread to work
+        //
+        return TRUE;
+    }
+
+    //
+    // Query the hypertrace project about this controls since there might be using this load and save controls
+    //
+    if (HyperTraceLbrQueryStateOfLbrSaveAndLoadVmExitAndEntryControls(CoreId))
+    {
+        //
+        // We should ignore it since LBR feature of hypertrace is still using it
+        //
+        return TRUE;
+    }
+
+    //
+    // Do not terminate
+    //
+    return FALSE;
+}
+
+/**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * @details Should be called from vmx root-mode
  *
@@ -1752,6 +1795,12 @@ TerminateQueryDebuggerResource(UINT32                               CoreId,
     case PROTECTED_HV_RESOURCES_MOV_TO_CR3_EXITING:
 
         Result = TerminateQueryDebuggerResourceMovToCr3Exiting(CoreId, PassOver);
+
+        break;
+
+    case PROTECTED_HV_RESOURCES_SAVE_AND_LOAD_DEBUG_CONTROLS:
+
+        Result = TerminateQueryDebuggerResourceSaveAndLoadDebugControls(CoreId, PassOver);
 
         break;
 

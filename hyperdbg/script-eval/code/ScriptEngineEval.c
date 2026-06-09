@@ -734,17 +734,74 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
 
         ScriptEngineFunctionPause(ActionDetail,
                                   GuestRegs);
-        break;
-
-    case FUNC_LBR_START:
-
-        ScriptEngineFunctionLbrStart();
 
         break;
 
-    case FUNC_LBR_STOP:
+    case FUNC_LBR_CHECK:
 
-        ScriptEngineFunctionLbrStop();
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionLbrCheck();
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
+    case FUNC_LBR_SAVE:
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionLbrSave();
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
+    case FUNC_LBR_PRINT:
+    case FUNC_LBR_DUMP:
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionLbrPrint();
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
+    case FUNC_LBR_RESTORE:
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionLbrRestore();
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
+
+        break;
+
+    case FUNC_LBR_RESTORE_BY_FILTER:
+
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionLbrRestoreByFilter((unsigned long long)SrcVal0);
+
+        SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
 
         break;
 

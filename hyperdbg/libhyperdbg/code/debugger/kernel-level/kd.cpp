@@ -14,12 +14,9 @@
 //
 // Global Variables
 //
-extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
-extern UINT32                g_SymbolTableSize;
-extern UINT32                g_SymbolTableCurrentIndex;
-extern HANDLE                g_SerialListeningThreadHandle;
-extern HANDLE                g_SerialRemoteComPortHandle;
-extern HANDLE                g_DebuggeeStopCommandEventHandle;
+extern HANDLE g_SerialListeningThreadHandle;
+extern HANDLE g_SerialRemoteComPortHandle;
+extern HANDLE g_DebuggeeStopCommandEventHandle;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
                                         g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
@@ -34,7 +31,8 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsKdModuleLoaded;
+extern BOOLEAN g_IsVmmModuleLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
@@ -100,7 +98,7 @@ KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
 BOOLEAN
 KdCompareBufferWithString(CHAR * Buffer, const CHAR * CompareBuffer)
 {
-    int Result;
+    INT Result;
 
     Result = strcmp(Buffer, CompareBuffer);
 
@@ -1056,36 +1054,71 @@ KdSendSmiPacketsToDebuggee(PSMI_OPERATION_PACKETS SmiOperationRequest, UINT32 Ex
 }
 
 /**
- * @brief Send requests for HyperTrace operation packet to the debuggee
+ * @brief Send requests for HyperTrace LBR dump packet to the debuggee
  *
- * @param HyperTraceOperationRequest
+ * @param HyperTraceLbrdumpRequest
  *
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendHyperTracePacketsToDebuggee(PHYPERTRACE_OPERATION_PACKETS HyperTraceOperationRequest, UINT32 ExpectedRequestSize)
+KdSendHyperTraceLbrdumpPacketsToDebuggee(PHYPERTRACE_LBR_DUMP_PACKETS HyperTraceLbrdumpRequest, UINT32 ExpectedRequestSize)
 {
     //
     // Set the request data
     //
-    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_OPERATION_RESULT, HyperTraceOperationRequest, ExpectedRequestSize);
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT, HyperTraceLbrdumpRequest, ExpectedRequestSize);
 
     //
     // Send the LBR request packets
     //
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
-            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_OPERATION,
-            (CHAR *)HyperTraceOperationRequest,
-            SIZEOF_HYPERTRACE_OPERATION_PACKETS))
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_LBR_DUMP,
+            (CHAR *)HyperTraceLbrdumpRequest,
+            SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS))
     {
         return FALSE;
     }
 
     //
-    // Wait until the result of actions to HyperTrace is received
+    // Wait until the result of actions to HyperTrace LBR is received
     //
-    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_OPERATION_RESULT);
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT);
+
+    return TRUE;
+}
+
+/**
+ * @brief Send requests for HyperTrace PT operation packet to the debuggee
+ *
+ * @param HyperTracePtOperationRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendHyperTracePtPacketsToDebuggee(PHYPERTRACE_PT_OPERATION_PACKETS HyperTracePtOperationRequest, UINT32 ExpectedRequestSize)
+{
+    //
+    // Set the request data
+    //
+    DbgWaitSetKernelRequestData(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT, HyperTracePtOperationRequest, ExpectedRequestSize);
+
+    //
+    // Send the PT request packets
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_PERFORM_HYPERTRACE_PT_OPERATION,
+            (CHAR *)HyperTracePtOperationRequest,
+            SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of actions to HyperTrace PT is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT);
 
     return TRUE;
 }
@@ -1257,7 +1290,7 @@ KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength, UINT32 P
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBreakingAgain)
+KdSendUserInputPacketToDebuggee(const CHAR * Sendbuf, INT Len, BOOLEAN IgnoreBreakingAgain)
 {
     PDEBUGGEE_USER_INPUT_PACKET UserInputPacket;
     UINT32                      SizeOfStruct = 0;
@@ -1523,7 +1556,7 @@ BOOLEAN
 KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    char   ReadData    = NULL; /* temperory Character */
+    CHAR   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
 
@@ -1613,7 +1646,7 @@ BOOLEAN
 KdReceivePacketFromDebugger(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    char   ReadData    = NULL; /* temperory Character */
+    CHAR   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
 
@@ -2138,7 +2171,7 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     // Initialize the handle table
     //
-    for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
     {
         g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
         g_KernelSyncronizationObjectsHandleTable[i].EventHandle =
@@ -2338,7 +2371,7 @@ StartAgain:
 
             // ShowMessages("the answer to the PING request is received: %s\n", ReceivedPingBuildVersionBuffer);
 
-            if (strcmp((const char *)BuildSignature, ReceivedPingBuildVersionBuffer) == 0)
+            if (strcmp((const CHAR *)BuildSignature, ReceivedPingBuildVersionBuffer) == 0)
             {
                 //
                 // Build version matched
@@ -2397,7 +2430,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
     BOOL                       Status;             /* Status */
     DCB                        SerialParams = {0}; /* Initializing DCB structure */
     COMMTIMEOUTS               Timeouts     = {0}; /* Initializing timeouts structure */
-    char                       PortNo[20]   = {0}; /* contain friendly name */
+    CHAR                       PortNo[20]   = {0}; /* contain friendly name */
     BOOLEAN                    StatusIoctl;
     ULONG                      ReturnedLength;
     PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest;
@@ -2600,7 +2633,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         //
         // Load the VMM
         //
-        if (HyperDbgInstallVmmDriver() == 1 || HyperDbgLoadVmmModule() == 1)
+        if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
             CloseHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
@@ -2620,7 +2653,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
             g_SerialRemoteComPortHandle    = NULL;
             g_IsConnectedToHyperDbgLocally = FALSE;
 
-            AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+            AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
         }
 
         //
@@ -2993,7 +3026,7 @@ KdCloseConnection()
     //
     if (g_IsSerialConnectedToRemoteDebugger)
     {
-        if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded)
+        if (g_IsConnectedToHyperDbgLocally && g_IsKdModuleLoaded)
         {
             //
             // The messages (and outputs) should no longer be passed
@@ -3069,7 +3102,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     ULONG                            ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send IOCTL
@@ -3123,7 +3156,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
     ULONG                            ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     Status =
         DeviceIoControl(g_DeviceHandle,                           // Handle to device
@@ -3180,7 +3213,7 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent, BOOLEAN SendThe
     //
     // Check if debugger is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send the request to the kernel
@@ -3434,7 +3467,7 @@ KdUninitializeConnection()
     //
     // Close synchronization objects
     //
-    for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
     {
         if (g_KernelSyncronizationObjectsHandleTable[i].EventHandle != NULL)
         {

@@ -164,7 +164,7 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_VMXOFF:
     {
-        VmxVmxoff(VCpu);
+        VmxPerformVmxoff(VCpu);
         VmcallStatus = STATUS_SUCCESS;
 
         break;
@@ -365,25 +365,25 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
     }
     case VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS:
     {
-        HvSetLoadDebugControls(TRUE);
+        HvSetLoadDebugControls(VCpu, TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS:
     {
-        HvSetLoadDebugControls(FALSE);
+        HvSetLoadDebugControls(VCpu, FALSE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS:
     {
-        HvSetSaveDebugControls(TRUE);
+        HvSetSaveDebugControls(VCpu, TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS:
     {
-        HvSetSaveDebugControls(FALSE);
+        HvSetSaveDebugControls(VCpu, FALSE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -534,9 +534,83 @@ VmxVmcallHandler(VIRTUAL_MACHINE_STATE * VCpu,
 
         break;
     }
+    case VMCALL_GET_VMCS_DEBUGCTL:
+    {
+        //
+        // Perform getting DEBUGCTL from VMCS
+        //
+        HvGetAndStoreDebugctl((UINT64 *)OptionalParam1);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_SET_VMCS_DEBUGCTL:
+    {
+        //
+        // Perform setting DEBUGCTL from VMCS
+        //
+        HvSetDebugctl(OptionalParam1);
+
+        VmcallStatus = STATUS_SUCCESS;
+
+        break;
+    }
+    case VMCALL_SET_MSR_LBR_SELECT:
+    {
+        //
+        // Perform setting MSR_LEGACY_LBR_SELECT
+        //
+        HvSetLbrSelect(OptionalParam1);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_GET_GUEST_IA32_LBR_CTL:
+    {
+        //
+        // Perform getting guest IA32_LBR_CTL from VMCS
+        //
+        HvGetAndStoreGuestIa32LbrCtl((UINT64 *)OptionalParam1);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_SET_GUEST_IA32_LBR_CTL:
+    {
+        //
+        // Perform setting guest IA32_LBR_CTL on VMCS
+        //
+        HvSetGuestIa32LbrCtl(OptionalParam1);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_SET_VM_ENTRY_LOAD_GUEST_IA32_LBR_CTL:
+    {
+        HvSetLoadGuestIa32LbrCtl(VCpu, TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_UNSET_VM_ENTRY_LOAD_GUEST_IA32_LBR_CTL:
+    {
+        HvSetLoadGuestIa32LbrCtl(VCpu, FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_SET_CLEAR_GUEST_IA32_LBR_CTL:
+    {
+        HvSetClearGuestIa32LbrCtl(VCpu, TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_UNSET_CLEAR_GUEST_IA32_LBR_CTL:
+    {
+        HvSetClearGuestIa32LbrCtl(VCpu, FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
-        LogError("Err, unsupported VMCALL");
+        LogError("Err, unsupported VMCALL (%llx)", VmcallNumber);
         VmcallStatus = STATUS_UNSUCCESSFUL;
         break;
     }

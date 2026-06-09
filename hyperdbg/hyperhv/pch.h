@@ -27,9 +27,9 @@
 //
 // Environment headers
 //
-#include "platform/kernel/header/Environment.h"
+#include "platform/general/header/Environment.h"
 
-#ifdef ENV_WINDOWS
+#ifdef HYPERDBG_ENV_WINDOWS
 
 //
 // General WDK headers
@@ -39,7 +39,7 @@
 #    include <Windef.h>
 #    include <assert.h>
 
-#endif // ENV_WINDOWS
+#endif // HYPERDBG_ENV_WINDOWS
 
 //
 // Definition of Intel primitives (External header)
@@ -61,6 +61,9 @@
 // Platform independent headers
 //
 #include "platform/kernel/header/PlatformMem.h"
+#include "platform/kernel/header/PlatformIntrinsics.h"
+#include "platform/kernel/header/PlatformBroadcast.h"
+#include "platform/kernel/header/PlatformIntrinsicsVmx.h"
 
 //
 // VMM Callbacks
@@ -91,9 +94,7 @@
 #include "vmm/vmx/VmxBroadcast.h"
 #include "memory/MemoryMapper.h"
 #include "interface/Dispatch.h"
-#include "common/Dpc.h"
 #include "common/Msr.h"
-#include "memory/PoolManager.h"
 #include "common/Trace.h"
 #include "assembly/InlineAsm.h"
 #include "vmm/ept/Vpid.h"
@@ -115,6 +116,7 @@
 #include "vmm/ept/Invept.h"
 #include "vmm/vmx/Vmcall.h"
 #include "interface/DirectVmcall.h"
+#include "vmm/vmx/CrossVmcalls.h"
 #include "vmm/vmx/Hv.h"
 #include "vmm/vmx/MsrHandlers.h"
 #include "vmm/vmx/ProtectedHv.h"
@@ -173,7 +175,7 @@
 //
 #include "SDK/modules/HyperLog.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
-#include "components/interface/HyperLogCallback.h"
+#include "components/callback/header/HyperLogCallback.h"
 
 //
 // Transparent-mode (hyperevade) headers

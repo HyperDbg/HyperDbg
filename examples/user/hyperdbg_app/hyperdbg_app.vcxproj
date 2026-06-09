@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\platform\user\header\Environment.h" />
     <ClInclude Include="header\pch.h" />
   </ItemGroup>
   <ItemGroup>

@@ -15,9 +15,6 @@
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\platform\user\header\Environment.h">
-      <Filter>header\platform</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\hyperdbg-app.cpp">

@@ -15,10 +15,10 @@
 //    Pdb Parser Wrapper (from script-engine)   //
 //////////////////////////////////////////////////
 UINT64
-ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound);
+ScriptEngineConvertNameToAddressWrapper(const CHAR * FunctionOrVariableName, PBOOLEAN WasFound);
 
 UINT32
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName, const char * CustomModuleName);
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const CHAR * PdbFileName, const CHAR * CustomModuleName);
 
 VOID
 ScriptEngineSetTextMessageCallbackWrapper(PVOID Handler);
@@ -27,10 +27,10 @@ UINT32
 ScriptEngineUnloadAllSymbolsWrapper();
 
 UINT32
-ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName);
+ScriptEngineUnloadModuleSymbolWrapper(CHAR * ModuleName);
 
 UINT32
-ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
+ScriptEngineSearchSymbolForMaskWrapper(const CHAR * SearchMask);
 
 BOOLEAN
 ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
@@ -39,31 +39,39 @@ BOOLEAN
 ScriptEngineGetDataTypeSizeWrapper(CHAR * TypeName, UINT64 * TypeSize);
 
 BOOLEAN
-ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction);
+ScriptEngineCreateSymbolTableForDisassemblerWrapper(VOID * CallbackFunction);
 
 BOOLEAN
-ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize);
+ScriptEngineConvertFileToPdbPathWrapper(const CHAR * LocalFilePath, CHAR * ResultPath, SIZE_T ResultPathSize);
 
 BOOLEAN
-ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
-                                                            char *       PdbFilePath,
-                                                            char *       GuidAndAgeDetails,
+ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const CHAR * LocalFilePath,
+                                                            CHAR *       PdbFilePath,
+                                                            CHAR *       GuidAndAgeDetails,
                                                             BOOLEAN      Is32BitModule);
+
+BOOLEAN
+ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetailsWrapper(const BYTE * LoadedImageBytes,
+                                                                    SIZE_T       LoadedImageSize,
+                                                                    const CHAR * LocalFilePath,
+                                                                    CHAR *       PdbFilePath,
+                                                                    CHAR *       GuidAndAgeDetails,
+                                                                    BOOLEAN      Is32BitModule);
 
 BOOLEAN
 ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   UINT32                StoredLength,
                                   BOOLEAN               DownloadIfAvailable,
-                                  const char *          SymbolPath,
+                                  const CHAR *          SymbolPath,
                                   BOOLEAN               IsSilentLoad);
 
 BOOLEAN
 ScriptEngineShowDataBasedOnSymbolTypesWrapper(
-    const char * TypeName,
+    const CHAR * TypeName,
     UINT64       Address,
     BOOLEAN      IsStruct,
     PVOID        BufferAddress,
-    const char * AdditionalParameters);
+    const CHAR * AdditionalParameters);
 
 VOID
 ScriptEngineSymbolAbortLoadingWrapper();
@@ -82,7 +90,7 @@ BOOLEAN
 ScriptAutomaticStatementsTestWrapper(const string & Expr, UINT64 ExpectationValue, BOOLEAN ExceptError);
 
 PVOID
-ScriptEngineParseWrapper(char * Expr, BOOLEAN ShowErrorMessageIfAny);
+ScriptEngineParseWrapper(CHAR * Expr, BOOLEAN ShowErrorMessageIfAny);
 
 VOID
 PrintSymbolBufferWrapper(PVOID SymbolBuffer);

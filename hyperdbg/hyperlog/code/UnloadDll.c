@@ -28,7 +28,7 @@ DllInitialize(
 }
 
 NTSTATUS
-DllUnload(void)
+DllUnload(VOID)
 {
     return STATUS_SUCCESS;
 }

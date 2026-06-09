@@ -4,11 +4,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0.0-beta] - 2026-06-10
+New release of the HyperDbg Debugger.
+
+### Added
+- First release of the HyperTrace module ([link](https://url.hyperdbg.org/hypertrace))
+- HyperTrace now enables/disables VM-entry/VM-exit controls for Load and Save IA32_DEBUGCTL MSR
+- Added Legacy LBR support to the HyperTrace module
+- Added Architectural LBR support to the HyperTrace module
+- Added the '!lbr' command for performing different Last Branch Record (LBR) operations ([link](https://docs.hyperdbg.org/commands/extension-commands/lbr))
+- Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdmp))
+- Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_print))
+- Added mock application for compiling SDK for Linux
+- Added '!help' alias for the '.help' command
+- Added 'vm' alias for the 'load' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
+- Added **lbr_check()** and **lbr_restore()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_check))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore))
+- Added **lbr_restore_by_filter(filter)** function in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore_by_filter))
+- Added the 'kd' module in the 'load' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
+- Added the 'trace' module in the 'load' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
+- Exported SDK API for detecting CPU vendors
+- Initial codes for the HyperTrace project by using Intel Processor Trace (PT), thanks to [@masoudrahimi01](https://github.com/masoudrahimi01) ([link](https://github.com/HyperDbg/HyperDbg/pull/589))
+- Exported SDK APIs for loading and unloading the 'kd' and the 'trace' modules
+- Exported SDK APIs for starting (installing) the 'kd' driver
+- Exported SDK APIs for loading/unloading all modules
+- Added tests for checking PE parser in 'hyperdbg-test' project
+- Added example for loading HyperDbg in VMI mode directly from libhyperdbg
+- Fix action cleanup list removal in debugger events ([link](https://github.com/HyperDbg/HyperDbg/pull/601))
+- Added transparent-mode evade mask selection thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/602))
+- Added synthetic MSR handling thanks to [@Idov31](https://github.com/Idov31) ([link](https://github.com/HyperDbg/HyperDbg/pull/605))
+- Added use of relative RSDS fixture paths when loading PDB symbols, thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/607))
+
+### Changed
+- Fix the problem of not applying the EAX index in the CPUID event extension command ([link](https://docs.hyperdbg.org/commands/extension-commands/cpuid#parameters))
+- Refactoring the IOCTL parameter checks and status routines
+- All basic types are now defined for Linux
+- VMX instructions are ported to platform-independent files to support Linux
+- All CPU-related intrinsic instructions are ported to platform-independent files to support Linux
+- HyperDbg SDK now compiles on Linux (GCC) for both user-mode and kernel-mode
+- Fix the 'wrmsr' command IOCTL checks by receiving output in the buffer ([link](https://docs.hyperdbg.org/commands/debugging-commands/wrmsr))
+- Extensive refactoring of code base (doxygen, variables, function names)
+- Building certain modules on Linux and fixing CMake files thanks to [@maxraulea](https://github.com/maxraulea) ([link](https://github.com/HyperDbg/HyperDbg/pull/592))
+- Fix the '!hide' command's HyperEvade activation guard thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/593))
+- Fix synchronous debugger device IOCTL handles thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/595))
+- PE parser ('.pe' command) now supports richer DOS/NT/COFF/optional-header output, section bounds checking, data directory reporting, import/export parsing, TLS/debug/PDB/load-config metadata, overlay reporting, and malformed metadata warnings thanks to [@jtaw5649](https://github.com/jtaw5649) ([link](https://github.com/HyperDbg/HyperDbg/pull/598))([link](https://docs.hyperdbg.org/commands/meta-commands/.pe))
+- Building the script engine module on Linux (GCC) thanks to [@maxraulea](https://github.com/maxraulea) ([link](https://github.com/HyperDbg/HyperDbg/pull/596))
+- The pool manager moved from 'hyperhv' to 'hyperkd'
+- The 'load' command could load all modules using a new alias 'load all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
+- The 'unload' command could remove all modules using two new aliases 'unload all' and 'unload remove all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/unload))
+- Change device handle checks with module loading status checks for IOCTLs ([link](https://github.com/HyperDbg/HyperDbg/pull/610))
+- Fix standard callbacks for the VMM module ([link](https://github.com/HyperDbg/HyperDbg/pull/610))
+- Fix race condition bug within the pool manager
+
 ## [0.18.1.0] - 2026-04-09
 New release of the HyperDbg Debugger.
 
 ### Added
-- Hypertrace now works with HyperDbg VMM ([link](https://github.com/HyperDbg/HyperDbg/pull/568))
+- HyperTrace now works with HyperDbg VMM ([link](https://github.com/HyperDbg/HyperDbg/pull/568))
 - Progress on implementing Last Branch Recode (LBR) ([link](https://github.com/HyperDbg/HyperDbg/commit/1dd73675e9cd78737e013ffb35bc712f385f387e))
 - Applying LBR registers on the VMCS instead of the DEBUGCTL MSR ([link](https://github.com/HyperDbg/HyperDbg/commit/15f8b3cca15448acd18d7e198740464a19ce4fe2))
 
@@ -16,14 +67,16 @@ New release of the HyperDbg Debugger.
 - Fix the problem of the '!epthook' not finding the PML1 entry ([link](https://docs.hyperdbg.org/commands/extension-commands/epthook))
 - Fix the problem of getting the PML1 entry of the target address on Intel Core Ultra processors (#567) ([link](https://github.com/HyperDbg/HyperDbg/issues/567))
 - Fix the '.clang-format' formatting error
+- Restructure of the HyperTrace project
+- Add starting structure for supporting Intel Processor Trace (PT)
 
 ## [0.18.0.0] - 2026-02-16
 New release of the HyperDbg Debugger.
 
 ### Added
 - Script engine now supports writing libraries using the '#include' keyword thanks to [@xmaple555](https://github.com/xmaple555) ([link](https://docs.hyperdbg.org/commands/scripting-language/casting-and-inclusion))([link](https://github.com/HyperDbg/HyperDbg/issues/557))([link](https://github.com/HyperDbg/HyperDbg/pull/561))
-- Initial codes for the hypertrace project by using Intel Last Branch Record (LBR) and Branch Trace Store (BTS) thanks to [@harimishal1](https://github.com/harimishal1) ([link](https://github.com/HyperDbg/HyperDbg/tree/master/hyperdbg/hypertrace))
-- The hypertrace project is now linked to the hyperkd
+- Initial codes for the HyperTrace project by using Intel Last Branch Record (LBR) and Branch Trace Store (BTS) thanks to [@harimishal1](https://github.com/harimishal1) ([link](https://github.com/HyperDbg/HyperDbg/tree/master/hyperdbg/hypertrace))
+- The HyperTrace project is now linked to the hyperkd
 - Initial efforts to port HyperDbg to Linux have started thanks to [@Alish14](https://github.com/Alish14) ([link](https://github.com/HyperDbg/HyperDbg/pull/563))
 
 ### Changed
@@ -84,7 +137,7 @@ New release of the HyperDbg Debugger.
 - Enhanced the '.pe' command to support PE Rich Headers thanks to [@Alish14](https://github.com/Alish14) ([link](https://github.com/HyperDbg/HyperDbg/pull/539))
 - Updated ia32-doc to fix VMCS PL3 SSP fields ([link](https://github.com/HyperDbg/ia32-doc))
 - Fix the terminating process issue of the '!syscall/!sysret' commands on 11 generation (Rocket Lake/Tiger Lake) and newer Intel processors ([link](https://github.com/HyperDbg/HyperDbg/issues/392))
-- Reenable the support for the '.start' command in the Debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
+- Re-enable the support for the '.start' command in the Debugger mode ([link](https://docs.hyperdbg.org/commands/meta-commands/.start))
 - The '!mode' event command is now compatible with different EPT hook commands (e.g., !epthook, !epthook2, !monitor, .start, and .restart) ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
 - The '!mode' command doesn't need allocating extra EPTPs ([link](https://docs.hyperdbg.org/commands/extension-commands/mode))
 

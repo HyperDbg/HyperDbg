@@ -30,7 +30,7 @@ DebuggerCommandReadRegisters(GUEST_REGS *                        Regs,
         //
         // Add General purpose registers
         //
-        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
+        memcpy((PVOID)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
                Regs,
                sizeof(GUEST_REGS));
 
@@ -49,7 +49,7 @@ DebuggerCommandReadRegisters(GUEST_REGS *                        Regs,
         //
         // copy at the end of ReadRegisterRequest structure
         //
-        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS)),
+        memcpy((PVOID)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS)),
                &ERegs,
                sizeof(GUEST_EXTRA_REGISTERS));
     }
@@ -357,7 +357,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Means that we should apply it on all cores
             //
-            for (size_t i = 0; i < ProcessorsCount; i++)
+            for (SIZE_T i = 0; i < ProcessorsCount; i++)
             {
                 g_DbgState[i].MsrState.Msr   = ReadOrWriteMsrRequest->Msr;
                 g_DbgState[i].MsrState.Value = ReadOrWriteMsrRequest->Value;
@@ -411,7 +411,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Means that we should apply it on all cores
             //
-            for (size_t i = 0; i < ProcessorsCount; i++)
+            for (SIZE_T i = 0; i < ProcessorsCount; i++)
             {
                 g_DbgState[i].MsrState.Msr = ReadOrWriteMsrRequest->Msr;
             }
@@ -425,7 +425,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             // When we reach here, all processors read their shits
             // so we have to fill that fucking buffer for user mode
             //
-            for (size_t i = 0; i < ProcessorsCount; i++)
+            for (SIZE_T i = 0; i < ProcessorsCount; i++)
             {
                 UserBuffer[i] = g_DbgState[i].MsrState.Value;
             }
@@ -542,7 +542,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         // Edit the memory
         //
-        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        for (SIZE_T i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
             DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
             SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
@@ -559,7 +559,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
     {
         //
-        // Check whether the physical addres
+        // Check whether the physical address
         //
         if (!CheckAddressPhysical(EditMemRequest->Address))
         {
@@ -570,7 +570,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         // Edit the physical memory
         //
-        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        for (SIZE_T i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
             DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
             SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
@@ -595,7 +595,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     }
 
     //
-    // Set the resutls
+    // Set the results
     //
     EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
@@ -659,7 +659,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         // Edit the memory
         //
-        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        for (SIZE_T i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
             DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
             SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
@@ -676,7 +676,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
     {
         //
-        // Check whether the physical addres
+        // Check whether the physical address
         //
         if (!CheckAddressPhysical(EditMemRequest->Address))
         {
@@ -687,7 +687,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         //
         // Edit the physical memory
         //
-        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        for (SIZE_T i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
             DestinationAddress = (PVOID)((UINT64)EditMemRequest->Address + (i * LengthOfEachChunk));
             SourceAddress      = (PVOID)((UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64)));
@@ -705,7 +705,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     }
 
     //
-    // Set the resutls
+    // Set the results
     //
     EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     return TRUE;
@@ -805,7 +805,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         //
         SourceAddress = (PVOID)((UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY);
 
-        for (size_t BaseIterator = (size_t)StartAddress; BaseIterator < ((UINT64)EndAddress); BaseIterator += LengthOfEachChunk)
+        for (SIZE_T BaseIterator = (SIZE_T)StartAddress; BaseIterator < ((UINT64)EndAddress); BaseIterator += LengthOfEachChunk)
         {
             //
             // *** Search the memory ***
@@ -844,7 +844,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                 // Try to check each element (we don't start from the very first element as
                 // it checked before )
                 //
-                for (size_t i = LengthOfEachChunk; i < SearchMemRequest->CountOf64Chunks; i++)
+                for (SIZE_T i = LengthOfEachChunk; i < SearchMemRequest->CountOf64Chunks; i++)
                 {
                     //
                     // I know, we have a double check here ;)
@@ -1252,7 +1252,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     // that we used aligned page addresses so the results should be checked to
     // see whether the results are between the user's entered addresses or not
     //
-    for (size_t i = 0; i < MaximumSearchResults; i++)
+    for (SIZE_T i = 0; i < MaximumSearchResults; i++)
     {
         CurrentValue = SearchResultsStorage[i];
 

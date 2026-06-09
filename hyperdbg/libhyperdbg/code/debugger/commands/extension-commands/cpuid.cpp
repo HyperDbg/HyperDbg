@@ -91,7 +91,7 @@ CommandCpuid(vector<CommandToken> CommandTokens, string Command)
         else if (!GetEax)
         {
             //
-            // It's probably an msr
+            // It's probably an index of EAX
             //
             if (!ConvertTokenToUInt64(Section, &SpecialTarget))
             {

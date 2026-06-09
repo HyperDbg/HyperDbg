@@ -87,27 +87,6 @@ VmmCallbackVmcallHandler(UINT32 CoreId,
 }
 
 /**
- * @brief routine callback to handle registered MTF
- *
- * @param CoreId
- *
- * @return VOID
- */
-VOID
-VmmCallbackRegisteredMtfHandler(UINT32 CoreId)
-{
-    if (g_Callbacks.VmmCallbackRegisteredMtfHandler == NULL)
-    {
-        //
-        // ignore it
-        //
-        return;
-    }
-
-    g_Callbacks.VmmCallbackRegisteredMtfHandler(CoreId);
-}
-
-/**
  * @brief routine callback to handle NMI requests
  *
  * @param CoreId
@@ -201,6 +180,47 @@ VmmCallbackUnhandledEptViolation(UINT32 CoreId,
 }
 
 /**
+ * @brief routine callback to handle MTF callback
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmmCallbackHandleMtfCallback(UINT32 CoreId)
+{
+    if (g_Callbacks.VmmCallbackHandleMtfCallback == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+
+    return g_Callbacks.VmmCallbackHandleMtfCallback(CoreId);
+}
+
+/**
+ * @brief routine callback to check if LBR is supported and get the LBR capacity if supported
+ *
+ * @param Capacity
+ * @param IsArchLbr
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperTraceCallbackLbrIsSupported(UINT32 * Capacity, BOOLEAN * IsArchLbr)
+{
+    if (g_Callbacks.HyperTraceCallbackLbrIsSupported == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+    return g_Callbacks.HyperTraceCallbackLbrIsSupported(Capacity, IsArchLbr);
+}
+
+/**
  * @brief routine callback to handle breakpoint exception
  *
  * @param CoreId
@@ -261,6 +281,110 @@ DebuggingCallbackCheckThreadInterception(UINT32 CoreId)
     }
 
     return g_Callbacks.DebuggingCallbackCheckThreadInterception(CoreId);
+}
+
+/**
+ * @brief routine callback to trigger on clock and IPI events for checking process or thread change
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+DebuggingCallbackTriggerOnClockAndIpiEvents(UINT32 CoreId)
+{
+    if (g_Callbacks.DebuggingCallbackTriggerOnClockAndIpiEvents == NULL)
+    {
+        //
+        // not handled by user debugger
+        //
+        return FALSE;
+    }
+    return g_Callbacks.DebuggingCallbackTriggerOnClockAndIpiEvents(CoreId);
+}
+
+/**
+ * @brief routine callback to ignore handling mov 2 debug registers
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+DebuggingCallbackIgnoreHandlingMov2DebugRegs(UINT32 CoreId)
+{
+    if (g_Callbacks.DebuggingCallbackIgnoreHandlingMov2DebugRegs == NULL)
+    {
+        //
+        // not handled by user debugger
+        //
+        return FALSE;
+    }
+    return g_Callbacks.DebuggingCallbackIgnoreHandlingMov2DebugRegs(CoreId);
+}
+
+/**
+ * @brief routine callback to request pool allocation
+ *
+ * @param Size
+ * @param Count
+ * @param Intention The intention of the buffer (buffer tag)
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+PoolManagerCallbackRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention)
+{
+    if (g_Callbacks.PoolManagerCallbackRequestAllocation == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+    return g_Callbacks.PoolManagerCallbackRequestAllocation(Size, Count, Intention);
+}
+
+/**
+ * @brief routine callback to request pool
+ *
+ * @param Intention The intention why we need this pool for (buffer tag)
+ * @param RequestNewPool Create a request to allocate a new pool with the same size, next time
+ * that it's safe to allocate (this way we never ran out of pools for this "Intention")
+ * @param Size If the RequestNewPool is true the we should specify a size for the new pool
+ *
+ * @return UINT64 Returns a pool address or returns null if there was an error
+ */
+UINT64
+PoolManagerCallbackRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size)
+{
+    if (g_Callbacks.PoolManagerCallbackRequestPool == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return 0;
+    }
+    return g_Callbacks.PoolManagerCallbackRequestPool(Intention, RequestNewPool, Size);
+}
+
+/**
+ * @brief routine callback to free pool
+ *
+ * @param AddressToFree
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+PoolManagerCallbackFreePool(UINT64 AddressToFree)
+{
+    if (g_Callbacks.PoolManagerCallbackFreePool == NULL)
+    {
+        //
+        // ignore it as it's not handled
+        //
+        return FALSE;
+    }
+    return g_Callbacks.PoolManagerCallbackFreePool(AddressToFree);
 }
 
 /**

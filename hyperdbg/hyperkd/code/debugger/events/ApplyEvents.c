@@ -134,7 +134,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
 
     // LogInfo("Start address: %llx, end address: %llx", TempStartAddress, TempEndAddress, RemainingSize);
 
-    for (size_t i = 0; i <= PagesBytes; i++)
+    for (SIZE_T i = 0; i <= PagesBytes; i++)
     {
         if (RemainingSize >= PAGE_SIZE)
         {
@@ -1274,6 +1274,12 @@ ApplyEventCpuidExecutionEvent(PDEBUGGER_EVENT                   Event,
     // their custom optional parameters
     //
     VmFuncSetTriggerEventForCpuids(TRUE);
+
+    //
+    // Setting an indicator to CPUID EAX index (if any)
+    //
+    Event->Options.OptionalParam1 = Event->InitOptions.OptionalParam1;
+    Event->Options.OptionalParam2 = Event->InitOptions.OptionalParam2;
 }
 
 /**
