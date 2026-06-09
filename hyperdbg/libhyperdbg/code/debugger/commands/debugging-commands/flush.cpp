@@ -14,6 +14,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
@@ -45,16 +46,16 @@ CommandFlushRequestFlush()
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
-        // It's a debug-mode
+        // It's on a debugger mode
         //
         KdSendFlushPacketToDebuggee();
     }
     else
     {
         //
-        // It's a vmi-mode
+        // It's on a local debugging mode
         //
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
         //
         // By the way, we don't need to send an input buffer

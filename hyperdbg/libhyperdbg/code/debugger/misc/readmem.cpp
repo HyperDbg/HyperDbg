@@ -15,6 +15,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
@@ -49,11 +50,11 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
     UINT32               SizeOfTargetBuffer;
 
     //
-    // Check if driver is loaded if it's in VMI mode
+    // Check if driver is loaded if it's in local debugging mode
     //
     if (!g_IsSerialConnectedToRemoteDebuggee)
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
     }
 
     //
@@ -104,9 +105,8 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
     else
     {
         //
-        // It's on VMI mode
+        // It's on local debugging mode
         //
-
         Status = DeviceIoControl(g_DeviceHandle,              // Handle to device
                                  IOCTL_DEBUGGER_READ_MEMORY,  // IO Control Code (IOCTL)
                                  MemReadRequest,              // Input Buffer to driver.

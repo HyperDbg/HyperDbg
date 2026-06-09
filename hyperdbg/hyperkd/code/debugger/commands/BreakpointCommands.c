@@ -432,15 +432,14 @@ BreakpointClearAndDeallocateMemory(PDEBUGGEE_BP_DESCRIPTOR BreakpointDesc)
 /**
  * @brief Check and reapply breakpoint
  *
- * @param CoreId
+ * @param DbgState The state of the debugger on the current core
  *
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId)
+BreakpointCheckAndHandleReApplyingBreakpoint(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
-    BOOLEAN                     Result   = FALSE;
-    PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
+    BOOLEAN Result = FALSE;
 
     if (DbgState->SoftwareBreakpointState != NULL)
     {

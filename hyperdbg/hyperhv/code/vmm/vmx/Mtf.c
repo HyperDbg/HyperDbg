@@ -33,18 +33,10 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     VCpu->IgnoreMtfUnset = FALSE;
 
     //
-    // Check if we need to re-apply a breakpoint or not
-    // We check it separately because the guest might step
-    // instructions on an MTF so we want to check for the step too
+    // Check for KD related MTFs
     //
-    if (g_Callbacks.BreakpointCheckAndHandleReApplyingBreakpoint != NULL &&
-        g_Callbacks.BreakpointCheckAndHandleReApplyingBreakpoint(VCpu->CoreId))
+    if (VmmCallbackHandleMtfCallback(VCpu->CoreId))
     {
-        //
-        // Check for re-enabling external interrupts
-        //
-        HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
-
         //
         // MTF is handled
         //
@@ -75,48 +67,6 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
         // Check for re-enabling external interrupts
         //
         HvEnableAndCheckForPreviousExternalInterrupts(VCpu);
-    }
-
-    //
-    // Check for instrumentation step-in
-    //
-    if (VCpu->RegisterBreakOnMtf)
-    {
-        //
-        // MTF is handled
-        //
-        IsMtfHandled = TRUE;
-
-        //
-        // Change the MTF registration state (might be changed in the caller)
-        //
-        VCpu->RegisterBreakOnMtf = FALSE;
-
-        //
-        // Handle MTF in the debugger
-        //
-        VmmCallbackRegisteredMtfHandler(VCpu->CoreId);
-    }
-
-    //
-    // check the condition of passing the execution to NMIs
-    //
-    // This one wastes one week of my life!
-    // During the testing we realized the !epthook command in Debugger Mode
-    // is not working. After some tests, it's because if in the middle of a
-    // command in vmx-root and NMI is sent and the debugger waits for another
-    // MTF, we'll ignore that MTF and a new MTF is not set again.
-    // That's why we moved this check here so every command that needs a task
-    // from MTF is doing its tasks and when we reached here, the check for halting
-    // the debuggee in MTF is performed
-    //
-    else if (g_Callbacks.KdCheckAndHandleNmiCallback != NULL &&
-             g_Callbacks.KdCheckAndHandleNmiCallback(VCpu->CoreId))
-    {
-        //
-        // MTF is handled
-        //
-        IsMtfHandled = TRUE;
     }
 
     //

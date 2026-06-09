@@ -45,10 +45,10 @@ IMPORT_EXPORT_VMM VOID
 VmFuncSetRflagTrapFlag(BOOLEAN Set);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncRegisterMtfBreak(UINT32 CoreId);
+VmFuncSetInstrumentationStepInState(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
-VmFuncUnRegisterMtfBreak(UINT32 CoreId);
+VmFuncUnsetInstrumentationStepInState(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID
 VmFuncSetLoadDebugControls(UINT32 CoreId, BOOLEAN Set);
@@ -267,6 +267,9 @@ VmFuncQueryModeExecTrap();
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncCheckCpuSupportForSaveAndLoadDebugControls();
+
+IMPORT_EXPORT_VMM BOOLEAN
+VmFuncQueryInstrumentationStepInState(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM BOOLEAN
 VmFuncCheckCpuSupportForLoadAndClearGuestIa32LbrCtlControls();

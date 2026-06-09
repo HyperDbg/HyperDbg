@@ -63,29 +63,42 @@ VmFuncChangeIgnoreOneMtfState(UINT32 CoreId, BOOLEAN Set)
 }
 
 /**
- * @brief Register for break in the case of an MTF
+ * @brief Set instrumentation step in MTF (used for single stepping with MTF)
  *
  * @param CoreId Target core's ID
  *
  * @return VOID
  */
 VOID
-VmFuncRegisterMtfBreak(UINT32 CoreId)
+VmFuncSetInstrumentationStepInState(UINT32 CoreId)
 {
-    g_GuestState[CoreId].RegisterBreakOnMtf = TRUE;
+    g_GuestState[CoreId].InstrumentationStepInMtf = TRUE;
 }
 
 /**
- * @brief Unregister for break in the case of an MTF
+ * @brief Unset instrumentation step in MTF (used for single stepping with MTF)
  *
  * @param CoreId Target core's ID
  *
  * @return VOID
  */
 VOID
-VmFuncUnRegisterMtfBreak(UINT32 CoreId)
+VmFuncUnsetInstrumentationStepInState(UINT32 CoreId)
 {
-    g_GuestState[CoreId].RegisterBreakOnMtf = FALSE;
+    g_GuestState[CoreId].InstrumentationStepInMtf = FALSE;
+}
+
+/**
+ * @brief Query instrumentation step in MTF state
+ *
+ * @param CoreId Target core's ID
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncQueryInstrumentationStepInState(UINT32 CoreId)
+{
+    return g_GuestState[CoreId].InstrumentationStepInMtf;
 }
 
 /**

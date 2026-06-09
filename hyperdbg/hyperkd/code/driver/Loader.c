@@ -190,7 +190,7 @@ LoaderInitVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
     //
     // Fill the HyperTrace callback(s)
     //
-    VmmCallbacks.HyperTraceLbrIsSupported = HyperTraceLbrIsSupported;
+    VmmCallbacks.HyperTraceCallbackLbrIsSupported = HyperTraceLbrIsSupported;
 
     //
     // Fill the VMM callbacks
@@ -198,29 +198,27 @@ LoaderInitVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
     VmmCallbacks.VmmCallbackTriggerEvents                   = DebuggerTriggerEvents;
     VmmCallbacks.VmmCallbackSetLastError                    = DebuggerSetLastError;
     VmmCallbacks.VmmCallbackVmcallHandler                   = DebuggerVmcallHandler;
-    VmmCallbacks.VmmCallbackRegisteredMtfHandler            = KdHandleRegisteredMtfCallback;
     VmmCallbacks.VmmCallbackNmiBroadcastRequestHandler      = KdHandleNmiBroadcastDebugBreaks;
     VmmCallbacks.VmmCallbackQueryTerminateProtectedResource = TerminateQueryDebuggerResource;
     VmmCallbacks.VmmCallbackRestoreEptState                 = UserAccessCheckForLoadedModuleDetails;
     VmmCallbacks.VmmCallbackCheckUnhandledEptViolations     = AttachingCheckUnhandledEptViolation;
+    VmmCallbacks.VmmCallbackHandleMtfCallback               = KdHandleMtfCallback;
 
     //
     // Fill the debugging callbacks
     //
-    VmmCallbacks.DebuggingCallbackHandleBreakpointException                = BreakpointHandleBreakpoints;
-    VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException           = BreakpointCheckAndHandleDebugBreakpoint;
-    VmmCallbacks.BreakpointCheckAndHandleReApplyingBreakpoint              = BreakpointCheckAndHandleReApplyingBreakpoint;
-    VmmCallbacks.DebuggerCheckProcessOrThreadChange                        = DebuggerCheckProcessOrThreadChange;
-    VmmCallbacks.DebuggingCallbackCheckThreadInterception                  = AttachingCheckThreadInterceptionWithUserDebugger;
-    VmmCallbacks.KdCheckAndHandleNmiCallback                               = KdCheckAndHandleNmiCallback;
-    VmmCallbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId = KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
+    VmmCallbacks.DebuggingCallbackHandleBreakpointException      = BreakpointHandleBreakpoints;
+    VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException = BreakpointCheckAndHandleDebugBreakpoint;
+    VmmCallbacks.DebuggingCallbackCheckThreadInterception        = AttachingCheckThreadInterceptionWithUserDebugger;
+    VmmCallbacks.DebuggingCallbackTriggerOnClockAndIpiEvents     = DebuggerCheckProcessOrThreadChange;
+    VmmCallbacks.DebuggingCallbackIgnoreHandlingMov2DebugRegs    = KdQueryIgnoreHandlingMov2DebugRegs;
 
     //
     // Fill the pool manager callbacks
     //
-    VmmCallbacks.PoolManagerRequestAllocation = PoolManagerRequestAllocation;
-    VmmCallbacks.PoolManagerRequestPool       = PoolManagerRequestPool;
-    VmmCallbacks.PoolManagerFreePool          = PoolManagerFreePool;
+    VmmCallbacks.PoolManagerCallbackRequestAllocation = PoolManagerRequestAllocation;
+    VmmCallbacks.PoolManagerCallbackRequestPool       = PoolManagerRequestPool;
+    VmmCallbacks.PoolManagerCallbackFreePool          = PoolManagerFreePool;
 
     //
     // Fill the interception callbacks

@@ -435,7 +435,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
         if (VCpu->EnableExternalInterruptsOnContinue ||
             VCpu->EnableExternalInterruptsOnContinueMtf ||
-            VCpu->RegisterBreakOnMtf)
+            VCpu->InstrumentationStepInMtf)
         {
             //
             // Ignore the nmi

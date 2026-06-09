@@ -32,6 +32,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsKdModuleLoaded;
+extern BOOLEAN g_IsVmmModuleLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
@@ -2652,7 +2653,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
             g_SerialRemoteComPortHandle    = NULL;
             g_IsConnectedToHyperDbgLocally = FALSE;
 
-            AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+            AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
         }
 
         //
@@ -3101,7 +3102,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     ULONG                            ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send IOCTL
@@ -3155,7 +3156,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
     ULONG                            ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     Status =
         DeviceIoControl(g_DeviceHandle,                           // Handle to device
@@ -3212,7 +3213,7 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent, BOOLEAN SendThe
     //
     // Check if debugger is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send the request to the kernel

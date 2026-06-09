@@ -45,7 +45,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                                                    BOOLEAN                     ChangeMtfState);
 
 BOOLEAN
-BreakpointCheckAndHandleReApplyingBreakpoint(UINT32 CoreId);
+BreakpointCheckAndHandleReApplyingBreakpoint(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 BOOLEAN
 BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId);

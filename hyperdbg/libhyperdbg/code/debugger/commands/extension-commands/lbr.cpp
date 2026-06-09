@@ -81,7 +81,7 @@ CommandLbrSendRequest(HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
     BOOL  Status;
     ULONG ReturnedLength;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send IOCTL
@@ -368,7 +368,7 @@ CommandLbr(vector<CommandToken> CommandTokens, string Command)
     //
     // Check if the HyperTrace module is loaded, as it is required for LBR operations
     //
-    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, AssertReturn);
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
     // Send the LBR operation request

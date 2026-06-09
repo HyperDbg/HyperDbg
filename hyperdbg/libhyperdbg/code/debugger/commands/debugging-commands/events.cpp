@@ -18,6 +18,7 @@ extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN    g_EventTraceInitialized;
 extern BOOLEAN    g_BreakPrintingOutput;
 extern BOOLEAN    g_AutoFlush;
+extern BOOLEAN    g_IsVmmModuleLoaded;
 extern BOOLEAN    g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
@@ -697,9 +698,9 @@ CommandEventsModifyAndQueryEvents(UINT64                      Tag,
         //
 
         //
-        // Check if debugger is loaded or not
+        // Check if the VMM module is loaded or not
         //
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Fill the structure to send it to the kernel

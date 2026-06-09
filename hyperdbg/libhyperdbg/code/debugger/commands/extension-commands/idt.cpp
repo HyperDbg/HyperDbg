@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_AddressConversion;
 
 /**
@@ -63,7 +64,7 @@ HyperDbgGetIdtEntry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * IdtPacket)
     }
     else
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTL

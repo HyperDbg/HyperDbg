@@ -15,6 +15,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN                  g_IsVmmModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -243,7 +244,7 @@ HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN Is
     //
     // Check if debugger is loaded or not
     //
-    // AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    // AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We wanna hide the debugger and make transparent vm-exits
