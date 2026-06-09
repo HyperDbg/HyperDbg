@@ -284,6 +284,45 @@ DebuggingCallbackCheckThreadInterception(UINT32 CoreId)
 }
 
 /**
+ * @brief routine callback to trigger on clock and IPI events for checking process or thread change
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+DebuggingCallbackTriggerOnClockAndIpiEvents(UINT32 CoreId)
+{
+    if (g_Callbacks.DebuggingCallbackTriggerOnClockAndIpiEvents == NULL)
+    {
+        //
+        // not handled by user debugger
+        //
+        return FALSE;
+    }
+    return g_Callbacks.DebuggingCallbackTriggerOnClockAndIpiEvents(CoreId);
+}
+
+/**
+ * @brief routine callback to ignore handling mov 2 debug registers
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+DebuggingCallbackIgnoreHandlingMov2DebugRegs(UINT32 CoreId)
+{
+    if (g_Callbacks.DebuggingCallbackIgnoreHandlingMov2DebugRegs == NULL)
+    {
+        //
+        // not handled by user debugger
+        //
+        return FALSE;
+    }
+    return g_Callbacks.DebuggingCallbackIgnoreHandlingMov2DebugRegs(CoreId);
+}
+
+/**
  * @brief routine callback to request pool allocation
  *
  * @param Size

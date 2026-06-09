@@ -246,6 +246,24 @@ KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(UINT32                
 }
 
 /**
+ * @brief Query to ignore handling mov 2 debug regs exiting
+ * @param CoreId
+ *
+ * @return BOOLEAN whether it's activated or not
+ */
+BOOLEAN
+KdQueryIgnoreHandlingMov2DebugRegs(UINT32 CoreId)
+{
+    //
+    // Handle access to debug registers, if we should not ignore it, it is
+    // because on detecting thread scheduling we ignore the hardware debug
+    // registers modifications
+    //
+    return KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(CoreId,
+                                                                     DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION);
+}
+
+/**
  * @brief calculate the checksum of received buffer from debugger
  *
  * @param Buffer

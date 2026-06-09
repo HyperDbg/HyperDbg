@@ -207,11 +207,11 @@ LoaderInitVmm(PDEBUGGER_INIT_VMM_PACKET InitVmmPacket)
     //
     // Fill the debugging callbacks
     //
-    VmmCallbacks.DebuggingCallbackHandleBreakpointException                = BreakpointHandleBreakpoints;
-    VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException           = BreakpointCheckAndHandleDebugBreakpoint;
-    VmmCallbacks.DebuggerCheckProcessOrThreadChange                        = DebuggerCheckProcessOrThreadChange;
-    VmmCallbacks.DebuggingCallbackCheckThreadInterception                  = AttachingCheckThreadInterceptionWithUserDebugger;
-    VmmCallbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId = KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
+    VmmCallbacks.DebuggingCallbackHandleBreakpointException      = BreakpointHandleBreakpoints;
+    VmmCallbacks.DebuggingCallbackHandleDebugBreakpointException = BreakpointCheckAndHandleDebugBreakpoint;
+    VmmCallbacks.DebuggingCallbackCheckThreadInterception        = AttachingCheckThreadInterceptionWithUserDebugger;
+    VmmCallbacks.DebuggingCallbackTriggerOnClockAndIpiEvents     = DebuggerCheckProcessOrThreadChange;
+    VmmCallbacks.DebuggingCallbackIgnoreHandlingMov2DebugRegs    = KdQueryIgnoreHandlingMov2DebugRegs;
 
     //
     // Fill the pool manager callbacks

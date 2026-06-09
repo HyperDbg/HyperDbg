@@ -52,6 +52,7 @@ New release of the HyperDbg Debugger.
 - The 'load' command could load all modules using a new alias 'load all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
 - The 'unload' command could remove all modules using two new aliases 'unload all' and 'unload remove all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/unload))
 - Change device handle checks with module loading status checks for IOCTLs
+- Fix standard callbacks for VMM modules
 
 ## [0.18.1.0] - 2026-04-09
 New release of the HyperDbg Debugger.

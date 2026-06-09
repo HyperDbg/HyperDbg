@@ -83,6 +83,21 @@ typedef BOOLEAN (*DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION)(UINT32 C
 typedef BOOLEAN (*DEBUGGING_CALLBACK_CHECK_THREAD_INTERCEPTION)(UINT32 CoreId);
 
 /**
+ * @brief Trigger on clock and IPI events for checking process or thread change
+ *
+ */
+typedef BOOLEAN (*DEBUGGING_CALLBACK_TRIGGER_ON_CLOCK_AND_IPI_EVENTS)(_In_ UINT32 CoreId);
+
+/**
+ * @brief routine callback to ignore handling mov 2 debug registers
+ *
+ * @param CoreId
+ *
+ * @return BOOLEAN
+ */
+typedef BOOLEAN (*DEBUGGING_CALLBACK_IGNORE_HANDLING_MOV_2_DEBUG_REGS)(_In_ UINT32 CoreId);
+
+/**
  * @brief Request pool allocation
  *
  */
@@ -99,7 +114,6 @@ typedef UINT64 (*POOL_MANAGER_REQUEST_POOL)(POOL_ALLOCATION_INTENTION Intention,
  *
  */
 typedef BOOLEAN (*POOL_MANAGER_FREE_POOL)(UINT64 AddressToFree);
-
 
 /**
  * @brief Check for user-mode access for loaded module details
@@ -126,18 +140,10 @@ typedef BOOLEAN (*VMM_CALLBACK_HANDLE_MTF_CALLBACK)(UINT32 CoreId);
 typedef VOID (*INTERCEPTION_CALLBACK_TRIGGER_CR3_CHANGE)(UINT32 CoreId);
 
 /**
- * @brief Check for process or thread change callback
- *
- */
-typedef BOOLEAN (*INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI)(_In_ UINT32 CoreId);
-
-
-/**
  * @brief Handle NMI broadcast
  *
  */
 typedef VOID (*VMM_CALLBACK_NMI_BROADCAST_REQUEST_HANDLER)(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
-
 
 /**
  * @brief Set the top-level driver's error status
@@ -154,12 +160,6 @@ typedef BOOLEAN (*VMM_CALLBACK_QUERY_TERMINATE_PROTECTED_RESOURCE)(UINT32       
                                                                    PVOID                                Context,
                                                                    PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver);
 
-/**
- * @brief Query debugger thread or process tracing details by core ID
- *
- */
-typedef BOOLEAN (*KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID)(UINT32                          CoreId,
-                                                                                  DEBUGGER_THREAD_PROCESS_TRACING TracingType);
 /**
  * @brief Handler of debugger specific VMCALLs
  *
@@ -183,51 +183,47 @@ typedef struct _VMM_CALLBACKS
     //
     // Log (Hyperlog) callbacks
     //
-    LOG_CALLBACK_PREPARE_AND_SEND_MESSAGE_TO_QUEUE LogCallbackPrepareAndSendMessageToQueueWrapper; // Fixed
-    LOG_CALLBACK_SEND_MESSAGE_TO_QUEUE             LogCallbackSendMessageToQueue;                  // Fixed
-    LOG_CALLBACK_SEND_BUFFER                       LogCallbackSendBuffer;                          // Fixed
-    LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL           LogCallbackCheckIfBufferIsFull;                 // Fixed
+    LOG_CALLBACK_PREPARE_AND_SEND_MESSAGE_TO_QUEUE LogCallbackPrepareAndSendMessageToQueueWrapper;
+    LOG_CALLBACK_SEND_MESSAGE_TO_QUEUE             LogCallbackSendMessageToQueue;
+    LOG_CALLBACK_SEND_BUFFER                       LogCallbackSendBuffer;
+    LOG_CALLBACK_CHECK_IF_BUFFER_IS_FULL           LogCallbackCheckIfBufferIsFull;
 
     //
     // HyperTrace callback(s)
     //
-    HYPERTRACE_LBR_IS_SUPPORTED HyperTraceCallbackLbrIsSupported; // Fixed
+    HYPERTRACE_LBR_IS_SUPPORTED HyperTraceCallbackLbrIsSupported;
 
     //
     // VMM callbacks
     //
-    VMM_CALLBACK_TRIGGER_EVENTS                     VmmCallbackTriggerEvents;                   // Fixed
-    VMM_CALLBACK_SET_LAST_ERROR                     VmmCallbackSetLastError;                    // Fixed
-    VMM_CALLBACK_VMCALL_HANDLER                     VmmCallbackVmcallHandler;                   // Fixed
-    VMM_CALLBACK_NMI_BROADCAST_REQUEST_HANDLER      VmmCallbackNmiBroadcastRequestHandler;      // Fixed
-    VMM_CALLBACK_QUERY_TERMINATE_PROTECTED_RESOURCE VmmCallbackQueryTerminateProtectedResource; // Fixed
-    VMM_CALLBACK_RESTORE_EPT_STATE                  VmmCallbackRestoreEptState;                 // Fixed
-    VMM_CALLBACK_CHECK_UNHANDLED_EPT_VIOLATION      VmmCallbackCheckUnhandledEptViolations;     // Fixed
-    VMM_CALLBACK_HANDLE_MTF_CALLBACK                VmmCallbackHandleMtfCallback;               // Fixed
+    VMM_CALLBACK_TRIGGER_EVENTS                     VmmCallbackTriggerEvents;
+    VMM_CALLBACK_SET_LAST_ERROR                     VmmCallbackSetLastError;
+    VMM_CALLBACK_VMCALL_HANDLER                     VmmCallbackVmcallHandler;
+    VMM_CALLBACK_NMI_BROADCAST_REQUEST_HANDLER      VmmCallbackNmiBroadcastRequestHandler;
+    VMM_CALLBACK_QUERY_TERMINATE_PROTECTED_RESOURCE VmmCallbackQueryTerminateProtectedResource;
+    VMM_CALLBACK_RESTORE_EPT_STATE                  VmmCallbackRestoreEptState;
+    VMM_CALLBACK_CHECK_UNHANDLED_EPT_VIOLATION      VmmCallbackCheckUnhandledEptViolations;
+    VMM_CALLBACK_HANDLE_MTF_CALLBACK                VmmCallbackHandleMtfCallback;
 
     //
     // Debugging callbacks
     //
-    DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION       DebuggingCallbackHandleBreakpointException;      // Fixed
-    DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION DebuggingCallbackHandleDebugBreakpointException; // Fixed
-    DEBUGGING_CALLBACK_CHECK_THREAD_INTERCEPTION         DebuggingCallbackCheckThreadInterception;        // Fixed
+    DEBUGGING_CALLBACK_HANDLE_BREAKPOINT_EXCEPTION       DebuggingCallbackHandleBreakpointException;
+    DEBUGGING_CALLBACK_HANDLE_DEBUG_BREAKPOINT_EXCEPTION DebuggingCallbackHandleDebugBreakpointException;
+    DEBUGGING_CALLBACK_CHECK_THREAD_INTERCEPTION         DebuggingCallbackCheckThreadInterception;
+    DEBUGGING_CALLBACK_TRIGGER_ON_CLOCK_AND_IPI_EVENTS   DebuggingCallbackTriggerOnClockAndIpiEvents;
+    DEBUGGING_CALLBACK_IGNORE_HANDLING_MOV_2_DEBUG_REGS  DebuggingCallbackIgnoreHandlingMov2DebugRegs;
 
     //
     // Pool manager callbacks
     //
-    POOL_MANAGER_REQUEST_ALLOCATION PoolManagerCallbackRequestAllocation; // Fixed
-    POOL_MANAGER_REQUEST_POOL       PoolManagerCallbackRequestPool;       // Fixed
-    POOL_MANAGER_FREE_POOL          PoolManagerCallbackFreePool;          // Fixed
+    POOL_MANAGER_REQUEST_ALLOCATION PoolManagerCallbackRequestAllocation;
+    POOL_MANAGER_REQUEST_POOL       PoolManagerCallbackRequestPool;
+    POOL_MANAGER_FREE_POOL          PoolManagerCallbackFreePool;
 
     //
     // Interception callbacks
     //
-    INTERCEPTION_CALLBACK_TRIGGER_CR3_CHANGE InterceptionCallbackTriggerCr3ProcessChange; // Fixed
-
-    //
-    // Callbacks to be removed
-    //
-    INTERCEPTION_CALLBACK_TRIGGER_CLOCK_AND_IPI                    DebuggerCheckProcessOrThreadChange;
-    KD_QUERY_DEBUGGER_THREAD_OR_PROCESS_TRACING_DETAILS_BY_CORE_ID KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId;
+    INTERCEPTION_CALLBACK_TRIGGER_CR3_CHANGE InterceptionCallbackTriggerCr3ProcessChange;
 
 } VMM_CALLBACKS, *PVMM_CALLBACKS;

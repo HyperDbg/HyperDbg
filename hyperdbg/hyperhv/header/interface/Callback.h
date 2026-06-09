@@ -50,7 +50,6 @@ VmmCallbackHandleMtfCallback(UINT32 CoreId);
 VOID
 VmmCallbackSetLastError(UINT32 LastError);
 
-
 VOID
 VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
 
@@ -72,6 +71,12 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId);
 
 BOOLEAN
 DebuggingCallbackCheckThreadInterception(UINT32 CoreId);
+
+BOOLEAN
+DebuggingCallbackTriggerOnClockAndIpiEvents(UINT32 CoreId);
+
+BOOLEAN
+DebuggingCallbackIgnoreHandlingMov2DebugRegs(UINT32 CoreId);
 
 //
 // Pool Manager Callbacks
