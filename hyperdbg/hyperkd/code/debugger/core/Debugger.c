@@ -178,19 +178,6 @@ DebuggerInitializeVmmOperations()
     InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
     InitializeListHead(&g_Events->XsetbvInstructionExecutionEventsHead);
 
-    //
-    // Pre-allocate pools for possible EPT hooks
-    //
-    ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
-
-    if (!PoolManagerCheckAndPerformAllocationAndDeallocation())
-    {
-        LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
-
-        //
-        // BTW, won't fail the starting phase because of this
-        //
-    }
 
     //
     // Initialize NMI broadcasting mechanism
@@ -206,6 +193,21 @@ DebuggerInitializeVmmOperations()
     // Set initial state of triggering events for CPUIDs
     //
     VmFuncSetTriggerEventForCpuids(FALSE);
+
+        //
+    // Pre-allocate pools for possible EPT hooks
+    //
+    ConfigureEptHookReservePreallocatedPoolsForEptHooks(MAXIMUM_NUMBER_OF_INITIAL_PREALLOCATED_EPT_HOOKS);
+
+    if (!PoolManagerCheckAndPerformAllocationAndDeallocation())
+    {
+        LogWarning("Warning, cannot allocate the pre-allocated pools for EPT hooks");
+
+        //
+        // BTW, won't fail the starting phase because of this
+        //
+    }
+
 
     //
     // Enabled Debugger VMX Events

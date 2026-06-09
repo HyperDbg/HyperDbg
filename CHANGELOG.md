@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.19.0.0-beta] - 2026-XX-XX
+## [0.19.0.0-beta] - 2026-06-10
 New release of the HyperDbg Debugger.
 
 ### Added
@@ -51,8 +51,9 @@ New release of the HyperDbg Debugger.
 - The pool manager moved from 'hyperhv' to 'hyperkd'
 - The 'load' command could load all modules using a new alias 'load all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
 - The 'unload' command could remove all modules using two new aliases 'unload all' and 'unload remove all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/unload))
-- Change device handle checks with module loading status checks for IOCTLs
-- Fix standard callbacks for VMM modules
+- Change device handle checks with module loading status checks for IOCTLs ([link](https://github.com/HyperDbg/HyperDbg/pull/610))
+- Fix standard callbacks for the VMM module ([link](https://github.com/HyperDbg/HyperDbg/pull/610))
+- Fix race condition bug within the pool manager
 
 ## [0.18.1.0] - 2026-04-09
 New release of the HyperDbg Debugger.

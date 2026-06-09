@@ -332,6 +332,8 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     PAGED_CODE();
 
+    SpinlockLock(&LockForReadingPool);
+
     //
     // Check for new allocation
     //
@@ -363,8 +365,6 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     if (g_IsNewRequestForDeAllocation)
     {
         ListTemp = &g_ListOfAllocatedPoolsHead;
-
-        SpinlockLock(&LockForReadingPool);
 
         while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
         {
@@ -402,8 +402,6 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 PlatformMemFreePool(PoolTable);
             }
         }
-
-        SpinlockUnlock(&LockForReadingPool);
     }
 
     //
@@ -411,6 +409,8 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     g_IsNewRequestForDeAllocation       = FALSE;
     g_IsNewRequestForAllocationReceived = FALSE;
+
+    SpinlockUnlock(&LockForReadingPool);
 
     return Result;
 }
