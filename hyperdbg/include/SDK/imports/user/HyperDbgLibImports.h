@@ -1,6 +1,7 @@
 /**
  * @file HyperDbgLibImports.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Headers relating exported functions from controller interface
  * @version 0.2
  * @date 2023-02-02
@@ -10,12 +11,21 @@
  */
 #pragma once
 
-#ifdef HYPERDBG_LIBHYPERDBG
-#    define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllexport)
+#ifdef _WIN32
+// MSVC (Windows)
+#    ifdef HYPERDBG_LIBHYPERDBG
+#        define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllexport)
+#    else
+#        define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllimport)
+#    endif
 #else
-#    define IMPORT_EXPORT_LIBHYPERDBG __declspec(dllimport)
+// GCC/Clang (Linux)
+#    ifdef HYPERDBG_LIBHYPERDBG
+#        define IMPORT_EXPORT_LIBHYPERDBG __attribute__((visibility("default")))
+#    else
+#        define IMPORT_EXPORT_LIBHYPERDBG
+#    endif
 #endif
-
 //
 // Header file of libhyperdbg
 // Imports
@@ -33,6 +43,18 @@ hyperdbg_u_detect_vmx_support();
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_read_vendor_string(CHAR *);
 
+IMPORT_EXPORT_LIBHYPERDBG GENERIC_PROCESSOR_VENDOR
+hyperdbg_u_get_processor_vendor();
+
+//
+// All Modules
+//
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_load_all_modules();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_unload_all_modules();
+
 //
 // VMM Module
 //
@@ -42,14 +64,35 @@ hyperdbg_u_load_vmm();
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_unload_vmm();
 
+//
+// KD (Kernel Debugger) Module
+//
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_install_vmm_driver();
+hyperdbg_u_unload_kd();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_uninstall_vmm_driver();
+hyperdbg_u_install_kd_driver();
 
 IMPORT_EXPORT_LIBHYPERDBG INT
-hyperdbg_u_stop_vmm_driver();
+hyperdbg_u_uninstall_kd_driver();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_start_kd_driver();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_stop_kd_driver();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_load_kd_module();
+
+//
+// HyperTrace Module
+//
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_load_hypertrace_module();
+
+IMPORT_EXPORT_LIBHYPERDBG INT
+hyperdbg_u_unload_hypertrace_module();
 
 //
 // Testing parser
@@ -279,6 +322,9 @@ hyperdbg_u_pt_mmap(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest);
 //
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_enable_transparent_mode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_enable_transparent_mode_ex(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId, UINT32 EvadeMask);
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_disable_transparent_mode();

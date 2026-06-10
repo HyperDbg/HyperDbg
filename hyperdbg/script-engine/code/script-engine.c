@@ -11,6 +11,7 @@
  *
  */
 #include "pch.h"
+#include "platform/user/header/platform-lib-calls.h"
 
 // #define _SCRIPT_ENGINE_LALR_DBG_EN
 // #define _SCRIPT_ENGINE_LL1_DBG_EN
@@ -44,10 +45,10 @@ ShowMessages(const char * Fmt, ...)
     {
         char TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
         va_start(ArgList, Fmt);
-        int sprintfresult = vsprintf_s(TempMessage, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT, Fmt, ArgList);
+        INT SprintfResult = PlatformVsnprintf(TempMessage, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT, Fmt, ArgList);
         va_end(ArgList);
 
-        if (sprintfresult != -1)
+        if (SprintfResult != -1)
         {
             //
             // There is another handler
@@ -213,7 +214,7 @@ ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction)
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, size_t ResultPathSize)
+ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath, SIZE_T ResultPathSize)
 {
     //
     // A wrapper for pdb to path converter
@@ -301,6 +302,38 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 }
 
 /**
+ * @brief Convert loaded module bytes to pdb attributes for symbols
+ *
+ * @param LoadedImageBytes
+ * @param LoadedImageSize
+ * @param LocalFilePath
+ * @param PdbFilePath
+ * @param GuidAndAgeDetails
+ * @param Is32BitModule
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(const BYTE * LoadedImageBytes,
+                                                             SIZE_T       LoadedImageSize,
+                                                             const char * LocalFilePath,
+                                                             char *       PdbFilePath,
+                                                             char *       GuidAndAgeDetails,
+                                                             BOOLEAN      Is32BitModule)
+{
+    //
+    // A wrapper for loaded module pdb to path file and guid and age detail converter
+    //
+    return SymConvertLoadedModuleToPdbFileAndGuidAndAgeDetails(
+        LoadedImageBytes,
+        LoadedImageSize,
+        LocalFilePath,
+        PdbFilePath,
+        GuidAndAgeDetails,
+        Is32BitModule);
+}
+
+/**
  * @brief The entry point of script engine
  *
  * @param str
@@ -309,15 +342,15 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 PVOID
 ScriptEngineParse(char * str)
 {
-    char * ScriptSource = _strdup(str);
+    char * ScriptSource = PlatformStrDup(str);
 
     PSCRIPT_ENGINE_TOKEN_LIST Stack        = NewTokenList();
     PSCRIPT_ENGINE_TOKEN_LIST MatchedStack = NewTokenList();
     PSYMBOL_BUFFER            CodeBuffer   = NewSymbolBuffer();
 
     UserDefinedFunctionHead = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
-    RtlZeroMemory(UserDefinedFunctionHead, sizeof(USER_DEFINED_FUNCTION_NODE));
-    UserDefinedFunctionHead->Name                     = _strdup("main");
+    PlatformZeroMemory(UserDefinedFunctionHead, sizeof(USER_DEFINED_FUNCTION_NODE));
+    UserDefinedFunctionHead->Name                     = PlatformStrDup("main");
     UserDefinedFunctionHead->IdTable                  = (unsigned long long)NewTokenList();
     UserDefinedFunctionHead->FunctionParameterIdTable = (unsigned long long)NewTokenList();
     UserDefinedFunctionHead->TempMap                  = calloc(MAX_TEMP_COUNT, 1);
@@ -328,7 +361,7 @@ ScriptEngineParse(char * str)
     SCRIPT_ENGINE_ERROR_TYPE Error        = SCRIPT_ENGINE_ERROR_FREE;
     char *                   ErrorMessage = NULL;
 
-    static FirstCall = 1;
+    static INT FirstCall = 1;
     if (FirstCall)
     {
         GlobalIdTable = NewTokenList();
@@ -340,7 +373,7 @@ ScriptEngineParse(char * str)
     int  NonTerminalId;
     int  TerminalId;
     int  RuleId;
-    char c;
+    CHAR C;
     BOOL WaitForWaitStatementBooleanExpression = FALSE;
 
     //
@@ -363,9 +396,9 @@ ScriptEngineParse(char * str)
     Push(Stack, EndToken);
     Push(Stack, StartToken);
 
-    c = sgetc(ScriptSource);
+    C = sgetc(ScriptSource);
 
-    PSCRIPT_ENGINE_TOKEN CurrentIn = Scan(ScriptSource, &c);
+    PSCRIPT_ENGINE_TOKEN CurrentIn = Scan(ScriptSource, &C);
     if (CurrentIn->Type == UNKNOWN)
     {
         Error               = SCRIPT_ENGINE_ERROR_SYNTAX;
@@ -424,14 +457,14 @@ ScriptEngineParse(char * str)
             {
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(ScriptSource, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
-                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, ScriptSource, &c, &Error);
+                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, ScriptSource, &C, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
                 }
 
                 RemoveToken(&CurrentIn);
-                CurrentIn = Scan(ScriptSource, &c);
+                CurrentIn = Scan(ScriptSource, &C);
                 if (CurrentIn->Type == UNKNOWN)
                 {
                     Error = SCRIPT_ENGINE_ERROR_UNKNOWN_TOKEN;
@@ -439,7 +472,7 @@ ScriptEngineParse(char * str)
                 }
 
                 RemoveToken(&CurrentIn);
-                CurrentIn = Scan(ScriptSource, &c);
+                CurrentIn = Scan(ScriptSource, &C);
                 if (CurrentIn->Type == UNKNOWN)
                 {
                     Error = SCRIPT_ENGINE_ERROR_UNKNOWN_TOKEN;
@@ -495,7 +528,7 @@ ScriptEngineParse(char * str)
 
                 Push(MatchedStack, CurrentIn);
 
-                CurrentIn = Scan(ScriptSource, &c);
+                CurrentIn = Scan(ScriptSource, &C);
                 if (CurrentIn->Type == UNKNOWN)
                 {
                     Error = SCRIPT_ENGINE_ERROR_SYNTAX;
@@ -526,7 +559,7 @@ ScriptEngineParse(char * str)
             else
             {
                 RemoveToken(&CurrentIn);
-                CurrentIn = Scan(ScriptSource, &c);
+                CurrentIn = Scan(ScriptSource, &C);
 
                 if (CurrentIn->Type == UNKNOWN)
                 {
@@ -669,6 +702,8 @@ ScriptEngineParse(char * str)
  * @param CodeBuffer
  * @param Operator
  * @param Error
+ * @param ScriptSource the script source string
+ * @return VOID
  */
 void
 CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRIPT_ENGINE_TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error, char ** ScriptSource)
@@ -737,7 +772,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             if (!IncludeHead)
             {
                 IncludeHead           = calloc(sizeof(INCLUDE_NODE), 1);
-                IncludeHead->FilePath = _strdup(FullPath);
+                IncludeHead->FilePath = PlatformStrDup(FullPath);
             }
             else
             {
@@ -755,7 +790,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 if (!IncludedPath && PrevNode)
                 {
                     PrevNode->NextNode           = calloc(sizeof(INCLUDE_NODE), 1);
-                    PrevNode->NextNode->FilePath = _strdup(FullPath);
+                    PrevNode->NextNode->FilePath = PlatformStrDup(FullPath);
                 }
             }
 
@@ -801,10 +836,10 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 Node = Node->NextNode;
             }
             Node->NextNode = malloc(sizeof(USER_DEFINED_FUNCTION_NODE));
-            RtlZeroMemory(Node->NextNode, sizeof(USER_DEFINED_FUNCTION_NODE));
+            PlatformZeroMemory(Node->NextNode, sizeof(USER_DEFINED_FUNCTION_NODE));
             CurrentUserDefinedFunction = Node->NextNode;
 
-            CurrentUserDefinedFunction->Name                     = _strdup(Op0->Value);
+            CurrentUserDefinedFunction->Name                     = PlatformStrDup(Op0->Value);
             CurrentUserDefinedFunction->Address                  = CodeBuffer->Pointer; // CurrentPointer
             CurrentUserDefinedFunction->VariableType             = (long long unsigned)VariableType;
             CurrentUserDefinedFunction->IdTable                  = (unsigned long long)NewTokenList();
@@ -1360,9 +1395,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             }
 
             VariableType = (VARIABLE_TYPE *)IdToken->VariableType;
-            Temp         = NewTemp();
+            Temp         = NewTemp(Error);
             TempSymbol   = ToSymbol(Temp, Error);
-            OffsetToken  = NewTemp();
+            OffsetToken  = NewTemp(Error);
             OffsetSymbol = ToSymbol(OffsetToken, Error);
 
             Symbol        = NewSymbol();
@@ -1630,7 +1665,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 TokenArray[TokenCount++] = Temp;
             }
 
-            for (size_t i = 0; i < TokenCount / 2; i++)
+            for (SIZE_T i = 0; i < TokenCount / 2; i++)
             {
                 PSCRIPT_ENGINE_TOKEN tmp       = TokenArray[i];
                 TokenArray[i]                  = TokenArray[TokenCount - i - 1];
@@ -1716,7 +1751,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     Symbol->Value = ArrayElementCount;
                     PushSymbol(CodeBuffer, Symbol);
 
-                    Temp       = NewTemp();
+                    Temp       = NewTemp(Error);
                     TempSymbol = ToSymbol(Temp, Error);
                     PushSymbol(CodeBuffer, TempSymbol);
 
@@ -1782,7 +1817,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 Symbol->Value = ArrayElementCount;
                 PushSymbol(CodeBuffer, Symbol);
 
-                Temp       = NewTemp();
+                Temp       = NewTemp(Error);
                 TempSymbol = ToSymbol(Temp, Error);
                 PushSymbol(CodeBuffer, TempSymbol);
 
@@ -3495,7 +3530,7 @@ ScriptEngineBooleanExpresssionParse(
     int          InputPointer = 0;
     int          RhsSize      = 0;
     unsigned int InputIdxTemp;
-    char         Ctemp;
+    CHAR         CTemp;
 
     while (1)
     {
@@ -3540,13 +3575,13 @@ ScriptEngineBooleanExpresssionParse(
             Push(Stack, State);
 
             InputIdxTemp = InputIdx;
-            Ctemp        = *c;
+            CTemp        = *c;
 
             CurrentIn = Scan(str, c);
             if (InputIdx - 1 > BooleanExpressionSize)
             {
                 InputIdx = InputIdxTemp;
-                *c       = Ctemp;
+                *c       = CTemp;
 
                 RemoveToken(&CurrentIn);
 
@@ -4057,8 +4092,8 @@ PrintSymbolBuffer(const PVOID SymbolBuffer)
         PrintSymbol((PVOID)Symbol);
         if (Symbol->Type == SYMBOL_STRING_TYPE || Symbol->Type == SYMBOL_WSTRING_TYPE)
         {
-            int temp = GetSymbolHeapSize(Symbol);
-            i += temp;
+            INT Temp = GetSymbolHeapSize(Symbol);
+            i += Temp;
         }
         else
         {
@@ -4508,7 +4543,7 @@ GetFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token)
  * @brief
  *
  * @param Token
- * @return bool
+ * @return PUSER_DEFINED_FUNCTION_NODE
  */
 PUSER_DEFINED_FUNCTION_NODE
 GetUserDefinedFunctionNode(PSCRIPT_ENGINE_TOKEN Token)

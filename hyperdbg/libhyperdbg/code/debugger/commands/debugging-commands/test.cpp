@@ -14,6 +14,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
@@ -52,7 +53,7 @@ CommandTestPerformKernelTestsIoctl()
     ULONG                         ReturnedLength;
     DEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // By the way, we don't need to send an input buffer
@@ -112,6 +113,24 @@ CommandTestAllFunctionalities()
     if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_MAIN_COMMAND_PARSER))
     {
         ShowMessages("err, start HyperDbg test process for testing the main command parser\n");
+        return;
+    }
+
+    //
+    // Test PE parser helpers
+    //
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_PE_PARSER))
+    {
+        ShowMessages("err, start HyperDbg test process for testing the PE parser\n");
+        return;
+    }
+
+    //
+    // Test CodeView RSDS parser helpers
+    //
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_CODEVIEW_RSDS_PARSER))
+    {
+        ShowMessages("err, start HyperDbg test process for testing the CodeView RSDS parser\n");
         return;
     }
 
@@ -216,7 +235,7 @@ SendCommandAndWaitForResponse:
 
     RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
     ReadBytes =
-        NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+        NamedPipeServerReadClientMessage(PipeHandle, (CHAR *)Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     if (!ReadBytes)
     {

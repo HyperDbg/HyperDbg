@@ -77,6 +77,12 @@ volatile LONG LockForRequestAllocation;
 volatile LONG LockForReadingPool;
 
 /**
+ * @brief Pool manager memory allocator initialized
+ *
+ */
+BOOLEAN g_PoolManagerInitialized;
+
+/**
  * @brief We set it when there is a new allocation
  *
  */
@@ -114,18 +120,23 @@ static VOID PlmgrFreeRequestNewAllocation(VOID);
 // Public Interfaces
 //
 
-/**
- * @brief Initializes the Pool Manager and pre-allocate some pools
- *
- * @return BOOLEAN
- */
 BOOLEAN
 PoolManagerInitialize();
 
-/**
- * @brief De-allocate all the allocated pools
- *
- * @return VOID
- */
 VOID
 PoolManagerUninitialize();
+
+VOID
+PoolManagerShowPreAllocatedPools();
+
+BOOLEAN
+PoolManagerCheckAndPerformAllocationAndDeallocation();
+
+BOOLEAN
+PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
+
+UINT64
+PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size);
+
+BOOLEAN
+PoolManagerFreePool(UINT64 AddressToFree);

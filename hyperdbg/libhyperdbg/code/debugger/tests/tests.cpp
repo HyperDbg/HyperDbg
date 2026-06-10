@@ -29,7 +29,7 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
     HANDLE  fileHandle;
     DWORD   driverLocLen = 0;
     HMODULE ProcHandle   = GetModuleHandle(NULL);
-    char *  Pos;
+    CHAR *  Pos;
 
     //
     // Get the current directory.
@@ -115,12 +115,12 @@ CreateProcessAndOpenPipeConnection(PHANDLE ConnectionPipeHandle,
     HANDLE              PipeHandle;
     BOOLEAN             SentMessageResult;
     UINT32              ReadBytes;
-    char *              BufferToRead;
-    char *              BufferToSend;
-    char                HandshakeBuffer[] = "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)";
+    CHAR *              BufferToRead;
+    CHAR *              BufferToSend;
+    CHAR                HandshakeBuffer[] = "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)";
     PROCESS_INFORMATION ProcessInfo;
     STARTUPINFO         StartupInfo;
-    char                CmdArgs[] = TEST_PROCESS_NAME " im-hyperdbg";
+    CHAR                CmdArgs[] = TEST_PROCESS_NAME " im-hyperdbg";
 
     PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
                                            TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,
@@ -133,7 +133,7 @@ CreateProcessAndOpenPipeConnection(PHANDLE ConnectionPipeHandle,
         return FALSE;
     }
 
-    BufferToRead = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    BufferToRead = (CHAR *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     if (!BufferToRead)
     {
@@ -143,7 +143,7 @@ CreateProcessAndOpenPipeConnection(PHANDLE ConnectionPipeHandle,
         return FALSE;
     }
 
-    BufferToSend = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    BufferToSend = (CHAR *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     if (!BufferToSend)
     {

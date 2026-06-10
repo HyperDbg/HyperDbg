@@ -1,9 +1,21 @@
+/**
+ * @file type.h
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ *
+ * @brief Variable type definitions for the script engine
+ * @details
+ * @version 0.1
+ * @date 2020-10-22
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #pragma once
 
 #ifndef TYPE_H
 #    define TYPE_H
 
-typedef enum
+typedef enum _VARIABLE_TYPE_KIND
 {
     TY_UNKNOWN,
     TY_VOID,
@@ -24,15 +36,15 @@ typedef enum
     TY_UNION,
 } VARIABLE_TYPE_KIND;
 
-typedef struct VARIABLE_TYPE
+typedef struct _VARIABLE_TYPE
 {
-    VARIABLE_TYPE_KIND     Kind;
-    int                    Size;  // sizeof() value
-    int                    Align; // alignment
-    BOOLEAN                IsUnsigned;
-    struct VARIABLE_TYPE * Base;
-    int                    ArrayLen;
-} VARIABLE_TYPE;
+    VARIABLE_TYPE_KIND      Kind;
+    int                     Size;  // sizeof() value
+    int                     Align; // alignment
+    BOOLEAN                 IsUnsigned;
+    struct _VARIABLE_TYPE * Base;
+    int                     ArrayLen;
+} VARIABLE_TYPE, *PVARIABLE_TYPE;
 
 extern VARIABLE_TYPE * VARIABLE_TYPE_UNKNOWN;
 
@@ -52,5 +64,20 @@ extern VARIABLE_TYPE * VARIABLE_TYPE_ULONG;
 extern VARIABLE_TYPE * VARIABLE_TYPE_FLOAT;
 extern VARIABLE_TYPE * VARIABLE_TYPE_DOUBLE;
 extern VARIABLE_TYPE * VARIABLE_TYPE_LDOUBLE;
+
+typedef enum _SCRIPT_ENGINE_ERROR_TYPE
+{
+    SCRIPT_ENGINE_ERROR_FREE,
+    SCRIPT_ENGINE_ERROR_SYNTAX,
+    SCRIPT_ENGINE_ERROR_UNKNOWN_TOKEN,
+    SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE,
+    SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE,
+    SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL,
+    SCRIPT_ENGINE_ERROR_UNDEFINED_FUNCTION,
+    SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE,
+    SCRIPT_ENGINE_ERROR_VOID_FUNCTION_RETURNING_VALUE,
+    SCRIPT_ENGINE_ERROR_NON_VOID_FUNCTION_NOT_RETURNING_VALUE
+} SCRIPT_ENGINE_ERROR_TYPE,
+    *PSCRIPT_ENGINE_ERROR_TYPE;
 
 #endif

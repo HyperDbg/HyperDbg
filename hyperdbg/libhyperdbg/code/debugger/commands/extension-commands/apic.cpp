@@ -14,6 +14,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
@@ -97,7 +98,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
     }
     else
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTL

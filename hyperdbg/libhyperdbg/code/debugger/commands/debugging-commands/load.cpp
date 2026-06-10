@@ -14,10 +14,10 @@
 //
 // Global Variables
 //
-extern HANDLE  g_IsDriverLoadedSuccessfully;
-extern HANDLE  g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsKdModuleLoaded;
+extern BOOLEAN g_IsVmmModuleLoaded;
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
 
 /**
  * @brief help of the load command
@@ -27,12 +27,15 @@ extern BOOLEAN g_IsDebuggerModulesLoaded;
 VOID
 CommandLoadHelp()
 {
-    ShowMessages("load : installs the drivers and load the modules.\n\n");
+    ShowMessages("load : installs drivers and load modules.\n\n");
 
-    ShowMessages("syntax : \tload [ModuleName (string)]\n");
+    ShowMessages("syntax : \tload [ModuleNameOrAll (string)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : load vmm\n");
+    ShowMessages("\t\te.g : load kd\n");
+    ShowMessages("\t\te.g : load trace\n");
+    ShowMessages("\t\te.g : load all\n");
 }
 
 /**
@@ -64,24 +67,47 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
     //
     // Check for the module
     //
-    if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm"))
+    if (CompareLowerCaseStrings(CommandTokens.at(1), "all") || CompareLowerCaseStrings(CommandTokens.at(1), "."))
     {
         //
-        // Check to make sure that the driver is not already loaded
+        // Load aa Modules
         //
-        if (g_DeviceHandle)
+        ShowMessages("loading the all modules\n");
+
+        if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadAllModules() == 1)
         {
-            ShowMessages("handle of the driver found, if you use 'load' before, please "
-                         "first unload it then call 'unload'\n");
+            ShowMessages("failed to install or load drivers\n");
             return;
         }
 
         //
-        // Load VMM Module
+        // If in vmi-mode then initialize and load symbols (pdb)
+        // for previously downloaded symbols
+        // When the VMM module is loaded, we use the current
+        // process (HyperDbg's process) as the base for user-mode
+        // symbols
         //
-        ShowMessages("loading the vmm driver\n");
+        SymbolLocalReload(GetCurrentProcessId());
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") ||
+             CompareLowerCaseStrings(CommandTokens.at(1), "vm"))
+    {
+        //
+        // Check to make sure that the driver is not already loaded
+        //
+        if (g_IsVmmModuleLoaded)
+        {
+            ShowMessages("the vmm module is already running, if you use 'load' before, please "
+                         "first unload it using the 'unload' command\n");
+            return;
+        }
 
-        if (HyperDbgInstallVmmDriver() == 1 || HyperDbgLoadVmmModule() == 1)
+        //
+        // Load the VMM Module
+        //
+        ShowMessages("loading the vmm module\n");
+
+        if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
             ShowMessages("failed to install or load the driver\n");
             return;
@@ -95,6 +121,58 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
         // symbols
         //
         SymbolLocalReload(GetCurrentProcessId());
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "trace") ||
+             CompareLowerCaseStrings(CommandTokens.at(1), "hypertrace"))
+    {
+        //
+        // Check to make sure that the driver is not already loaded
+        //
+        if (g_IsHyperTraceModuleLoaded)
+        {
+            ShowMessages("the trace module is already running, if you use 'load' before, please "
+                         "first unload it using the 'unload' command\n");
+            return;
+        }
+
+        //
+        // Load the HyperTrace Module
+        //
+        ShowMessages("loading the trace module\n");
+
+        if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadHyperTraceModule() == 1)
+        {
+            ShowMessages("failed to install or load the driver\n");
+            return;
+        }
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(1), "kd") ||
+             CompareLowerCaseStrings(CommandTokens.at(1), "dbg") ||
+             CompareLowerCaseStrings(CommandTokens.at(1), "debugger") ||
+             CompareLowerCaseStrings(CommandTokens.at(1), "debug") ||
+             CompareLowerCaseStrings(CommandTokens.at(1), "kerneldebugger") ||
+             CompareLowerCaseStrings(CommandTokens.at(1), "kerneldebug"))
+    {
+        //
+        // Check to make sure that the driver is not already loaded
+        //
+        if (g_IsKdModuleLoaded)
+        {
+            ShowMessages("the kd module is already running, if you use 'load' before, please "
+                         "first unload it using the 'unload' command\n");
+            return;
+        }
+
+        //
+        // Load the KD Module
+        //
+        ShowMessages("loading the kd module\n");
+
+        if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadKdModule() == 1)
+        {
+            ShowMessages("failed to install or load the driver\n");
+            return;
+        }
     }
     else
     {

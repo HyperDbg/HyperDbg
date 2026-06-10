@@ -22,12 +22,12 @@ BOOLEAN
 NamedPipeServerWaitForClientConntection(HANDLE PipeHandle);
 
 UINT32
-NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int MaximumReadBufferLength);
+NamedPipeServerReadClientMessage(HANDLE PipeHandle, CHAR * BufferToSave, INT MaximumReadBufferLength);
 
 BOOLEAN
 NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
-                                   char * BufferToSend,
-                                   int    BufferSize);
+                                   CHAR * BufferToSend,
+                                   INT    BufferSize);
 
 VOID
 NamedPipeServerCloseHandle(HANDLE PipeHandle);
@@ -43,10 +43,10 @@ HANDLE
 NamedPipeClientCreatePipeOverlappedIo(LPCSTR PipeName);
 
 BOOLEAN
-NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSize);
+NamedPipeClientSendMessage(HANDLE PipeHandle, CHAR * BufferToSend, INT BufferSize);
 
 UINT32
-NamedPipeClientReadMessage(HANDLE PipeHandle, char * BufferToRead, int MaximumSizeOfBuffer);
+NamedPipeClientReadMessage(HANDLE PipeHandle, CHAR * BufferToRead, INT MaximumSizeOfBuffer);
 
 VOID
 NamedPipeClientClosePipe(HANDLE PipeHandle);

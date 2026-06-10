@@ -11,132 +11,132 @@
  */
 #include "pch.h"
 
-typedef char ** CHAR_PTR_PTR; // Define CHAR_PTR_PTR as a char**
+typedef CHAR ** CHAR_PTR_PTR; // Define CHAR_PTR_PTR as CHAR**
 
 /**
  * @brief Create an array of strings from a vector of strings
- * @param testCases The vector of strings to copy
+ * @param TestCases The vector of strings to copy
  *
  * @return A pointer to the array of strings
  */
 CHAR_PTR_PTR
-createTestCaseArray(const std::vector<std::string> & testCases)
+CreateTestCaseArray(const std::vector<std::string> & TestCases)
 {
     //
     // Allocate memory for the array of pointers (size: number of test cases)
     //
-    CHAR_PTR_PTR testCaseArray = (CHAR_PTR_PTR)malloc(testCases.size() * sizeof(UINT64));
+    CHAR_PTR_PTR TestCaseArray = (CHAR_PTR_PTR)malloc(TestCases.size() * sizeof(UINT64));
 
     //
     // Allocate memory for each string and copy the content
     //
-    for (size_t i = 0; i < testCases.size(); ++i)
+    for (SIZE_T i = 0; i < TestCases.size(); ++i)
     {
-        testCaseArray[i] = (char *)malloc(testCases[i].length() + 1); // +1 for the null terminator
+        TestCaseArray[i] = (CHAR *)malloc(TestCases[i].length() + 1); // +1 for the null terminator
 
-        if (testCaseArray[i] == NULL)
+        if (TestCaseArray[i] == NULL)
         {
             return NULL;
         }
-        std::strcpy(testCaseArray[i], testCases[i].c_str());
+        std::strcpy(TestCaseArray[i], TestCases[i].c_str());
     }
 
-    return testCaseArray;
+    return TestCaseArray;
 }
 
 /**
  * @brief Free the memory allocated for the test case array
- * @param testCaseArray The array of pointers to free
- * @param size The size of the array
+ * @param TestCaseArray The array of pointers to free
+ * @param Size The size of the array
  *
  * @return VOID
  */
 VOID
-freeTestCaseArray(CHAR_PTR_PTR testCaseArray, size_t size)
+FreeTestCaseArray(CHAR_PTR_PTR TestCaseArray, SIZE_T Size)
 {
     //
     // Free each string
     //
-    for (size_t i = 0; i < size; ++i)
+    for (SIZE_T i = 0; i < Size; ++i)
     {
-        free(testCaseArray[i]);
+        free(TestCaseArray[i]);
     }
 
     //
     // Free the array of pointers
     //
-    free(testCaseArray);
+    free(TestCaseArray);
 }
 
 /**
  * @brief Parse the test cases from the file
- * @param filename The name of the file to parse
+ * @param Filename The name of the file to parse
  *
  * @return A vector of pairs, where each pair contains a command and a vector of tokens
  */
 std::vector<std::pair<std::string, std::vector<std::string>>>
-parseTestCases(const std::string & filename)
+ParseTestCases(const std::string & Filename)
 {
-    std::ifstream                                                 file(filename);
-    std::string                                                   line;
-    std::string                                                   command;
-    std::string                                                   currentToken;
-    std::vector<std::string>                                      tokens;
-    std::vector<std::pair<std::string, std::vector<std::string>>> testCases;
-    bool                                                          isCommand  = false;
-    bool                                                          addNewline = false;
+    std::ifstream                                                 file(Filename);
+    std::string                                                   Line;
+    std::string                                                   Command;
+    std::string                                                   CurrentToken;
+    std::vector<std::string>                                      Tokens;
+    std::vector<std::pair<std::string, std::vector<std::string>>> TestCases;
+    BOOLEAN                                                       IsCommand  = FALSE;
+    BOOLEAN                                                       AddNewline = FALSE;
 
-    const std::string tokenDelimiter   = "----------------------------------";
-    const std::string commandDelimiter = "_____________________________________________________________";
+    const std::string TokenDelimiter   = "----------------------------------";
+    const std::string CommandDelimiter = "_____________________________________________________________";
 
-    while (std::getline(file, line))
+    while (std::getline(file, Line))
     {
-        if (line == commandDelimiter)
+        if (Line == CommandDelimiter)
         {
             //
             // No new line is needed after this token
             //
-            addNewline = false;
+            AddNewline = FALSE;
 
             //
             // Save the previous command and its tokens if any
             //
-            if (!command.empty())
+            if (!Command.empty())
             {
-                if (!currentToken.empty())
+                if (!CurrentToken.empty())
                 {
-                    tokens.push_back(currentToken);
-                    currentToken.clear();
+                    Tokens.push_back(CurrentToken);
+                    CurrentToken.clear();
                 }
-                testCases.push_back({command, tokens});
-                command.clear();
-                tokens.clear();
+                TestCases.push_back({Command, Tokens});
+                Command.clear();
+                Tokens.clear();
             }
 
             //
             // is command is true since a command is started
             //
-            isCommand = true;
+            IsCommand = TRUE;
         }
-        else if (line == tokenDelimiter)
+        else if (Line == TokenDelimiter)
         {
             //
             // No new line is needed after this token
             //
-            addNewline = false;
+            AddNewline = FALSE;
 
             //
             // not in command anymore
             //
-            isCommand = false;
+            IsCommand = FALSE;
 
             //
             // If we're in the middle of collecting a token, save it
             //
-            if (!currentToken.empty())
+            if (!CurrentToken.empty())
             {
-                tokens.push_back(currentToken);
-                currentToken.clear();
+                Tokens.push_back(CurrentToken);
+                CurrentToken.clear();
             }
         }
         else
@@ -144,110 +144,110 @@ parseTestCases(const std::string & filename)
             //
             // Accumulate lines for the command or token
             //
-            if (isCommand)
+            if (IsCommand)
             {
-                if (addNewline)
-                    command += "\n";
-                command += line;
+                if (AddNewline)
+                    Command += "\n";
+                Command += Line;
             }
             else
             {
-                if (addNewline)
-                    currentToken += "\n";
-                currentToken += line;
+                if (AddNewline)
+                    CurrentToken += "\n";
+                CurrentToken += Line;
             }
 
-            addNewline = true;
+            AddNewline = TRUE;
         }
     }
 
     //
     // Store the last command and tokens if any
     //
-    if (!command.empty())
+    if (!Command.empty())
     {
-        if (!currentToken.empty())
+        if (!CurrentToken.empty())
         {
-            tokens.push_back(currentToken);
+            Tokens.push_back(CurrentToken);
         }
-        testCases.push_back({command, tokens});
+        TestCases.push_back({Command, Tokens});
     }
 
-    return testCases;
+    return TestCases;
 }
 
 /**
  * @brief Count the number of occurrences of the substring "\\n" up to a specified position
- * @param str The string to search
- * @param limit The position to search up to
+ * @param Str The string to search
+ * @param Limit The position to search up to
  *
- * @return The number of occurrences of the substring "\\n"
+ * @return INT32 The number of occurrences of the substring "\\n"
  */
-int
-countBackslashNUpToPosition(const std::string & str, std::size_t limit)
+INT32
+CountBackslashNUpToPosition(const std::string & Str, std::size_t Limit)
 {
-    int                    count  = 0;
-    std::string::size_type pos    = 0;
-    std::string            target = "\\n";
+    INT32                  Count  = 0;
+    std::string::size_type Pos    = 0;
+    std::string            Target = "\\n";
 
     //
     // Limit the string to search within the specified range
     //
-    while ((pos = str.find(target, pos)) != std::string::npos && pos < limit)
+    while ((Pos = Str.find(Target, Pos)) != std::string::npos && Pos < Limit)
     {
-        ++count;
-        pos += target.length(); // Move past the current occurrence
+        ++Count;
+        Pos += Target.length(); // Move past the current occurrence
     }
 
-    return count;
+    return Count;
 }
 
 /**
  * @brief Show parsed command and tokens
- * @param testCases A vector of pairs, where each pair contains a command and a vector of tokens
- * @param failedTokenNum The number of the failed token
- * @param failedTokenPosition The position of the failed token
+ * @param TestCase A pair containing a command and a vector of tokens
+ * @param FailedTokenNum The number of the failed token
+ * @param FailedTokenPosition The position of the failed token
  *
  * @return VOID
  */
 VOID
 ShowParsedCommandAndTokens(const std::pair<std::string,
-                                           std::vector<std::string>> & testCase,
-                           UINT32                                      failedTokenNum,
-                           UINT32                                      failedTokenPosition)
+                                           std::vector<std::string>> & TestCase,
+                           UINT32                                      FailedTokenNum,
+                           UINT32                                      FailedTokenPosition)
 {
-    UINT32 tokenNum = 0;
+    UINT32 TokenNum = 0;
 
     //
     // Output the parsed test case
     //
 
-    string showingCommand = testCase.first;
+    string ShowingCommand = TestCase.first;
 
-    std::string::size_type pos = 0;
-    while ((pos = showingCommand.find("\n", pos)) != std::string::npos)
+    std::string::size_type Pos = 0;
+    while ((Pos = ShowingCommand.find("\n", Pos)) != std::string::npos)
     {
-        showingCommand.replace(pos, 1, "\\n");
-        pos += 2; // Move past the newly added characters
+        ShowingCommand.replace(Pos, 1, "\\n");
+        Pos += 2; // Move past the newly added characters
     }
 
-    std::cout << "Command: \"" << showingCommand << "\"" << std::endl;
+    std::cout << "Command: \"" << ShowingCommand << "\"" << std::endl;
     std::cout << "____________________________________\n";
 
     std::cout << "Expected Tokens: " << std::endl;
 
-    for (const auto & token : testCase.second)
+    for (const auto & Token : TestCase.second)
     {
-        string showingToken = token;
+        string ShowingToken = Token;
 
-        pos = 0;
-        while ((pos = showingToken.find("\n", pos)) != std::string::npos)
+        Pos = 0;
+        while ((Pos = ShowingToken.find("\n", Pos)) != std::string::npos)
         {
-            showingToken.replace(pos, 1, "\\n");
-            pos += 2; // Move past the newly added characters
+            ShowingToken.replace(Pos, 1, "\\n");
+            Pos += 2; // Move past the newly added characters
         }
 
-        if (tokenNum == failedTokenNum)
+        if (TokenNum == FailedTokenNum)
         {
             std::cout << "  x ";
         }
@@ -256,23 +256,23 @@ ShowParsedCommandAndTokens(const std::pair<std::string,
             std::cout << "  - ";
         }
 
-        std::cout << "\"" << showingToken << "\"" << std::endl;
+        std::cout << "\"" << ShowingToken << "\"" << std::endl;
 
-        if (tokenNum == failedTokenNum)
+        if (TokenNum == FailedTokenNum)
         {
             std::cout << "     ";
-            int countOfSpaces = countBackslashNUpToPosition(showingToken, failedTokenPosition);
+            INT32 CountOfSpaces = CountBackslashNUpToPosition(ShowingToken, FailedTokenPosition);
 
-            countOfSpaces += failedTokenPosition;
+            CountOfSpaces += FailedTokenPosition;
 
-            for (int i = 0; i < countOfSpaces; i++)
+            for (INT32 i = 0; i < CountOfSpaces; i++)
             {
                 std::cout << " ";
             }
             std::cout << "^" << std::endl;
         }
 
-        tokenNum++;
+        TokenNum++;
     }
 }
 
@@ -284,17 +284,17 @@ ShowParsedCommandAndTokens(const std::pair<std::string,
 BOOLEAN
 TestCommandParser()
 {
-    BOOLEAN overallResult       = TRUE;
-    int     testNum             = 0;
-    CHAR    filePath[MAX_PATH]  = {0};
-    UINT32  failedTokenNum      = 0;
-    UINT32  failedTokenPosition = 0;
+    BOOLEAN OverallResult       = TRUE;
+    INT32   TestNum             = 0;
+    CHAR    FilePath[MAX_PATH]  = {0};
+    UINT32  FailedTokenNum      = 0;
+    UINT32  FailedTokenPosition = 0;
 
     //
     // Parse the test cases from the file
     // Setup the path for the filename
     //
-    if (!hyperdbg_u_setup_path_for_filename(COMMAND_PARSER_TEST_CASES_FILE, filePath, MAX_PATH, TRUE))
+    if (!hyperdbg_u_setup_path_for_filename(COMMAND_PARSER_TEST_CASES_FILE, FilePath, MAX_PATH, TRUE))
     {
         //
         // Error could not find the test case files
@@ -306,7 +306,7 @@ TestCommandParser()
     //
     // Parse the test cases from the file
     //
-    auto testCases = parseTestCases(filePath);
+    auto TestCases = ParseTestCases(FilePath);
 
     //
     // Perform testing test cases with parsed file
@@ -316,32 +316,32 @@ TestCommandParser()
     //
     // Output the parsed test cases
     //
-    for (const auto & testCase : testCases)
+    for (const auto & TestCase : TestCases)
     {
-        testNum++;
+        TestNum++;
 
         //
         // Create CHAR**
         //
-        CHAR_PTR_PTR testCaseArray = createTestCaseArray(testCase.second);
+        CHAR_PTR_PTR TestCaseArray = CreateTestCaseArray(TestCase.second);
 
         //
         // Check token with actual parser
         //
-        if (hyperdbg_u_test_command_parser((CHAR *)testCase.first.c_str(),
-                                           (UINT32)testCase.second.size(),
-                                           testCaseArray,
-                                           &failedTokenNum,
-                                           &failedTokenPosition))
+        if (hyperdbg_u_test_command_parser((CHAR *)TestCase.first.c_str(),
+                                           (UINT32)TestCase.second.size(),
+                                           TestCaseArray,
+                                           &FailedTokenNum,
+                                           &FailedTokenPosition))
         {
-            cout << "[+] Test number " << testNum << " Passed " << endl;
+            cout << "[+] Test number " << TestNum << " Passed " << endl;
         }
         else
         {
             //
             // Set overall result to FALSE since one of the test cases failed
             //
-            overallResult = FALSE;
+            OverallResult = FALSE;
 
             //
             // Show parsed command and tokens
@@ -356,14 +356,14 @@ TestCommandParser()
             //
             // Show tokens
             //
-            hyperdbg_u_test_command_parser_show_tokens((CHAR *)testCase.first.c_str());
+            hyperdbg_u_test_command_parser_show_tokens((CHAR *)TestCase.first.c_str());
 
             cout << "\n============================================================" << endl;
 
             cout << "\nThe parsed command and tokens (From file):" << endl;
-            ShowParsedCommandAndTokens(testCase, failedTokenNum, failedTokenPosition);
+            ShowParsedCommandAndTokens(TestCase, FailedTokenNum, FailedTokenPosition);
 
-            cout << "\n[-] Test number " << testNum << " Failed " << endl;
+            cout << "\n[-] Test number " << TestNum << " Failed " << endl;
             cout << "============================================================\n"
                  << endl;
 
@@ -373,8 +373,8 @@ TestCommandParser()
         //
         // Clean up memory
         //
-        freeTestCaseArray(testCaseArray, testCase.second.size());
+        FreeTestCaseArray(TestCaseArray, TestCase.second.size());
     }
 
-    return overallResult;
+    return OverallResult;
 }

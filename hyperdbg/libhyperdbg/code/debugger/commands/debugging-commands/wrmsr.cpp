@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsKdModuleLoaded;
+
 /**
  * @brief help of the wrmsr command
  *
@@ -146,7 +151,7 @@ CommandWrmsr(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+    AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     MsrWriteRequest.ActionType = DEBUGGER_MSR_WRITE;
     MsrWriteRequest.Msr        = Msr;

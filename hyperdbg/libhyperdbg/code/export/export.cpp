@@ -1,6 +1,7 @@
 /**
  * @file export.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Exported functions from libhyperdbg interface
  * @details
  * @version 0.10
@@ -53,7 +54,18 @@ hyperdbg_u_load_vmm()
 }
 
 /**
- * @brief Unload the VMM
+ * @brief Unload all modules
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_unload_all_modules()
+{
+    return HyperDbgUnloadAllModules();
+}
+
+/**
+ * @brief Unload the VMM module
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
@@ -64,36 +76,113 @@ hyperdbg_u_unload_vmm()
 }
 
 /**
- * @brief Install the VMM driver
+ * @brief Unload the trace module
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_install_vmm_driver()
+hyperdbg_u_unload_hypertrace_module()
 {
-    return HyperDbgInstallVmmDriver();
+    return HyperDbgUnloadHyperTrace();
 }
 
 /**
- * @brief Uninstall the VMM driver
+ * @brief Unload the KD module
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_uninstall_vmm_driver()
+hyperdbg_u_unload_kd()
 {
-    return HyperDbgUninstallVmmDriver();
+    return HyperDbgUnloadKd();
 }
 
 /**
- * @brief Stop the VMM driver
+ * @brief Install the KD driver
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed
  */
 INT
-hyperdbg_u_stop_vmm_driver()
+hyperdbg_u_install_kd_driver()
 {
-    return HyperDbgStopVmmDriver();
+    return HyperDbgInstallKdDriver();
+}
+
+/**
+ * @brief Uninstall the KD (Kernel Debugger) driver
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_uninstall_kd_driver()
+{
+    return HyperDbgUninstallKdDriver();
+}
+
+/**
+ * @brief Start the KD driver
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_start_kd_driver()
+{
+    return HyperDbgStartKdDriver();
+}
+
+/**
+ * @brief Stop the KD driver
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_stop_kd_driver()
+{
+    return HyperDbgStopKdDriver();
+}
+
+/**
+ * @brief Get the vendor of the current processor
+ *
+ * @return GENERIC_PROCESSOR_VENDOR the vendor of the processor
+ */
+GENERIC_PROCESSOR_VENDOR
+hyperdbg_u_get_processor_vendor()
+{
+    return HyperDbgGetProcessorVendor();
+}
+
+/**
+ * @brief Load the KD module
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_load_kd_module()
+{
+    return HyperDbgLoadKdModule();
+}
+
+/**
+ * @brief Load the hypertrace module
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_load_hypertrace_module()
+{
+    return HyperDbgLoadHyperTraceModule();
+}
+
+/**
+ * @brief Load all modules
+ *
+ * @return INT Returns 0 if it was successful and 1 if it was failed
+ */
+INT
+hyperdbg_u_load_all_modules()
+{
+    return HyperDbgLoadAllModules();
 }
 
 /**
@@ -200,7 +289,7 @@ hyperdbg_u_unset_text_message_callback()
 INT
 hyperdbg_u_script_read_file_and_execute_commandline(INT argc, CHAR * argv[])
 {
-    return ScriptReadFileAndExecuteCommandline(argc, argv);
+    return HyperDbgScriptReadFileAndExecuteCommandline(argc, argv);
 }
 
 /**
@@ -787,6 +876,21 @@ BOOLEAN
 hyperdbg_u_enable_transparent_mode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId)
 {
     return HyperDbgEnableTransparentMode(ProcessId, ProcessName, IsProcessId);
+}
+
+/**
+ * @brief Enable transparent mode with a feature mask
+ * @param ProcessId The process ID to enable transparent mode for
+ * @param ProcessName The process name to enable transparent mode for
+ * @param IsProcessId If true, ProcessId is used, otherwise ProcessName is used
+ * @param EvadeMask The transparent-mode feature mask, or zero for default behavior
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+hyperdbg_u_enable_transparent_mode_ex(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId, UINT32 EvadeMask)
+{
+    return HyperDbgEnableTransparentModeEx(ProcessId, ProcessName, IsProcessId, EvadeMask);
 }
 
 /**

@@ -117,7 +117,7 @@ HwdbgInterpretPacket(PVOID BufferReceived, UINT32 LengthReceived)
             //
             // Read port arrangements
             //
-            for (size_t i = 0; i < g_HwdbgInstanceInfo.numberOfPorts; i++)
+            for (SIZE_T i = 0; i < g_HwdbgInstanceInfo.numberOfPorts; i++)
             {
                 g_HwdbgPortConfiguration.push_back(InstanceInfoPorts[i]);
             }
@@ -184,12 +184,12 @@ BOOLEAN
 HwdbgInterpreterFillMemoryFromFile(
     const TCHAR * FileName,
     UINT32 *      MemoryBuffer,
-    size_t        BufferSize)
+    SIZE_T        BufferSize)
 {
     std::ifstream File(FileName);
     std::string   Line;
     BOOLEAN       Result = TRUE;
-    size_t        Index  = 0;
+    SIZE_T        Index  = 0;
 
     if (!File.is_open())
     {
@@ -243,7 +243,7 @@ HwdbgInterpreterFillFileFromMemory(
     HWDBG_INSTANCE_INFORMATION * InstanceInfo,
     const TCHAR *                FileName,
     UINT32 *                     MemoryBuffer,
-    size_t                       BufferSize,
+    SIZE_T                       BufferSize,
     HWDBG_ACTION_ENUMS           RequestedAction)
 {
     std::ofstream File(FileName);
@@ -254,8 +254,8 @@ HwdbgInterpreterFillFileFromMemory(
         return FALSE;
     }
 
-    size_t Address = 0;
-    for (size_t I = 0; I < BufferSize / sizeof(UINT32); ++I)
+    SIZE_T Address = 0;
+    for (SIZE_T I = 0; I < BufferSize / sizeof(UINT32); ++I)
     {
         File << std::hex << std::setw(8) << std::setfill('0') << MemoryBuffer[I];
         File << " ; +0x" << std::hex << std::setw(1) << std::setfill('0') << Address;
@@ -572,7 +572,7 @@ HwdbgShowIntanceInfo(HWDBG_INSTANCE_INFORMATION * InstanceInfo)
  * @return BOOLEAN
  */
 BOOLEAN
-HwdbgReadInstanceInfoFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, size_t BufferSize)
+HwdbgReadInstanceInfoFromFile(const TCHAR * FileName, UINT32 * MemoryBuffer, SIZE_T BufferSize)
 {
     TCHAR TestFilePath[MAX_PATH] = {0};
 

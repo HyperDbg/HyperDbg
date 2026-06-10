@@ -17,6 +17,8 @@
 extern HANDLE  g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsKdModuleLoaded;
+extern BOOLEAN g_IsVmmModuleLoaded;
 
 /**
  * @brief help of the exit command
@@ -58,11 +60,14 @@ CommandExit(vector<CommandToken> CommandTokens, string Command)
         //
 
         //
-        // unload and exit if the vmm module is loaded
+        // unload and exit if the any module is loaded
         //
         if (g_DeviceHandle)
         {
-            HyperDbgUnloadVmm();
+            //
+            // Unload all modules
+            //
+            HyperDbgUnloadAllModules();
         }
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)

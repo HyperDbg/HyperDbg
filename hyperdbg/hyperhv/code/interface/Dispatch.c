@@ -380,7 +380,7 @@ DispatchEventMode(VIRTUAL_MACHINE_STATE * VCpu, DEBUGGER_EVENT_MODE_TYPE TargetM
             //
             // If the thread is intercepted, we should not trigger the event
             // Being here means that the thread should be handled by the user-mode debugger
-            //
+            // ou
 
             // LogInfo("Thread Id: %x, process Id: %x is intercepted by user-mode debugger - RIP: %llx",
             //         PsGetCurrentThreadId(),
@@ -711,13 +711,9 @@ DispatchEventMov2DebugRegs(VIRTUAL_MACHINE_STATE * VCpu)
     BOOLEAN                                   PostEventTriggerReq = FALSE;
 
     //
-    // Handle access to debug registers, if we should not ignore it, it is
-    // because on detecting thread scheduling we ignore the hardware debug
-    // registers modifications
+    // Check to see if we should ignore handling the mov 2 debug registers or not
     //
-    if (g_Callbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId != NULL &&
-        g_Callbacks.KdQueryDebuggerQueryThreadOrProcessTracingDetailsByCoreId(VCpu->CoreId,
-                                                                              DEBUGGER_THREAD_PROCESS_TRACING_INTERCEPT_CLOCK_DEBUG_REGISTER_INTERCEPTION))
+    if (DebuggingCallbackIgnoreHandlingMov2DebugRegs(VCpu->CoreId))
     {
         return;
     }
@@ -850,7 +846,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
         // Check if we're waiting for an NMI on this core and if the guest is NOT in
         // a instrument step-in ('i' command) routine
         //
-        if (!VCpu->RegisterBreakOnMtf &&
+        if (!VCpu->InstrumentationStepInMtf &&
             VmxBroadcastNmiHandler(VCpu, FALSE))
         {
             return;
@@ -885,7 +881,7 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // So, we'll ignore the injection of Exception in this case
     //
-    if (VCpu->RegisterBreakOnMtf)
+    if (VCpu->InstrumentationStepInMtf)
     {
         return;
     }
@@ -974,10 +970,11 @@ DispatchEventExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     if ((/* VCpu->CoreId == 0 && */ InterruptExit.Vector == CLOCK_INTERRUPT) ||
         (VCpu->CoreId != 0 && InterruptExit.Vector == IPI_INTERRUPT))
     {
-        if (g_Callbacks.DebuggerCheckProcessOrThreadChange != NULL)
-        {
-            g_Callbacks.DebuggerCheckProcessOrThreadChange(VCpu->CoreId);
-        }
+        //
+        // Calling the callback to trigger on clock and IPI events
+        // This is usually used for detecting changes to processes and threads
+        //
+        DebuggingCallbackTriggerOnClockAndIpiEvents(VCpu->CoreId);
     }
 
     //

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Ept.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Gbps
@@ -201,7 +201,7 @@ EptBuildMtrrMap(VOID)
         const UINT32               K64Base  = 0x0;
         const UINT32               K64Size  = 0x10000;
         IA32_MTRR_FIXED_RANGE_TYPE K64Types = {CpuReadMsr(IA32_MTRR_FIX64K_00000)};
-        for (unsigned int i = 0; i < 8; i++)
+        for (UINT32 i = 0; i < 8; i++)
         {
             Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
             Descriptor->MemoryType          = K64Types.s.Types[i];
@@ -212,10 +212,10 @@ EptBuildMtrrMap(VOID)
 
         const UINT32 K16Base = 0x80000;
         const UINT32 K16Size = 0x4000;
-        for (unsigned int i = 0; i < 2; i++)
+        for (UINT32 i = 0; i < 2; i++)
         {
             IA32_MTRR_FIXED_RANGE_TYPE K16Types = {CpuReadMsr(IA32_MTRR_FIX16K_80000 + i)};
-            for (unsigned int j = 0; j < 8; j++)
+            for (UINT32 j = 0; j < 8; j++)
             {
                 Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
                 Descriptor->MemoryType          = K16Types.s.Types[j];
@@ -227,11 +227,11 @@ EptBuildMtrrMap(VOID)
 
         const UINT32 K4Base = 0xC0000;
         const UINT32 K4Size = 0x1000;
-        for (unsigned int i = 0; i < 8; i++)
+        for (UINT32 i = 0; i < 8; i++)
         {
             IA32_MTRR_FIXED_RANGE_TYPE K4Types = {CpuReadMsr(IA32_MTRR_FIX4K_C0000 + i)};
 
-            for (unsigned int j = 0; j < 8; j++)
+            for (UINT32 j = 0; j < 8; j++)
             {
                 Descriptor                      = &g_EptState->MemoryRanges[g_EptState->NumberOfEnabledMemoryRanges++];
                 Descriptor->MemoryType          = K4Types.s.Types[j];
@@ -502,7 +502,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     if (UsePreAllocatedBuffer)
     {
-        NewSplit = (PVMM_EPT_DYNAMIC_SPLIT)PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+        NewSplit = (PVMM_EPT_DYNAMIC_SPLIT)PoolManagerCallbackRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
     }
     else
     {
@@ -763,7 +763,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     //
     // Copt the template into each of the 512 PML3 entry slots for the reserved entries
     //
-    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
     {
         CpuStosQ((SIZE_T *)&PageTable->PML3_RSVD[i][0], PML3TemplateLarge.AsUInt, VMM_EPT_PML3E_COUNT);
     }
@@ -783,9 +783,9 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     //
     // For each of the 512 PML3 reserved entries for reserved PML3 entries
     //
-    for (size_t i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
+    for (SIZE_T i = 0; i < VMM_EPT_PML4E_COUNT - 1; i++)
     {
-        for (size_t j = 0; j < VMM_EPT_PML3E_COUNT; j++)
+        for (SIZE_T j = 0; j < VMM_EPT_PML3E_COUNT; j++)
         {
             //
             // Map the 1GB PML3 reserved entry to 512 PML3 (1GB) entries to describe each large page
@@ -862,7 +862,7 @@ EptLogicalProcessorInitialize(VOID)
     //
     ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         //
         // Allocate the identity mapped page table
@@ -874,7 +874,7 @@ EptLogicalProcessorInitialize(VOID)
             //
             // Try to deallocate previous pools (if any)
             //
-            for (size_t j = 0; j < ProcessorsCount; j++)
+            for (SIZE_T j = 0; j < ProcessorsCount; j++)
             {
                 if (g_GuestState[j].EptPageTable != NULL)
                 {
@@ -1225,7 +1225,7 @@ EptCheckAndHandleEptHookBreakpoints(VIRTUAL_MACHINE_STATE * VCpu, UINT64 GuestRi
 
         if (HookedEntry->IsExecutionHook)
         {
-            for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+            for (SIZE_T i = 0; i < HookedEntry->CountOfBreakpoints; i++)
             {
                 if (HookedEntry->BreakpointAddresses[i] == GuestRip)
                 {

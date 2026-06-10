@@ -76,7 +76,7 @@ InsertionSortDeleteItem(UINT64 ArrayPtr[], UINT32 * NumberOfItems, UINT32 Index)
         return FALSE;
     }
 
-    for (size_t i = Index + 1; i < *NumberOfItems; i++)
+    for (SIZE_T i = Index + 1; i < *NumberOfItems; i++)
     {
         ArrayPtr[i - 1] = ArrayPtr[i];
     }

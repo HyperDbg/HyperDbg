@@ -68,9 +68,20 @@
 #include "platform/kernel/header/PlatformEvent.h"
 
 //
+// DPC and broadcasting function headers
+//
+#include "broadcast/DpcRoutines.h"
+#include "broadcast/Broadcast.h"
+
+//
+// Unload function (to be called when the driver is unloaded)
+//
+#include "common/UnloadDll.h"
+
+//
 // Hyperlog headers
 //
-#include "components/interface/HyperLogCallback.h"
+#include "components/callback/header/HyperLogCallback.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
 
 //
@@ -101,18 +112,6 @@
 //
 #include "pt/Pt.h"
 #include "api/PtApi.h"
-
-//
-// DPC and broadcasting function headers
-//
-#include "broadcast/Dpc.h"
-#include "broadcast/DpcRoutines.h"
-#include "broadcast/Broadcast.h"
-
-//
-// Unload function (to be called when the driver is unloaded)
-//
-#include "common/UnloadDll.h"
 
 //
 // Export functions

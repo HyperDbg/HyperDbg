@@ -14,11 +14,7 @@
 //
 // Global Variables
 //
-extern HANDLE  g_SerialListeningThreadHandle;
-extern HANDLE  g_SerialRemoteComPortHandle;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
-extern BOOLEAN g_IsDebuggeeRunning;
 
 /**
  * @brief help of the .debug command

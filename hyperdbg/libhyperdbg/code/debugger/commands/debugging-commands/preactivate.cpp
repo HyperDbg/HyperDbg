@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern HANDLE  g_DeviceHandle;
+extern BOOLEAN g_IsVmmModuleLoaded;
+
 /**
  * @brief help of the preactivate command
  *
@@ -71,7 +77,7 @@ CommandPreactivate(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
     // Send IOCTL

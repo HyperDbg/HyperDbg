@@ -68,9 +68,15 @@ PoolManagerInitialize()
     InitializeListHead(&g_ListOfAllocatedPoolsHead);
 
     //
-    // Nothing to deallocate
+    // Nothing to deallocate or allocate at the beginning
     //
-    g_IsNewRequestForDeAllocation = FALSE;
+    g_IsNewRequestForDeAllocation       = FALSE;
+    g_IsNewRequestForAllocationReceived = FALSE;
+
+    //
+    // Memory allocator is initialized
+    //
+    g_PoolManagerInitialized = TRUE;
 
     //
     // Initialized successfully
@@ -86,8 +92,12 @@ PoolManagerInitialize()
 VOID
 PoolManagerUninitialize()
 {
-    PLIST_ENTRY ListTemp = 0;
-    ListTemp             = &g_ListOfAllocatedPoolsHead;
+    PLIST_ENTRY ListTemp = &g_ListOfAllocatedPoolsHead;
+
+    //
+    // Pool manager is not initialized anymore
+    //
+    g_PoolManagerInitialized = FALSE;
 
     SpinlockLock(&LockForReadingPool);
 
@@ -252,7 +262,7 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
 BOOLEAN
 PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention)
 {
-    for (size_t i = 0; i < Count; i++)
+    for (SIZE_T i = 0; i < Count; i++)
     {
         POOL_TABLE * SinglePool = NULL;
 
@@ -305,12 +315,14 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     PLIST_ENTRY ListTemp = 0;
 
     //
-    // let's make sure we're on vmx non-root and also we have new allocation
+    // Make sure we're on vmx non-root and also we have new allocation
+    // and also pool manager is initialized, otherwise we shouldn't allocate or deallocate
     //
-    if (VmxGetCurrentExecutionMode() == TRUE)
+    if (!g_PoolManagerInitialized || VmFuncVmxGetCurrentExecutionMode() == TRUE)
     {
         //
         // allocation's can't be done from vmx root
+        // or pool manager is not initialized yet
         //
         return FALSE;
     }
@@ -319,6 +331,8 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     // Make sure paging works properly
     //
     PAGED_CODE();
+
+    SpinlockLock(&LockForReadingPool);
 
     //
     // Check for new allocation
@@ -351,8 +365,6 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     if (g_IsNewRequestForDeAllocation)
     {
         ListTemp = &g_ListOfAllocatedPoolsHead;
-
-        SpinlockLock(&LockForReadingPool);
 
         while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
         {
@@ -390,8 +402,6 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 PlatformMemFreePool(PoolTable);
             }
         }
-
-        SpinlockUnlock(&LockForReadingPool);
     }
 
     //
@@ -399,6 +409,8 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     g_IsNewRequestForDeAllocation       = FALSE;
     g_IsNewRequestForAllocationReceived = FALSE;
+
+    SpinlockUnlock(&LockForReadingPool);
 
     return Result;
 }

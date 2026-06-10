@@ -1,6 +1,7 @@
 ﻿/**
  * @file Transparency.c
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief Try to hide the debugger from anti-debugging and anti-hypervisor methods
  * @details
  * @version 0.1
@@ -14,8 +15,8 @@
 /**
  * @brief Hide debugger on transparent-mode (activate transparent-mode)
  *
- * @param HyperevadeCallbacks
- * @param TransparentModeRequest
+ * @param HyperevadeCallbacks Pointer to the HyperEvade callbacks structure
+ * @param TransparentModeRequest Pointer to the transparent debugger mode request
  *
  * @return BOOLEAN
  */
@@ -23,6 +24,19 @@ BOOLEAN
 TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        HyperevadeCallbacks,
                         DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
+    UINT32 EvadeMask = TransparentModeRequest->EvadeMask;
+
+    if (EvadeMask == 0)
+    {
+        EvadeMask = TRANSPARENT_EVADE_MASK_DEFAULT;
+    }
+
+    if ((EvadeMask & ~TRANSPARENT_EVADE_MASK_ALL) != 0)
+    {
+        TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+        return FALSE;
+    }
+
     //
     // Check if any of the required callbacks are NULL
     //
@@ -54,18 +68,20 @@ TransparentHideDebugger(HYPEREVADE_CALLBACKS *                        Hyperevade
         RtlCopyBytes(&g_SystemCallNumbersInformation,
                      &TransparentModeRequest->SystemCallNumbersInformation,
                      sizeof(SYSTEM_CALL_NUMBERS_INFORMATION));
-#if DISABLE_HYPERDBG_HYPEREVADE == FALSE
+#if ActivateHyperEvadeProject == TRUE
         //
         // Choose a random genuine vendor string to replace hypervisor vendor data
         //
-        TRANSPARENT_GENUINE_VENDOR_STRING_INDEX = TransparentGetRand() %
-                                                  (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
+        g_TransparentGenuineVendorStringIndex = TransparentGetRand() %
+                                                (sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[0]));
 #endif
 
         //
         // Enable the transparent mode
         //
         g_TransparentMode                    = TRUE;
+        g_TransparentEvadeMask               = EvadeMask;
+        TransparentModeRequest->EvadeMask    = EvadeMask;
         TransparentModeRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         //
@@ -93,7 +109,8 @@ TransparentUnhideDebugger()
         //
         // Disable the transparent-mode
         //
-        g_TransparentMode = FALSE;
+        g_TransparentMode      = FALSE;
+        g_TransparentEvadeMask = 0;
 
         return TRUE;
     }
@@ -125,7 +142,7 @@ TransparentGetRand()
  * @brief Add name or process id of the target process to the list
  * of processes that HyperDbg should apply transparent-mode on them
  *
- * @param Measurements
+ * @param Measurements Pointer to the debugger hide and transparent mode request structure
  * @return BOOLEAN
  */
 BOOLEAN
@@ -189,8 +206,8 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
         //
         // Move the process name string to the end of the buffer
         //
-        RtlCopyBytes((void *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
-                     (const void *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
+        RtlCopyBytes((VOID *)((UINT64)PidAndNameBuffer + sizeof(TRANSPARENCY_PROCESS)),
+                     (CONST VOID *)((UINT64)Measurements + sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)),
                      Measurements->LengthOfProcessName);
 
         //

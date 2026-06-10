@@ -579,7 +579,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
         //
         // Fill the memory with nops
         //
-        memset((void *)ReservedBuffAddress, 0x90, PAGE_SIZE);
+        memset((PVOID)ReservedBuffAddress, 0x90, PAGE_SIZE);
 
         //
         // Set jmps to form a loop (little endians)

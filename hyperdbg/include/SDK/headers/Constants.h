@@ -1,6 +1,7 @@
 /**
  * @file Constants.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief HyperDbg's SDK constants
  * @details This file contains definitions of constants
  * used in HyperDbg
@@ -17,8 +18,10 @@
 //////////////////////////////////////////////////
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 19
+#define VERSION_MINOR 20
 #define VERSION_PATCH 0
+
+#define BETA_VERSION 0
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
@@ -78,7 +81,7 @@
 
 #ifdef __cplusplus // because it's not valid in C
 
-const unsigned char BuildDateTime[] = {
+const UCHAR BuildDateTime[] = {
     BUILD_YEAR_CH0,
     BUILD_YEAR_CH1,
     BUILD_YEAR_CH2,
@@ -106,11 +109,16 @@ const unsigned char BuildDateTime[] = {
 #    define TOSTRING(x)  STRINGIFY(x)
 
 // Complete version as a string
-#    define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "\0"
 
-const unsigned char CompleteVersion[] = HYPERDBG_COMPLETE_VERSION;
+#    if BETA_VERSION == 0
+#        define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "\0"
+#    else
+#        define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "-beta\0"
+#    endif
 
-const unsigned char BuildVersion[] = {
+const UCHAR CompleteVersion[] = HYPERDBG_COMPLETE_VERSION;
+
+const UCHAR BuildVersion[] = {
     BUILD_YEAR_CH0,
     BUILD_YEAR_CH1,
     BUILD_YEAR_CH2,
@@ -127,7 +135,7 @@ const unsigned char BuildVersion[] = {
 
     '\0'};
 
-const unsigned char BuildSignature[] = {
+const UCHAR BuildSignature[] = {
     TOSTRING(VERSION_MAJOR)[0],
     '.',
     TOSTRING(VERSION_MINOR)[0],
@@ -667,6 +675,18 @@ typedef enum _SEGMENT_REGISTERS
  */
 #define CPUID_HV_VENDOR_AND_MAX_FUNCTIONS 0x40000000
 #define CPUID_HV_INTERFACE                0x40000001
+
+/**
+ * @brief Transparent-mode feature mask
+ *
+ */
+#define TRANSPARENT_EVADE_MASK_SYSCALL_HOOK 0x00000001
+#define TRANSPARENT_EVADE_MASK_CPUID        0x00000002
+#define TRANSPARENT_EVADE_MASK_MSR          0x00000004
+#define TRANSPARENT_EVADE_MASK_TRAP_FLAG    0x00000008
+#define TRANSPARENT_EVADE_MASK_ALL \
+    (TRANSPARENT_EVADE_MASK_SYSCALL_HOOK | TRANSPARENT_EVADE_MASK_CPUID | TRANSPARENT_EVADE_MASK_MSR | TRANSPARENT_EVADE_MASK_TRAP_FLAG)
+#define TRANSPARENT_EVADE_MASK_DEFAULT TRANSPARENT_EVADE_MASK_ALL
 
 /**
  * @brief Cpuid to get virtual address width

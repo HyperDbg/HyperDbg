@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Conversion.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Functions for address checks
@@ -17,7 +17,7 @@
  *
  * @param Address Address to check
  *
- * @param UINT32 ProcId
+ * @param ProcId
  * @return BOOLEAN Returns true if the address is valid; otherwise, false
  */
 BOOLEAN
@@ -210,7 +210,7 @@ CheckAccessValidityAndSafetyWrapper(UINT64 TargetAddress, UINT32 Size, UINT32 Pr
     //     UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
     //     UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
     //
-    //     for (size_t i = 0; i <= PageCount; i++)
+    //     for (SIZE_T i = 0; i <= PageCount; i++)
     //     {
     //         UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
     //         if (!CheckAddressValidityUsingTsx(CheckAddr))

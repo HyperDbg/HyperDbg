@@ -62,6 +62,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "headers", "headers", "{D67D
 		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
 		include\SDK\headers\LbrDefinitions.h = include\SDK\headers\LbrDefinitions.h
 		include\SDK\headers\Pcie.h = include\SDK\headers\Pcie.h
+		include\SDK\headers\PortableExecutable.h = include\SDK\headers\PortableExecutable.h
+		include\SDK\headers\PtDefinitions.h = include\SDK\headers\PtDefinitions.h
 		include\SDK\Headers\RequestStructures.h = include\SDK\Headers\RequestStructures.h
 		include\SDK\Headers\ScriptEngineCommonDefinitions.h = include\SDK\Headers\ScriptEngineCommonDefinitions.h
 		include\SDK\Headers\Symbols.h = include\SDK\Headers\Symbols.h
@@ -291,6 +293,40 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{09E02C
 		linux\mock\kernel\pch.h = linux\mock\kernel\pch.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows-only", "windows-only", "{C95E342A-9622-4351-8177-CDA43A52E7B2}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\user\header\windows-only\windows-privilege.h = include\platform\user\header\windows-only\windows-privilege.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows-only", "windows-only", "{45ABB14F-86B9-40BE-9C0F-213653CE6A93}"
+	ProjectSection(SolutionItems) = preProject
+		include\platform\user\code\windows-only\windows-privilege.c = include\platform\user\code\windows-only\windows-privilege.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "callback", "callback", "{1AA10217-07BF-490B-A688-1D1D6A267D52}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{78821DCF-DCFE-45B7-A9DD-3543BDF1FB9E}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\callback\hyperlog\code\HyperLogCallback.c = include\components\callback\hyperlog\code\HyperLogCallback.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{AD02B952-0D75-47FE-8FF7-18B3E081E2C1}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\callback\hyperlog\header\HyperLogCallback.h = include\components\callback\hyperlog\header\HyperLogCallback.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pe", "pe", "{9A0232BB-B06B-47EE-A096-E7B475956437}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{824DF7C7-18B5-48DE-99D7-AD6B612D6204}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\pe\code\pe-image-reader.cpp = include\components\pe\code\pe-image-reader.cpp
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{CA2D9C24-F90A-48ED-8ABC-F296674EA2B7}"
+	ProjectSection(SolutionItems) = preProject
+		include\components\pe\header\pe-image-reader.h = include\components\pe\header\pe-image-reader.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|x64 = debug|x64
@@ -390,6 +426,14 @@ Global
 		{848FE945-4F37-4B5B-98C8-F22CA3AA7184} = {17652C16-00A0-40D4-A227-697E595DE053}
 		{D3722A82-0A54-4172-A0C1-1EA6500E9F1E} = {770B65D6-5307-478C-A9EB-3E4A64B67225}
 		{09E02C0A-6A6C-408A-8136-C787FDC58A5F} = {770B65D6-5307-478C-A9EB-3E4A64B67225}
+		{C95E342A-9622-4351-8177-CDA43A52E7B2} = {DBE32379-8D5A-4454-A1B6-ACC407881898}
+		{45ABB14F-86B9-40BE-9C0F-213653CE6A93} = {4BF590C3-1032-4DD2-BF87-BB9E5781977C}
+		{1AA10217-07BF-490B-A688-1D1D6A267D52} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
+		{78821DCF-DCFE-45B7-A9DD-3543BDF1FB9E} = {1AA10217-07BF-490B-A688-1D1D6A267D52}
+		{AD02B952-0D75-47FE-8FF7-18B3E081E2C1} = {1AA10217-07BF-490B-A688-1D1D6A267D52}
+		{9A0232BB-B06B-47EE-A096-E7B475956437} = {DF15E9D4-976B-4E1D-B68F-9B67F93654BF}
+		{824DF7C7-18B5-48DE-99D7-AD6B612D6204} = {9A0232BB-B06B-47EE-A096-E7B475956437}
+		{CA2D9C24-F90A-48ED-8ABC-F296674EA2B7} = {9A0232BB-B06B-47EE-A096-E7B475956437}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

@@ -14,8 +14,7 @@
 //
 // Global Variables
 //
-extern HWDBG_INSTANCE_INFORMATION g_HwdbgInstanceInfo;
-extern BOOLEAN                    g_HwdbgInstanceInfoIsValid;
+extern BOOLEAN g_HwdbgInstanceInfoIsValid;
 
 /**
  * @brief help of the !hw command

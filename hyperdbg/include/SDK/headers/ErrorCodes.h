@@ -635,6 +635,24 @@
  */
 #define DEBUGGER_ERROR_PT_NOT_SUPPORTED 0xc0000062
 
+/**
+ * @brief error, VMM cannot be initialized while HyperTrace module is already loaded
+ *
+ */
+#define DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_HYPERTRACE_IS_LOADED 0xc0000063
+
+/**
+ * @brief error, VMM cannot be initialized if the debugger is not loaded
+ *
+ */
+#define DEBUGGER_ERROR_VMM_CANNOT_BE_INITIALIZED_IF_DEBUGGER_IS_NOT_LOADED 0xc0000064
+
+/**
+ * @brief error, cannot initialize the debugger
+ *
+ */
+#define DEBUGGER_ERROR_CANNOT_INITIALIZE_DEBUGGER 0xc0000065
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

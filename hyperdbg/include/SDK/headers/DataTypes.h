@@ -29,6 +29,21 @@ typedef enum _PAGING_LEVEL
 } PAGING_LEVEL;
 
 //////////////////////////////////////////////////
+//               CPU Information                //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Different processor vendors
+ *
+ */
+typedef enum _GENERIC_PROCESSOR_VENDOR
+{
+    GENERIC_PROCESSOR_VENDOR_INTEL,
+    GENERIC_PROCESSOR_VENDOR_AMD,
+    GENERIC_PROCESSOR_VENDOR_OTHERS,
+} GENERIC_PROCESSOR_VENDOR;
+
+//////////////////////////////////////////////////
 //                 List Entries      			//
 //////////////////////////////////////////////////
 

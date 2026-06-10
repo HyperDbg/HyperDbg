@@ -249,7 +249,7 @@ CommandDump(vector<CommandToken> CommandTokens, string Command)
     ActualLength = NULL;
     Iterator     = Length / PAGE_SIZE;
 
-    for (size_t i = 0; i <= Iterator; i++)
+    for (SIZE_T i = 0; i <= Iterator; i++)
     {
         UINT64 Address = StartAddress + (i * PAGE_SIZE);
 

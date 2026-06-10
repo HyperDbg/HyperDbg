@@ -1,6 +1,6 @@
 /**
  * @file pcitree.cpp
- * @author Björn Ruytenberg (bjorn@bjornweb.nl)
+ * @author Bjï¿½rn Ruytenberg (bjorn@bjornweb.nl)
  * @brief !pcitree command
  * @details
  * @version 0.10.3
@@ -14,6 +14,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
@@ -64,7 +65,7 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
     }
     else
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
         //
         // Send IOCTL

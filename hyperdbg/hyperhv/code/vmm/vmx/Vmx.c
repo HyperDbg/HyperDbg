@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Vmx.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief VMX Instructions and VMX Related Functions
@@ -25,7 +25,7 @@ VmxCheckVmxSupport()
     //
     // Gets Processor Info and Feature Bits
     //
-    CpuCpuId((int *)&Data, 1);
+    CpuCpuId((INT *)&Data, 1);
 
     //
     // Check For VMX Bit CPUID.ECX[5]
@@ -132,7 +132,7 @@ VmxInitialize()
 
     ProcessorsCount = KeQueryActiveProcessorCount(0);
 
-    for (size_t ProcessorID = 0; ProcessorID < ProcessorsCount; ProcessorID++)
+    for (SIZE_T ProcessorID = 0; ProcessorID < ProcessorsCount; ProcessorID++)
     {
         //
         // *** Launching VM for Test (in the all logical processor) ***
@@ -315,15 +315,6 @@ VmxPerformVirtualizationOnAllCores()
         }
 
         LogDebugInfo("MTRR memory map built successfully");
-    }
-
-    //
-    // Initialize Pool Manager
-    //
-    if (!PoolManagerInitialize())
-    {
-        LogError("Err, could not initialize pool manager");
-        return FALSE;
     }
 
     if (!EptLogicalProcessorInitialize())
@@ -1034,7 +1025,7 @@ VmxPerformVmxoff(VIRTUAL_MACHINE_STATE * VCpu)
     // since immediately after vmxoff, an interrupt might occur and context switch
     // might change the XMM registers
     //
-    AsmVmxoffRestoreXmmRegs((unsigned long long)VCpu->XmmRegs);
+    AsmVmxoffRestoreXmmRegs((UINT64)VCpu->XmmRegs);
 
     //
     // Before using vmxoff, you first need to use vmclear on any VMCSes that you want to be able to use again.
@@ -1142,7 +1133,7 @@ VmxPerformTermination()
     //
     // Free Identity Page Table
     //
-    for (size_t i = 0; i < ProcessorsCount; i++)
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         if (g_GuestState[i].EptPageTable != NULL)
         {
@@ -1157,11 +1148,6 @@ VmxPerformTermination()
     //
     PlatformMemFreePool(g_EptState);
     g_EptState = NULL;
-
-    //
-    // Free the Pool manager
-    //
-    PoolManagerUninitialize();
 
     //
     // Uninitialize memory mapper
@@ -1273,9 +1259,9 @@ VmxCompatibleStrlen(const CHAR * S)
  * string
  */
 UINT32
-VmxCompatibleWcslen(const wchar_t * S)
+VmxCompatibleWcslen(const WCHAR * S)
 {
-    wchar_t  Temp  = NULL_ZERO;
+    WCHAR    Temp  = NULL_ZERO;
     UINT32   Count = 0;
     UINT64   AlignedAddress;
     CR3_TYPE GuestCr3;
@@ -1299,7 +1285,7 @@ VmxCompatibleWcslen(const wchar_t * S)
     //
     // First check
     //
-    if (!CheckAccessValidityAndSafety(AlignedAddress, sizeof(wchar_t)))
+    if (!CheckAccessValidityAndSafety(AlignedAddress, sizeof(WCHAR)))
     {
         //
         // Error
@@ -1317,7 +1303,7 @@ VmxCompatibleWcslen(const wchar_t * S)
         /*
         Temp = *S;
         */
-        MemoryMapperReadMemorySafe((UINT64)S, &Temp, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)S, &Temp, sizeof(WCHAR));
 
         if (Temp != '\0\0')
         {
@@ -1335,7 +1321,7 @@ VmxCompatibleWcslen(const wchar_t * S)
 
         if (!((UINT64)S & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)S, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)S, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1528,12 +1514,12 @@ VmxCompatibleStrcmp(const CHAR * Address1,
  * @return INT32 0x2 indicates error, otherwise the same result as wcscmp in string.h
  */
 INT32
-VmxCompatibleWcscmp(const wchar_t * Address1,
-                    const wchar_t * Address2,
-                    SIZE_T          Num,
-                    BOOLEAN         IsWcsncmp)
+VmxCompatibleWcscmp(const WCHAR * Address1,
+                    const WCHAR * Address2,
+                    SIZE_T        Num,
+                    BOOLEAN       IsWcsncmp)
 {
-    wchar_t  C1 = NULL_ZERO, C2 = NULL_ZERO;
+    WCHAR    C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
     UINT32   Count  = 0;
     UINT64   AlignedAddress1, AlignedAddress2;
@@ -1557,7 +1543,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
     //
     // First check
     //
-    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(wchar_t)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(wchar_t)))
+    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(WCHAR)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(WCHAR)))
     {
         //
         // Error
@@ -1596,19 +1582,19 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
         /*
         C1 = *Address1;
         */
-        MemoryMapperReadMemorySafe((UINT64)Address1, &C1, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)Address1, &C1, sizeof(WCHAR));
 
         /*
         C2 = *Address2;
         */
-        MemoryMapperReadMemorySafe((UINT64)Address2, &C2, sizeof(wchar_t));
+        MemoryMapperReadMemorySafe((UINT64)Address2, &C2, sizeof(WCHAR));
 
         Address1++;
         Address2++;
 
         if (!((UINT64)AlignedAddress1 & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1624,7 +1610,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
 
         if (!((UINT64)AlignedAddress2 & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1666,7 +1652,7 @@ VmxCompatibleWcscmp(const wchar_t * Address1,
  * @return INT32 0x2 indicates error, otherwise the same result as memcmp in string.h
  */
 INT32
-VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
+VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
 {
     CHAR     C1 = NULL_ZERO, C2 = NULL_ZERO;
     INT32    Result = 0;
@@ -1691,7 +1677,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
     //
     // First check
     //
-    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(wchar_t)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(wchar_t)))
+    if (!CheckAccessValidityAndSafety(AlignedAddress1, sizeof(WCHAR)) || !CheckAccessValidityAndSafety(AlignedAddress2, sizeof(WCHAR)))
     {
         //
         // Error
@@ -1721,7 +1707,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
 
         if (!((UINT64)AlignedAddress1 & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress1, sizeof(WCHAR)))
             {
                 //
                 // Error
@@ -1737,7 +1723,7 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
 
         if (!((UINT64)AlignedAddress2 & (PAGE_SIZE - 1)))
         {
-            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(wchar_t)))
+            if (!CheckAccessValidityAndSafety((UINT64)AlignedAddress2, sizeof(WCHAR)))
             {
                 //
                 // Error

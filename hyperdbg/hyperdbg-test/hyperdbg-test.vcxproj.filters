@@ -21,9 +21,27 @@
     <Filter Include="code\hardware">
       <UniqueIdentifier>{18515e99-bdbe-465f-9c92-58dc89591116}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\components">
+      <UniqueIdentifier>{4905a2c5-31b5-4b16-9f84-d2b3b39726d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\pe">
+      <UniqueIdentifier>{2835e8e0-5525-473b-ae43-c498674fb42e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components">
+      <UniqueIdentifier>{b36455ac-6726-4c17-903c-3c3e3de1b783}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\pe">
+      <UniqueIdentifier>{b3920039-7e86-412e-bf10-8a5a7946e102}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\tests\test-parser.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="code\tests\test-pe-parser.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="code\tests\test-codeview-rsds-parser.cpp">
       <Filter>code\tests</Filter>
     </ClCompile>
     <ClCompile Include="code\namedpipe.cpp">
@@ -41,8 +59,17 @@
     <ClCompile Include="code\hardware\hwdbg-tests.cpp">
       <Filter>code\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\symbol-parser\code\codeview-rsds.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\symbol-parser\code\pdb-identity.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\pe\code\pe-image-reader.cpp">
+      <Filter>code\components\pe</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +86,15 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\pe\header\pe-image-reader.h">
+      <Filter>header\components\pe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\symbol-parser\header\codeview-rsds.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\symbol-parser\header\pdb-identity.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

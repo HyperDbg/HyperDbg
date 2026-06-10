@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file MsrHandlers.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Handle for MSR-related tasks in VMX-root
@@ -10,6 +10,49 @@
  *
  */
 #include "pch.h"
+
+/**
+ * @brief Checks whether an MSR belongs to the Hyper-V synthetic MSR set
+ * @details The ranges and individual registers are defined by Hyper-V TLFS
+ * synthetic MSRs and mirrored in HypervTlfs.h.
+ *
+ * @param TargetMsr The target MSR
+ * @return BOOLEAN Returns TRUE if the MSR should be forwarded to the
+ * top-level Hyper-V compatible hypervisor
+ */
+BOOLEAN
+MsrHandleIsHypervSyntheticMsr(_In_ UINT32 TargetMsr)
+{
+    switch (TargetMsr)
+    {
+    case HV_X64_MSR_GUEST_OS_ID:
+    case HV_X64_MSR_HYPERCALL:
+    case HV_X64_MSR_VP_INDEX:
+    case HV_X64_MSR_RESET:
+    case HV_X64_MSR_VP_RUNTIME:
+    case HV_X64_MSR_TIME_REF_COUNT:
+    case HV_X64_MSR_REFERENCE_TSC:
+    case HV_X64_MSR_TSC_FREQUENCY:
+    case HV_X64_MSR_APIC_FREQUENCY:
+    case HV_X64_MSR_NPIEP_CONFIG:
+    case HV_X64_MSR_GUEST_IDLE:
+    case HV_X64_MSR_REENLIGHTENMENT_CONTROL:
+    case HV_X64_MSR_TSC_EMULATION_CONTROL:
+    case HV_X64_MSR_TSC_EMULATION_STATUS:
+    case HV_X64_MSR_STIME_UNHALTED_TIMER_CONFIG:
+    case HV_X64_MSR_STIME_UNHALTED_TIMER_COUNT:
+    case HV_X64_MSR_NESTED_VP_INDEX:
+        return TRUE;
+    default:
+        return (TargetMsr >= HV_X64_MSR_EOI && TargetMsr <= HV_X64_MSR_TPR) ||
+               (TargetMsr >= HV_X64_MSR_SCONTROL && TargetMsr <= HV_X64_MSR_EOM) ||
+               (TargetMsr >= HV_X64_MSR_SINT0 && TargetMsr <= HV_X64_MSR_SINT15) ||
+               (TargetMsr >= HV_X64_MSR_STIMER0_CONFIG && TargetMsr <= HV_X64_MSR_STIMER3_COUNT) ||
+               (TargetMsr >= HV_X64_MSR_CRASH_P0 && TargetMsr <= HV_X64_MSR_CRASH_CTL) ||
+               (TargetMsr >= HV_X64_MSR_NESTED_SCONTROL && TargetMsr <= HV_X64_MSR_NESTED_EOM) ||
+               (TargetMsr >= HV_X64_MSR_NESTED_SINT0 && TargetMsr <= HV_X64_MSR_NESTED_SINT15);
+    }
+}
 
 /**
  * @brief Handles in the cases when RDMSR causes a vm-exit
@@ -53,6 +96,17 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // LogInfo("MSR read (RDMSR) VM-exit, MSR: %x, from: %llx",
     //         TargetMsr,
     //         VCpu->LastVmexitRip);
+    //
+    // Checking whether it is a synthetic MSR for Hyper-V.
+    if (MsrHandleIsHypervSyntheticMsr(TargetMsr))
+    {
+        Msr.Flags = CpuReadMsr(TargetMsr);
+
+        GuestRegs->rax = Msr.Fields.Low;
+        GuestRegs->rdx = Msr.Fields.High;
+
+        return;
+    }
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
@@ -114,7 +168,7 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Check whether the MSR should cause #GP or not
             //
-            if (TargetMsr <= 0xfff && TestBit(TargetMsr, (unsigned long *)g_MsrBitmapInvalidMsrs) != NULL64_ZERO)
+            if (TargetMsr <= 0xfff && TestBit(TargetMsr, (ULONG *)g_MsrBitmapInvalidMsrs) != NULL64_ZERO)
             {
                 //
                 // Invalid MSR between 0x0 to 0xfff
@@ -203,6 +257,13 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //         GuestRegs->rax,
     //         GuestRegs->rdx,
     //         VCpu->LastVmexitRip);
+    //
+    // Checking whether it is a synthetic MSR for Hyper-V.
+    if (MsrHandleIsHypervSyntheticMsr(TargetMsr))
+    {
+        CpuWriteMsr(TargetMsr, Msr.Flags);
+        return;
+    }
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
@@ -278,7 +339,7 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
             //
             // Perform the WRMSR
             //
-            CpuWriteMsr((unsigned long)GuestRegs->rcx, Msr.Flags);
+            CpuWriteMsr((ULONG)GuestRegs->rcx, Msr.Flags);
 
             break;
         }
@@ -317,22 +378,22 @@ MsrHandleSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDete
     {
         if (ReadDetection)
         {
-            SetBit(Msr, (unsigned long *)VCpu->MsrBitmapVirtualAddress);
+            SetBit(Msr, (ULONG *)VCpu->MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            SetBit(Msr, (unsigned long *)VCpu->MsrBitmapVirtualAddress + 2048);
+            SetBit(Msr, (ULONG *)VCpu->MsrBitmapVirtualAddress + 2048);
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            SetBit(Msr - 0xC0000000, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 1024));
+            SetBit(Msr - 0xC0000000, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 1024));
         }
         if (WriteDetection)
         {
-            SetBit(Msr - 0xC0000000, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 3072));
+            SetBit(Msr - 0xC0000000, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 3072));
         }
     }
     else
@@ -366,22 +427,22 @@ MsrHandleUnSetMsrBitmap(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Msr, BOOLEAN ReadDe
     {
         if (ReadDetection)
         {
-            ClearBit(Msr, (unsigned long *)VCpu->MsrBitmapVirtualAddress);
+            ClearBit(Msr, (ULONG *)VCpu->MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            ClearBit(Msr, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
+            ClearBit(Msr, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 2048));
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            ClearBit(Msr - 0xC0000000, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 1024));
+            ClearBit(Msr - 0xC0000000, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 1024));
         }
         if (WriteDetection)
         {
-            ClearBit(Msr - 0xC0000000, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 3072));
+            ClearBit(Msr - 0xC0000000, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 3072));
         }
     }
     else
@@ -404,13 +465,13 @@ MsrHandleFilterMsrReadBitmap(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
-    ClearBit(0x102, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 1024));
+    ClearBit(0x102, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 1024));
 
     //
     // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
-    ClearBit(0xe7, (unsigned long *)VCpu->MsrBitmapVirtualAddress);
-    ClearBit(0xe8, (unsigned long *)VCpu->MsrBitmapVirtualAddress);
+    ClearBit(0xe7, (ULONG *)VCpu->MsrBitmapVirtualAddress);
+    ClearBit(0xe8, (ULONG *)VCpu->MsrBitmapVirtualAddress);
 }
 
 /**
@@ -426,19 +487,19 @@ MsrHandleFilterMsrWriteBitmap(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
-    ClearBit(0x102, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 3072));
+    ClearBit(0x102, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 3072));
 
     //
     // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
-    ClearBit(0xe7, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
-    ClearBit(0xe8, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
+    ClearBit(0xe7, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 2048));
+    ClearBit(0xe8, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 2048));
 
     //
     // Ignore IA32_SPEC_CTRL (0x00000048), and IA32_PRED_CMD (0x00000049)
     //
-    ClearBit(0x48, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
-    ClearBit(0x49, (unsigned long *)(VCpu->MsrBitmapVirtualAddress + 2048));
+    ClearBit(0x48, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 2048));
+    ClearBit(0x49, (ULONG *)(VCpu->MsrBitmapVirtualAddress + 2048));
 }
 
 /**
@@ -457,7 +518,7 @@ MsrHandlePerformMsrBitmapReadChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 MsrMask
         //
         // Means all the bitmaps should be put to 1
         //
-        memset((void *)VCpu->MsrBitmapVirtualAddress, 0xff, 2048);
+        memset((PVOID)VCpu->MsrBitmapVirtualAddress, 0xff, 2048);
 
         //
         // Filter MSR Bitmap for special MSRs
@@ -486,7 +547,7 @@ MsrHandlePerformMsrBitmapReadReset(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Means all the bitmaps should be put to 0
     //
-    memset((void *)VCpu->MsrBitmapVirtualAddress, 0x0, 2048);
+    memset((PVOID)VCpu->MsrBitmapVirtualAddress, 0x0, 2048);
 }
 /**
  * @brief Change MSR Bitmap for write
@@ -504,7 +565,7 @@ MsrHandlePerformMsrBitmapWriteChange(VIRTUAL_MACHINE_STATE * VCpu, UINT32 MsrMas
         //
         // Means all the bitmaps should be put to 1
         //
-        memset((void *)((UINT64)VCpu->MsrBitmapVirtualAddress + 2048), 0xff, 2048);
+        memset((PVOID)((UINT64)VCpu->MsrBitmapVirtualAddress + 2048), 0xff, 2048);
 
         //
         // Filter MSR Bitmap for special MSRs
@@ -533,5 +594,5 @@ MsrHandlePerformMsrBitmapWriteReset(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Means all the bitmaps should be put to 0
     //
-    memset((void *)((UINT64)VCpu->MsrBitmapVirtualAddress + 2048), 0x0, 2048);
+    memset((PVOID)((UINT64)VCpu->MsrBitmapVirtualAddress + 2048), 0x0, 2048);
 }

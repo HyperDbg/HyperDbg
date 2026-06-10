@@ -109,12 +109,12 @@ PtVaToPa(PVOID Va)
  * @return INT32  0 on success, -1 on failure (outputs untouched).
  */
 static INT32
-PtMmapCpuRegionToUser(PVOID  MainVa,
-                      UINT64 MainPhysical,
-                      SIZE_T MainSize,
-                      UINT64 OverflowPhysical,
-                      SIZE_T OverflowSize,
-                      PMDL * OutMdl,
+PtMmapCpuRegionToUser(PVOID   MainVa,
+                      UINT64  MainPhysical,
+                      SIZE_T  MainSize,
+                      UINT64  OverflowPhysical,
+                      SIZE_T  OverflowSize,
+                      PMDL *  OutMdl,
                       PVOID * OutUserVa)
 {
     SIZE_T       TotalSize = MainSize + OverflowSize;
@@ -1429,8 +1429,8 @@ PtFilter(const PT_FILTER_OPTIONS * FilterOptions)
     //
     // Apply only the user-tunable fields to this CPU's per-CPU config.
     //
-    Cpu->Config.TraceUser     = FilterOptions->TraceUser;
-    Cpu->Config.TraceKernel   = FilterOptions->TraceKernel;
+    Cpu->Config.TraceUser   = FilterOptions->TraceUser;
+    Cpu->Config.TraceKernel = FilterOptions->TraceKernel;
 
     if (FilterOptions->TargetCr3 != 0 && !Caps.Cr3Filtering)
     {

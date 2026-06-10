@@ -63,29 +63,42 @@ VmFuncChangeIgnoreOneMtfState(UINT32 CoreId, BOOLEAN Set)
 }
 
 /**
- * @brief Register for break in the case of an MTF
+ * @brief Set instrumentation step in MTF (used for single stepping with MTF)
  *
  * @param CoreId Target core's ID
  *
  * @return VOID
  */
 VOID
-VmFuncRegisterMtfBreak(UINT32 CoreId)
+VmFuncSetInstrumentationStepInState(UINT32 CoreId)
 {
-    g_GuestState[CoreId].RegisterBreakOnMtf = TRUE;
+    g_GuestState[CoreId].InstrumentationStepInMtf = TRUE;
 }
 
 /**
- * @brief Unregister for break in the case of an MTF
+ * @brief Unset instrumentation step in MTF (used for single stepping with MTF)
  *
  * @param CoreId Target core's ID
  *
  * @return VOID
  */
 VOID
-VmFuncUnRegisterMtfBreak(UINT32 CoreId)
+VmFuncUnsetInstrumentationStepInState(UINT32 CoreId)
 {
-    g_GuestState[CoreId].RegisterBreakOnMtf = FALSE;
+    g_GuestState[CoreId].InstrumentationStepInMtf = FALSE;
+}
+
+/**
+ * @brief Query instrumentation step in MTF state
+ *
+ * @param CoreId Target core's ID
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmFuncQueryInstrumentationStepInState(UINT32 CoreId)
+{
+    return g_GuestState[CoreId].InstrumentationStepInMtf;
 }
 
 /**
@@ -941,10 +954,10 @@ VmFuncEventInjectInterruption(UINT32  InterruptionType,
  * @return NTSTATUS
  */
 NTSTATUS
-VmFuncVmxVmcall(unsigned long long VmcallNumber,
-                unsigned long long OptionalParam1,
-                unsigned long long OptionalParam2,
-                unsigned long long OptionalParam3)
+VmFuncVmxVmcall(UINT64 VmcallNumber,
+                UINT64 OptionalParam1,
+                UINT64 OptionalParam2,
+                UINT64 OptionalParam3)
 {
     return AsmVmxVmcall(VmcallNumber, OptionalParam1, OptionalParam2, OptionalParam3);
 }
@@ -1045,14 +1058,14 @@ VmFuncVmxCompatibleWcsncmp(const WCHAR * Address1, const WCHAR * Address2, SIZE_
  * @return INT32
  */
 INT32
-VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, size_t Count)
+VmFuncVmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
 {
     return VmxCompatibleMemcmp(Address1, Address2, Count);
 }
 
 /**
  * @brief Enables MTF and adjust external interrupt state
- * @param UINT32 CoreId
+ * @param CoreId
  *
  * @return VOID
  */
@@ -1065,7 +1078,7 @@ VmFuncEnableMtfAndChangeExternalInterruptState(UINT32 CoreId)
 /**
  * @brief Checks to enable and reinject previous interrupts
  *
- * @param UINT32 CoreId
+ * @param CoreId
  *
  * @return VOID
  */

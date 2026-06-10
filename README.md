@@ -73,19 +73,7 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 
 <summary><b>Other paper built upon HyperDbg...</b></summary>
 
-
-**2. [The Reversing Machine: Reconstructing Memory Assumptions](https://arxiv.org/pdf/2405.00298)** [[arXiv](https://arxiv.org/abs/2405.00298)]
-
-```
-@article{karvandi2024reversing,
-  title={The Reversing Machine: Reconstructing Memory Assumptions},
-  author={Karvandi, Mohammad Sina and Meghdadizanjani, Soroush and Arasteh, Sima and Monfared, Saleh Khalaj and Fallah, Mohammad K and Gorgin, Saeid and Lee, Jeong-A and van der Kouwe, Erik},
-  journal={arXiv preprint arXiv:2405.00298},
-  year={2024}
-}
-```
-
-**3. [hwdbg: Debugging Hardware Like Software (EuroSec'25)](https://dl.acm.org/doi/abs/10.1145/3722041.3723101)** [[PDF](https://dl.acm.org/doi/pdf/10.1145/3722041.3723101)]
+**2. [hwdbg: Debugging Hardware Like Software (EuroSec'25)](https://dl.acm.org/doi/abs/10.1145/3722041.3723101)** [[PDF](https://dl.acm.org/doi/pdf/10.1145/3722041.3723101)]
 
 ```
 @inproceedings{karvandi2025hwdbg,
@@ -97,7 +85,7 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 }
 ```
 
-**4. [HyperEvade: Countering Anti-Debugging Techniques and Enhancing Transparency in Nested Virtualization using HyperDbg (DEBT'25)](https://www.jot.fm/contents/issue_2026_01/a8.html)** [[PDF](https://www.jot.fm/issues/issue_2026_01/a8.pdf)]
+**3. [HyperEvade: Countering Anti-Debugging Techniques and Enhancing Transparency in Nested Virtualization using HyperDbg (DEBT'25)](https://www.jot.fm/contents/issue_2026_01/a8.html)** [[PDF](https://www.jot.fm/issues/issue_2026_01/a8.pdf)]
 
 ```
 @article{ruytenberg2026hyperevade,
@@ -112,7 +100,7 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 }
 ```
 
-**5. [Digital Hole: Bypassing Commercial Audio DRM Solutions with DReaMcatcher (EuroSys'26)](https://dl.acm.org/doi/abs/10.1145/3767295.3803583)** [[PDF](https://dl.acm.org/doi/pdf/10.1145/3767295.3803583)]
+**4. [Digital Hole: Bypassing Commercial Audio DRM Solutions with DReaMcatcher (EuroSys'26)](https://dl.acm.org/doi/abs/10.1145/3767295.3803583)** [[PDF](https://dl.acm.org/doi/pdf/10.1145/3767295.3803583)]
 
 ```
 @inproceedings{ruytenberg2026digital,
@@ -120,6 +108,18 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
   author={Ruytenberg, Bj{\"o}rn and Karvandi, Mohammad Sina and Bos, Herbert and van der Kouwe, Erik and Slowinska, Asia},
   booktitle={Proceedings of the 21st European Conference on Computer Systems},
   pages={484--496},
+  year={2026}
+}
+```
+
+**5. [TRM: An Efficient Hypervisor-Based Framework For Malware Analysis and Memory Reconstruction (AsiaCCS'26)](https://dl.acm.org/doi/10.1145/3779208.3785293)** [[PDF](https://dl.acm.org/doi/pdf/10.1145/3779208.3785293)]
+
+```
+@inproceedings{karvandi2026trm,
+  title={TRM: An Efficient Hypervisor-Based Framework For Malware Analysis and Memory Reconstruction},
+  author={Karvandi, Mohammad Sina and Meghdadizanjani, Soroush and Arasteh, Sima and Monfared, Saleh Khalaj and Fallah, Mohammad K and Gorgin, Saeid and Lee, Jeong-A and Slowinska, Asia and van der Kouwe, Erik},
+  booktitle={Proceedings of the ACM Asia Conference on Computer and Communications Security},
+  pages={68--82},
   year={2026}
 }
 ```
@@ -178,7 +178,8 @@ You can also read [this article](https://research.hyperdbg.org/debugger/kernel-d
 * Attaching to the User-mode Process and Preventing Execution [<a href="https://docs.hyperdbg.org/commands/meta-commands/.attach" target="_blank">link</a>]
 * Intercepting Execution of XSETBV Instructions [<a href="https://docs.hyperdbg.org/commands/extension-commands/xsetbv" target="_blank">link</a>]
 * Writing Library Script Files [<a href="https://docs.hyperdbg.org/commands/scripting-language/casting-and-inclusion" target="_blank">link</a>]
-* Tracing Branches using Last Branch Record [<a href="https://docs.hyperdbg.org/commands/extension-commands/lbr" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/lbrdump" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr_print" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr_save" target="_blank">link</a>]
+* Enhanced Portable Executable (PE) Parser [<a href="https://docs.hyperdbg.org/commands/meta-commands/.pe" target="_blank">link</a>]
+* Tracing Branches using Last Branch Record (LBR) [<a href="https://docs.hyperdbg.org/commands/extension-commands/lbr" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/lbrdump" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_print" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_save" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_check" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_restore_by_filter" target="_blank">link</a>]
 
 ## How does it work?
 

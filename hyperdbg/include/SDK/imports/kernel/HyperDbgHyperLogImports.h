@@ -34,7 +34,7 @@ LogCallbackPrepareAndSendMessageToQueue(UINT32       OperationCode,
                                         BOOLEAN      IsImmediateMessage,
                                         BOOLEAN      ShowCurrentSystemTime,
                                         BOOLEAN      Priority,
-                                        const char * Fmt,
+                                        const CHAR * Fmt,
                                         ...);
 
 IMPORT_EXPORT_HYPERLOG BOOLEAN
@@ -42,7 +42,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
                                                BOOLEAN      IsImmediateMessage,
                                                BOOLEAN      ShowCurrentSystemTime,
                                                BOOLEAN      Priority,
-                                               const char * Fmt,
+                                               const CHAR * Fmt,
                                                va_list      ArgList);
 
 IMPORT_EXPORT_HYPERLOG BOOLEAN

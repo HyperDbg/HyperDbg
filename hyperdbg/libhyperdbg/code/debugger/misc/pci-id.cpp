@@ -1,6 +1,6 @@
 /**
  * @file pci-id.cpp
- * @author Björn Ruytenberg (bjorn@bjornweb.nl)
+ * @author Bjï¿½rn Ruytenberg (bjorn@bjornweb.nl)
  * @brief Provides runtime access to PCI ID database
  * @details
  * @version 0.12
@@ -11,19 +11,19 @@
  */
 #include "pch.h"
 
-static char * PciIdDatabaseBuffer = NULL;
+static CHAR * PciIdDatabaseBuffer = NULL;
 
 /**
  * @brief Trims whitespaces in passed string
  *
  * @param Str
  * @param MaxLen
- * @return char *
+ * @return CHAR*
  */
-char *
-TrimWhitespace(char * Str, UINT8 MaxLen)
+CHAR *
+TrimWhitespace(CHAR * Str, UINT8 MaxLen)
 {
-    char * End;
+    CHAR * End;
     while (*Str == ' ')
         Str++; // Trim leading space
     if (*Str == '\0')
@@ -39,13 +39,13 @@ TrimWhitespace(char * Str, UINT8 MaxLen)
  * @brief Converts passed string to lowercase
  *
  * @param Str
- * @return char *
+ * @return CHAR*
  */
-char *
-ToLower(char * Str)
+CHAR *
+ToLower(CHAR * Str)
 {
     UINT8  StrLength   = (UINT8)strnlen_s(Str, PCI_ID_AS_STR_LENGTH);
-    char * CurrentChar = Str;
+    CHAR * CurrentChar = Str;
 
     while (CurrentChar < Str + StrLength)
     {
@@ -61,12 +61,12 @@ ToLower(char * Str)
  * @param DestBuffer
  * @param CharLimit
  * @param SrcBuffer
- * @return char *
+ * @return CHAR*
  */
-char *
-ReadLine(char * DestBuffer, UINT64 CharLimit, char ** SrcBuffer)
+CHAR *
+ReadLine(CHAR * DestBuffer, UINT64 CharLimit, CHAR ** SrcBuffer)
 {
-    char * Line = strchr(*SrcBuffer, '\n');
+    CHAR * Line = strchr(*SrcBuffer, '\n');
     if (!Line)
     {
         return NULL;
@@ -87,19 +87,19 @@ ReadLine(char * DestBuffer, UINT64 CharLimit, char ** SrcBuffer)
  * @return Vendor *
  */
 Vendor *
-GetVendorByIdStr(const char * Filename, const char * VendorId)
+GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
 {
     Vendor *    MatchedVendor = NULL;
     BOOLEAN     FoundVendorId = FALSE;
     Device *    LastDevice    = NULL;
     SubDevice * LastSubDevice = NULL;
-    char *      PciIdDbBufPtr = NULL;
-    char        Line[1024]    = {'\0'};
+    CHAR *      PciIdDbBufPtr = NULL;
+    CHAR        Line[1024]    = {'\0'};
 
     if (!PciIdDatabaseBuffer)
     {
         FILE * f      = fopen(Filename, "rb");
-        size_t Length = 0;
+        SIZE_T Length = 0;
 
         if (f == NULL)
         {
@@ -110,7 +110,7 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
         fseek(f, 0, SEEK_END);
         Length = ftell(f);
 
-        PciIdDatabaseBuffer = (char *)malloc(Length);
+        PciIdDatabaseBuffer = (CHAR *)malloc(Length);
         if (!PciIdDatabaseBuffer)
         {
             return NULL;
@@ -125,7 +125,7 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
 
     while (ReadLine(Line, sizeof(Line), &PciIdDbBufPtr) != NULL)
     {
-        char FormatStr[24];
+        CHAR FormatStr[24];
 
         // Skip comments and empty lines
         if (Line[0] == '#' || Line[0] == '\0')
@@ -137,7 +137,7 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
         // We assume PCI ID database comprises unique entries only, i.e. we return the first matching entry
         if (Line[0] != '\t' && FoundVendorId == FALSE)
         {
-            char VendorBuf[PCI_ID_AS_STR_LENGTH + 1], VendorNameBuf[PCI_NAME_STR_LENGTH + 1];
+            CHAR VendorBuf[PCI_ID_AS_STR_LENGTH + 1], VendorNameBuf[PCI_NAME_STR_LENGTH + 1];
 
             snprintf(FormatStr, sizeof(FormatStr), "%%4s %%%d[^\n]", PCI_NAME_STR_LENGTH); // FormatStr = "%4s %PCI_NAME_STR_LENGTH[^\n]"
             if (sscanf(Line, FormatStr, VendorBuf, VendorNameBuf) == 2)
@@ -150,8 +150,8 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
                         return NULL;
                     }
 
-                    int result = sscanf(VendorBuf, "%hx", &(MatchedVendor->VendorId));
-                    if (result != 1)
+                    INT Result = sscanf(VendorBuf, "%hx", &(MatchedVendor->VendorId));
+                    if (Result != 1)
                     {
                         return NULL;
                     }
@@ -163,7 +163,7 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
         // Get all devices for vendor
         else if (Line[0] == '\t' && Line[1] != '\t' && FoundVendorId == TRUE)
         {
-            char DeviceBuf[PCI_ID_AS_STR_LENGTH + 1], DeviceNameBuf[PCI_NAME_STR_LENGTH + 1];
+            CHAR DeviceBuf[PCI_ID_AS_STR_LENGTH + 1], DeviceNameBuf[PCI_NAME_STR_LENGTH + 1];
 
             snprintf(FormatStr, sizeof(FormatStr), "%%4s %%%d[^\n]", PCI_NAME_STR_LENGTH); // FormatStr = "%4s %PCI_NAME_STR_LENGTH[^\n]"
             if (sscanf(Line + 1, FormatStr, DeviceBuf, DeviceNameBuf) == 2)
@@ -201,7 +201,7 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
         // Get all subdevices for device
         else if (Line[0] == '\t' && Line[1] == '\t' && FoundVendorId == TRUE && LastDevice)
         {
-            char SubVendorBuf[PCI_ID_AS_STR_LENGTH + 1], SubDeviceBuf[PCI_ID_AS_STR_LENGTH + 1], SubsystemNameBuf[PCI_NAME_STR_LENGTH + 1];
+            CHAR SubVendorBuf[PCI_ID_AS_STR_LENGTH + 1], SubDeviceBuf[PCI_ID_AS_STR_LENGTH + 1], SubsystemNameBuf[PCI_NAME_STR_LENGTH + 1];
 
             snprintf(FormatStr, sizeof(FormatStr), "%%4s %%4s %%%d[^\n]", PCI_NAME_STR_LENGTH); // FormatStr = "%4s %4s %PCI_NAME_STR_LENGTH[^\n]"
             if (sscanf(Line + 2, FormatStr, SubVendorBuf, SubDeviceBuf, SubsystemNameBuf) == 3)
@@ -254,9 +254,9 @@ GetVendorByIdStr(const char * Filename, const char * VendorId)
  * @brief Frees Vendor and all of its members
  *
  * @param VendorToFree
- * @return void
+ * @return VOID
  */
-void
+VOID
 FreeVendor(Vendor * VendorToFree)
 {
     if (VendorToFree == NULL)
@@ -269,9 +269,9 @@ FreeVendor(Vendor * VendorToFree)
 
         while (CurrentSubDevice)
         {
-            SubDevice * nextSubDevice = CurrentSubDevice->Next;
+            SubDevice * NextSubDevice = CurrentSubDevice->Next;
             free(CurrentSubDevice);
-            CurrentSubDevice = nextSubDevice;
+            CurrentSubDevice = NextSubDevice;
         }
 
         Device * NextDevice = CurrentDevice->Next;
@@ -282,9 +282,9 @@ FreeVendor(Vendor * VendorToFree)
 
 /**
  * @brief Frees PciIdDatabaseBuffer
- * @return void
+ * @return VOID
  */
-void
+VOID
 FreePciIdDatabase()
 {
     if (PciIdDatabaseBuffer != NULL)
@@ -304,15 +304,15 @@ FreePciIdDatabase()
 Vendor *
 GetVendorById(UINT16 VendorId)
 {
-    char    VendorIdAsStr[5];
-    char    ExecutablePath[MAX_PATH];
+    CHAR    VendorIdAsStr[5];
+    CHAR    ExecutablePath[MAX_PATH];
     HMODULE hModule = GetModuleHandle(NULL);
 
     snprintf(VendorIdAsStr, sizeof(VendorIdAsStr), "%04X", VendorId);
     GetModuleFileName(hModule, ExecutablePath, sizeof(ExecutablePath));
 
     // Extract executable name
-    char * ExecutableName = strrchr(ExecutablePath, '\\');
+    CHAR * ExecutableName = strrchr(ExecutablePath, '\\');
     if (ExecutableName != NULL)
     {
         ExecutableName++;

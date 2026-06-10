@@ -14,6 +14,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
@@ -88,7 +89,7 @@ CommandPtSendRequest(HYPERTRACE_PT_OPERATION_PACKETS * PtRequest)
     }
     else
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTL
@@ -191,8 +192,8 @@ HyperDbgPtMmapSendRequest(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest)
  *        should print help and bail).
  */
 static BOOLEAN
-CommandPtParseFilterOptions(vector<CommandToken> &              CommandTokens,
-                            HYPERTRACE_PT_OPERATION_PACKETS *   PtRequest)
+CommandPtParseFilterOptions(vector<CommandToken> &            CommandTokens,
+                            HYPERTRACE_PT_OPERATION_PACKETS * PtRequest)
 {
     BOOLEAN AnyMode = FALSE;
 

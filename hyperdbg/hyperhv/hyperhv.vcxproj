@@ -126,7 +126,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
+    <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c" />
     <ClCompile Include="..\include\components\optimizations\code\AvlTree.c" />
     <ClCompile Include="..\include\components\optimizations\code\BinarySearch.c" />
     <ClCompile Include="..\include\components\optimizations\code\InsertionSort.c" />
@@ -165,7 +165,6 @@
     <ClCompile Include="code\memory\Layout.c" />
     <ClCompile Include="code\memory\MemoryManager.c" />
     <ClCompile Include="code\memory\MemoryMapper.c" />
-    <ClCompile Include="code\memory\PoolManager.c" />
     <ClCompile Include="code\memory\Segmentation.c" />
     <ClCompile Include="code\memory\SwitchLayout.c" />
     <ClCompile Include="code\mmio\MmioShadowing.c" />
@@ -234,7 +233,7 @@
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Status.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Utils.h" />
     <ClInclude Include="..\dependencies\zydis\include\Zydis\Zydis.h" />
-    <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
+    <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h" />
     <ClInclude Include="..\include\components\optimizations\header\AvlTree.h" />
     <ClInclude Include="..\include\components\optimizations\header\BinarySearch.h" />
     <ClInclude Include="..\include\components\optimizations\header\InsertionSort.h" />
@@ -272,7 +271,6 @@
     <ClInclude Include="header\memory\Conversion.h" />
     <ClInclude Include="header\memory\Layout.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
-    <ClInclude Include="header\memory\PoolManager.h" />
     <ClInclude Include="header\memory\Segmentation.h" />
     <ClInclude Include="header\memory\SwitchLayout.h" />
     <ClInclude Include="header\mmio\MmioShadowing.h" />

@@ -14,19 +14,18 @@
 //
 // Global Variables
 //
-extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
-extern UINT32                g_SymbolTableSize;
-extern UINT32                g_SymbolTableCurrentIndex;
-extern HANDLE                g_SerialListeningThreadHandle;
-extern HANDLE                g_SerialRemoteComPortHandle;
-extern HANDLE                g_DebuggeeStopCommandEventHandle;
+extern HANDLE g_SerialListeningThreadHandle;
+extern HANDLE g_SerialRemoteComPortHandle;
+extern HANDLE g_DebuggeeStopCommandEventHandle;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
                                         g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern BOOLEAN                          g_IsConnectedToHyperDbgLocally;
+#ifdef _WIN32
 extern OVERLAPPED                       g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED                       g_OverlappedIoStructureForWriteDebugger;
 extern OVERLAPPED                       g_OverlappedIoStructureForReadDebuggee;
+#endif // _WIN32
 extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_RESULT
                g_DebuggeeResultOfAddingActionsToEvent;
@@ -34,7 +33,8 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsKdModuleLoaded;
+extern BOOLEAN g_IsVmmModuleLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
@@ -100,7 +100,7 @@ KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
 BOOLEAN
 KdCompareBufferWithString(CHAR * Buffer, const CHAR * CompareBuffer)
 {
-    int Result;
+    INT Result;
 
     Result = strcmp(Buffer, CompareBuffer);
 
@@ -1292,7 +1292,7 @@ KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength, UINT32 P
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBreakingAgain)
+KdSendUserInputPacketToDebuggee(const CHAR * Sendbuf, INT Len, BOOLEAN IgnoreBreakingAgain)
 {
     PDEBUGGEE_USER_INPUT_PACKET UserInputPacket;
     UINT32                      SizeOfStruct = 0;
@@ -1558,7 +1558,7 @@ BOOLEAN
 KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    char   ReadData    = NULL; /* temperory Character */
+    CHAR   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
 
@@ -1567,6 +1567,7 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
     //
     do
     {
+#ifdef _WIN32
         //
         // It's in the debugger
         //
@@ -1602,6 +1603,18 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
         // Reset event for next try
         //
         ResetEvent(g_OverlappedIoStructureForReadDebugger.hEvent);
+#else
+        //
+        // Linux: read one byte through the cross-platform serial transport
+        //
+        if (!PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                    &ReadData,
+                                    &NoBytesRead,
+                                    PLATFORM_SERIAL_IO_DEBUGGER))
+        {
+            return FALSE;
+        }
+#endif
 
         //
         // We already now that the maximum packet size is MaxSerialPacketSize
@@ -1648,10 +1661,11 @@ BOOLEAN
 KdReceivePacketFromDebugger(CHAR *   BufferToSave,
                             UINT32 * LengthReceived)
 {
-    char   ReadData    = NULL; /* temperory Character */
+    CHAR   ReadData    = NULL; /* temperory Character */
     DWORD  NoBytesRead = 0;    /* Bytes read by ReadFile() */
     UINT32 Loop        = 0;
 
+#ifdef _WIN32
     //
     // Set the timeout in milliseconds (e.g., 5000 ms = 5 seconds)
     //
@@ -1668,12 +1682,14 @@ KdReceivePacketFromDebugger(CHAR *   BufferToSave,
     Timeouts.WriteTotalTimeoutConstant   = 0;
     Timeouts.WriteTotalTimeoutMultiplier = 0;
     SetCommTimeouts(g_SerialRemoteComPortHandle, &Timeouts);
+#endif
 
     //
     // Read data and store in a buffer
     //
     do
     {
+#ifdef _WIN32
         //
         // It's in the debuggee
         //
@@ -1709,6 +1725,19 @@ KdReceivePacketFromDebugger(CHAR *   BufferToSave,
         // Reset event for next try
         //
         ResetEvent(g_OverlappedIoStructureForReadDebuggee.hEvent);
+#else
+        //
+        // Linux: read one byte through the cross-platform serial transport
+        // (the 5s read timeout is applied inside the platform layer)
+        //
+        if (!PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                    &ReadData,
+                                    &NoBytesRead,
+                                    PLATFORM_SERIAL_IO_DEBUGGEE))
+        {
+            return FALSE;
+        }
+#endif
 
         //
         // We already now that the maximum packet size is MaxSerialPacketSize
@@ -1783,6 +1812,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
         return FALSE;
     }
 
+#ifdef _WIN32
     if (g_IsSerialConnectedToRemoteDebugger || g_IsDebuggeeInHandshakingPhase)
     {
         //
@@ -1848,6 +1878,20 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
         //
         ResetEvent(g_OverlappedIoStructureForWriteDebugger.hEvent);
     }
+#else
+    //
+    // Linux: write through the cross-platform serial transport. The debuggee /
+    // handshaking path is synchronous; the debugger path is overlapped (handled
+    // inside the platform layer).
+    //
+    {
+        BOOLEAN Synchronous = (g_IsSerialConnectedToRemoteDebugger || g_IsDebuggeeInHandshakingPhase);
+        if (!PlatformSerialWrite(g_SerialRemoteComPortHandle, Buffer, Length, Synchronous))
+        {
+            return FALSE;
+        }
+    }
+#endif
 
 Out:
     if (SendEndOfBuffer)
@@ -2173,7 +2217,7 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     // Initialize the handle table
     //
-    for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
     {
         g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
         g_KernelSyncronizationObjectsHandleTable[i].EventHandle =
@@ -2373,7 +2417,7 @@ StartAgain:
 
             // ShowMessages("the answer to the PING request is received: %s\n", ReceivedPingBuildVersionBuffer);
 
-            if (strcmp((const char *)BuildSignature, ReceivedPingBuildVersionBuffer) == 0)
+            if (strcmp((const CHAR *)BuildSignature, ReceivedPingBuildVersionBuffer) == 0)
             {
                 //
                 // Build version matched
@@ -2432,7 +2476,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
     BOOL                       Status;             /* Status */
     DCB                        SerialParams = {0}; /* Initializing DCB structure */
     COMMTIMEOUTS               Timeouts     = {0}; /* Initializing timeouts structure */
-    char                       PortNo[20]   = {0}; /* contain friendly name */
+    CHAR                       PortNo[20]   = {0}; /* contain friendly name */
     BOOLEAN                    StatusIoctl;
     ULONG                      ReturnedLength;
     PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest;
@@ -2635,7 +2679,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         //
         // Load the VMM
         //
-        if (HyperDbgInstallVmmDriver() == 1 || HyperDbgLoadVmmModule() == 1)
+        if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
             CloseHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
@@ -2655,7 +2699,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
             g_SerialRemoteComPortHandle    = NULL;
             g_IsConnectedToHyperDbgLocally = FALSE;
 
-            AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+            AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
         }
 
         //
@@ -3028,7 +3072,7 @@ KdCloseConnection()
     //
     if (g_IsSerialConnectedToRemoteDebugger)
     {
-        if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded)
+        if (g_IsConnectedToHyperDbgLocally && g_IsKdModuleLoaded)
         {
             //
             // The messages (and outputs) should no longer be passed
@@ -3104,7 +3148,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     ULONG                            ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send IOCTL
@@ -3158,7 +3202,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
     ULONG                            ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_RESULT ReturnedBuffer = {0};
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     Status =
         DeviceIoControl(g_DeviceHandle,                           // Handle to device
@@ -3215,7 +3259,7 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent, BOOLEAN SendThe
     //
     // Check if debugger is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send the request to the kernel
@@ -3469,7 +3513,7 @@ KdUninitializeConnection()
     //
     // Close synchronization objects
     //
-    for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
     {
         if (g_KernelSyncronizationObjectsHandleTable[i].EventHandle != NULL)
         {

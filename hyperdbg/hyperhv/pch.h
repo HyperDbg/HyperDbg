@@ -95,7 +95,6 @@
 #include "memory/MemoryMapper.h"
 #include "interface/Dispatch.h"
 #include "common/Msr.h"
-#include "memory/PoolManager.h"
 #include "common/Trace.h"
 #include "assembly/InlineAsm.h"
 #include "vmm/ept/Vpid.h"
@@ -176,7 +175,7 @@
 //
 #include "SDK/modules/HyperLog.h"
 #include "SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h"
-#include "components/interface/HyperLogCallback.h"
+#include "components/callback/header/HyperLogCallback.h"
 
 //
 // Transparent-mode (hyperevade) headers

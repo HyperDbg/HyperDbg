@@ -22,7 +22,7 @@ TestCase(std::vector<std::string> & TestCase);
 //////////////////////////////////////////////////
 
 extern "C" {
-extern void inline AsmTest();
+extern VOID inline AsmTest();
 }
 
 //////////////////////////////////////////////////
@@ -37,10 +37,10 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
 //////////////////////////////////////////////////
 
 std::string
-Uint64ToString(UINT64 value);
+Uint64ToString(UINT64 Value);
 
 BOOLEAN
-StringReplace(std::string & str, const std::string & from, const std::string & to);
+StringReplace(std::string & Str, const std::string & From, const std::string & To);
 
 std::string
-ConvertToString(char * Str);
+ConvertToString(CHAR * Str);

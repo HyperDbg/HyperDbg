@@ -19,7 +19,7 @@
  * @brief maximum characters for event forwarding source names
  *
  */
-typedef void (*hyperdbg_event_forwarding_t)(const char *, unsigned int);
+typedef VOID (*hyperdbg_event_forwarding_t)(const CHAR *, UINT32);
 
 //////////////////////////////////////////
 //     Output Source Forwarding         //

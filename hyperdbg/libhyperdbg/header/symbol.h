@@ -72,5 +72,8 @@ SymbolPrepareDebuggerWithSymbolInfo(UINT32 UserProcessId);
 BOOLEAN
 SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId);
 
+#ifdef _WIN32
+// PRTL_PROCESS_MODULES is from winternl.h — Windows-only
 BOOLEAN
 SymbolCheckAndAllocateModuleInformation(PRTL_PROCESS_MODULES * Modules);
+#endif // _WIN32

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file IdtEmulation.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Handlers of Guest's IDT Emulator
@@ -55,9 +55,9 @@ IdtEmulationQueryIdtEntriesRequest(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS I
     //
     for (UINT32 i = 0; i < MAX_NUMBER_OF_IDT_ENTRIES; i++)
     {
-        IdtQueryRequest->IdtEntry[i] = (UINT64)((unsigned long long)IdtEntries[i].HighestPart << 32) |
-                                       ((unsigned long long)IdtEntries[i].HighPart << 16) |
-                                       (unsigned long long)IdtEntries[i].LowPart;
+        IdtQueryRequest->IdtEntry[i] = (UINT64)((UINT64)IdtEntries[i].HighestPart << 32) |
+                                       ((UINT64)IdtEntries[i].HighPart << 16) |
+                                       (UINT64)IdtEntries[i].LowPart;
     }
 }
 
@@ -132,7 +132,7 @@ IdtEmulationPrepareHostIdt(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
                  HOST_IDT_DESCRIPTOR_COUNT * sizeof(SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64));
 
     /*
-    for (size_t i = 0; i < HOST_IDT_DESCRIPTOR_COUNT; i++)
+    for (SIZE_T i = 0; i < HOST_IDT_DESCRIPTOR_COUNT; i++)
     {
         SEGMENT_DESCRIPTOR_INTERRUPT_GATE_64 CurrentEntry = WindowsIdt[i];
 
@@ -435,7 +435,7 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
         if (VCpu->EnableExternalInterruptsOnContinue ||
             VCpu->EnableExternalInterruptsOnContinueMtf ||
-            VCpu->RegisterBreakOnMtf)
+            VCpu->InstrumentationStepInMtf)
         {
             //
             // Ignore the nmi
@@ -481,7 +481,7 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_Inout_ VIRTUAL_MACHINE_STA
     // We can't inject interrupt because the guest's state is not interruptible
     // we have to queue it an re-inject it when the interrupt window is opened !
     //
-    for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
+    for (SIZE_T i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
     {
         //
         // Find an empty space
@@ -677,7 +677,7 @@ IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (!InjectPageFault)
     {
-        for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
+        for (SIZE_T i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
         {
             //
             // Find an empty space

@@ -302,7 +302,7 @@ UINT32
 VmxCompatibleStrlen(const CHAR * S);
 
 UINT32
-VmxCompatibleWcslen(const wchar_t * S);
+VmxCompatibleWcslen(const WCHAR * S);
 
 INT32
 VmxCompatibleStrcmp(const CHAR * Address1,
@@ -311,12 +311,12 @@ VmxCompatibleStrcmp(const CHAR * Address1,
                     BOOLEAN      IsStrncmp);
 
 INT32
-VmxCompatibleWcscmp(const wchar_t * Address1,
-                    const wchar_t * Address2,
-                    SIZE_T          Num,
-                    BOOLEAN         IsWcsncmp);
+VmxCompatibleWcscmp(const WCHAR * Address1,
+                    const WCHAR * Address2,
+                    SIZE_T        Num,
+                    BOOLEAN       IsWcsncmp);
 
 INT32
 VmxCompatibleMemcmp(const CHAR * Address1,
                     const CHAR * Address2,
-                    size_t       Count);
+                    SIZE_T       Count);

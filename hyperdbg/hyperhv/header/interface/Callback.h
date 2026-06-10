@@ -44,11 +44,11 @@ VmmCallbackUnhandledEptViolation(UINT32 CoreId,
                                  UINT64 ViolationQualification,
                                  UINT64 GuestPhysicalAddr);
 
-VOID
-VmmCallbackSetLastError(UINT32 LastError);
+BOOLEAN
+VmmCallbackHandleMtfCallback(UINT32 CoreId);
 
 VOID
-VmmCallbackRegisteredMtfHandler(UINT32 CoreId);
+VmmCallbackSetLastError(UINT32 LastError);
 
 VOID
 VmmCallbackNmiBroadcastRequestHandler(UINT32 CoreId, BOOLEAN IsOnVmxNmiHandler);
@@ -71,6 +71,25 @@ DebuggingCallbackHandleDebugBreakpointException(UINT32 CoreId);
 
 BOOLEAN
 DebuggingCallbackCheckThreadInterception(UINT32 CoreId);
+
+BOOLEAN
+DebuggingCallbackTriggerOnClockAndIpiEvents(UINT32 CoreId);
+
+BOOLEAN
+DebuggingCallbackIgnoreHandlingMov2DebugRegs(UINT32 CoreId);
+
+//
+// Pool Manager Callbacks
+//
+
+BOOLEAN
+PoolManagerCallbackRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
+
+UINT64
+PoolManagerCallbackRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size);
+
+BOOLEAN
+PoolManagerCallbackFreePool(UINT64 AddressToFree);
 
 //
 // Interception Callbacks

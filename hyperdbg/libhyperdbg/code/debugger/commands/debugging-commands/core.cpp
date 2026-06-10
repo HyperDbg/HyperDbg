@@ -82,6 +82,11 @@ CommandCore(vector<CommandToken> CommandTokens, string Command)
         //
         // Send the changing core packet
         //
+#ifdef _WIN32
         KdSendSwitchCorePacketToDebuggee(TargetCore);
+#else
+        // TODO: kernel debugger communication is not yet implemented on Linux
+        ShowMessages("err, switching cores is not supported on Linux yet\n\n");
+#endif
     }
 }

@@ -1,6 +1,7 @@
 /**
  * @file debugger.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief General debugger functions
  * @details
  * @version 0.1
@@ -196,7 +197,7 @@ DWORD WINAPI
 ListeningSerialPauseDebuggerThread(PVOID Param);
 
 VOID
-LogopenSaveToFile(const char * Text);
+LogopenSaveToFile(const CHAR * Text);
 
 BOOL
 BreakController(DWORD CtrlType);
@@ -235,13 +236,13 @@ BOOLEAN
 CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer);
 
 VOID
-CommandTrackHandleReceivedInstructions(unsigned char * BufferToDisassemble,
-                                       UINT32          BuffLength,
-                                       BOOLEAN         Isx86_64,
-                                       UINT64          RipAddress);
+CommandTrackHandleReceivedInstructions(UCHAR * BufferToDisassemble,
+                                       UINT32  BuffLength,
+                                       BOOLEAN Isx86_64,
+                                       UINT64  RipAddress);
 
 VOID
-CommandTrackHandleReceivedCallInstructions(const char * NameOfFunctionFromSymbols,
+CommandTrackHandleReceivedCallInstructions(const CHAR * NameOfFunctionFromSymbols,
                                            UINT64       ComputedAbsoluteAddress);
 
 VOID
@@ -309,6 +310,9 @@ HyperDbgPerformSmiOperation(SMI_OPERATION_PACKETS * SmiOperation);
 
 BOOLEAN
 HyperDbgEnableTransparentMode(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId);
+
+BOOLEAN
+HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN IsProcessId, UINT32 EvadeMask);
 
 BOOLEAN
 HyperDbgDisableTransparentMode();

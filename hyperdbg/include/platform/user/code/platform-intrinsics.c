@@ -84,15 +84,117 @@ CpuReadTsc(VOID)
 //////////////////////////////////////////////////
 
 /**
+ * @brief Read Time-Stamp Counter (serializing)
+ *
+ * @param Aux processor ID output (may be NULL)
+ * @return UINT64
+ */
+UINT64
+CpuReadTscp(UINT32 * Aux)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return __rdtscp(Aux);
+#elif defined(__linux__)
+    UINT32 __lo, __hi, __aux;
+    __asm__ __volatile__("rdtscp" : "=a"(__lo), "=d"(__hi), "=c"(__aux));
+    if (Aux)
+        *Aux = __aux;
+    return ((UINT64)__hi << 32) | __lo;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
  * @brief Execute PAUSE (spin-wait hint)
  */
- VOID
+VOID
 CpuPause(VOID)
 {
 #if defined(_WIN32) || defined(_WIN64)
     _mm_pause();
 #elif defined(__linux__)
     __asm__ __volatile__("pause");
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+//////////////////////////////////////////////////
+//          Interlocked (Atomic) Operations     //
+//////////////////////////////////////////////////
+
+INT64
+CpuInterlockedExchange64(INT64 volatile * Target, INT64 Value)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedExchange64(Target, Value);
+#elif defined(__linux__)
+    return __atomic_exchange_n(Target, Value, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+INT64
+CpuInterlockedExchangeAdd64(INT64 volatile * Addend, INT64 Value)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedExchangeAdd64(Addend, Value);
+#elif defined(__linux__)
+    return __atomic_fetch_add(Addend, Value, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+INT64
+CpuInterlockedIncrement64(INT64 volatile * Addend)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedIncrement64(Addend);
+#elif defined(__linux__)
+    return __atomic_add_fetch(Addend, 1LL, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+INT64
+CpuInterlockedDecrement64(INT64 volatile * Addend)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedDecrement64(Addend);
+#elif defined(__linux__)
+    return __atomic_sub_fetch(Addend, 1LL, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+INT64
+CpuInterlockedCompareExchange64(INT64 volatile * Destination, INT64 ExChange, INT64 Comparand)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedCompareExchange64(Destination, ExChange, Comparand);
+#elif defined(__linux__)
+    INT64 Expected = Comparand;
+    __atomic_compare_exchange_n(Destination, &Expected, ExChange, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+    return Expected;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+UCHAR
+CpuInterlockedBitTestAndSet(volatile LONG * Base, LONG Bit)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return _interlockedbittestandset(Base, Bit);
+#elif defined(__linux__)
+    LONG Mask = (1L << Bit);
+    LONG Old  = __atomic_fetch_or(Base, Mask, __ATOMIC_SEQ_CST);
+    return (UCHAR)((Old >> Bit) & 1);
 #else
 #    error "Unsupported platform"
 #endif

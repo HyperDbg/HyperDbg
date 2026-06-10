@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsVmmModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -81,10 +82,10 @@ BOOLEAN
 CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
                                          PAGE_FAULT_EXCEPTION * PageFaultErrorCode)
 {
-    std::unordered_set<char> AllowedChars = {'p', 'w', 'u', 'f', 'k', 's', 'h', 'g'};
-    std::unordered_set<char> FoundChars;
+    std::unordered_set<CHAR> AllowedChars = {'p', 'w', 'u', 'f', 'k', 's', 'h', 'g'};
+    std::unordered_set<CHAR> FoundChars;
 
-    for (char c : ModeString)
+    for (CHAR c : ModeString)
     {
         if (AllowedChars.count(c) == 0)
         {
@@ -99,7 +100,7 @@ CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
             //
             // Found a character more than once
             //
-            return false;
+            return FALSE;
         }
 
         FoundChars.insert(c);
@@ -108,7 +109,7 @@ CommandPageinCheckAndInterpretModeString(const std::string &    ModeString,
     //
     // All checks passed, let's interpret the page-fault code
     //
-    for (char c : ModeString)
+    for (CHAR c : ModeString)
     {
         if (c == 'p')
         {
@@ -203,7 +204,7 @@ CommandPageinRequest(UINT64               TargetVirtualAddrFrom,
     }
     else
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+        AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
         //
         // For know, the support for the '.pagein' command is excluded from

@@ -19,7 +19,7 @@
 VOID
 SerialConnectionTest()
 {
-    for (size_t i = 0; i < 100; i++)
+    for (SIZE_T i = 0; i < 100; i++)
     {
         KdHyperDbgTest((UINT16)i);
     }
@@ -166,7 +166,7 @@ SerialConnectionSend(CHAR * Buffer, UINT32 Length)
         return FALSE;
     }
 
-    for (size_t i = 0; i < Length; i++)
+    for (SIZE_T i = 0; i < Length; i++)
     {
         KdHyperDbgSendByte(Buffer[i], TRUE);
     }
@@ -206,7 +206,7 @@ SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, U
     //
     // Send first buffer
     //
-    for (size_t i = 0; i < Length1; i++)
+    for (SIZE_T i = 0; i < Length1; i++)
     {
         KdHyperDbgSendByte(Buffer1[i], TRUE);
     }
@@ -214,7 +214,7 @@ SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, U
     //
     // Send second buffer
     //
-    for (size_t i = 0; i < Length2; i++)
+    for (SIZE_T i = 0; i < Length2; i++)
     {
         KdHyperDbgSendByte(Buffer2[i], TRUE);
     }
@@ -261,7 +261,7 @@ SerialConnectionSendThreeBuffers(CHAR * Buffer1,
     //
     // Send first buffer
     //
-    for (size_t i = 0; i < Length1; i++)
+    for (SIZE_T i = 0; i < Length1; i++)
     {
         KdHyperDbgSendByte(Buffer1[i], TRUE);
     }
@@ -269,7 +269,7 @@ SerialConnectionSendThreeBuffers(CHAR * Buffer1,
     //
     // Send second buffer
     //
-    for (size_t i = 0; i < Length2; i++)
+    for (SIZE_T i = 0; i < Length2; i++)
     {
         KdHyperDbgSendByte(Buffer2[i], TRUE);
     }
@@ -277,7 +277,7 @@ SerialConnectionSendThreeBuffers(CHAR * Buffer1,
     //
     // Send third buffer
     //
-    for (size_t i = 0; i < Length3; i++)
+    for (SIZE_T i = 0; i < Length3; i++)
     {
         KdHyperDbgSendByte(Buffer3[i], TRUE);
     }

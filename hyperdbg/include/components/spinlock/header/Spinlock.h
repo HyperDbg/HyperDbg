@@ -21,16 +21,16 @@ SpinlockTryLock(volatile LONG * Lock);
 BOOLEAN
 SpinlockCheckLock(volatile LONG * Lock);
 
-void
+VOID
 SpinlockLock(volatile LONG * Lock);
 
-void
-SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaxWait);
+VOID
+SpinlockLockWithCustomWait(volatile LONG * Lock, UINT32 MaxWait);
 
-void
+VOID
 SpinlockUnlock(volatile LONG * Lock);
 
-void
+VOID
 SpinlockInterlockedCompareExchange(
     LONG volatile * Destination,
     LONG            Exchange,

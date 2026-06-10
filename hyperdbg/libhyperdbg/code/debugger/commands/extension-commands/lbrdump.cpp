@@ -15,6 +15,8 @@
 // Global Variables
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
 
 /**
  * @brief Send LBR dump requests
@@ -41,7 +43,7 @@ HyperDbgLbrdumpSendRequest(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
     }
     else
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTL
@@ -248,6 +250,11 @@ CommandLbrdump(vector<CommandToken> CommandTokens, string Command)
         CommandLbrdumpHelp();
         return;
     }
+
+    //
+    // Check if the HyperTrace module is loaded, as it is required for LBR operations
+    //
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     if (CommandTokens.size() == 3)
     {

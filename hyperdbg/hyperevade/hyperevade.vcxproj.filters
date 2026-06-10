@@ -28,11 +28,14 @@
     <Filter Include="code\components\optimizations">
       <UniqueIdentifier>{da60b9fe-3816-4f3c-a6a9-21accd463156}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\interface">
-      <UniqueIdentifier>{895edb89-17e8-4a1e-a648-b0ea360e98f8}</UniqueIdentifier>
+    <Filter Include="code\components\callback">
+      <UniqueIdentifier>{0e801893-09df-4299-a572-6e63049d4f9f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\interface">
-      <UniqueIdentifier>{7c6fe4d9-4baf-4fd2-93e0-ee395cbc2ee9}</UniqueIdentifier>
+    <Filter Include="header\components">
+      <UniqueIdentifier>{78b7809e-ea12-450d-af96-8e658087628d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\callback">
+      <UniqueIdentifier>{28025c67-f68b-437b-bcda-d23c9a752d42}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -60,9 +63,6 @@
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c">
       <Filter>code\components\optimizations</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
-      <Filter>code\interface</Filter>
-    </ClCompile>
     <ClCompile Include="code\SyscallFootprints.c">
       <Filter>code</Filter>
     </ClCompile>
@@ -71,6 +71,9 @@
     </ClCompile>
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c">
       <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c">
+      <Filter>code\components\callback</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,9 +86,6 @@
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
       <Filter>header\platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
-      <Filter>header\interface</Filter>
-    </ClInclude>
     <ClInclude Include="header\SyscallFootprints.h">
       <Filter>header</Filter>
     </ClInclude>
@@ -94,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h">
+      <Filter>header\components\callback</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

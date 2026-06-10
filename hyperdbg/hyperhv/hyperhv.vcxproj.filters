@@ -141,6 +141,12 @@
     <Filter Include="header\mmio">
       <UniqueIdentifier>{c310c4a9-c337-454d-94ca-4c6b1216cf41}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\components\callback">
+      <UniqueIdentifier>{20e523af-8b6d-4293-bd6d-ce6087f2d4a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\callback">
+      <UniqueIdentifier>{58bb81a8-dd12-4e47-b6c8-7d61981fef62}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -195,9 +201,6 @@
       <Filter>code\memory</Filter>
     </ClCompile>
     <ClCompile Include="code\memory\MemoryMapper.c">
-      <Filter>code\memory</Filter>
-    </ClCompile>
-    <ClCompile Include="code\memory\PoolManager.c">
       <Filter>code\memory</Filter>
     </ClCompile>
     <ClCompile Include="code\components\registers\DebugRegisters.c">
@@ -314,9 +317,6 @@
     <ClCompile Include="code\mmio\MmioShadowing.c">
       <Filter>code\mmio</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\components\interface\HyperLogCallback.c">
-      <Filter>code\interface</Filter>
-    </ClCompile>
     <ClCompile Include="code\hooks\syscall-hook\SyscallCallback.c">
       <Filter>code\hooks\syscall-hook</Filter>
     </ClCompile>
@@ -337,6 +337,9 @@
     </ClCompile>
     <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c">
       <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c">
+      <Filter>code\components\callback</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -386,9 +389,6 @@
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
     <ClInclude Include="header\memory\MemoryMapper.h">
-      <Filter>header\memory</Filter>
-    </ClInclude>
-    <ClInclude Include="header\memory\PoolManager.h">
       <Filter>header\memory</Filter>
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h">
@@ -601,9 +601,6 @@
     <ClInclude Include="header\mmio\MmioShadowing.h">
       <Filter>header\mmio</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\components\interface\HyperLogCallback.h">
-      <Filter>header\interface</Filter>
-    </ClInclude>
     <ClInclude Include="header\hooks\SyscallCallback.h">
       <Filter>header\hooks</Filter>
     </ClInclude>
@@ -621,6 +618,9 @@
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h">
+      <Filter>header\components\callback</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

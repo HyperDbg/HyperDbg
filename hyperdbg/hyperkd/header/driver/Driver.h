@@ -45,3 +45,15 @@ DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp);
 
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+
+NTSTATUS
+DrvDispatchBasicIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation);
+
+NTSTATUS
+DrvDispatchKdIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation);
+
+NTSTATUS
+DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation);
+
+NTSTATUS
+DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation);

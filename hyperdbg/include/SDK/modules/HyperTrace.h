@@ -24,7 +24,7 @@ typedef BOOLEAN (*LOG_CALLBACK_PREPARE_AND_SEND_MESSAGE_TO_QUEUE)(UINT32       O
                                                                   BOOLEAN      IsImmediateMessage,
                                                                   BOOLEAN      ShowCurrentSystemTime,
                                                                   BOOLEAN      Priority,
-                                                                  const char * Fmt,
+                                                                  const CHAR * Fmt,
                                                                   va_list      ArgList);
 
 /**

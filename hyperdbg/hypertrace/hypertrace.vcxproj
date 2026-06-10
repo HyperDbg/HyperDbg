@@ -100,7 +100,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\include\components\interface\HyperLogCallback.c" />
+    <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
@@ -115,7 +115,7 @@
     <ClCompile Include="code\pt\Pt.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\components\interface\HyperLogCallback.h" />
+    <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Hv.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file describes the routines in Hypervisor
@@ -299,7 +299,7 @@ HvResumeToNextInstruction()
 {
     UINT64 ResumeRIP             = NULL64_ZERO;
     UINT64 CurrentRIP            = NULL64_ZERO;
-    size_t ExitInstructionLength = 0;
+    SIZE_T ExitInstructionLength = 0;
 
     VmxVmread64P(VMCS_GUEST_RIP, &CurrentRIP);
     VmxVmread64P(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
@@ -519,7 +519,7 @@ HvRestoreRegisters()
     VmxVmread64P(VMCS_GUEST_GDTR_BASE, &GdtrBase);
     VmxVmread64P(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
 
-    AsmReloadGdtr((void *)GdtrBase, (unsigned long)GdtrLimit);
+    AsmReloadGdtr((PVOID)GdtrBase, (ULONG)GdtrLimit);
 
     //
     // Restore Segment Selector
@@ -539,7 +539,7 @@ HvRestoreRegisters()
     VmxVmread64P(VMCS_GUEST_IDTR_BASE, &IdtrBase);
     VmxVmread64P(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
 
-    AsmReloadIdtr((void *)IdtrBase, (unsigned long)IdtrLimit);
+    AsmReloadIdtr((PVOID)IdtrBase, (ULONG)IdtrLimit);
 }
 
 /**
@@ -1111,7 +1111,6 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
  * @brief Checks to enable and reinject previous interrupts
  *
  * @param VCpu The virtual processor's state
- * @param Set Set or unset the External Interrupt Exiting
  *
  * @return VOID
  */

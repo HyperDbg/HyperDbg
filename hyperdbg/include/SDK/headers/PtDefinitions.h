@@ -91,30 +91,30 @@ typedef union _PT_RTIT_CTL_REGISTER
 {
     struct
     {
-        UINT64 TraceEn   : 1;  /* [0]     Enable tracing                         */
-        UINT64 CycEn     : 1;  /* [1]     CYC packets                            */
-        UINT64 Os        : 1;  /* [2]     Trace CPL 0                            */
-        UINT64 User      : 1;  /* [3]     Trace CPL > 0                          */
-        UINT64 PwrEvtEn  : 1;  /* [4]     Power event trace                      */
-        UINT64 FupOnPtw  : 1;  /* [5]     FUP on PTWRITE                         */
-        UINT64 FabricEn  : 1;  /* [6]     Trace to fabric (must be 0)            */
+        UINT64 TraceEn : 1;    /* [0]     Enable tracing                         */
+        UINT64 CycEn : 1;      /* [1]     CYC packets                            */
+        UINT64 Os : 1;         /* [2]     Trace CPL 0                            */
+        UINT64 User : 1;       /* [3]     Trace CPL > 0                          */
+        UINT64 PwrEvtEn : 1;   /* [4]     Power event trace                      */
+        UINT64 FupOnPtw : 1;   /* [5]     FUP on PTWRITE                         */
+        UINT64 FabricEn : 1;   /* [6]     Trace to fabric (must be 0)            */
         UINT64 Cr3Filter : 1;  /* [7]     Filter by CR3                          */
-        UINT64 ToPA      : 1;  /* [8]     Use ToPA output scheme                 */
-        UINT64 MtcEn     : 1;  /* [9]     MTC packets                            */
-        UINT64 TscEn     : 1;  /* [10]    TSC packets                            */
-        UINT64 DisRetc   : 1;  /* [11]    Disable RET compression                */
-        UINT64 PtwEn     : 1;  /* [12]    PTWRITE packets                        */
-        UINT64 BranchEn  : 1;  /* [13]    Branch trace (TNT, TIP, FUP)           */
-        UINT64 MtcFreq   : 4;  /* [14:17] MTC frequency                          */
+        UINT64 ToPA : 1;       /* [8]     Use ToPA output scheme                 */
+        UINT64 MtcEn : 1;      /* [9]     MTC packets                            */
+        UINT64 TscEn : 1;      /* [10]    TSC packets                            */
+        UINT64 DisRetc : 1;    /* [11]    Disable RET compression                */
+        UINT64 PtwEn : 1;      /* [12]    PTWRITE packets                        */
+        UINT64 BranchEn : 1;   /* [13]    Branch trace (TNT, TIP, FUP)           */
+        UINT64 MtcFreq : 4;    /* [14:17] MTC frequency                          */
         UINT64 Reserved0 : 1;  /* [18]    Must be 0                              */
         UINT64 CycThresh : 4;  /* [19:22] CYC threshold                          */
         UINT64 Reserved1 : 1;  /* [23]    Must be 0                              */
-        UINT64 PsbFreq   : 4;  /* [24:27] PSB frequency                          */
+        UINT64 PsbFreq : 4;    /* [24:27] PSB frequency                          */
         UINT64 Reserved2 : 4;  /* [28:31] Must be 0                              */
-        UINT64 Addr0Cfg  : 4;  /* [32:35] Range 0 mode (1=filter / 2=stop)       */
-        UINT64 Addr1Cfg  : 4;  /* [36:39] Range 1 mode                           */
-        UINT64 Addr2Cfg  : 4;  /* [40:43] Range 2 mode                           */
-        UINT64 Addr3Cfg  : 4;  /* [44:47] Range 3 mode                           */
+        UINT64 Addr0Cfg : 4;   /* [32:35] Range 0 mode (1=filter / 2=stop)       */
+        UINT64 Addr1Cfg : 4;   /* [36:39] Range 1 mode                           */
+        UINT64 Addr2Cfg : 4;   /* [40:43] Range 2 mode                           */
+        UINT64 Addr3Cfg : 4;   /* [44:47] Range 3 mode                           */
         UINT64 Reserved3 : 16; /* [48:63] Must be 0                              */
     };
     UINT64 Value;
@@ -128,17 +128,17 @@ typedef union _PT_RTIT_STATUS_REGISTER
 {
     struct
     {
-        UINT64 FilterEn      : 1;  /* [0]     RO: IP filter allowing trace      */
-        UINT64 ContextEn     : 1;  /* [1]     RO: Context (CR3) allowing trace   */
-        UINT64 TriggerEn     : 1;  /* [2]     RO: Trigger conditions met        */
-        UINT64 Reserved0     : 1;  /* [3]     Must be 0                         */
-        UINT64 Error         : 1;  /* [4]     RO/Sticky: Operational error      */
-        UINT64 Stopped       : 1;  /* [5]     RO: TraceStop hit                 */
-        UINT64 PendTopaPmi   : 1;  /* [6]     RW: ToPA PMI pending — clear this */
-        UINT64 PendPsbPmi    : 1;  /* [7]     RW: PSB+ PMI pending — clear this */
-        UINT64 Reserved1     : 24; /* [8:31]  Must be 0                         */
+        UINT64 FilterEn : 1;       /* [0]     RO: IP filter allowing trace      */
+        UINT64 ContextEn : 1;      /* [1]     RO: Context (CR3) allowing trace   */
+        UINT64 TriggerEn : 1;      /* [2]     RO: Trigger conditions met        */
+        UINT64 Reserved0 : 1;      /* [3]     Must be 0                         */
+        UINT64 Error : 1;          /* [4]     RO/Sticky: Operational error      */
+        UINT64 Stopped : 1;        /* [5]     RO: TraceStop hit                 */
+        UINT64 PendTopaPmi : 1;    /* [6]     RW: ToPA PMI pending — clear this */
+        UINT64 PendPsbPmi : 1;     /* [7]     RW: PSB+ PMI pending — clear this */
+        UINT64 Reserved1 : 24;     /* [8:31]  Must be 0                         */
         UINT64 PacketByteCnt : 17; /* [32:48] Bytes since last PSB              */
-        UINT64 Reserved2     : 15; /* [49:63] Must be 0                         */
+        UINT64 Reserved2 : 15;     /* [49:63] Must be 0                         */
     };
     UINT64 Value;
 } PT_RTIT_STATUS_REGISTER, *PPT_RTIT_STATUS_REGISTER;
@@ -151,9 +151,9 @@ typedef union _PT_OUTPUT_MASK_PTRS_REGISTER
 {
     struct
     {
-        UINT64 LowerMask         : 7;  /* [0:6]   Forced to 0x7F               */
+        UINT64 LowerMask : 7;          /* [0:6]   Forced to 0x7F               */
         UINT64 MaskOrTableOffset : 25; /* [7:31]  ToPA: table entry index       */
-        UINT64 OutputOffset      : 32; /* [32:63] Byte offset in current entry  */
+        UINT64 OutputOffset : 32;      /* [32:63] Byte offset in current entry  */
     };
     UINT64 Value;
 } PT_OUTPUT_MASK_PTRS_REGISTER, *PPT_OUTPUT_MASK_PTRS_REGISTER;
@@ -166,15 +166,15 @@ typedef union _PT_TOPA_ENTRY
 {
     struct
     {
-        UINT64 End       : 1;  /* [0]     Last entry — wraps to next table  */
+        UINT64 End : 1;        /* [0]     Last entry — wraps to next table  */
         UINT64 Reserved0 : 1;  /* [1]     Must be 0                         */
-        UINT64 Int       : 1;  /* [2]     Generate PMI when region fills    */
+        UINT64 Int : 1;        /* [2]     Generate PMI when region fills    */
         UINT64 Reserved1 : 1;  /* [3]     Must be 0                         */
-        UINT64 Stop      : 1;  /* [4]     Stop tracing when region fills    */
+        UINT64 Stop : 1;       /* [4]     Stop tracing when region fills    */
         UINT64 Reserved2 : 1;  /* [5]     Must be 0                         */
-        UINT64 Size      : 4;  /* [6:9]   Region size (4K*2^N)              */
+        UINT64 Size : 4;       /* [6:9]   Region size (4K*2^N)              */
         UINT64 Reserved3 : 2;  /* [10:11] Must be 0                         */
-        UINT64 BaseAddr  : 36; /* [12:47] Physical address >> 12            */
+        UINT64 BaseAddr : 36;  /* [12:47] Physical address >> 12            */
         UINT64 Reserved4 : 16; /* [48:63] Must be 0                         */
     };
     UINT64 Value;
@@ -189,24 +189,24 @@ typedef union _PT_TOPA_ENTRY
  */
 typedef struct _PT_CAPABILITIES
 {
-    UINT32 Cr3Filtering       : 1; /* Can filter by process CR3            */
+    UINT32 Cr3Filtering : 1;       /* Can filter by process CR3            */
     UINT32 PsbCycConfigurable : 1; /* PSBFreq and CYC configurable         */
-    UINT32 IpFiltering        : 1; /* IP filtering and TraceStop supported */
-    UINT32 MtcSupport         : 1; /* MTC packets supported                */
-    UINT32 PtwriteSupport     : 1; /* PTWRITE instruction supported        */
-    UINT32 PowerEventTrace    : 1; /* Power event trace supported          */
-    UINT32 VmxSupport         : 1; /* PT works in VMX operations           */
-    UINT32 TopaOutput         : 1; /* ToPA output scheme supported         */
-    UINT32 TopaMultiEntry     : 1; /* ToPA tables can have >1 entry        */
-    UINT32 SingleRangeOutput  : 1; /* Single contiguous range output       */
-    UINT32 TransportOutput    : 1; /* Trace transport subsystem output     */
-    UINT32 IpPayloadsAreLip   : 1; /* IP payloads are LIP (not RIP)        */
-    UINT32 Reserved           : 20;
+    UINT32 IpFiltering : 1;        /* IP filtering and TraceStop supported */
+    UINT32 MtcSupport : 1;         /* MTC packets supported                */
+    UINT32 PtwriteSupport : 1;     /* PTWRITE instruction supported        */
+    UINT32 PowerEventTrace : 1;    /* Power event trace supported          */
+    UINT32 VmxSupport : 1;         /* PT works in VMX operations           */
+    UINT32 TopaOutput : 1;         /* ToPA output scheme supported         */
+    UINT32 TopaMultiEntry : 1;     /* ToPA tables can have >1 entry        */
+    UINT32 SingleRangeOutput : 1;  /* Single contiguous range output       */
+    UINT32 TransportOutput : 1;    /* Trace transport subsystem output     */
+    UINT32 IpPayloadsAreLip : 1;   /* IP payloads are LIP (not RIP)        */
+    UINT32 Reserved : 20;
 
-    UINT32 NumAddrRanges;       /* Number of ADDRn_CFG pairs (0-4)         */
-    UINT16 MtcPeriodBitmap;     /* Supported MTC period values             */
-    UINT16 CycThresholdBitmap;  /* Supported CYC threshold values          */
-    UINT16 PsbFreqBitmap;       /* Supported PSB frequency values          */
+    UINT32 NumAddrRanges;      /* Number of ADDRn_CFG pairs (0-4)         */
+    UINT16 MtcPeriodBitmap;    /* Supported MTC period values             */
+    UINT16 CycThresholdBitmap; /* Supported CYC threshold values          */
+    UINT16 PsbFreqBitmap;      /* Supported PSB frequency values          */
 
 } PT_CAPABILITIES, *PPT_CAPABILITIES;
 

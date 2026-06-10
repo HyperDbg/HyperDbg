@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Apic.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Routines for Advanced Programmable Interrupt Controller (APIC)
@@ -79,18 +79,18 @@ ApicDumpIoApic(IO_APIC_ENTRY_PACKETS * IoApicPackets)
 {
     UINT32 Index = 0;
     UINT32 Max;
-    UINT64 ll, lh;
+    UINT64 Ll, Lh;
 
     UINT64 ApicBasePa = IO_APIC_DEFAULT_BASE_ADDR;
 
-    ll = IoApicRead(g_IoApicBase, IO_VERS_REGISTER),
+    Ll = IoApicRead(g_IoApicBase, IO_VERS_REGISTER),
 
-    Max = (ll >> 16) & 0xff;
+    Max = (Ll >> 16) & 0xff;
 
     //   Log("IoApic @ %08x  ID:%x (%x)  Arb:%x\n",
     //       ApicBasePa,
     //       IoApicRead(g_IoApicBase, IO_ID_REGISTER) >> 24,
-    //       ll & 0xFF,
+    //       Ll & 0xFF,
     //       IoApicRead(g_IoApicBase, IO_ARB_ID_REGISTER));
 
     //
@@ -99,7 +99,7 @@ ApicDumpIoApic(IO_APIC_ENTRY_PACKETS * IoApicPackets)
     IoApicPackets->ApicBasePa = (UINT32)ApicBasePa;
     IoApicPackets->ApicBaseVa = (UINT64)g_IoApicBase;
     IoApicPackets->IoIdReg    = (UINT32)IoApicRead(g_IoApicBase, IO_ID_REGISTER);
-    IoApicPackets->IoLl       = (UINT32)ll;
+    IoApicPackets->IoLl       = (UINT32)Ll;
     IoApicPackets->IoArbIdReg = (UINT32)IoApicRead(g_IoApicBase, IO_ARB_ID_REGISTER);
 
     //
@@ -117,11 +117,11 @@ ApicDumpIoApic(IO_APIC_ENTRY_PACKETS * IoApicPackets)
             return;
         }
 
-        ll = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 0);
-        lh = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 1);
+        Ll = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 0);
+        Lh = IoApicRead(g_IoApicBase, IO_REDIR_BASE + Index + 1);
 
-        IoApicPackets->LlLhData[Index]     = ll;
-        IoApicPackets->LlLhData[Index + 1] = lh;
+        IoApicPackets->LlLhData[Index]     = Ll;
+        IoApicPackets->LlLhData[Index + 1] = Lh;
     }
 }
 

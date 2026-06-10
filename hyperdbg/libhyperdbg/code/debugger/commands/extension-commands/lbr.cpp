@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern HANDLE  g_DeviceHandle;
+extern BOOLEAN g_IsHyperTraceModuleLoaded;
+
 /**
  * @brief help of the !lbr command
  *
@@ -75,7 +81,7 @@ CommandLbrSendRequest(HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest)
     BOOL  Status;
     ULONG ReturnedLength;
 
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send IOCTL
@@ -196,7 +202,7 @@ CommandLbrParseFilterOperation(vector<CommandToken> CommandTokens, HYPERTRACE_LB
     LbrRequest->LbrOperationType = HYPERTRACE_LBR_OPERATION_REQUEST_TYPE_FILTER;
     LbrRequest->LbrFilterOptions = 0; // no options = capture everything
 
-    for (size_t i = 2; i < CommandTokens.size(); i++)
+    for (SIZE_T i = 2; i < CommandTokens.size(); i++)
     {
         if (CompareLowerCaseStrings(CommandTokens.at(i), "kernel"))
         {
@@ -358,6 +364,11 @@ CommandLbr(vector<CommandToken> CommandTokens, string Command)
         CommandLbrHelp();
         return;
     }
+
+    //
+    // Check if the HyperTrace module is loaded, as it is required for LBR operations
+    //
+    AssertShowMessageReturnStmt(g_IsHyperTraceModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_HYPERTRACE_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
     // Send the LBR operation request

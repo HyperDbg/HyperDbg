@@ -12,6 +12,9 @@
     <Filter Include="header\platform">
       <UniqueIdentifier>{53ae7bcb-e612-4a1a-89db-de1e77f2d730}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\platform">
+      <UniqueIdentifier>{45bab125-0b6b-4791-bb0e-eace92a93baa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\common.h">
@@ -38,8 +41,11 @@
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="script_include.h">
+    <ClInclude Include="header\script_include.h">
       <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\platform-lib-calls.h">
+      <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -67,8 +73,11 @@
     <ClCompile Include="code\pch.c">
       <Filter>code</Filter>
     </ClCompile>
-    <ClCompile Include="script_include.c">
+    <ClCompile Include="code\script_include.c">
       <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\user\code\platform-lib-calls.c">
+      <Filter>code\platform</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

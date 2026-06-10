@@ -11,12 +11,33 @@
  */
 #include "pch.h"
 
+#if ActivateHyperEvadeProject != TRUE
+
+/**
+ * @brief Handle The triggered hook on KiSystemCall64 system call handler
+ * when the Transparency mode is disabled
+ *
+ * @param Regs The virtual processor's state of registers
+ * @return VOID
+ */
 VOID
 TransparentHandleSystemCallHook(GUEST_REGS * Regs)
 {
     UNREFERENCED_PARAMETER(Regs);
 }
 
+/**
+ * @brief Callback function to handle returns from the syscall
+ * when the Transparency mode is disabled
+ *
+ * @param Regs The virtual processor's state of registers
+ * @param ProcessId The process id of the thread
+ * @param ThreadId The thread id of the thread
+ * @param Context The context of the caller
+ * @param Params The (optional) parameters of the caller
+ *
+ * @return VOID
+ */
 VOID
 TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
                                       UINT32                            ProcessId,
@@ -31,7 +52,7 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
     UNREFERENCED_PARAMETER(Params);
 }
 
-#if DISABLE_HYPERDBG_HYPEREVADE == FALSE
+#else  // ActivateHyperEvadeProject != TRUE
 
 /**
  * @brief Handle The triggered hook on KiSystemCall64 system call handler
@@ -805,7 +826,7 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
  *          it is possible to still detect that some tampering was done from the user space
  *
  * @param Ptr The pointer to a valid read/writable SYSTEM_MODULE_INFORMATION memory buffer
- * @param VirualAddress A pointer to a user-mode virtual address
+ * @param VirtualAddress A pointer to a user-mode virtual address
  * @param BufferSize Size of the user-mode buffer
  *
  * @return BOOLEAN
@@ -822,11 +843,11 @@ TransparentHandleModuleInformationQuery(PVOID Ptr, UINT64 VirtualAddress, UINT32
     //
     for (UINT16 i = 0; i < StructBuf->Count; i++)
     {
-        PCHAR path = (PCHAR)ModuleList[i].FullPathName;
+        PCHAR Path = (PCHAR)ModuleList[i].FullPathName;
 
         for (UINT16 j = 0; j < (sizeof(HV_DRIVER) / sizeof(HV_DRIVER[0])); j++)
         {
-            if (strstr(path, HV_DRIVER[j]))
+            if (strstr(Path, HV_DRIVER[j]))
             {
                 //
                 // If a module file name matches, remove the entry from the list by shifting it forward by one entry
@@ -934,9 +955,9 @@ TransparentHandleProcessInformationQuery(SYSCALL_CALLBACK_CONTEXT_PARAMS * Param
             //
             // Loop through the known list of identifiable hypervisor related processes
             //
-            for (UINT16 i = 0; i < (sizeof(HV_Processes) / sizeof(HV_Processes[0])); i++)
+            for (UINT16 i = 0; i < (sizeof(HV_PROCESSES) / sizeof(HV_PROCESSES[0])); i++)
             {
-                if (!_wcsnicmp(ImageName, HV_Processes[i], (CurStructBuf.ImageName.Length) / sizeof(WCHAR)))
+                if (!_wcsnicmp(ImageName, HV_PROCESSES[i], (CurStructBuf.ImageName.Length) / sizeof(WCHAR)))
                 {
                     //
                     // If the name matches, bypass it by increasing the previous entries .nextEntryOffset value
@@ -1037,7 +1058,7 @@ TransparentHandleProcessInformationQuery(SYSCALL_CALLBACK_CONTEXT_PARAMS * Param
 /**
  * @brief Handle the request for SystemFirmwareTableInformation
  *
- * @param ptr The pointer to a valid read/writable SYSTEM_FIRMWARE_TABLE_INFORMATION memory buffer
+ * @param Ptr The pointer to a valid read/writable SYSTEM_FIRMWARE_TABLE_INFORMATION memory buffer
  * @param BufMaxSize The size of the allocated user-mode buffer
  * @param BufSizePtr A pointer to a ULONG field containing the size of the written data
  *
@@ -1146,9 +1167,9 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
                     //
 
                     ULONG MatchedStringLen = (ULONG)strlen(HV_FIRM_NAMES[i]);
-                    ULONG oldLength        = StructBuf->TableBufferLength;
+                    ULONG OldLength        = StructBuf->TableBufferLength;
 
-                    ULONG NewStringSize = oldLength - MatchedStringLen + NewSubstringSize;
+                    ULONG NewStringSize = OldLength - MatchedStringLen + NewSubstringSize;
 
                     //
                     // Check if the buffer size allows the modification, in case of expansion
@@ -1165,7 +1186,7 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
                         //
                         // Update the required buffer size for the next call
                         //
-                        BufSize = (BufSize - oldLength) + NewStringSize;
+                        BufSize = (BufSize - OldLength) + NewStringSize;
                         g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(BufSizePtr, &BufSize, sizeof(ULONG));
 
                         //
@@ -1186,7 +1207,7 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
                     // Move the data after the matched string forward
                     // and replace the identified hypervisor string with the genuine one
                     //
-                    memmove((PVOID)(StringBuf + MatchOffset + NewSubstringSize), (PVOID)MatchEnd, oldLength - MatchedStringLen - MatchOffset);
+                    memmove((PVOID)(StringBuf + MatchOffset + NewSubstringSize), (PVOID)MatchEnd, OldLength - MatchedStringLen - MatchOffset);
                     memcpy((PVOID)MatchStart, (PVOID)NewVendorString, NewSubstringSize);
 
                     StructBuf->TableBufferLength = NewStringSize;
@@ -1230,8 +1251,8 @@ TransparentHandleFirmwareInformationQuery(UINT64 Ptr, UINT32 BufMaxSize, UINT64 
 UINT64
 TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * Params, ULONG DataOffset, ULONG DataLenOffset)
 {
-    PVOID Buf       = NULL;
-    BOOL  PoolAlloc = FALSE;
+    PVOID   Buf       = NULL;
+    BOOLEAN PoolAlloc = FALSE;
 
     //
     // Check that the user provided pointers are safe to read from
@@ -1313,7 +1334,7 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
                     //
                     // SPOOFS PCI device ID's(in the registry), This might be implemented in other ways that are not part of this implementation
                     //
-                    WORD Idx        = TRANSPARENT_GENUINE_VENDOR_STRING_INDEX % (sizeof(TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[0]));
+                    WORD Idx        = g_TransparentGenuineVendorStringIndex % (sizeof(TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR) / sizeof(TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[0]));
                     NewVendorString = TRANSPARENT_LEGIT_DEVICE_ID_VENDOR_STRINGS_WCHAR[Idx];
                 }
 
@@ -1329,23 +1350,23 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
                     //
                     // Obtain the replacement vendor name string, randomized when the transparency mode was enabled
                     //
-                    NewVendorString = TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[TRANSPARENT_GENUINE_VENDOR_STRING_INDEX];
+                    NewVendorString = TRANSPARENT_LEGIT_VENDOR_STRINGS_WCHAR[g_TransparentGenuineVendorStringIndex];
                 }
 
                 //
                 // Obtain the lengths of all the strings and substring
                 //
-                ULONG tempSize = (ULONG)wcslen(NewVendorString) * sizeof(WCHAR);
+                ULONG TempSize = (ULONG)wcslen(NewVendorString) * sizeof(WCHAR);
 
                 ULONG MatchedStringLen = (ULONG)wcslen(HV_REGKEYS[i]) * sizeof(WCHAR);
-                ULONG oldLength        = *((PBYTE)Buf + DataLenOffset);
+                ULONG OldLength        = *((PBYTE)Buf + DataLenOffset);
 
-                ULONG NewStringSize = oldLength - MatchedStringLen + tempSize;
+                ULONG NewStringSize = OldLength - MatchedStringLen + TempSize;
 
                 //
                 // Check if the buffer size allows the modification, in case of expansion
                 //
-                if (BufSize - MatchedStringLen + tempSize > Params->OptionalParam3)
+                if (BufSize - MatchedStringLen + TempSize > Params->OptionalParam3)
                 {
                     //
                     // If adding the new string exceeds the user allocated size,
@@ -1357,7 +1378,7 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
                     //
                     // Update the required buffer size for the next call
                     //
-                    BufSize = (tempSize - MatchedStringLen) + oldLength;
+                    BufSize = (TempSize - MatchedStringLen) + OldLength;
                     g_Callbacks.MemoryMapperWriteMemorySafeOnTargetProcess(Params->OptionalParam4, &BufSize, sizeof(ULONG));
 
                     //
@@ -1378,15 +1399,15 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
                 //
                 // Move the data after the matched string forward
                 //
-                memmove((PVOID)(StringBuf + MatchOffset + (tempSize / sizeof(WCHAR))), (PVOID)MatchEnd, oldLength - MatchedStringLen - (MatchOffset * sizeof(WCHAR)));
+                memmove((PVOID)(StringBuf + MatchOffset + (TempSize / sizeof(WCHAR))), (PVOID)MatchEnd, OldLength - MatchedStringLen - (MatchOffset * sizeof(WCHAR)));
 
                 //
                 // Replace the identified hypervisor string with the genuine one, if needed
                 //
-                memcpy((PVOID)MatchStart, (PVOID)NewVendorString, tempSize);
+                memcpy((PVOID)MatchStart, (PVOID)NewVendorString, TempSize);
 
                 *(PULONG)((PBYTE)Buf + DataLenOffset) = NewStringSize;
-                BufSize                               = BufSize - MatchedStringLen + tempSize;
+                BufSize                               = BufSize - MatchedStringLen + TempSize;
 
                 //
                 // Write the changes back to the user buffers
@@ -1519,7 +1540,7 @@ TransparentCallbackHandleAfterNtQueryValueKeySyscall(SYSCALL_CALLBACK_CONTEXT_PA
 }
 
 /**
- * @brief Callback function to handle the returns from the NtQueryValueKey syscall
+ * @brief Callback function to handle the returns from the NtEnumerateKey syscall
  *
  * @param Params        The set transparent callback params that contain:
                         in OptionalParam1 the KEY_VALUE_INFORMATION_CLASS enum value
@@ -1949,4 +1970,4 @@ TransparentCallbackHandleAfterSyscall(GUEST_REGS *                      Regs,
                 Params->OptionalParam4);
     }
 }
-#endif
+#endif // ActivateHyperEvadeProject != TRUE

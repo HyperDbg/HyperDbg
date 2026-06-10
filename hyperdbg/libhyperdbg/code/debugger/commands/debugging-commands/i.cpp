@@ -104,7 +104,7 @@ CommandI(vector<CommandToken> CommandTokens, string Command)
         //
         g_IsInstrumentingInstructions = TRUE;
 
-        for (size_t i = 0; i < StepCount; i++)
+        for (SIZE_T i = 0; i < StepCount; i++)
         {
             //
             // For logging purpose

@@ -2,7 +2,7 @@
  * @file DpcRoutines.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief DPC routines
- *
+ * @details
  * @version 0.19
  * @date 2026-04-19
  *

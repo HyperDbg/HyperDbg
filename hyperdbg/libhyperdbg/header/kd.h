@@ -15,6 +15,8 @@
 //		    Display Windows Details             //
 //////////////////////////////////////////////////
 
+#ifdef _WIN32
+// HKEY / RegCloseKey are Windows registry APIs; this RAII helper is Windows-only
 struct HKeyHolder
 {
 private:
@@ -37,6 +39,7 @@ public:
 
     HKEY * operator&() { return &m_Key; }
 };
+#endif // _WIN32
 
 //////////////////////////////////////////////////
 //			    	 Functions                  //
@@ -178,7 +181,7 @@ BOOLEAN
 KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength, UINT32 Pointer, BOOLEAN IsFormat);
 
 BOOLEAN
-KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBreakingAgain);
+KdSendUserInputPacketToDebuggee(const CHAR * Sendbuf, INT Len, BOOLEAN IgnoreBreakingAgain);
 
 BOOLEAN
 KdSendSearchRequestPacketToDebuggee(UINT64 * SearchRequestBuffer, UINT32 SearchRequestBufferSize);
@@ -216,6 +219,12 @@ KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId);
 BOOLEAN
 KdSendResponseOfThePingPacket();
 
+BOOLEAN
+KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket);
+
+BOOLEAN
+KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket);
+
 VOID
 KdUninitializeConnection();
 
@@ -241,9 +250,3 @@ KdBreakControlCheckAndContinueDebugger();
 
 VOID
 KdSetStatusAndWaitForPause();
-
-BOOLEAN
-KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket);
-
-BOOLEAN
-KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket);

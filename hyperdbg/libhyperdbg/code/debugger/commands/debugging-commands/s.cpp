@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsKdModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
@@ -62,6 +63,7 @@ VOID
 CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoctlSize)
 {
     BOOL    Status;
+    DWORD   BytesReturned;
     UINT64  CurrentValue;
     PUINT64 ResultsBuffer = NULL;
 
@@ -87,7 +89,7 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
                         ResultsBuffer,                // Output Buffer from driver.
                         MaximumSearchResults *
                             sizeof(UINT64), // Length of output buffer in bytes.
-                        NULL,               // Bytes placed in buffer.
+                        &BytesReturned,     // Bytes placed in buffer.
                         NULL                // synchronous call
         );
 
@@ -102,7 +104,7 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
     //
     // Show the results (if any)
     //
-    for (size_t i = 0; i < MaximumSearchResults; i++)
+    for (SIZE_T i = 0; i < MaximumSearchResults; i++)
     {
         CurrentValue = ResultsBuffer[i];
 
@@ -454,7 +456,7 @@ CommandSearchMemory(vector<CommandToken> CommandTokens, string Command)
 
     if (!g_IsSerialConnectedToRemoteDebuggee)
     {
-        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
     }
 
     //

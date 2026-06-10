@@ -14,8 +14,8 @@
 //
 // Global Variables
 //
+extern BOOLEAN                  g_IsVmmModuleLoaded;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
-extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of the .detach command
@@ -43,7 +43,7 @@ DetachFromProcess()
     //
     // Check if debugger is loaded or not
     //
-    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+    AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
     // Check if we attached to a process or not
