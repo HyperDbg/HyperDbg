@@ -49,7 +49,14 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <!--
+      libipt (Intel Processor Trace decoder) install root.
+      Set this to the folder that contains 'include\intel-pt.h' and
+      'lib\libipt.lib'. 'libipt.dll' must be reachable at run time.
+    -->
+    <LibIptDir>C:\Users\masra\Desktop\libipt</LibIptDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
@@ -62,20 +69,25 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LibIptDir)\include;$(SolutionDir)include;$(SolutionDir)dependencies\zydis\include;$(SolutionDir)dependencies\zydis\dependencies\zycore\include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib</AdditionalDependencies>
-      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <AdditionalLibraryDirectories>$(LibIptDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)libraries\zydis\user\Zycore.lib;libipt.lib</AdditionalDependencies>
+      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(LibIptDir)\bin\libipt.dll" "$(OutDir)libipt.dll"</Command>
+      <Message>Copying libipt.dll (Intel PT decoder) to output directory</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
     <ClCompile>
@@ -83,12 +95,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LibIptDir)\include;$(SolutionDir)include;$(SolutionDir)dependencies\zydis\include;$(SolutionDir)dependencies\zydis\dependencies\zycore\include;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <Optimization>MaxSpeed</Optimization>
     </ClCompile>
@@ -97,9 +109,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(LibIptDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)libraries\zydis\user\Zycore.lib;libipt.lib</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(LibIptDir)\bin\libipt.dll" "$(OutDir)libipt.dll"</Command>
+      <Message>Copying libipt.dll (Intel PT decoder) to output directory</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

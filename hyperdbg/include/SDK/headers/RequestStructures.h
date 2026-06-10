@@ -1390,8 +1390,10 @@ typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
     UINT32        TraceKernel;   /* Boolean: trace CPL == 0                */
     UINT64        TargetCr3;     /* CR3 to filter by (0 = no filter)       */
     UINT64        BufferSize;    /* Output buffer size (0 = keep current)  */
-    UINT32        NumAddrRanges; /* Number of valid AddrRanges entries     */
-    UINT32        Reserved;      /* Padding to keep the array 8-aligned    */
+    UINT32        NumAddrRanges;   /* Number of valid AddrRanges entries   */
+    UINT32        TargetProcessId; /* Process to trace; kernel resolves it
+                                      to TargetCr3 when TargetCr3 == 0
+                                      (0 = no PID-based CR3 filter)         */
     PT_ADDR_RANGE AddrRanges[PT_MAX_ADDR_RANGES];
 
     //

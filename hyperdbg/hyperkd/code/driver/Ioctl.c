@@ -1265,6 +1265,27 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
         //
         DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS, DoNotChangeInformation, Irp, &Status);
 
+            //
+            // If the caller asked to filter by a process id (and didn't
+            // already provide an explicit CR3), resolve the PID to the CR3
+            // the PT engine should match here — hyperkd owns the NT_KPROCESS
+            // layout, whereas the hypertrace engine only consumes a CR3. The
+            // kernel/user CR3 is chosen based on the requested trace mode so
+            // it works whether or not KVA shadowing (KPTI) is enabled.
+            //
+            if (HyperTracePtOperationRequest->TargetProcessId != 0 &&
+                HyperTracePtOperationRequest->TargetCr3 == 0)
+            {
+                HyperTracePtOperationRequest->TargetCr3 =
+                    DrvResolvePtTargetCr3(HyperTracePtOperationRequest->TargetProcessId,
+                                          (BOOLEAN)(HyperTracePtOperationRequest->TraceUser != 0),
+                                          (BOOLEAN)(HyperTracePtOperationRequest->TraceKernel != 0));
+            }
+
+            //
+            // Perform the HyperTrace PT operation
+            //
+            HyperTracePtPerformOperation(HyperTracePtOperationRequest);
         break;
 
     case IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES:

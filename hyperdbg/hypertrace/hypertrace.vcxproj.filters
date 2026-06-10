@@ -115,6 +115,9 @@
     <ClInclude Include="header\broadcast\Broadcast.h">
       <Filter>header\broadcast</Filter>
     </ClInclude>
+    <ClInclude Include="header\broadcast\Dpc.h">
+      <Filter>header\broadcast</Filter>
+    </ClInclude>
     <ClInclude Include="header\broadcast\DpcRoutines.h">
       <Filter>header\broadcast</Filter>
     </ClInclude>

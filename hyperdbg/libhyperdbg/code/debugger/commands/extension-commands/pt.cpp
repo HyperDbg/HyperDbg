@@ -1,6 +1,6 @@
 /**
  * @file pt.cpp
- * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Masoud Rahimi Jafari (Masoodrahimy1379@gmail.com)
  * @brief !pt command
  * @details
  * @version 0.19
@@ -134,6 +134,55 @@ BOOLEAN
 HyperDbgPerformPtOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtRequest)
 {
     return CommandPtSendRequest(PtRequest);
+}
+
+/**
+ * @brief Map the per-CPU PT output buffers into the current process
+ *
+ * @details On success MmapRequest->Cpus[0..NumCpus) hold one { UserVa, Size }
+ *          per CPU, valid in this process until PT is disabled / flushed.
+ *          Only meaningful in local (VMI) mode.
+ *
+ * @param MmapRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgPtMmapSendRequest(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest)
+{
+    BOOL  Status;
+    ULONG ReturnedLength;
+
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // The mmap surface maps into the caller's address space, which only
+        // makes sense in local mode (no remote-debuggee transport for it).
+        //
+        ShowMessages("err, PT mmap is only available in local (VMI) mode\n");
+        return FALSE;
+    }
+
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+
+    Status = DeviceIoControl(
+        g_DeviceHandle,                    // Handle to device
+        IOCTL_PERFORM_HYPERTRACE_PT_MMAP,  // IO Control Code (IOCTL)
+        MmapRequest,                       // Input Buffer to driver.
+        SIZEOF_HYPERTRACE_PT_MMAP_PACKETS, // Input buffer length
+        MmapRequest,                       // Output Buffer from driver.
+        SIZEOF_HYPERTRACE_PT_MMAP_PACKETS, // Length of output buffer in bytes.
+        &ReturnedLength,                   // Bytes placed in buffer.
+        NULL                               // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+    }
+
+    return MmapRequest->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 }
 
 /**

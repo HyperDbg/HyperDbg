@@ -945,3 +945,31 @@ hyperdbg_u_lbr_dump(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
 {
     return HyperDbgLbrdumpSendRequest(LbrdumpRequest);
 }
+
+/**
+ * @brief Perform an Intel PT operation (enable / disable / pause / resume /
+ * size / dump / flush / filter)
+ *
+ * @param PtRequest The PT operation request packet
+ *
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
+ */
+BOOLEAN
+hyperdbg_u_pt_operation(HYPERTRACE_PT_OPERATION_PACKETS * PtRequest)
+{
+    return HyperDbgPerformPtOperation(PtRequest);
+}
+
+/**
+ * @brief Map the per-CPU Intel PT output buffers into the calling process
+ *
+ * @param MmapRequest The PT mmap request packet; filled with per-CPU
+ * { UserVa, Size } on success
+ *
+ * @return BOOLEAN TRUE if the operation was successful, otherwise FALSE
+ */
+BOOLEAN
+hyperdbg_u_pt_mmap(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest)
+{
+    return HyperDbgPtMmapSendRequest(MmapRequest);
+}

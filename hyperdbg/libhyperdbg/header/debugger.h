@@ -319,3 +319,9 @@ HyperDbgDisableTransparentMode();
 
 BOOLEAN
 HyperDbgLbrdumpSendRequest(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest);
+
+BOOLEAN
+HyperDbgPerformPtOperation(HYPERTRACE_PT_OPERATION_PACKETS * PtRequest);
+
+BOOLEAN
+HyperDbgPtMmapSendRequest(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest);
