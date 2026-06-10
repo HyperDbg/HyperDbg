@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0.0] - 2026-XX-XX
+New release of the HyperDbg Debugger.
+
+### Added
+- 
+
+### Changed
+- 
+
 ## [0.19.0.0-beta] - 2026-06-10
 New release of the HyperDbg Debugger.
 
@@ -13,7 +22,7 @@ New release of the HyperDbg Debugger.
 - Added Legacy LBR support to the HyperTrace module
 - Added Architectural LBR support to the HyperTrace module
 - Added the '!lbr' command for performing different Last Branch Record (LBR) operations ([link](https://docs.hyperdbg.org/commands/extension-commands/lbr))
-- Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdmp))
+- Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdump))
 - Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_print))
 - Added mock application for compiling SDK for Linux
 - Added '!help' alias for the '.help' command
