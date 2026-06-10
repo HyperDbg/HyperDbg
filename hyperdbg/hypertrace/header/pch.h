@@ -68,12 +68,6 @@
 #include "platform/kernel/header/PlatformEvent.h"
 
 //
-// DPC and broadcasting function headers
-//
-#include "broadcast/DpcRoutines.h"
-#include "broadcast/Broadcast.h"
-
-//
 // Unload function (to be called when the driver is unloaded)
 //
 #include "common/UnloadDll.h"
@@ -112,6 +106,12 @@
 //
 #include "pt/Pt.h"
 #include "api/PtApi.h"
+
+//
+// DPC and broadcasting function headers
+//
+#include "broadcast/DpcRoutines.h"
+#include "broadcast/Broadcast.h"
 
 //
 // Export functions

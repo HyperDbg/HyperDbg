@@ -218,13 +218,12 @@ PlatformGetCurrentProcessName(VOID)
     //
     // Return the basename (strip the directory part)
     //
+    char * LastSeparator = strrchr(ProcessNameBuf, '\\');
+    if (LastSeparator)
     {
-        char * LastSeparator = strrchr(ProcessNameBuf, '\\');
-        if (LastSeparator)
-        {
-            return LastSeparator + 1;
-        }
+        return LastSeparator + 1;
     }
+
     return ProcessNameBuf;
 
 #elif defined(__linux__)

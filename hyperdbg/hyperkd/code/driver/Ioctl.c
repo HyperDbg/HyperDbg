@@ -135,6 +135,74 @@ IoctlCheckIoctlAllowed(ULONG Ioctl)
 }
 
 /**
+ * @brief Resolve a process id to the CR3 the Intel PT engine should match.
+ *
+ * @details Intel PT's CR3 filter compares the live CR3, which differs between
+ *          user and kernel mode when KVA shadowing (KPTI) is enabled:
+ *            - kernel-mode runs under _KPROCESS.DirectoryTableBase
+ *            - user-mode runs under _KPROCESS.UserDirectoryTableBase (shadow)
+ *          So pick the kernel CR3 for kernel-only traces, otherwise the user
+ *          (shadow) CR3 — falling back to the kernel CR3 when KVA shadowing is
+ *          off (UserDirectoryTableBase has a zero page base in that case, i.e.
+ *          user-mode also runs under the kernel CR3).
+ *
+ * @param ProcessId   Target process id
+ * @param TraceUser   Whether CPL>0 will be traced
+ * @param TraceKernel Whether CPL==0 will be traced
+ *
+ * @return UINT64 CR3 page base (low 12 bits cleared), or 0 if the pid is gone
+ */
+static UINT64
+DrvResolvePtTargetCr3(UINT32 ProcessId, BOOLEAN TraceUser, BOOLEAN TraceKernel)
+{
+    //
+    // _KPROCESS.UserDirectoryTableBase offset (x64 Windows 10 1803+ / 11).
+    // Only this one constant is build-specific; adjust it if the user CR3
+    // ever reads wrong on a newer kernel.
+    //
+    const ULONG UserDirTableBaseOffset = 0x388;
+
+    PEPROCESS TargetProcess;
+    UINT64    KernelCr3;
+    UINT64    UserCr3;
+    UINT64    Chosen;
+
+    if (PsLookupProcessByProcessId((HANDLE)(ULONG_PTR)ProcessId, &TargetProcess) != STATUS_SUCCESS)
+    {
+        return 0;
+    }
+
+    KernelCr3 = (UINT64)((NT_KPROCESS *)TargetProcess)->DirectoryTableBase;
+    UserCr3   = *(UINT64 *)((UCHAR *)TargetProcess + UserDirTableBaseOffset);
+
+    ObDereferenceObject(TargetProcess);
+
+    if (TraceKernel && !TraceUser)
+    {
+        //
+        // Kernel-only trace — match the kernel CR3
+        //
+        Chosen = KernelCr3;
+    }
+    else if ((UserCr3 & ~0xFFFULL) != 0)
+    {
+        //
+        // KVA shadowing on — user mode runs under the shadow CR3
+        //
+        Chosen = UserCr3;
+    }
+    else
+    {
+        //
+        // KVA shadowing off — user mode runs under the kernel CR3
+        //
+        Chosen = KernelCr3;
+    }
+
+    return Chosen & ~0xFFFULL;
+}
+
+/**
  * @brief IOCTL Dispatcher for Basic IOCTLs (initialization and event registration)
  *
  * @param Irp
@@ -1265,27 +1333,6 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
         //
         DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS, DoNotChangeInformation, Irp, &Status);
 
-            //
-            // If the caller asked to filter by a process id (and didn't
-            // already provide an explicit CR3), resolve the PID to the CR3
-            // the PT engine should match here — hyperkd owns the NT_KPROCESS
-            // layout, whereas the hypertrace engine only consumes a CR3. The
-            // kernel/user CR3 is chosen based on the requested trace mode so
-            // it works whether or not KVA shadowing (KPTI) is enabled.
-            //
-            if (HyperTracePtOperationRequest->TargetProcessId != 0 &&
-                HyperTracePtOperationRequest->TargetCr3 == 0)
-            {
-                HyperTracePtOperationRequest->TargetCr3 =
-                    DrvResolvePtTargetCr3(HyperTracePtOperationRequest->TargetProcessId,
-                                          (BOOLEAN)(HyperTracePtOperationRequest->TraceUser != 0),
-                                          (BOOLEAN)(HyperTracePtOperationRequest->TraceKernel != 0));
-            }
-
-            //
-            // Perform the HyperTrace PT operation
-            //
-            HyperTracePtPerformOperation(HyperTracePtOperationRequest);
         break;
 
     case IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES:
@@ -1521,6 +1568,7 @@ DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * 
     PHYPERTRACE_LBR_OPERATION_PACKETS HyperTraceLbrOperationRequest;
     PHYPERTRACE_LBR_DUMP_PACKETS      HyperTraceLbrdumpRequest;
     PHYPERTRACE_PT_OPERATION_PACKETS  HyperTracePtOperationRequest;
+    PHYPERTRACE_PT_MMAP_PACKETS       HyperTracePtMmapRequest;
     ULONG                             InBuffLength;
     ULONG                             OutBuffLength;
     NTSTATUS                          Status = STATUS_SUCCESS;
@@ -1615,6 +1663,23 @@ DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * 
         }
 
         //
+        // If the caller asked to filter by a process id (and didn't
+        // already provide an explicit CR3), resolve the PID to the CR3
+        // the PT engine should match here — hyperkd owns the NT_KPROCESS
+        // layout, whereas the hypertrace engine only consumes a CR3. The
+        // kernel/user CR3 is chosen based on the requested trace mode so
+        // it works whether or not KVA shadowing (KPTI) is enabled.
+        //
+        if (HyperTracePtOperationRequest->TargetProcessId != 0 &&
+            HyperTracePtOperationRequest->TargetCr3 == 0)
+        {
+            HyperTracePtOperationRequest->TargetCr3 =
+                DrvResolvePtTargetCr3(HyperTracePtOperationRequest->TargetProcessId,
+                                      (BOOLEAN)(HyperTracePtOperationRequest->TraceUser != 0),
+                                      (BOOLEAN)(HyperTracePtOperationRequest->TraceKernel != 0));
+        }
+
+        //
         // Perform the HyperTrace PT operation
         //
         HyperTracePtPerformOperation(HyperTracePtOperationRequest);
@@ -1622,7 +1687,35 @@ DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * 
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS, DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_PERFORM_HYPERTRACE_PT_MMAP:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_HYPERTRACE_PT_MMAP_PACKETS,
+                                                (PVOID *)&HyperTracePtMmapRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Map the per-CPU PT output buffers into the calling user process
+        //
+        HyperTracePtMmap(HyperTracePtMmapRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_PT_MMAP_PACKETS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
