@@ -2129,3 +2129,34 @@ ScriptEngineFunctionLbrRestoreByFilter(UINT64 FilterOptions)
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
+
+/**
+ * @brief Implementation of masoud_callback function
+ *
+ * @param Tag
+
+ * @return UINT64
+ */
+UINT64
+ScriptEngineFunctionMasoudCallback(UINT64 Tag)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, this function is not supposed to be called in the user-mode\n");
+
+    return 0;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Send an immediate message, and we're no longer get new IRP
+    //
+    LogCallbackSendBuffer(OPERATION_MASOUD_CALLBACK,
+                          (PVOID)&Tag,
+                          sizeof(UINT64),
+                          TRUE);
+
+    return 0; // The return value is not important for now as we don't use it in the script but we can use it in the future if needed
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}

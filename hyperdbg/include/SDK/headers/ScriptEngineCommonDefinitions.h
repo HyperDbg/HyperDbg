@@ -182,25 +182,26 @@ static const char *const SymbolTypeNames[] = {
 #define FUNC_DW_PA 85
 #define FUNC_DQ_PA 86
 #define FUNC_LBR_RESTORE_BY_FILTER 87
-#define FUNC_ED 88
-#define FUNC_EB 89
-#define FUNC_EQ 90
-#define FUNC_INTERLOCKED_EXCHANGE 91
-#define FUNC_INTERLOCKED_EXCHANGE_ADD 92
-#define FUNC_EB_PA 93
-#define FUNC_ED_PA 94
-#define FUNC_EQ_PA 95
-#define FUNC_INTERLOCKED_COMPARE_EXCHANGE 96
-#define FUNC_STRLEN 97
-#define FUNC_STRCMP 98
-#define FUNC_MEMCMP 99
-#define FUNC_STRNCMP 100
-#define FUNC_WCSLEN 101
-#define FUNC_WCSCMP 102
-#define FUNC_EVENT_INJECT_ERROR_CODE 103
-#define FUNC_MEMCPY 104
-#define FUNC_MEMCPY_PA 105
-#define FUNC_WCSNCMP 106
+#define FUNC_MASOUD_CALLBACK 88
+#define FUNC_ED 89
+#define FUNC_EB 90
+#define FUNC_EQ 91
+#define FUNC_INTERLOCKED_EXCHANGE 92
+#define FUNC_INTERLOCKED_EXCHANGE_ADD 93
+#define FUNC_EB_PA 94
+#define FUNC_ED_PA 95
+#define FUNC_EQ_PA 96
+#define FUNC_INTERLOCKED_COMPARE_EXCHANGE 97
+#define FUNC_STRLEN 98
+#define FUNC_STRCMP 99
+#define FUNC_MEMCMP 100
+#define FUNC_STRNCMP 101
+#define FUNC_WCSLEN 102
+#define FUNC_WCSCMP 103
+#define FUNC_EVENT_INJECT_ERROR_CODE 104
+#define FUNC_MEMCPY 105
+#define FUNC_MEMCPY_PA 106
+#define FUNC_WCSNCMP 107
 
 static const char *const FunctionNames[] = {
 "FUNC_UNDEFINED",
@@ -291,6 +292,7 @@ static const char *const FunctionNames[] = {
 "FUNC_DW_PA",
 "FUNC_DQ_PA",
 "FUNC_LBR_RESTORE_BY_FILTER",
+"FUNC_MASOUD_CALLBACK",
 "FUNC_ED",
 "FUNC_EB",
 "FUNC_EQ",

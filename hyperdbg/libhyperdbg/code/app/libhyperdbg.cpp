@@ -27,6 +27,7 @@ extern BOOLEAN    g_IsKdModuleLoaded;
 extern BOOLEAN    g_IsVmmModuleLoaded;
 extern BOOLEAN    g_IsHyperTraceModuleLoaded;
 
+
 /**
  * @brief Install (start) VMM driver
  *

@@ -22,6 +22,12 @@ extern BOOLEAN g_IsMessageLoggingWindowClosed;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_OutputSourcesInitialized;
 
+VOID
+MasoudCallbackHandler(PUINT64 TagBuffer)
+{
+    ShowMessages("Masoud callback handler called from user with tag: %llx\n", *TagBuffer);
+}
+
 /**
  * @brief Read kernel buffers using IRP Pending
  *
@@ -283,6 +289,13 @@ ReadIrpBasedBuffer()
                 //
                 UdHandleUserDebuggerPausing(
                     (PDEBUGGEE_UD_PAUSED_PACKET)(OutputBuffer + sizeof(UINT32)));
+
+                break;
+
+            case OPERATION_MASOUD_CALLBACK:
+
+                MasoudCallbackHandler(
+                    (PUINT64)(OutputBuffer + sizeof(UINT32)));
 
                 break;
 

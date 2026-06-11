@@ -388,6 +388,7 @@ const UCHAR BuildSignature[] = {
 #define OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS                    14U | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL              15U | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE            16U | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_MASOUD_CALLBACK                                  17U | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //       Breakpoints & Debug Breakpoints        //
