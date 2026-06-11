@@ -507,7 +507,7 @@ LoadVmm()
     }
 
     printf("[*] loading HyperDbg VMM...\n");
-    if (hyperdbg_u_install_vmm_driver() != 0 || hyperdbg_u_load_vmm() != 0)
+    if (hyperdbg_u_install_kd_driver() == 1 || hyperdbg_u_load_vmm() == 1)
     {
         printf("[-] cannot load the HyperDbg VMM\n");
         return 1;
@@ -552,9 +552,16 @@ main(int argc, char ** argv)
     RunAndTrace(argv[1], function, packets, pinCore);
 
     printf("[*] unloading HyperDbg VMM...\n");
+
+    //
+    // Unload the driver
+    //
     hyperdbg_u_unload_vmm();
-    hyperdbg_u_stop_vmm_driver();
-    hyperdbg_u_uninstall_vmm_driver();
+    hyperdbg_u_unload_kd();
+    hyperdbg_u_stop_kd_driver();
+    hyperdbg_u_uninstall_kd_driver();
+
     printf("[+] done\n");
+
     return 0;
 }
