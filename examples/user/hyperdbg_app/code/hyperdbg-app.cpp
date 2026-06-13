@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <dbghelp.h>
-#include <intel-pt.h>
+#include "../dependencies/libipt/intel-pt.h"
 #include <Zydis/Zydis.h>
 
 #pragma comment(lib, "dbghelp.lib")
@@ -496,7 +496,7 @@ Cleanup:
 }
 
 static int
-LoadVmm()
+LoadVmmAndTrace()
 {
     hyperdbg_u_set_text_message_callback((PVOID)ShowMessages);
 
@@ -514,11 +514,22 @@ LoadVmm()
     }
 
     printf("[+] HyperDbg VMM is running\n");
+
+    printf("[*] loading HyperTrace...\n");
+
+    if ( hyperdbg_u_load_hypertrace_module() == 1)
+    {
+        printf("[-] cannot load the HyperDbg HyperTrace\n");
+        return 1;
+    }
+
+    printf("[+] HyperDbg HyperTrace is running\n");
+
     return 0;
 }
 
 int
-main(int argc, char ** argv)
+main2(int argc, char ** argv)
 {
     const char * function = "main";
     BOOLEAN      packets  = FALSE;
@@ -546,7 +557,7 @@ main(int argc, char ** argv)
             function = argv[i];
     }
 
-    if (LoadVmm() != 0)
+    if (LoadVmmAndTrace() != 0)
         return 1;
 
     RunAndTrace(argv[1], function, packets, pinCore);
