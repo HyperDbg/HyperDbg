@@ -20,10 +20,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\hyperdbg-app.cpp">
+    <ClCompile Include="code\hyperdbg-ipt.cpp">
       <Filter>code</Filter>
     </ClCompile>
-    <ClCompile Include="code\hyperdbg-ipt.cpp">
+    <ClCompile Include="code\hyperdbg-app.cpp">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>

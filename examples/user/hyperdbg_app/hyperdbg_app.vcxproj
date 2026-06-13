@@ -15,8 +15,8 @@
     <ClInclude Include="header\pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\hyperdbg-app.cpp" />
     <ClCompile Include="code\hyperdbg-ipt.cpp" />
+    <ClCompile Include="code\hyperdbg-app.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
