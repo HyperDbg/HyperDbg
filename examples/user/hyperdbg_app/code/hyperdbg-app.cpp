@@ -33,6 +33,8 @@ LoadVmm()
 int
 main(int argc, char ** argv)
 {
+    return main2(argc, argv);
+
     if (LoadVmm() != 0)
     {
         return 1;
