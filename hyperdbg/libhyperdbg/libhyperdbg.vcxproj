@@ -131,6 +131,7 @@
     <ClInclude Include="..\include\platform\user\header\platform-intrinsics.h" />
     <ClInclude Include="..\include\platform\user\header\platform-lib-calls.h" />
     <ClInclude Include="..\include\platform\user\header\platform-serial.h" />
+    <ClInclude Include="..\include\platform\user\header\platform-ioctl.h" />
     <ClInclude Include="..\include\platform\user\header\windows-only\windows-privilege.h" />
     <ClInclude Include="..\include\platform\user\header\Windows.h" />
     <ClInclude Include="header\assembler.h" />
@@ -169,6 +170,7 @@
     <ClCompile Include="..\include\platform\user\code\platform-intrinsics.c" />
     <ClCompile Include="..\include\platform\user\code\platform-lib-calls.c" />
     <ClCompile Include="..\include\platform\user\code\platform-serial.c" />
+    <ClCompile Include="..\include\platform\user\code\platform-ioctl.c" />
     <ClCompile Include="..\include\platform\user\code\windows-only\windows-privilege.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
