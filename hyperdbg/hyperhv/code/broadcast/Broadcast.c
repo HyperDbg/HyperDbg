@@ -219,6 +219,37 @@ BroadcastDisableRdtscExitingForClearingEventsAllCores()
 }
 
 /**
+ * @brief routines ONLY for clearing transparent CPUID timing compensation
+ * @return BOOLEAN Returns true when all cores accept the cleanup
+ */
+BOOLEAN
+BroadcastClearTransparentCpuidTscCompensationAllCores()
+{
+    volatile LONG FailedProcessors = 0;
+
+    KeGenericCallDpc(DpcRoutineClearTransparentCpuidTscCompensationAllCores, (PVOID)&FailedProcessors);
+    return FailedProcessors == 0;
+}
+
+BOOLEAN
+BroadcastEnableTransparentCpuidTscTimingAllCores()
+{
+    volatile LONG FailedProcessors = 0;
+
+    KeGenericCallDpc(DpcRoutineEnableTransparentCpuidTscTimingAllCores, (PVOID)&FailedProcessors);
+    return FailedProcessors == 0;
+}
+
+BOOLEAN
+BroadcastDisableTransparentCpuidTscTimingAllCores()
+{
+    volatile LONG FailedProcessors = 0;
+
+    KeGenericCallDpc(DpcRoutineDisableTransparentCpuidTscTimingAllCores, (PVOID)&FailedProcessors);
+    return FailedProcessors == 0;
+}
+
+/**
  * @brief routines ONLY for disabling !crwrite command
  * @param Event
  * @return VOID
