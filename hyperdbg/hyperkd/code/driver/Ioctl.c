@@ -1687,7 +1687,7 @@ DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * 
         //
         // Adjust the status and output size
         //
-        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_LBR_DUMP_PACKETS, DoNotChangeInformation, Irp, &Status);
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_HYPERTRACE_PT_OPERATION_PACKETS, DoNotChangeInformation, Irp, &Status);
 
         break;
 
