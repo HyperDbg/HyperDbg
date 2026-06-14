@@ -162,6 +162,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "platform/user/header/platform-serial.h"
 
 //
+// Platform IOCTL transport (cross-platform local kernel-driver device I/O)
+//
+#include "platform/user/header/platform-ioctl.h"
+
+//
 // Platform-specific intrinsics
 //
 #ifdef _WIN32

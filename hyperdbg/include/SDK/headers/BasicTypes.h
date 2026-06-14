@@ -101,6 +101,10 @@ typedef UINT16 WCHAR;
 typedef PVOID    HANDLE;
 typedef HANDLE * PHANDLE;
 
+// Windows pointer-style aliases (used by the cross-platform driver/IOCTL wrappers)
+typedef PVOID   LPVOID;
+typedef DWORD * LPDWORD;
+
 #endif
 
 #define NULL_ZERO   0
