@@ -38,3 +38,8 @@
 //
 #include "SDK/HyperDbgSdk.h"
 #include "SDK/imports/user/HyperDbgLibImports.h"
+
+//
+// Other internal headers
+//
+#include "example-ipt.h"

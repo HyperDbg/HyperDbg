@@ -15,8 +15,14 @@
     <ClInclude Include="header\pch.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\example-ipt.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="code\hyperdbg-ipt.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
     <ClCompile Include="code\hyperdbg-app.cpp">
       <Filter>code</Filter>
     </ClCompile>
