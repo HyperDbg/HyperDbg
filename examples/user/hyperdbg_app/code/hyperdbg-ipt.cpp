@@ -373,7 +373,7 @@ RunAndTrace(const char * Path, const char * Function, BOOLEAN Packets, int PinCo
     STARTUPINFOA                    Startup     = {0};
     PROCESS_INFORMATION             Process     = {0};
     HYPERTRACE_PT_MMAP_PACKETS      Mmap        = {0};
-    HYPERTRACE_PT_OPERATION_PACKETS Sizes       = {};
+    HYPERTRACE_PT_OPERATION_PACKETS Sizes       = {0};
     UINT64                          TextStart   = 0;
     UINT64                          TextEnd     = 0;
     UINT64                          FilterStart = 0;
@@ -419,15 +419,18 @@ RunAndTrace(const char * Path, const char * Function, BOOLEAN Packets, int PinCo
     FilterStart = TextStart;
     FilterEnd   = TextEnd;
 
-    if (Function != NULL && ResolveFunction(Process.hProcess, Path, Function, &FilterStart, &FilterEnd))
+    if (Function != NULL && ResolveFunction(Process.hProcess, Path, Function, &FilterStart, &FilterEnd)) {
         printf("[+] IP filter narrowed to '%s' 0x%llx-0x%llx (%llu bytes)\n",
-               Function,
-               (unsigned long long)FilterStart,
-               (unsigned long long)FilterEnd,
-               (unsigned long long)(FilterEnd - FilterStart + 1));
-    else
+            Function,
+            (unsigned long long)FilterStart,
+            (unsigned long long)FilterEnd,
+            (unsigned long long)(FilterEnd - FilterStart + 1));
+    }
+    else 
+    {
         printf("[!] IP filter: whole .text (symbol '%s' not found - build the target with a PDB)\n",
-               Function ? Function : "(none)");
+            Function ? Function : "(none)");
+    }
 
     if (!PtFilter(Process.dwProcessId, FilterStart, FilterEnd) ||
         !PtOperation(HYPERTRACE_PT_OPERATION_REQUEST_TYPE_ENABLE))
@@ -558,8 +561,10 @@ main2(int argc, char ** argv)
     }
 
     if (LoadVmmAndTrace() != 0)
+    {
         return 1;
-
+    }
+        
     RunAndTrace(argv[1], function, packets, pinCore);
 
     printf("[*] unloading HyperDbg VMM...\n");
