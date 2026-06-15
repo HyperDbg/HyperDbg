@@ -3724,9 +3724,9 @@ PeHexDump(CHAR * Ptr, SIZE_T Size, ULONGLONG SecAddress)
  * @return BOOLEAN
  */
 BOOLEAN
-PeShowSectionInformationAndDump(const wchar_t * AddressOfFile,
-                                const CHAR *    SectionToShow,
-                                BOOLEAN         Is32Bit)
+PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
+                                const CHAR *  SectionToShow,
+                                BOOLEAN       Is32Bit)
 {
     RICH_HEADER_INFO             PeFileRichHeaderInfo {0};
     RICH_HEADER                  PeFileRichHeader {0};
@@ -4480,7 +4480,7 @@ Finished:
  * @return BOOLEAN
  */
 BOOLEAN
-PeIsPE32BitOr64Bit(const wchar_t * AddressOfFile, PBOOLEAN Is32Bit)
+PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit)
 {
     BOOLEAN             Result     = FALSE;
     HANDLE              FileHandle = INVALID_HANDLE_VALUE; // Open file handle

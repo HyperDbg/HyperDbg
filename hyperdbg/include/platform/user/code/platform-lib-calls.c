@@ -389,7 +389,7 @@ PlatformWriteConsole(const VOID * Buffer, DWORD NumberOfBytes)
  * @return HANDLE to the opened file, or INVALID_HANDLE_VALUE on failure
  */
 HANDLE
-PlatformOpenFileForWriting(const wchar_t * Path)
+PlatformOpenFileForWriting(const WCHAR * Path)
 {
 #if defined(_WIN32)
     return CreateFileW(Path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -460,7 +460,7 @@ PlatformCloseFile(HANDLE FileHandle)
  * @return VOID* base address of the mapped file, or NULL on failure
  */
 VOID *
-PlatformMapFileReadOnly(const wchar_t * Path, PSIZE_T OutFileSize, PHANDLE OutFileHandle)
+PlatformMapFileReadOnly(const WCHAR * Path, PSIZE_T OutFileSize, PHANDLE OutFileHandle)
 {
 #if defined(_WIN32)
     HANDLE        FileHandle;

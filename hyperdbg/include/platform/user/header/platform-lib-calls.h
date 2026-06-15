@@ -97,7 +97,7 @@ PlatformWriteConsole(const VOID * Buffer, DWORD NumberOfBytes);
 // FILE I/O
 //
 HANDLE
-PlatformOpenFileForWriting(const wchar_t * Path);
+PlatformOpenFileForWriting(const WCHAR * Path);
 
 BOOLEAN
 PlatformWriteFile(HANDLE FileHandle, const VOID * Buffer, DWORD NumberOfBytes);
@@ -113,7 +113,7 @@ PlatformCloseFile(HANDLE FileHandle);
 // PlatformReadFileAtOffset; release everything with PlatformUnmapFile.
 //
 VOID *
-PlatformMapFileReadOnly(const wchar_t * Path, PSIZE_T OutFileSize, PHANDLE OutFileHandle);
+PlatformMapFileReadOnly(const WCHAR * Path, PSIZE_T OutFileSize, PHANDLE OutFileHandle);
 
 BOOLEAN
 PlatformReadFileAtOffset(HANDLE FileHandle, UINT64 Offset, VOID * Buffer, DWORD NumberOfBytes, LPDWORD BytesRead);
