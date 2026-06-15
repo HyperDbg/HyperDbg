@@ -106,6 +106,22 @@ BOOLEAN
 PlatformCloseFile(HANDLE FileHandle);
 
 //
+// READ-ONLY FILE MAPPING
+//
+// PlatformMapFileReadOnly also hands back the still-open file handle in
+// *OutFileHandle, so callers can issue supplementary raw reads via
+// PlatformReadFileAtOffset; release everything with PlatformUnmapFile.
+//
+VOID *
+PlatformMapFileReadOnly(const wchar_t * Path, PSIZE_T OutFileSize, PHANDLE OutFileHandle);
+
+BOOLEAN
+PlatformReadFileAtOffset(HANDLE FileHandle, UINT64 Offset, VOID * Buffer, DWORD NumberOfBytes, LPDWORD BytesRead);
+
+VOID
+PlatformUnmapFile(VOID * BaseAddress, SIZE_T FileSize, HANDLE FileHandle);
+
+//
 // PROCESS / THREAD IDENTITY
 //
 UINT32
