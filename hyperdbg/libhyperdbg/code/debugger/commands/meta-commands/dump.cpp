@@ -226,7 +226,19 @@ CommandDump(vector<CommandToken> CommandTokens, string Command)
     //
     // Create or open the file for writing the dump file
     //
+    // TEMPORARY LINUX SHIM (same as in pe.cpp): std::wstring stores native
+    // wchar_t (4 bytes on Linux), but the HyperDbg WCHAR type is 2 bytes
+    // (UINT16) and PlatformOpenFileForWriting takes a const WCHAR *. On Linux
+    // the cast is a bogus 2-byte reinterpretation, acceptable only because
+    // Linux file I/O is still stubbed (the path is never opened). On Windows
+    // WCHAR == wchar_t, so it is a plain correct pointer. TODO(Linux): remove
+    // once real file I/O lands and convert wchar_t -> 2-byte WCHAR properly.
+    //
+#ifdef __linux__
+    DumpFileHandle = PlatformOpenFileForWriting((const WCHAR *)Filepath.c_str());
+#else
     DumpFileHandle = PlatformOpenFileForWriting(Filepath.c_str());
+#endif
 
     if (DumpFileHandle == INVALID_HANDLE_VALUE)
     {
