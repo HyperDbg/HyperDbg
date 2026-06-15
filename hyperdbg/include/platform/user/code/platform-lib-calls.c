@@ -357,3 +357,93 @@ PlatformGetLastError(VOID)
 #    error "Unsupported platform"
 #endif
 }
+
+/**
+ * @brief Platform independent wrapper to write raw bytes to the console
+ *
+ * @details Used to emit pre-encoded UTF-8 byte sequences (e.g. box-drawing
+ *          characters) directly to standard output. On Windows this goes
+ *          through WriteConsoleA so the console code page is bypassed; on
+ *          Linux the terminal is UTF-8 native so the bytes are written as-is.
+ *
+ * @param Buffer pointer to the bytes to write
+ * @param NumberOfBytes number of bytes to write
+ * @return BOOLEAN TRUE on success
+ */
+BOOLEAN
+PlatformWriteConsole(const VOID * Buffer, DWORD NumberOfBytes)
+{
+#if defined(_WIN32)
+    return (BOOLEAN)WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), Buffer, NumberOfBytes, NULL, NULL);
+#elif defined(__linux__)
+    return (BOOLEAN)(fwrite(Buffer, 1, NumberOfBytes, stdout) == NumberOfBytes);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper to create/open a file for writing
+ *
+ * @param Path wide path of the file to create (truncated if it exists)
+ * @return HANDLE to the opened file, or INVALID_HANDLE_VALUE on failure
+ */
+HANDLE
+PlatformOpenFileForWriting(const wchar_t * Path)
+{
+#if defined(_WIN32)
+    return CreateFileW(Path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+#elif defined(__linux__)
+    //
+    // TODO: handle this later. The path arrives as a std::wstring (4-byte
+    //       wchar_t on Linux) and must be narrowed to a UTF-8 char* before it
+    //       can be handed to fopen. Until that conversion is wired up, fail the
+    //       open so callers (e.g. dump.cpp) bail out cleanly instead of writing
+    //       to a bogus handle.
+    //
+    (void)Path;
+    return INVALID_HANDLE_VALUE;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper to write a buffer to an open file
+ *
+ * @param FileHandle handle returned by PlatformOpenFileForWriting
+ * @param Buffer pointer to the bytes to write
+ * @param NumberOfBytes number of bytes to write
+ * @return BOOLEAN TRUE on success
+ */
+BOOLEAN
+PlatformWriteFile(HANDLE FileHandle, const VOID * Buffer, DWORD NumberOfBytes)
+{
+#if defined(_WIN32)
+    DWORD BytesWritten;
+    return (BOOLEAN)WriteFile(FileHandle, Buffer, NumberOfBytes, &BytesWritten, NULL);
+#elif defined(__linux__)
+    return (BOOLEAN)(fwrite(Buffer, 1, NumberOfBytes, (FILE *)FileHandle) == NumberOfBytes);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper to close a file opened by
+ *        PlatformOpenFileForWriting
+ *
+ * @param FileHandle handle to close
+ * @return BOOLEAN TRUE on success
+ */
+BOOLEAN
+PlatformCloseFile(HANDLE FileHandle)
+{
+#if defined(_WIN32)
+    return (BOOLEAN)CloseHandle(FileHandle);
+#elif defined(__linux__)
+    return (BOOLEAN)(fclose((FILE *)FileHandle) == 0);
+#else
+#    error "Unsupported platform"
+#endif
+}

@@ -244,7 +244,7 @@ CommandTrackHandleReceivedCallInstructions(const CHAR * NameOfFunctionFromSymbol
 
     for (SIZE_T i = 0; i < NumberOfCallsIdentation; i++)
     {
-        WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), Utf8String1, sizeof(Utf8String1) - 1, NULL, NULL);
+        PlatformWriteConsole(Utf8String1, sizeof(Utf8String1) - 1);
     }
 
     //
@@ -252,7 +252,7 @@ CommandTrackHandleReceivedCallInstructions(const CHAR * NameOfFunctionFromSymbol
     //
     // CHAR Utf8String[] = "\xE2\x94\x9C\xE2\x94\x80\xE2\x94\x80";
     CHAR Utf8String[] = "\xE2\x94\x8C\xE2\x94\x80\xE2\x94\x80";
-    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), Utf8String, sizeof(Utf8String) - 1, NULL, NULL);
+    PlatformWriteConsole(Utf8String, sizeof(Utf8String) - 1);
 
     if (NameOfFunctionFromSymbols != NULL)
     {
@@ -296,14 +296,14 @@ CommandTrackHandleReceivedRetInstructions(UINT64 CurrentRip)
 
     for (SIZE_T i = 0; i < NumberOfCallsIdentation; i++)
     {
-        WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), Utf8String1, sizeof(Utf8String1) - 1, NULL, NULL);
+        PlatformWriteConsole(Utf8String1, sizeof(Utf8String1) - 1);
     }
 
     //
     // Write the UTF-8 encoded character sequence to the console
     //
     CHAR Utf8String[] = "\xE2\x94\x94\xE2\x94\x80\xE2\x94\x80\x20";
-    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), Utf8String, sizeof(Utf8String) - 1, NULL, NULL);
+    PlatformWriteConsole(Utf8String, sizeof(Utf8String) - 1);
 
     //
     // Apply addressconversion of settings here

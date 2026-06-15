@@ -212,7 +212,7 @@ CommandDump(vector<CommandToken> CommandTokens, string Command)
         //
         // Default process we read from current process
         //
-        Pid = GetCurrentProcessId();
+        Pid = PlatformGetCurrentProcessId();
     }
 
     //
@@ -226,14 +226,7 @@ CommandDump(vector<CommandToken> CommandTokens, string Command)
     //
     // Create or open the file for writing the dump file
     //
-    DumpFileHandle = CreateFileW(
-        Filepath.c_str(),
-        GENERIC_WRITE,
-        0,
-        NULL,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        NULL);
+    DumpFileHandle = PlatformOpenFileForWriting(Filepath.c_str());
 
     if (DumpFileHandle == INVALID_HANDLE_VALUE)
     {
@@ -284,7 +277,7 @@ CommandDump(vector<CommandToken> CommandTokens, string Command)
     //
     if (DumpFileHandle != NULL)
     {
-        CloseHandle(DumpFileHandle);
+        PlatformCloseFile(DumpFileHandle);
         DumpFileHandle = NULL;
     }
 
@@ -302,8 +295,6 @@ CommandDump(vector<CommandToken> CommandTokens, string Command)
 VOID
 CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length)
 {
-    DWORD BytesWritten;
-
     //
     // Check if handle is valid
     //
@@ -316,11 +307,11 @@ CommandDumpSaveIntoFile(PVOID Buffer, UINT32 Length)
     //
     // Write the buffer into the dump file
     //
-    if (!WriteFile(DumpFileHandle, Buffer, Length, &BytesWritten, NULL))
+    if (!PlatformWriteFile(DumpFileHandle, Buffer, Length))
     {
         ShowMessages("err, unable to write buffer into the dump\n");
 
-        CloseHandle(DumpFileHandle);
+        PlatformCloseFile(DumpFileHandle);
         DumpFileHandle = NULL;
 
         return;

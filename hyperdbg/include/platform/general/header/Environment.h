@@ -75,4 +75,7 @@ typedef void * HMODULE;
 #    define INFINITE      0xFFFFFFFF
 #    define WAIT_OBJECT_0 0x00000000
 
+// Win32 invalid handle sentinel (returned by the cross-platform file/serial wrappers)
+#    define INVALID_HANDLE_VALUE ((HANDLE)(SIZE_T)-1)
+
 #endif // HYPERDBG_ENV_LINUX
