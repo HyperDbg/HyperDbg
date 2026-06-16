@@ -203,6 +203,9 @@
     <ClInclude Include="..\include\platform\user\header\platform-ioctl.h">
       <Filter>header\platform</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\platform-signal.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
     <ClInclude Include="header\messaging.h">
       <Filter>header</Filter>
     </ClInclude>
@@ -656,6 +659,9 @@
       <Filter>code\platform</Filter>
     </ClCompile>
     <ClCompile Include="..\include\platform\user\code\platform-ioctl.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\user\code\platform-signal.c">
       <Filter>code\platform</Filter>
     </ClCompile>
     <ClCompile Include="code\app\messaging.cpp">

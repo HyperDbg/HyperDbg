@@ -167,6 +167,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "platform/user/header/platform-ioctl.h"
 
 //
+// Platform signal (cross-platform console-control / CTRL+C handler registration)
+//
+#include "platform/user/header/platform-signal.h"
+
+//
 // Platform-specific intrinsics
 //
 #ifdef _WIN32

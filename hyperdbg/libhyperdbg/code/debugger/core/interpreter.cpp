@@ -1300,7 +1300,7 @@ InitializeDebugger()
     //
     // Register the CTRL+C and CTRL+BREAK Signals handler
     //
-    if (!SetConsoleCtrlHandler(BreakController, TRUE))
+    if (!PlatformInstallCtrlHandler(BreakController))
     {
         ShowMessages("err, when registering CTRL+C and CTRL+BREAK Signals "
                      "handler\n");
