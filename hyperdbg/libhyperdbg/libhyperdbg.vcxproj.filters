@@ -206,6 +206,9 @@
     <ClInclude Include="..\include\platform\user\header\platform-signal.h">
       <Filter>header\platform</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\platform\general\header\nt-list.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
     <ClInclude Include="header\messaging.h">
       <Filter>header</Filter>
     </ClInclude>

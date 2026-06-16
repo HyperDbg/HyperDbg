@@ -137,6 +137,7 @@ msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="R
     <ClInclude Include="..\include\platform\user\header\platform-serial.h" />
     <ClInclude Include="..\include\platform\user\header\platform-ioctl.h" />
     <ClInclude Include="..\include\platform\user\header\platform-signal.h" />
+    <ClInclude Include="..\include\platform\general\header\nt-list.h" />
     <ClInclude Include="..\include\platform\user\header\windows-only\windows-privilege.h" />
     <ClInclude Include="..\include\platform\user\header\Windows.h" />
     <ClInclude Include="header\assembler.h" />
