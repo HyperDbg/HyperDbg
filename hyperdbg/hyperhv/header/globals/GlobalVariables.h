@@ -208,3 +208,8 @@ UINT64 g_PageFaultInjectionAddressTo;
  *
  */
 UINT32 g_PageFaultInjectionErrorCode;
+
+/**
+ * @brief Whether VPID is supported or not
+ */
+BOOLEAN g_IsVpidSupported;

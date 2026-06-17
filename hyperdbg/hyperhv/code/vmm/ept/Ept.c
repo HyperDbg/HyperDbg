@@ -23,7 +23,7 @@ EptCheckFeatures(VOID)
 {
     IA32_VMX_EPT_VPID_CAP_REGISTER VpidRegister;
     IA32_MTRR_DEF_TYPE_REGISTER    MTRRDefType;
-
+    g_IsVpidSupported   = FALSE;
     VpidRegister.AsUInt = CpuReadMsr(IA32_VMX_EPT_VPID_CAP);
     MTRRDefType.AsUInt  = CpuReadMsr(IA32_MTRR_DEF_TYPE);
 
@@ -35,6 +35,16 @@ EptCheckFeatures(VOID)
     if (!VpidRegister.AdvancedVmexitEptViolationsInformation)
     {
         LogDebugInfo("The processor doesn't report advanced VM-exit information for EPT violations");
+    }
+
+    if (VpidRegister.Invvpid &&
+        VpidRegister.InvvpidAllContexts &&
+        VpidRegister.InvvpidIndividualAddress &&
+        VpidRegister.InvvpidSingleContext &&
+        VpidRegister.InvvpidSingleContextRetainGlobals)
+    {
+        g_IsVpidSupported = TRUE;
+        LogDebugInfo("The processor supports VPID");
     }
 
     if (!VpidRegister.ExecuteOnlyPages)

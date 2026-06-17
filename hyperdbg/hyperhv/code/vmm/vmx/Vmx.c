@@ -733,15 +733,17 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     LogDebugInfo("CPU Based VM Exec Controls (Based on %s) : 0x%x",
                  VmxBasicMsr.VmxControls ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
                  CpuBasedVmExecControls);
+    UINT32 SecondaryProcBasedVmExecControlsFlags = IA32_VMX_PROCBASED_CTLS2_ENABLE_RDTSCP_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_EPT_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_INVPCID_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_XSAVES_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_USER_WAIT_PAUSE_FLAG;
 
-    SecondaryProcBasedVmExecControls = HvAdjustControls(
-        IA32_VMX_PROCBASED_CTLS2_ENABLE_RDTSCP_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_EPT_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_INVPCID_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_XSAVES_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_VPID_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_USER_WAIT_PAUSE_FLAG,
-        IA32_VMX_PROCBASED_CTLS2);
+    if (g_IsVpidSupported)
+    {
+        SecondaryProcBasedVmExecControlsFlags |= IA32_VMX_PROCBASED_CTLS2_ENABLE_VPID_FLAG;
+    }
+    SecondaryProcBasedVmExecControls = HvAdjustControls(SecondaryProcBasedVmExecControlsFlags, IA32_VMX_PROCBASED_CTLS2);
 
     VmxVmwrite64(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
 
