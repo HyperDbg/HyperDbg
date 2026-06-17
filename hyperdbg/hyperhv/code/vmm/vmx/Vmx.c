@@ -1757,3 +1757,25 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
     CpuWriteCr3(OriginalCr3.Flags);
     return Result;
 }
+
+/**
+ * @brief checks if the current top level hypervisor is Hyper-V
+ * 
+ *
+ * @return BOOLEAN TRUE indicates that the current top level hypervisor is Hyper-V, FALSE otherwise.
+ */
+BOOLEAN
+VmxIsTopLevelHypervisorHyperV() {
+    int processorFeatures[4] = {0};
+    __cpuidex(processorFeatures, CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS, 0);
+
+    if (!((ULONG)(processorFeatures[2]) & HYPERV_HYPERVISOR_PRESENT_BIT))
+        return FALSE;
+
+    int hypervisorVendor[4] = {0};
+    __cpuidex(hypervisorVendor, HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS, 0);
+
+    return (ULONG)(hypervisorVendor[1]) == HYPERV_CPUID_VENDOR_MICROSOFT_EBX &&
+           (ULONG)(hypervisorVendor[2]) == HYPERV_CPUID_VENDOR_MICROSOFT_ECX &&
+           (ULONG)(hypervisorVendor[3]) == HYPERV_CPUID_VENDOR_MICROSOFT_EDX;
+}
