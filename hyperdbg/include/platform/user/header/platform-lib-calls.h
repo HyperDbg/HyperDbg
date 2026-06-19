@@ -72,8 +72,54 @@ PlatformCloseHandle(HANDLE Handle);
 //
 // LAST OS ERROR
 //
+// TODO (linux, correctness): the wrappers below only unify the success/failure
+// *boolean* convention. The actual error semantics still differ across platforms
+// and must be reconciled later:
+//   - PlatformGetLastError returns raw Linux errno (EACCES=13, ...) which does NOT
+//     match the Win32 ERROR_* code space (ERROR_ACCESS_DENIED=5, ...). Code that
+//     merely logs/checks-nonzero is fine; code that compares against ERROR_* needs
+//     an errno -> ERROR_* mapping here.
+//   - Failure sentinels are not uniform across the Win32 calls we wrap: file opens
+//     fail with INVALID_HANDLE_VALUE (not NULL), most other handle calls fail with
+//     NULL. Callers must test the right one.
+// For now: getting the project to compile is step 1; correctness comes next.
+//
 DWORD
 PlatformGetLastError(VOID);
+
+//
+// CONSOLE OUTPUT (raw bytes to stdout)
+//
+BOOLEAN
+PlatformWriteConsole(const VOID * Buffer, DWORD NumberOfBytes);
+
+//
+// FILE I/O
+//
+HANDLE
+PlatformOpenFileForWriting(const WCHAR * Path);
+
+BOOLEAN
+PlatformWriteFile(HANDLE FileHandle, const VOID * Buffer, DWORD NumberOfBytes);
+
+BOOLEAN
+PlatformCloseFile(HANDLE FileHandle);
+
+//
+// READ-ONLY FILE MAPPING
+//
+// PlatformMapFileReadOnly also hands back the still-open file handle in
+// *OutFileHandle, so callers can issue supplementary raw reads via
+// PlatformReadFileAtOffset; release everything with PlatformUnmapFile.
+//
+VOID *
+PlatformMapFileReadOnly(const WCHAR * Path, PSIZE_T OutFileSize, PHANDLE OutFileHandle);
+
+BOOLEAN
+PlatformReadFileAtOffset(HANDLE FileHandle, UINT64 Offset, VOID * Buffer, DWORD NumberOfBytes, LPDWORD BytesRead);
+
+VOID
+PlatformUnmapFile(VOID * BaseAddress, SIZE_T FileSize, HANDLE FileHandle);
 
 //
 // PROCESS / THREAD IDENTITY

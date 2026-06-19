@@ -216,14 +216,14 @@ CommandPageinRequest(UINT64               TargetVirtualAddrFrom,
 
         if (Pid == 0)
         {
-            Pid                        = GetCurrentProcessId();
+            Pid                        = PlatformGetCurrentProcessId();
             PageFaultRequest.ProcessId = Pid;
         }
 
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                  // Handle to device
             IOCTL_DEBUGGER_BRING_PAGES_IN,   // IO Control Code (IOCTL)
             &PageFaultRequest,               // Input Buffer to driver.
@@ -237,7 +237,7 @@ CommandPageinRequest(UINT64               TargetVirtualAddrFrom,
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             return;
         }
 
