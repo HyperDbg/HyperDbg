@@ -25,6 +25,12 @@ VpidInvvpid(INVVPID_TYPE Type, INVVPID_DESCRIPTOR * Descriptor)
     INVVPID_DESCRIPTOR * TargetDescriptor = NULL;
     INVVPID_DESCRIPTOR   ZeroDescriptor   = {0};
 
+    // No need to do anything if VPID is not supported.
+    if (!g_IsVpidSupported)
+    {
+        return;
+    }
+
     if (!Descriptor)
     {
         TargetDescriptor = &ZeroDescriptor;

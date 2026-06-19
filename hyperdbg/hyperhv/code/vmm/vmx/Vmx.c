@@ -733,15 +733,17 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     LogDebugInfo("CPU Based VM Exec Controls (Based on %s) : 0x%x",
                  VmxBasicMsr.VmxControls ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
                  CpuBasedVmExecControls);
+    UINT32 SecondaryProcBasedVmExecControlsFlags = IA32_VMX_PROCBASED_CTLS2_ENABLE_RDTSCP_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_EPT_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_INVPCID_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_XSAVES_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_USER_WAIT_PAUSE_FLAG;
 
-    SecondaryProcBasedVmExecControls = HvAdjustControls(
-        IA32_VMX_PROCBASED_CTLS2_ENABLE_RDTSCP_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_EPT_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_INVPCID_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_XSAVES_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_VPID_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_USER_WAIT_PAUSE_FLAG,
-        IA32_VMX_PROCBASED_CTLS2);
+    if (g_IsVpidSupported)
+    {
+        SecondaryProcBasedVmExecControlsFlags |= IA32_VMX_PROCBASED_CTLS2_ENABLE_VPID_FLAG;
+    }
+    SecondaryProcBasedVmExecControls = HvAdjustControls(SecondaryProcBasedVmExecControlsFlags, IA32_VMX_PROCBASED_CTLS2);
 
     VmxVmwrite64(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
 
@@ -1754,4 +1756,26 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
     //
     CpuWriteCr3(OriginalCr3.Flags);
     return Result;
+}
+
+/**
+ * @brief checks if the current top level hypervisor is Hyper-V
+ * 
+ *
+ * @return BOOLEAN TRUE indicates that the current top level hypervisor is Hyper-V, FALSE otherwise.
+ */
+BOOLEAN
+VmxIsTopLevelHypervisorHyperV() {
+    int processorFeatures[4] = {0};
+    __cpuidex(processorFeatures, CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS, 0);
+
+    if (!((ULONG)(processorFeatures[2]) & HYPERV_HYPERVISOR_PRESENT_BIT))
+        return FALSE;
+
+    int hypervisorVendor[4] = {0};
+    __cpuidex(hypervisorVendor, HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS, 0);
+
+    return (ULONG)(hypervisorVendor[1]) == HYPERV_CPUID_VENDOR_MICROSOFT_EBX &&
+           (ULONG)(hypervisorVendor[2]) == HYPERV_CPUID_VENDOR_MICROSOFT_ECX &&
+           (ULONG)(hypervisorVendor[3]) == HYPERV_CPUID_VENDOR_MICROSOFT_EDX;
 }
