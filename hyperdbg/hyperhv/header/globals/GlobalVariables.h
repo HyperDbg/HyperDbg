@@ -213,3 +213,8 @@ UINT32 g_PageFaultInjectionErrorCode;
  * @brief Whether VPID is supported or not
  */
 BOOLEAN g_IsVpidSupported;
+
+/**
+ * @brief Whether the top level hypervisor is Hyper-V or not
+ */
+BOOLEAN g_IsTopLevelHypervisorHyperV;

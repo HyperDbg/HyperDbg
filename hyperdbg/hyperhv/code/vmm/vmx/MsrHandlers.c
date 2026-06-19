@@ -96,17 +96,19 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     // LogInfo("MSR read (RDMSR) VM-exit, MSR: %x, from: %llx",
     //         TargetMsr,
     //         VCpu->LastVmexitRip);
+
     //
-    // Checking whether it is a synthetic MSR for Hyper-V.
-    // if (MsrHandleIsHypervSyntheticMsr(TargetMsr))
-    // {
-    //     Msr.Flags = CpuReadMsr(TargetMsr);
+    // Checking whether it is a synthetic MSR for Hyper-V
     //
-    //     GuestRegs->rax = Msr.Fields.Low;
-    //     GuestRegs->rdx = Msr.Fields.High;
-    //
-    //     return;
-    // }
+    if (g_IsTopLevelHypervisorHyperV && MsrHandleIsHypervSyntheticMsr(TargetMsr))
+    {
+        Msr.Flags = CpuReadMsr(TargetMsr);
+
+        GuestRegs->rax = Msr.Fields.Low;
+        GuestRegs->rdx = Msr.Fields.High;
+
+        return;
+    }
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
@@ -257,13 +259,15 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     //         GuestRegs->rax,
     //         GuestRegs->rdx,
     //         VCpu->LastVmexitRip);
+
     //
-    // Checking whether it is a synthetic MSR for Hyper-V.
-    // if (MsrHandleIsHypervSyntheticMsr(TargetMsr))
-    // {
-    //     CpuWriteMsr(TargetMsr, Msr.Flags);
-    //     return;
-    // }
+    // Checking whether it is a synthetic MSR for Hyper-V
+    //
+    if (g_IsTopLevelHypervisorHyperV && MsrHandleIsHypervSyntheticMsr(TargetMsr))
+    {
+        CpuWriteMsr(TargetMsr, Msr.Flags);
+        return;
+    }
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR

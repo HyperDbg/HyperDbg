@@ -275,6 +275,23 @@ VmxPerformVirtualizationOnAllCores()
     }
 
     //
+    // Check if the top level hypervisor is Hyper-V or not
+    //
+    if (VmxIsTopLevelHypervisorHyperV())
+    {
+        //
+        // The top-level hypervisor is hyper-v
+        //
+        g_IsTopLevelHypervisorHyperV = TRUE;
+
+        LogDebugInfo(" Hyper-V is detected as the top-level hypervisor");
+    }
+    else
+    {
+        LogDebugInfo(" Hyper-V is not detected as the top-level hypervisor");
+    }
+
+    //
     // Allocate	global variable to hold Ept State
     //
     g_EptState = PlatformMemAllocateZeroedNonPagedPool(sizeof(EPT_STATE));
@@ -1760,22 +1777,25 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
 
 /**
  * @brief checks if the current top level hypervisor is Hyper-V
- * 
+ *
  *
  * @return BOOLEAN TRUE indicates that the current top level hypervisor is Hyper-V, FALSE otherwise.
  */
 BOOLEAN
-VmxIsTopLevelHypervisorHyperV() {
-    int processorFeatures[4] = {0};
-    __cpuidex(processorFeatures, CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS, 0);
+VmxIsTopLevelHypervisorHyperV()
+{
+    INT32 ProcessorFeatures[4] = {0};
+    CpuCpuIdEx(ProcessorFeatures, CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS, 0);
 
-    if (!((ULONG)(processorFeatures[2]) & HYPERV_HYPERVISOR_PRESENT_BIT))
+    if (!((ULONG)(ProcessorFeatures[2]) & HYPERV_HYPERVISOR_PRESENT_BIT))
+    {
         return FALSE;
+    }
 
-    int hypervisorVendor[4] = {0};
-    __cpuidex(hypervisorVendor, HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS, 0);
+    INT32 HypervisorVendor[4] = {0};
+    CpuCpuIdEx(HypervisorVendor, HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS, 0);
 
-    return (ULONG)(hypervisorVendor[1]) == HYPERV_CPUID_VENDOR_MICROSOFT_EBX &&
-           (ULONG)(hypervisorVendor[2]) == HYPERV_CPUID_VENDOR_MICROSOFT_ECX &&
-           (ULONG)(hypervisorVendor[3]) == HYPERV_CPUID_VENDOR_MICROSOFT_EDX;
+    return (ULONG)(HypervisorVendor[1]) == HYPERV_CPUID_VENDOR_MICROSOFT_EBX &&
+           (ULONG)(HypervisorVendor[2]) == HYPERV_CPUID_VENDOR_MICROSOFT_ECX &&
+           (ULONG)(HypervisorVendor[3]) == HYPERV_CPUID_VENDOR_MICROSOFT_EDX;
 }

@@ -42,7 +42,7 @@ EptCheckFeatures(VOID)
         VpidRegister.InvvpidIndividualAddress &&
         VpidRegister.InvvpidSingleContext &&
         VpidRegister.InvvpidSingleContextRetainGlobals &&
-        !VmxIsTopLevelHypervisorHyperV())
+        !g_IsTopLevelHypervisorHyperV)
     {
         g_IsVpidSupported = TRUE;
         LogDebugInfo("The processor supports VPID");
