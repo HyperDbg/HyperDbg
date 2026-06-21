@@ -47,6 +47,9 @@
 // wchar_t is a C++ built-in but needs this header in C
 #    include <wchar.h>
 
+// POSIX sleep primitives (usleep) backing the Win32 Sleep() shim below
+#    include <unistd.h>
+
 // Windows string/char types
 typedef char         TCHAR;
 typedef char *       LPTSTR;
@@ -77,5 +80,17 @@ typedef void * HMODULE;
 
 // Win32 invalid handle sentinel (returned by the cross-platform file/serial wrappers)
 #    define INVALID_HANDLE_VALUE ((HANDLE)(SIZE_T)-1)
+
+// Win32 console-control event codes (kept at their Windows values so the
+// shared BreakController() switch compiles unchanged). On Linux these are
+// produced by the platform-signal layer from POSIX signals.
+#    define CTRL_C_EVENT        0
+#    define CTRL_BREAK_EVENT    1
+#    define CTRL_CLOSE_EVENT    2
+#    define CTRL_LOGOFF_EVENT   5
+#    define CTRL_SHUTDOWN_EVENT 6
+
+// Win32 Sleep(milliseconds) -> POSIX usleep(microseconds)
+#    define Sleep(Milliseconds) usleep((useconds_t)(Milliseconds) * 1000)
 
 #endif // HYPERDBG_ENV_LINUX

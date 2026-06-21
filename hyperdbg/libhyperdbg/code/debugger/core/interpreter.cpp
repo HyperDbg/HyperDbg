@@ -1295,12 +1295,17 @@ InitializeDebugger()
     //
     // Set the callback for symbol message handler
     //
-    ScriptEngineSetTextMessageCallbackWrapper(ShowMessages);
+    //
+    // ShowMessages is passed as PVOID (the callback API stores it in a PVOID and
+    // casts to the concrete fn-ptr type at the invocation site); g++ requires the
+    // explicit function-pointer -> void* cast that MSVC performs implicitly.
+    //
+    ScriptEngineSetTextMessageCallbackWrapper((PVOID)ShowMessages);
 
     //
     // Register the CTRL+C and CTRL+BREAK Signals handler
     //
-    if (!SetConsoleCtrlHandler(BreakController, TRUE))
+    if (!PlatformInstallCtrlHandler(BreakController))
     {
         ShowMessages("err, when registering CTRL+C and CTRL+BREAK Signals "
                      "handler\n");
