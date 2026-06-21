@@ -115,9 +115,6 @@
     <ClInclude Include="header\broadcast\Broadcast.h">
       <Filter>header\broadcast</Filter>
     </ClInclude>
-    <ClInclude Include="header\broadcast\Dpc.h">
-      <Filter>header\broadcast</Filter>
-    </ClInclude>
     <ClInclude Include="header\broadcast\DpcRoutines.h">
       <Filter>header\broadcast</Filter>
     </ClInclude>
@@ -151,5 +148,8 @@
     <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h">
       <Filter>header\components\callback</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

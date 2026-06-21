@@ -1,36 +1,28 @@
 name: vs2026-ci
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - dev
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '.gitignore'
+      - '.gitattributes'
+      - '**.cmd'
+      - '**.bat'
+      - '**.md'
 
-# Disabled, uncomment the below line and remove the above lines to activate  
-#on:
-#  push:
-#    branches:
-#      - master
-#      - dev
-#    tags:
-#      - 'v*'
-#    paths-ignore:
-#      - '.gitignore'
-#      - '.gitattributes'
-#      - '**.cmd'
-#      - '**.bat'
-#      - '**.md'
-#
-#  pull_request:
-#    paths-ignore:
-#      - '.gitignore'
-#      - '.gitattributes'
-#      - '**.cmd'
-#      - '**.bat'
-#      - '**.md'
-
+  pull_request:
+    paths-ignore:
+      - '.gitignore'
+      - '.gitattributes'
+      - '**.cmd'
+      - '**.bat'
+      - '**.md'
+      
 env:
-  # Updated WDK URL for VS 2026
-  SDK_URL: https://go.microsoft.com/fwlink/?linkid=2361309
-  WDK_URL: https://go.microsoft.com/fwlink/?LinkId=2362091
-
   SOLUTION_FILE_PATH: ./hyperdbg/hyperdbg.sln
   RELEASE_ZIP_FILE_NAME: hyperdbg
   BUILD_BIN_DIR: ./hyperdbg/build/bin/
@@ -52,34 +44,26 @@ jobs:
     - name: Checkout submodules recursively
       run: git submodule update --init --recursive --remote
 
-    - name: Setup SDK for VS 2026
-      run: |
-        $sdkSetupPath = "$Env:TEMP\sdksetup.exe"
-        (New-Object Net.WebClient).DownloadFile('${{env.SDK_URL}}', $sdkSetupPath)
-        Start-Process -FilePath $sdkSetupPath -ArgumentList "/quiet" -NoNewWindow -Wait
-
-    - name: Setup WDK for VS 2026
-      run: |
-        $wdkSetupPath = "$Env:TEMP\wdksetup.exe"
-        (New-Object Net.WebClient).DownloadFile('${{env.WDK_URL}}', $wdkSetupPath)
-        Start-Process -FilePath $wdkSetupPath -ArgumentList "/quiet" -NoNewWindow -Wait
-
-    - name: List SDK folders 1
-      shell: pwsh
-      run: |
-        Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include"
-
-    - name: List SDK folders 2
-      shell: pwsh
-      run: |
-        Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include\10.0.28000.0"
-
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v3
 
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+
+    - name: Restore NuGet packages
+      run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Update vcxproj files
+      run: python utils/replace-sdk-wdk.py
+
     - name: Build HyperDbg solution
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{matrix.BUILD_CONFIGURATION}} /p:Platform=${{matrix.PLATFORM}} /p:EnableInfVerif=false /p:EnableDriverApiValidation=false ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild /m /p:Configuration=${{matrix.BUILD_CONFIGURATION}} /p:Platform=${{matrix.PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
 
     - name: Upload build directory
       uses: actions/upload-artifact@v4.4.0

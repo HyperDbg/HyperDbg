@@ -649,4 +649,7 @@
       <Filter>code\assembly</Filter>
     </MASM>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>
