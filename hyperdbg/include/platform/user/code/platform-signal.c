@@ -10,7 +10,7 @@
  *          a normal thread woken by sigwait() sidesteps that entirely and mirrors the
  *          Windows model where the console-control handler also runs on its own thread.
  *
- * @version 0.1
+ * @version 0.20
  * @date 2026-06-16
  *
  * @copyright This project is released under the GNU Public License v3.

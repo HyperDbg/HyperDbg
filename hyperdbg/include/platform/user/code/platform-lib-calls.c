@@ -1,6 +1,6 @@
 /**
  * @file platform-lib-calls.c
- * @author Max Raulea (max.raulea@gmail.com) 
+ * @author Max Raulea (max.raulea@gmail.com)
  * @brief User mode Cross platform APIs for platofrm dependend library calls
  * @details
  * @version 0.19

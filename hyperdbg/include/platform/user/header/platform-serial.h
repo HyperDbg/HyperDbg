@@ -8,7 +8,7 @@
  *          can stay shared. Windows maps onto Win32 (CreateFile / Comm* / overlapped
  *          ReadFile/WriteFile); Linux will map onto termios over /dev/tty* (TODO).
  *
- * @version 0.1
+ * @version 0.20
  * @date 2026-06-08
  *
  * @copyright This project is released under the GNU Public License v3.

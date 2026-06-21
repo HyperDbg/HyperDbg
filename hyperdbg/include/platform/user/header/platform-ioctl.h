@@ -10,7 +10,7 @@
  *          \\.\HyperDbgDebuggerDevice handle; Linux will map onto ioctl() against a
  *          /dev/HyperDbg character device exposed by the (future) kernel module (TODO).
  *
- * @version 0.1
+ * @version 0.20
  * @date 2026-06-09
  *
  * @copyright This project is released under the GNU Public License v3.

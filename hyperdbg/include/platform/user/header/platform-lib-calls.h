@@ -134,4 +134,4 @@ UINT32
 PlatformGetCurrentProcessId(VOID);
 
 CHAR *
-PlatformGetCurrentProcessName(VOID);
+    PlatformGetCurrentProcessName(VOID);

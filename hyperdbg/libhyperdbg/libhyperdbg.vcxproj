@@ -250,7 +250,6 @@ msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="R
     <ClCompile Include="code\app\dllmain.cpp" />
     <ClCompile Include="code\app\libhyperdbg.cpp" />
     <ClCompile Include="code\common\common.cpp" />
-    <ClCompile Include="code\common\list.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\bc.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\bd.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\be.cpp" />

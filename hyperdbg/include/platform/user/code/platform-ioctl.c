@@ -7,7 +7,7 @@
  *          the home where the ioctl()-based implementation against the /dev/HyperDbg
  *          character device will live once the kernel module exists.
  *
- * @version 0.1
+ * @version 0.20
  * @date 2026-06-09
  *
  * @copyright This project is released under the GNU Public License v3.

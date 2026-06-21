@@ -235,9 +235,6 @@
     <ClCompile Include="code\common\common.cpp">
       <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="code\common\list.cpp">
-      <Filter>code\common</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\commands\debugging-commands\bc.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>

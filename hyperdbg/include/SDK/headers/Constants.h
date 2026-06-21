@@ -21,7 +21,7 @@
 #define VERSION_MINOR 20
 #define VERSION_PATCH 0
 
-#define BETA_VERSION 0
+#define BETA_VERSION TRUE
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
@@ -110,7 +110,7 @@ const UCHAR BuildDateTime[] = {
 
 // Complete version as a string
 
-#    if BETA_VERSION == 0
+#    if BETA_VERSION == FALSE
 #        define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "\0"
 #    else
 #        define HYPERDBG_COMPLETE_VERSION "v" TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH) "-beta\0"

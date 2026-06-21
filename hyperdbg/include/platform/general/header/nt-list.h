@@ -16,7 +16,7 @@
  *          The body is compiled only where the OS headers don't already provide these
  *          (i.e. not on Windows), so including this unconditionally is safe.
  *
- * @version 0.1
+ * @version 0.20
  * @date 2026-06-16
  *
  * @copyright This project is released under the GNU Public License v3.
@@ -40,7 +40,7 @@
 //
 // Initialize a list head to the empty (points-to-self) state.
 //
-static inline void
+static inline VOID
 InitializeListHead(PLIST_ENTRY ListHead)
 {
     ListHead->Flink = ListHead->Blink = ListHead;
@@ -103,7 +103,7 @@ RemoveTailList(PLIST_ENTRY ListHead)
 //
 // Insert an entry at the tail of the list.
 //
-static inline void
+static inline VOID
 InsertTailList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
 {
     PLIST_ENTRY Blink = ListHead->Blink;
@@ -117,7 +117,7 @@ InsertTailList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
 //
 // Insert an entry at the head of the list.
 //
-static inline void
+static inline VOID
 InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
 {
     PLIST_ENTRY Flink = ListHead->Flink;
@@ -131,7 +131,7 @@ InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
 //
 // Splice the entries of ListToAppend onto the tail of ListHead.
 //
-static inline void
+static inline VOID
 AppendTailList(PLIST_ENTRY ListHead, PLIST_ENTRY ListToAppend)
 {
     PLIST_ENTRY ListEnd = ListHead->Blink;

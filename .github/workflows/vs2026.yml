@@ -3,8 +3,7 @@ name: vs2026-ci
 on:
   push:
     branches:
-      - master
-      - dev
+      - '**' # matches all branch names, including ones with slashes 
     tags:
       - 'v*'
     paths-ignore:

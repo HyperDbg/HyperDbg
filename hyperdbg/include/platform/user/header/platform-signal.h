@@ -11,7 +11,7 @@
  *          so the handler runs in ordinary thread context (matching Windows, which
  *          also dispatches the handler on its own thread).
  *
- * @version 0.1
+ * @version 0.20
  * @date 2026-06-16
  *
  * @copyright This project is released under the GNU Public License v3.

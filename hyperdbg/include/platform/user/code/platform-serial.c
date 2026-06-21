@@ -8,7 +8,7 @@
  *          branch is currently stubbed (returns FALSE/NULL) and is the home where the
  *          termios-based implementation over /dev/tty* will live.
  *
- * @version 0.1
+ * @version 0.20
  * @date 2026-06-08
  *
  * @copyright This project is released under the GNU Public License v3.
@@ -26,8 +26,8 @@
 // Per-direction overlapped I/O state, owned by the transport layer.
 //
 static OVERLAPPED g_PlatformOverlappedReadDebugger  = {0};
-static OVERLAPPED g_PlatformOverlappedReadDebuggee   = {0};
-static OVERLAPPED g_PlatformOverlappedWriteDebugger  = {0};
+static OVERLAPPED g_PlatformOverlappedReadDebuggee  = {0};
+static OVERLAPPED g_PlatformOverlappedWriteDebugger = {0};
 
 HANDLE
 PlatformSerialOpen(const char * PortName, PLATFORM_SERIAL_IO_ROLE Role)
@@ -88,7 +88,7 @@ PlatformSerialOpen(const char * PortName, PLATFORM_SERIAL_IO_ROLE Role)
 BOOLEAN
 PlatformSerialConfigure(HANDLE Handle, DWORD BaudRate)
 {
-    DCB SerialParams = {0};
+    DCB SerialParams       = {0};
     SerialParams.DCBlength = sizeof(SerialParams);
 
     if (GetCommState(Handle, &SerialParams) == FALSE)
