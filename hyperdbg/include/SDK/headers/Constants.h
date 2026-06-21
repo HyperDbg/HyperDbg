@@ -18,10 +18,10 @@
 //////////////////////////////////////////////////
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 20
+#define VERSION_MINOR 21
 #define VERSION_PATCH 0
 
-#define BETA_VERSION TRUE
+#define BETA_VERSION FALSE
 
 //
 // Example of __DATE__ string: "Jul 27 2012"
