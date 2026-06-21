@@ -30,11 +30,67 @@
 #    error "This code cannot compile on non-Windows, non-Linux, and non-BSD platforms"
 #endif
 
-
-
-// Windows source annotation language (SAL) not present in Linux, so defining them here for the compiler
 #ifdef HYPERDBG_ENV_LINUX
-#  define _In_
-#  define _Out_
-#  define _Inout_
-#endif
+
+// SAL annotations
+#    define _In_
+#    define _Out_
+#    define _Inout_
+#    define _In_opt_
+#    define _Out_opt_
+#    define _In_z_
+#    define _Outptr_
+#    define _In_reads_bytes_(x)
+#    define _Out_writes_bytes_(x)
+#    define _Inout_updates_bytes_all_(x)
+
+// wchar_t is a C++ built-in but needs this header in C
+#    include <wchar.h>
+
+// POSIX sleep primitives (usleep) backing the Win32 Sleep() shim below
+#    include <unistd.h>
+
+// Windows string/char types
+typedef char         TCHAR;
+typedef char *       LPTSTR;
+typedef const char * LPCTSTR;
+typedef const char * LPCSTR;
+typedef char *       LPSTR;
+typedef const char * PCSTR;
+typedef char *       PSTR;
+typedef short *      PWCHAR;
+
+// Windows socket type (Linux sockets are plain int)
+typedef int SOCKET;
+#    define INVALID_SOCKET ((SOCKET)(-1))
+#    define SOCKET_ERROR   (-1)
+
+// Windows calling convention (no-op on Linux)
+#    define WINAPI
+
+// Windows module handle (equivalent to dlopen's void * on Linux)
+typedef void * HMODULE;
+
+// Misc Windows macros
+#    define UNREFERENCED_PARAMETER(P) ((void)(P))
+
+// Win32 wait/event constants (used by the cross-platform sync wrappers)
+#    define INFINITE      0xFFFFFFFF
+#    define WAIT_OBJECT_0 0x00000000
+
+// Win32 invalid handle sentinel (returned by the cross-platform file/serial wrappers)
+#    define INVALID_HANDLE_VALUE ((HANDLE)(SIZE_T)-1)
+
+// Win32 console-control event codes (kept at their Windows values so the
+// shared BreakController() switch compiles unchanged). On Linux these are
+// produced by the platform-signal layer from POSIX signals.
+#    define CTRL_C_EVENT        0
+#    define CTRL_BREAK_EVENT    1
+#    define CTRL_CLOSE_EVENT    2
+#    define CTRL_LOGOFF_EVENT   5
+#    define CTRL_SHUTDOWN_EVENT 6
+
+// Win32 Sleep(milliseconds) -> POSIX usleep(microseconds)
+#    define Sleep(Milliseconds) usleep((useconds_t)(Milliseconds) * 1000)
+
+#endif // HYPERDBG_ENV_LINUX

@@ -41,6 +41,8 @@ typedef RFLAGS * PRFLAGS;
 #define USE_NATIVE_SDK_HEADERS
 #define _AMD64_
 
+
+#ifdef _WIN32
 #if defined(USE__NATIVE_PHNT_HEADERS)
 
 //
@@ -64,18 +66,22 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 
 #endif
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <strsafe.h>
-#include <shlobj.h>
-#include <tchar.h>
-#include <tlhelp32.h>
-#include <shlwapi.h>
-#include <VersionHelpers.h>
-#include <psapi.h>
+#endif //_WIN32
+
+#ifdef _WIN32
+#    include <winsock2.h>
+#    include <ws2tcpip.h>
+#    include <strsafe.h>
+#    include <shlobj.h>
+#    include <tchar.h>
+#    include <tlhelp32.h>
+#    include <shlwapi.h>
+#    include <VersionHelpers.h>
+#    include <psapi.h>
+#    include <conio.h>
+#    include <intrin.h>
+#endif
 #include <time.h>
-#include <conio.h>
-#include <intrin.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,16 +124,16 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #endif // !NDEBUG
 
 //
-// Keystone
-//
-#include "keystone/keystone.h"
-
-//
 // HyperDbg defined headers
 //
 #include "config/Configuration.h"
 #include "config/Definition.h"
 #include "SDK/HyperDbgSdk.h"
+
+//
+// Keystone
+//
+#include "keystone/keystone.h"
 
 //
 // Script-engine
@@ -141,10 +147,42 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "SDK/imports/user/HyperDbgLibImports.h"
 
 //
-// Platform-specific intrinsics
+// Platform lib calls (cross-platform wrappers)
+//
+#include "platform/user/header/platform-lib-calls.h"
+
+//
+// Platform intrinsics (cross-platform CPU instructions and atomic ops)
 //
 #include "platform/user/header/platform-intrinsics.h"
-#include "platform/user/header/windows-only/windows-privilege.h"
+
+//
+// Platform serial transport (cross-platform kernel-debugger serial I/O)
+//
+#include "platform/user/header/platform-serial.h"
+
+//
+// Platform IOCTL transport (cross-platform local kernel-driver device I/O)
+//
+#include "platform/user/header/platform-ioctl.h"
+
+//
+// Platform signal (cross-platform console-control / CTRL+C handler registration)
+//
+#include "platform/user/header/platform-signal.h"
+
+//
+// NT-style intrusive linked-list helpers + CONTAINING_RECORD (self-guards to
+// non-Windows; Windows gets these from <windows.h> / the native-SDK shim)
+//
+#include "platform/general/header/nt-list.h"
+
+//
+// Platform-specific intrinsics
+//
+#ifdef _WIN32
+#    include "platform/user/header/windows-only/windows-privilege.h"
+#endif
 
 //
 // PCI IDs
@@ -163,7 +201,9 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/debugger.h"
 #include "header/script-engine.h"
 #include "header/help.h"
-#include "header/install.h"
+#ifdef _WIN32
+#    include "header/install.h"
+#endif
 #include "header/list.h"
 #include "header/tests.h"
 #include "header/messaging.h"
@@ -173,17 +213,18 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/namedpipe.h"
 #include "header/forwarding.h"
 #include "header/kd.h"
+
+//
+// Components
+//
+#include "../include/components/pe/header/pe-image-reader.h"
+
 #include "header/pe-parser.h"
 #include "header/ud.h"
 #include "header/objects.h"
 #include "header/steppings.h"
 #include "header/rev-ctrl.h"
 #include "header/assembler.h"
-
-//
-// Components
-//
-#include "../include/components/pe/header/pe-image-reader.h"
 
 //
 // hwdbg

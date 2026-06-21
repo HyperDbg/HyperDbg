@@ -1,6 +1,6 @@
 /**
  * @file Pt.c
- * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Masoud Rahimi Jafari (Masoodrahimy1379@gmail.com)
  * @brief Processor Trace (PT) tracing implementation for HyperTrace module
  * @details Programs Intel PT MSRs and manages per-CPU ToPA / output buffers.
  *          The engine half (PtEngine*) deals with a single PT_PER_CPU at a
@@ -348,7 +348,7 @@ PtEngineInitDefaultConfig(PT_TRACE_CONFIG * Config)
     Config->TargetCr3            = 0;
     Config->NumAddrRanges        = 0;
     Config->EnableBranch         = TRUE;
-    Config->EnableTsc            = TRUE;
+    Config->EnableTsc            = FALSE;
     Config->EnableMtc            = FALSE;
     Config->EnableCyc            = FALSE;
     Config->EnableRetCompression = FALSE;

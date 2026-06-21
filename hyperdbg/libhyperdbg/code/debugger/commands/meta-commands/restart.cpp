@@ -89,15 +89,33 @@ CommandRestart(vector<CommandToken> CommandTokens, string Command)
     //
     if (g_StartCommandPathAndArguments.empty())
     {
+        //
+        // TEMPORARY LINUX SHIM (same as in pe.cpp/dump.cpp): the path is a
+        // std::wstring of native wchar_t (4 bytes on Linux), but UdAttachToProcess
+        // takes a 2-byte HyperDbg WCHAR * (UINT16). The cast is a bogus 2-byte
+        // reinterpretation on Linux, acceptable only because the user-debugger
+        // path is still stubbed there. On Windows WCHAR == wchar_t, so it is a
+        // plain correct pointer. TODO(Linux): convert wchar_t -> 2-byte WCHAR
+        // properly once the Linux user-debugger path is real.
+        //
         UdAttachToProcess(NULL,
-                          g_StartCommandPath.c_str(),
+                          (WCHAR *)g_StartCommandPath.c_str(),
                           NULL,
                           FALSE);
     }
     else
     {
+        //
+        // TEMPORARY LINUX SHIM (same as in pe.cpp/dump.cpp): the path/arguments
+        // are std::wstring of native wchar_t (4 bytes on Linux), but
+        // UdAttachToProcess takes 2-byte HyperDbg WCHAR * (UINT16). The casts are
+        // a bogus 2-byte reinterpretation on Linux, acceptable only because the
+        // user-debugger path is still stubbed there. On Windows WCHAR == wchar_t,
+        // so they are plain correct pointers. TODO(Linux): convert wchar_t ->
+        // 2-byte WCHAR properly once the Linux user-debugger path is real.
+        //
         UdAttachToProcess(NULL,
-                          g_StartCommandPath.c_str(),
+                          (WCHAR *)g_StartCommandPath.c_str(),
                           (WCHAR *)g_StartCommandPathAndArguments.c_str(),
                           FALSE);
     }

@@ -1,175 +1,58 @@
-/**
- * @file hyperdbg-app.cpp
- * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Controller of the reversing machine's module
- * @details
- *
- * @version 0.2
- * @date 2023-02-01
- *
- * @copyright This project is released under the GNU Public License v3.
- *
- */
 #include "pch.h"
 
-PVOID g_SharedMessageBuffer = NULL;
-
-/**
- * @brief Show messages
- *
- * @param Text
- * @return int
- */
-int
-hyperdbg_show_messages(const char* Text)
+static int
+ShowMessages(const char * Text)
 {
 	printf("%s", Text);
 	return 0;
 }
 
-/**
- * @brief Show messages (shared buffer)
- *
- * @param Text
- * @return int
- */
-int
-hyperdbg_show_messages_shared_buffer()
+static int
+LoadVmm()
 {
-	printf("%s", (char*)g_SharedMessageBuffer);
-	return 0;
+    hyperdbg_u_set_text_message_callback((PVOID)ShowMessages);
+
+    if (!hyperdbg_u_detect_vmx_support())
+    {
+        printf("[-] VT-x (VMX) is not supported / enabled on this processor\n");
+        return 1;
+    }
+
+    printf("[*] loading HyperDbg VMM...\n");
+    if (hyperdbg_u_install_kd_driver() == 1 || hyperdbg_u_load_vmm() == 1)
+    {
+        printf("[-] cannot load the HyperDbg VMM\n");
+        return 1;
+    }
+
+    printf("[+] HyperDbg VMM is running\n");
+
+    return 0;
 }
 
-/**
- * @brief Load the driver
- *
- * @return int return zero if it was successful or non-zero if there
- * was error
- */
 int
-hyperdbg_load_debugger_mode()
+main(int argc, char ** argv)
 {
-	char CpuId[13] = { 0 };
+    return main2(argc, argv);
 
-	//
-	// Read the vendor string
-	//
-	hyperdbg_u_read_vendor_string(CpuId);
+    if (LoadVmm() != 0)
+    {
+        return 1;
+    }
 
-	printf("current processor vendor is : %s\n", CpuId);
+    hyperdbg_u_run_command((CHAR*)"lm");
 
-	if (strcmp(CpuId, "GenuineIntel") == 0)
-	{
-		printf("virtualization technology is vt-x\n");
-	}
-	else
-	{
-		printf("this program is not designed to run in a non-VT-x "
-			"environment !\n");
-		return 1;
-	}
+    printf("[*] unloading HyperDbg VMM...\n");
 
-	//
-	// Detect if the processor supports vmx operation
-	//
-	if (hyperdbg_u_detect_vmx_support())
-	{
-		printf("vmx operation is supported by your processor\n");
-	}
-	else
-	{
-#ifdef HYPERDBG_ENV_WINDOWS
-		printf("vmx operation is not supported by your processor "
-			"(if you are using an Intel processor, it might be because VBS is not disabled!)\n");
-#endif        
-		return 1;
-	}
+    //
+    // Unload the driver
+    //
+    hyperdbg_u_unload_vmm();
+    hyperdbg_u_unload_kd();
+    hyperdbg_u_stop_kd_driver();
+    hyperdbg_u_uninstall_kd_driver();
 
-	//
-	// Set callback function for showing messages
-	//
-	hyperdbg_u_set_text_message_callback(hyperdbg_show_messages);
+    printf("[+] done\n");
 
-	//
-	// Test interpreter
-	//
-	hyperdbg_u_connect_remote_debugger_using_named_pipe("\\\\.\\pipe\\HyperDbgPipe", TRUE);
-	Sleep(10000);
-	hyperdbg_u_run_command((CHAR*)"r");
-	hyperdbg_u_run_command((CHAR*)".start path c:\\Windows\\system32\\calc.exe");
-	hyperdbg_u_continue_debuggee();
-	hyperdbg_u_continue_debuggee();
-	hyperdbg_u_continue_debuggee();
-	hyperdbg_u_continue_debuggee();
-	hyperdbg_u_continue_debuggee();
-	hyperdbg_u_continue_debuggee();
-	hyperdbg_u_continue_debuggee();
-
-	return 0;
-}
-
-
-/**
- * @brief Load the driver
- *
- * @return int return zero if it was successful or non-zero if there
- * was error
- */
-int
-hyperdbg_load_vmi_mode()
-{
-
-	//
-	// Set callback function for showing messages
-	//
-	hyperdbg_u_set_text_message_callback(hyperdbg_show_messages);
-
-
-	//
-	// Test interpreter
-	//
-	if (hyperdbg_u_install_kd_driver() == 1 || hyperdbg_u_load_vmm() == 1)
-	{
-		printf("failed to install or load the driver\n");
-		return 1;
-	}
-
-	return 0;
-}
-
-/**
- * @brief main function
- *
- * @return int
- */
-int
-main()
-{
-	//
-	// Load the driver in the vmi mode
-	//
-	if (hyperdbg_load_vmi_mode() == 0)
-	{
-
-		//
-		// *** HyperDbg driver loaded successfully ***
-		//
-
-		//
-		// Run a test command
-		//
-		hyperdbg_u_run_command((CHAR*)"lm");
-
-		//
-		// Unload the driver
-		//
-		hyperdbg_u_unload_vmm();
-		hyperdbg_u_unload_kd();
-		hyperdbg_u_stop_kd_driver();
-		hyperdbg_u_uninstall_kd_driver();
-	}
-	else
-	{
-		printf("err, in loading HyperDbg\n");
-	}
+    return 0;
 }

@@ -107,9 +107,31 @@ CommandPe(vector<CommandToken> CommandTokens, string Command)
     StringToWString(Filepath, TempFilePath);
 
     //
+    // TEMPORARY LINUX SHIM:
+    //   std::wstring stores native wchar_t, which is 4 bytes on Linux, but the
+    //   HyperDbg WCHAR type is 2 bytes (UINT16) and the PE-parser path APIs take
+    //   a const WCHAR *. The cast below exists ONLY so the project compiles on
+    //   Linux. On Linux it produces a bogus 2-byte reinterpretation of the 4-byte
+    //   buffer; that is acceptable for now only because Linux file I/O is still
+    //   stubbed (the path is never actually opened). On Windows WCHAR == wchar_t,
+    //   so it is a plain, correct pointer with no reinterpretation.
+    //
+    //   TODO (Linux): remove this cast once real Linux file I/O lands. The proper
+    //   fix is to convert the 4-byte wchar_t path into a 2-byte WCHAR/UTF-16
+    //   buffer (e.g. a std::wstring -> WCHAR helper) and pass that, so the PE
+    //   parser receives a valid path. The same conversion is needed by
+    //   PlatformMapFileReadOnly / PlatformOpenFileForWriting.
+    //
+#ifdef __linux__
+    const WCHAR * FilepathW = (const WCHAR *)Filepath.c_str();
+#else
+    const WCHAR * FilepathW = Filepath.c_str();
+#endif
+
+    //
     // Detect whether PE is 32-bit or 64-bit
     //
-    if (!PeIsPE32BitOr64Bit(Filepath.c_str(), &Is32Bit))
+    if (!PeIsPE32BitOr64Bit(FilepathW, &Is32Bit))
     {
         //
         // File was invalid, the error message is shown in the above function
@@ -122,10 +144,10 @@ CommandPe(vector<CommandToken> CommandTokens, string Command)
     //
     if (!ShowDumpOfSection)
     {
-        PeShowSectionInformationAndDump(Filepath.c_str(), NULL, Is32Bit);
+        PeShowSectionInformationAndDump(FilepathW, NULL, Is32Bit);
     }
     else
     {
-        PeShowSectionInformationAndDump(Filepath.c_str(), GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str(), Is32Bit);
+        PeShowSectionInformationAndDump(FilepathW, GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str(), Is32Bit);
     }
 }

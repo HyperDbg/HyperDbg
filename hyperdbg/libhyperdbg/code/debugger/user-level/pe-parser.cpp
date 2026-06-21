@@ -3738,7 +3738,8 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     const ULONGLONG              MaxTotalSectionScanBytes = 64 * 1024 * 1024;
     const SIZE_T                 MaxSectionDumpBytes      = 1024 * 1024;
     const ULONGLONG              MaxTotalSectionDumpBytes = 4 * 1024 * 1024;
-    HANDLE                       MapObjectHandle = NULL, FileHandle = INVALID_HANDLE_VALUE; // File Mapping Object
+    HANDLE                       FileHandle = INVALID_HANDLE_VALUE;                         // Open file handle (kept for the raw Rich-header read)
+    SIZE_T                       MappedSize = 0;                                            // Size of the mapped file in bytes
     UINT32                       NumberOfSections;                                          // Number of sections
     LPVOID                       BaseAddr = NULL;                                           // Pointer to the base memory of mapped file
     PIMAGE_DOS_HEADER            DosHeader;                                                 // Pointer to DOS Header
@@ -3760,39 +3761,22 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
     time_t                       TimeDateStamp;
 
     //
-    // Open the EXE File
+    // Open and map the EXE file read-only. The wrapper also hands back the open
+    // file handle so the raw Rich-header read below can still seek/read it.
     //
-    FileHandle = CreateFileW(AddressOfFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    BaseAddr = PlatformMapFileReadOnly(AddressOfFile, &MappedSize, &FileHandle);
 
-    if (FileHandle == INVALID_HANDLE_VALUE)
+    if (BaseAddr == NULL)
     {
         ShowMessages("err, could not open the file specified\n");
         return FALSE;
     }
 
-    if (!GetFileSizeEx(FileHandle, &FileSize) || FileSize.QuadPart < (LONGLONG)sizeof(IMAGE_DOS_HEADER))
+    FileSize.QuadPart = (LONGLONG)MappedSize;
+
+    if (FileSize.QuadPart < (LONGLONG)sizeof(IMAGE_DOS_HEADER))
     {
-        CloseHandle(FileHandle);
-        return FALSE;
-    }
-
-    //
-    // Mapping Given EXE file to Memory
-    //
-    MapObjectHandle = CreateFileMapping(FileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
-
-    if (MapObjectHandle == NULL)
-    {
-        CloseHandle(FileHandle);
-        return FALSE;
-    }
-
-    BaseAddr = MapViewOfFile(MapObjectHandle, FILE_MAP_READ, 0, 0, 0);
-
-    if (BaseAddr == NULL)
-    {
-        CloseHandle(MapObjectHandle);
-        CloseHandle(FileHandle);
+        PlatformUnmapFile(BaseAddr, MappedSize, FileHandle);
         return FALSE;
     }
 
@@ -3843,15 +3827,7 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile,
                 goto SkipRichHeader;
             }
 
-            if (!SetFilePointerEx(FileHandle, FileStart, NULL, FILE_BEGIN))
-            {
-                RichHeaderStatus = "read failed";
-                delete[] DataPtr;
-                goto SkipRichHeader;
-            }
-
-            BOOL Result = ReadFile(FileHandle, DataPtr, RichReadSize, &BytesRead, NULL);
-            if (!Result || BytesRead != RichReadSize)
+            if (!PlatformReadFileAtOffset(FileHandle, 0, DataPtr, RichReadSize, &BytesRead) || BytesRead != RichReadSize)
             {
                 RichHeaderStatus = "read failed";
                 delete[] DataPtr;
@@ -4491,20 +4467,7 @@ Finished:
         delete[] PeFileRichHeader.Entries;
     }
 
-    if (BaseAddr != NULL)
-    {
-        UnmapViewOfFile(BaseAddr);
-    }
-
-    if (MapObjectHandle != NULL)
-    {
-        CloseHandle(MapObjectHandle);
-    }
-
-    if (FileHandle != INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(FileHandle);
-    }
+    PlatformUnmapFile(BaseAddr, MappedSize, FileHandle);
 
     return Result;
 }
@@ -4519,52 +4482,31 @@ Finished:
 BOOLEAN
 PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit)
 {
-    BOOLEAN             Result = FALSE;
-    HANDLE              MapObjectHandle, FileHandle; // File Mapping Object
-    LPVOID              BaseAddr;                    // Pointer to the base memory of mapped file
+    BOOLEAN             Result     = FALSE;
+    HANDLE              FileHandle = INVALID_HANDLE_VALUE; // Open file handle
+    SIZE_T              MappedSize = 0;                    // Size of the mapped file in bytes
+    LPVOID              BaseAddr;                          // Pointer to the base memory of mapped file
     PIMAGE_DOS_HEADER   DosHeader;                   // Pointer to DOS Header
     PIMAGE_NT_HEADERS32 NtHeader32 = NULL;           // Pointer to NT Header 32 bit
     PE_IMAGE_READER     Reader;
     LARGE_INTEGER       FileSize;
 
     //
-    // Open the EXE File
+    // Open and map the EXE file read-only
     //
-    FileHandle = CreateFileW(AddressOfFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (FileHandle == INVALID_HANDLE_VALUE)
-    {
-        ShowMessages("err, unable to read the file (%x)\n", GetLastError());
-        return FALSE;
-    };
-
-    if (!GetFileSizeEx(FileHandle, &FileSize) || FileSize.QuadPart < (LONGLONG)sizeof(IMAGE_DOS_HEADER))
-    {
-        CloseHandle(FileHandle);
-        return FALSE;
-    }
-
-    //
-    // Mapping Given EXE file to Memory
-    //
-    MapObjectHandle =
-        CreateFileMapping(FileHandle, NULL, PAGE_READONLY, 0, 0, NULL);
-
-    if (MapObjectHandle == NULL)
-    {
-        CloseHandle(FileHandle);
-
-        ShowMessages("err, unable to create file mappings (%x)\n", GetLastError());
-        return FALSE;
-    }
-
-    BaseAddr = MapViewOfFile(MapObjectHandle, FILE_MAP_READ, 0, 0, 0);
+    BaseAddr = PlatformMapFileReadOnly(AddressOfFile, &MappedSize, &FileHandle);
 
     if (BaseAddr == NULL)
     {
-        CloseHandle(MapObjectHandle);
-        CloseHandle(FileHandle);
+        ShowMessages("err, unable to read or map the file (%x)\n", PlatformGetLastError());
+        return FALSE;
+    }
 
-        ShowMessages("err, unable to create map view of file (%x)\n", GetLastError());
+    FileSize.QuadPart = (LONGLONG)MappedSize;
+
+    if (FileSize.QuadPart < (LONGLONG)sizeof(IMAGE_DOS_HEADER))
+    {
+        PlatformUnmapFile(BaseAddr, MappedSize, FileHandle);
         return FALSE;
     }
 
@@ -4649,9 +4591,7 @@ Finished:
     //
     // Unmap and close the handles
     //
-    UnmapViewOfFile(BaseAddr);
-    CloseHandle(MapObjectHandle);
-    CloseHandle(FileHandle);
+    PlatformUnmapFile(BaseAddr, MappedSize, FileHandle);
 
     return Result;
 }

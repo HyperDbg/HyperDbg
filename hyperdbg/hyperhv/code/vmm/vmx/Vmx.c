@@ -275,6 +275,23 @@ VmxPerformVirtualizationOnAllCores()
     }
 
     //
+    // Check if the top level hypervisor is Hyper-V or not
+    //
+    if (VmxIsTopLevelHypervisorHyperV())
+    {
+        //
+        // The top-level hypervisor is hyper-v
+        //
+        g_IsTopLevelHypervisorHyperV = TRUE;
+
+        LogDebugInfo(" Hyper-V is detected as the top-level hypervisor");
+    }
+    else
+    {
+        LogDebugInfo(" Hyper-V is not detected as the top-level hypervisor");
+    }
+
+    //
     // Allocate	global variable to hold Ept State
     //
     g_EptState = PlatformMemAllocateZeroedNonPagedPool(sizeof(EPT_STATE));
@@ -733,15 +750,17 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * VCpu, PVOID GuestStack)
     LogDebugInfo("CPU Based VM Exec Controls (Based on %s) : 0x%x",
                  VmxBasicMsr.VmxControls ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
                  CpuBasedVmExecControls);
+    UINT32 SecondaryProcBasedVmExecControlsFlags = IA32_VMX_PROCBASED_CTLS2_ENABLE_RDTSCP_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_EPT_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_INVPCID_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_XSAVES_FLAG |
+                                                   IA32_VMX_PROCBASED_CTLS2_ENABLE_USER_WAIT_PAUSE_FLAG;
 
-    SecondaryProcBasedVmExecControls = HvAdjustControls(
-        IA32_VMX_PROCBASED_CTLS2_ENABLE_RDTSCP_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_EPT_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_INVPCID_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_XSAVES_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_VPID_FLAG |
-            IA32_VMX_PROCBASED_CTLS2_ENABLE_USER_WAIT_PAUSE_FLAG,
-        IA32_VMX_PROCBASED_CTLS2);
+    if (g_IsVpidSupported)
+    {
+        SecondaryProcBasedVmExecControlsFlags |= IA32_VMX_PROCBASED_CTLS2_ENABLE_VPID_FLAG;
+    }
+    SecondaryProcBasedVmExecControls = HvAdjustControls(SecondaryProcBasedVmExecControlsFlags, IA32_VMX_PROCBASED_CTLS2);
 
     VmxVmwrite64(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
 
@@ -1754,4 +1773,29 @@ VmxCompatibleMemcmp(const CHAR * Address1, const CHAR * Address2, SIZE_T Count)
     //
     CpuWriteCr3(OriginalCr3.Flags);
     return Result;
+}
+
+/**
+ * @brief checks if the current top level hypervisor is Hyper-V
+ *
+ *
+ * @return BOOLEAN TRUE indicates that the current top level hypervisor is Hyper-V, FALSE otherwise.
+ */
+BOOLEAN
+VmxIsTopLevelHypervisorHyperV()
+{
+    INT32 ProcessorFeatures[4] = {0};
+    CpuCpuIdEx(ProcessorFeatures, CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS, 0);
+
+    if (!((ULONG)(ProcessorFeatures[2]) & HYPERV_HYPERVISOR_PRESENT_BIT))
+    {
+        return FALSE;
+    }
+
+    INT32 HypervisorVendor[4] = {0};
+    CpuCpuIdEx(HypervisorVendor, HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS, 0);
+
+    return (ULONG)(HypervisorVendor[1]) == HYPERV_CPUID_VENDOR_MICROSOFT_EBX &&
+           (ULONG)(HypervisorVendor[2]) == HYPERV_CPUID_VENDOR_MICROSOFT_ECX &&
+           (ULONG)(HypervisorVendor[3]) == HYPERV_CPUID_VENDOR_MICROSOFT_EDX;
 }

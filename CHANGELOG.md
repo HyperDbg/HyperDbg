@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0.0-beta] - 2026-06-21
+New release of the HyperDbg Debugger.
+
+### Added
+- Added the libipt library to the project and the SDK
+- Added Intel Processor Trace (PT) example app
+- Added Linux distinction and pragmas together with new platform functions ([link](https://github.com/HyperDbg/HyperDbg/commit/9c3e0ed23b5f4bb64bd305e546dd0e86ee1910d9))
+- Added interfaces to Linux port for the serial devices ([link](https://github.com/HyperDbg/HyperDbg/commit/31b514f8df40d81d44ae07a2328c02360ce488c3))
+- Added platform IOCTL interface ([link](https://github.com/HyperDbg/HyperDbg/pull/619))
+- Added typecast for wchar, mismatch on Linux and Windows ([link](https://github.com/HyperDbg/HyperDbg/commit/10576b064a9824ab655e7bea0e35e9556ee68ca4))
+- Added missing IOCTLs for Intel PT ([link](https://github.com/HyperDbg/HyperDbg/commit/df12e9fd79851c8f378ec82a45066da510da507a))
+- Added NuGet packages for Windows SDK and WDK
+- Added Signal handler platform API for Linux ([link](https://github.com/HyperDbg/HyperDbg/pull/627))
+- Added contribution guidelines for Linux ([link](https://github.com/HyperDbg/HyperDbg/tree/master/hyperdbg/linux#readme))
+
+### Changed
+- Moved to Visual Studio 2026 ([link](https://github.com/HyperDbg/HyperDbg/pull/626))
+- Zydis and pdbex submodules are updated to VS2026
+- Fix the new form of loading and unloading in the example app and PT app ([link](https://github.com/HyperDbg/HyperDbg/commit/9ad48d30dcf6b409ae86b2d08262584cd06f606e))
+- Check whether the top-level hypervisor is Hyper-V and disable/enable VPIDs based on that, thanks to [@Idov31](https://github.com/Idov31) ([link](https://github.com/HyperDbg/HyperDbg/pull/625))
+- Fix PT operation IOCTL buffer size ([link](https://github.com/HyperDbg/HyperDbg/commit/dabf132d31503843f90949f35f8dce4601d43126))
+- CI/CD updated with NuGet packages for Visual Studio 2026 ([link](https://github.com/HyperDbg/HyperDbg/commit/5a0fad490124268550f955f594d1211d5c74f03d))
+
 ## [0.19.0.0-beta] - 2026-06-10
 New release of the HyperDbg Debugger.
 
@@ -13,7 +36,7 @@ New release of the HyperDbg Debugger.
 - Added Legacy LBR support to the HyperTrace module
 - Added Architectural LBR support to the HyperTrace module
 - Added the '!lbr' command for performing different Last Branch Record (LBR) operations ([link](https://docs.hyperdbg.org/commands/extension-commands/lbr))
-- Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdmp))
+- Added the '!lbrdump' command for dumping saved Last Branch Record (LBR) entries ([link](https://docs.hyperdbg.org/commands/extension-commands/lbrdump))
 - Added **lbr_save()** and **lbr_print()** functions in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_save))([link](https://docs.hyperdbg.org/commands/scripting-language/functions/tracing/lbr/lbr_print))
 - Added mock application for compiling SDK for Linux
 - Added '!help' alias for the '.help' command

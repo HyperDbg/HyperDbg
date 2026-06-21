@@ -51,6 +51,25 @@ git reset --hard
 git clean -fd
 ```
 
+To modify the last pushed commit:
+
+```bash
+# Undo the last commit but keep the changes in your working tree
+git reset --soft HEAD~1
+
+# Make your additional modifications
+# edit files...
+
+# Stage everything
+git add .
+
+# Create a new commit
+git commit -m "Updated commit message"
+
+# Force-push to replace the remote commit
+git push --force-with-lease
+```
+
 ---------------
 
 ## Releasing instructions

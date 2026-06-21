@@ -11,7 +11,9 @@
  */
 #pragma once
 
-/*
+#ifndef _WIN32
+// On Windows these are provided by winnt.h; define them here for other platforms.
+
 typedef struct _IMAGE_DOS_HEADER
 {                    // DOS .EXE header
     WORD e_magic;    // Magic number
@@ -46,7 +48,7 @@ typedef struct _IMAGE_FILE_HEADER
     WORD  Characteristics;
 } IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;
 
-#define IMAGE_SIZEOF_SHORT_NAME 8
+#    define IMAGE_SIZEOF_SHORT_NAME 8
 
 typedef struct _IMAGE_SECTION_HEADER
 {
@@ -66,7 +68,7 @@ typedef struct _IMAGE_SECTION_HEADER
     DWORD Characteristics;
 } IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
 
-*/
+#endif // _WIN32
 
 typedef struct _PE_IMAGE_READER
 {

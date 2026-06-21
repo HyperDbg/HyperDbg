@@ -72,7 +72,8 @@ typedef wchar_t WCHAR;
 
 typedef void VOID;
 
-typedef size_t SIZE_T;
+typedef size_t   SIZE_T;
+typedef SIZE_T * PSIZE_T;
 
 typedef signed long long   INT64, *PINT64;
 typedef unsigned long long UINT64, *PUINT64;
@@ -83,6 +84,13 @@ typedef unsigned long long DWORD64, *PDWORD64;
 typedef unsigned long long ULONGLONG;
 typedef unsigned long long ULONG_PTR, *PULONG_PTR;
 
+typedef INT64 LONGLONG;
+
+typedef union _LARGE_INTEGER {
+    struct { DWORD LowPart; LONG HighPart; };
+    LONGLONG QuadPart;
+} LARGE_INTEGER, *PLARGE_INTEGER;
+
 //
 // To be fixed later, linux wchar_t is 4 bytes, but windows wchar_t is 2 bytes
 //
@@ -92,6 +100,10 @@ typedef UINT16 WCHAR;
 
 typedef PVOID    HANDLE;
 typedef HANDLE * PHANDLE;
+
+// Windows pointer-style aliases (used by the cross-platform driver/IOCTL wrappers)
+typedef PVOID   LPVOID;
+typedef DWORD * LPDWORD;
 
 #endif
 

@@ -656,6 +656,7 @@ ShowErrorMessage(UINT32 Error)
 UINT64
 DebuggerGetNtoskrnlBase()
 {
+#ifdef _WIN32
     UINT64               NtoskrnlBase = NULL;
     PRTL_PROCESS_MODULES Modules      = NULL;
 
@@ -678,6 +679,14 @@ DebuggerGetNtoskrnlBase()
     free(Modules);
 
     return NtoskrnlBase;
+#else
+    //
+    // TODO(Linux): NT-style system module enumeration (PRTL_PROCESS_MODULES via
+    // NtQuerySystemInformation) has no Linux analog. The kernel-module base lookup
+    // will need a Linux-specific mechanism once the kernel side exists.
+    //
+    return NULL64_ZERO;
+#endif
 }
 
 /**
@@ -719,7 +728,7 @@ DebuggerPauseDebuggee()
     //
     // Send a pause IOCTL
     //
-    StatusIoctl = DeviceIoControl(g_DeviceHandle,                        // Handle to device
+    StatusIoctl = PlatformDeviceIoControl(g_DeviceHandle,                        // Handle to device
                                   IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control Code (IOCTL)
                                   &PauseRequest,                         // Input Buffer to driver.
                                   SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
@@ -733,7 +742,7 @@ DebuggerPauseDebuggee()
 
     if (!StatusIoctl)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
         return FALSE;
     }
 
@@ -1391,7 +1400,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         // Send IOCTL
         //
 
-        Status = DeviceIoControl(g_DeviceHandle,                           // Handle to device
+        Status = PlatformDeviceIoControl(g_DeviceHandle,                           // Handle to device
                                  IOCTL_DEBUGGER_REGISTER_EVENT,            // IO Control Code (IOCTL)
                                  Event,                                    // Input Buffer to driver.
                                  EventBufferLength,                        // Input buffer length
@@ -1408,7 +1417,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             return FALSE;
         }
     }
@@ -1560,7 +1569,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         if (ActionBreakToDebugger != NULL)
         {
-            Status = DeviceIoControl(
+            Status = PlatformDeviceIoControl(
                 g_DeviceHandle,                           // Handle to device
                 IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
                 ActionBreakToDebugger,                    // Input Buffer to driver.
@@ -1578,7 +1587,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
             if (!Status)
             {
-                ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
                 return FALSE;
             }
         }
@@ -1588,7 +1597,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         if (ActionCustomCode != NULL)
         {
-            Status = DeviceIoControl(
+            Status = PlatformDeviceIoControl(
                 g_DeviceHandle,                           // Handle to device
                 IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
                 ActionCustomCode,                         // Input Buffer to driver.
@@ -1606,7 +1615,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
             if (!Status)
             {
-                ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
                 return FALSE;
             }
         }
@@ -1616,7 +1625,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         if (ActionScript != NULL)
         {
-            Status = DeviceIoControl(
+            Status = PlatformDeviceIoControl(
                 g_DeviceHandle,                           // Handle to device
                 IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT,       // IO Control Code (IOCTL)
                 ActionScript,                             // Input Buffer to driver.
@@ -1634,7 +1643,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
             if (!Status)
             {
-                ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
                 return FALSE;
             }
         }
@@ -1800,7 +1809,7 @@ InterpretGeneralEventAndActionsFields(
     //
     PVOID BufferOfCommandString = malloc(BufferOfCommandStringLength);
 
-    RtlZeroMemory(BufferOfCommandString, BufferOfCommandStringLength);
+    PlatformZeroMemory(BufferOfCommandString, BufferOfCommandStringLength);
 
     //
     // Copy the string to the buffer
@@ -2105,7 +2114,7 @@ InterpretGeneralEventAndActionsFields(
     LengthOfEventBuffer = sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) + ConditionBufferLength;
 
     TempEvent = (PDEBUGGER_GENERAL_EVENT_DETAIL)malloc(LengthOfEventBuffer);
-    RtlZeroMemory(TempEvent, LengthOfEventBuffer);
+    PlatformZeroMemory(TempEvent, LengthOfEventBuffer);
 
     //
     // Check if buffer is available
@@ -2187,7 +2196,7 @@ InterpretGeneralEventAndActionsFields(
 
         TempActionCustomCode = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfCustomCodeActionBuffer);
 
-        RtlZeroMemory(TempActionCustomCode, LengthOfCustomCodeActionBuffer);
+        PlatformZeroMemory(TempActionCustomCode, LengthOfCustomCodeActionBuffer);
 
         memcpy(
             (PVOID)((UINT64)TempActionCustomCode + sizeof(DEBUGGER_GENERAL_ACTION)),
@@ -2226,7 +2235,7 @@ InterpretGeneralEventAndActionsFields(
         LengthOfScriptActionBuffer = sizeof(DEBUGGER_GENERAL_ACTION) + ScriptBufferLength;
         TempActionScript           = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfScriptActionBuffer);
 
-        RtlZeroMemory(TempActionScript, LengthOfScriptActionBuffer);
+        PlatformZeroMemory(TempActionScript, LengthOfScriptActionBuffer);
 
         memcpy((PVOID)((UINT64)TempActionScript + sizeof(DEBUGGER_GENERAL_ACTION)),
                (PVOID)ScriptBufferAddress,
@@ -2272,7 +2281,7 @@ InterpretGeneralEventAndActionsFields(
 
         TempActionBreak = (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfBreakActionBuffer);
 
-        RtlZeroMemory(TempActionBreak, LengthOfBreakActionBuffer);
+        PlatformZeroMemory(TempActionBreak, LengthOfBreakActionBuffer);
 
         //
         // Set the action Tag

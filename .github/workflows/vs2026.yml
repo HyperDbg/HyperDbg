@@ -1,0 +1,99 @@
+name: vs2026-ci
+
+on:
+  push:
+    branches:
+      - '**' # matches all branch names, including ones with slashes 
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '.gitignore'
+      - '.gitattributes'
+      - '**.cmd'
+      - '**.bat'
+      - '**.md'
+
+  pull_request:
+    paths-ignore:
+      - '.gitignore'
+      - '.gitattributes'
+      - '**.cmd'
+      - '**.bat'
+      - '**.md'
+      
+env:
+  SOLUTION_FILE_PATH: ./hyperdbg/hyperdbg.sln
+  RELEASE_ZIP_FILE_NAME: hyperdbg
+  BUILD_BIN_DIR: ./hyperdbg/build/bin/
+
+jobs:
+  win-amd64-build:
+    runs-on: windows-2025-vs2026
+    strategy:
+      matrix:
+        BUILD_CONFIGURATION: [release, debug]
+        PLATFORM: [x64]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+
+    - name: Checkout submodules recursively
+      run: git submodule update --init --recursive --remote
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v3
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+
+    - name: Restore NuGet packages
+      run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Update vcxproj files
+      run: python utils/replace-sdk-wdk.py
+
+    - name: Build HyperDbg solution
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{matrix.BUILD_CONFIGURATION}} /p:Platform=${{matrix.PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Upload build directory
+      uses: actions/upload-artifact@v4.4.0
+      with:
+        name: build_files_${{matrix.BUILD_CONFIGURATION}}
+        path: ${{ env.BUILD_BIN_DIR }}
+
+  deploy-release:
+    name: Deploy release
+    needs: win-amd64-build
+    runs-on: windows-2025-vs2026
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download build files from "build" job
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: build_files_release
+          path: ${{ env.BUILD_BIN_DIR }}
+
+      - name: Archive release
+        uses: thedoctor0/zip-release@master
+        with:
+          path: ${{ env.BUILD_BIN_DIR }}release/
+          type: 'zip'
+          filename: ${{env.RELEASE_ZIP_FILE_NAME}}-${{ github.ref_name }}.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ${{env.RELEASE_ZIP_FILE_NAME}}-${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

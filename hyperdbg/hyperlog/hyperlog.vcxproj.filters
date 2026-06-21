@@ -21,11 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="hyperlog.inf">
-      <Filter>Driver Files</Filter>
-    </Inf>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="code\Logging.c">
       <Filter>code</Filter>
     </ClCompile>
@@ -100,5 +95,8 @@
     <ClInclude Include="..\include\platform\kernel\header\PlatformTime.h">
       <Filter>header\platform</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

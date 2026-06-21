@@ -50,7 +50,7 @@ CommandPreactivate(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                         Status;
     ULONG                        ReturnedLength;
-    DEBUGGER_PREACTIVATE_COMMAND PreactivateRequest = {0};
+    DEBUGGER_PREACTIVATE_COMMAND PreactivateRequest = {};
 
     if (CommandTokens.size() != 2)
     {
@@ -82,7 +82,7 @@ CommandPreactivate(vector<CommandToken> CommandTokens, string Command)
     //
     // Send IOCTL
     //
-    Status = DeviceIoControl(
+    Status = PlatformDeviceIoControl(
         g_DeviceHandle,                      // Handle to device
         IOCTL_PREACTIVATE_FUNCTIONALITY,     // IO Control Code (IOCTL)
         &PreactivateRequest,                 // Input Buffer to driver.
@@ -96,7 +96,7 @@ CommandPreactivate(vector<CommandToken> CommandTokens, string Command)
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
         return;
     }
 

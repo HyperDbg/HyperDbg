@@ -7,7 +7,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if(LINUX)
 
-  add_subdirectory(script-engine)
     message(STATUS "Building on Linux")
 elseif(WIN32)
     message(STATUS "Building on Windows")
@@ -53,36 +52,30 @@ target_link_libraries(hyperhv Zycore Zydis)
 add_subdirectory(hyperkd)
 target_link_libraries(hyperkd hyperlog hyperhv kdserial)
 
+endif()
 
-add_subdirectory(dependencies/pdbex/Source)
+#add_subdirectory(dependencies/pdbex/Source)
 
-add_subdirectory(symbol-parser)
-target_link_libraries(symbol-parser pdbex)
+#add_subdirectory(symbol-parser)
+#target_link_libraries(symbol-parser pdbex)
 
+#target_link_libraries(script-engine symbol-parser)
 
-target_link_libraries(script-engine symbol-parser)
-
-link_directories(libraries/zydis/user libraries/keystone/release-lib)
-add_subdirectory(libhyperdbg)
-target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone)
-
-
-add_subdirectory(hyperdbg-test)
+#add_subdirectory(hyperdbg-test)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 
-add_subdirectory(symbol-parser)
-target_link_libraries(symbol-parser pdbex)
+#add_subdirectory(symbol-parser)
+#target_link_libraries(symbol-parser pdbex)
 
+#add_subdirectory(script-engine)
+#target_link_libraries(script-engine symbol-parser)
 
 add_subdirectory(script-engine)
-target_link_libraries(script-engine symbol-parser)
-
 link_directories(libraries/zydis/user libraries/keystone/release-lib)
 add_subdirectory(libhyperdbg)
-target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone)
-endif()
-
+find_package(Threads REQUIRED)
+target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone Threads::Threads)
 
 add_subdirectory(hyperdbg-cli)
 target_link_libraries(hyperdbg-cli libhyperdbg)

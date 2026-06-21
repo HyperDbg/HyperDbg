@@ -41,6 +41,12 @@ CpuCpuIdEx(INT32 * CpuInfo, INT32 FunctionId, INT32 SubFunctionId);
 UINT64
 CpuReadTsc(VOID);
 
+//
+// RDTSCP
+//
+UINT64
+CpuReadTscp(UINT32 * Aux);
+
 //////////////////////////////////////////////////
 //              Misc Instructions               //
 //////////////////////////////////////////////////
@@ -49,4 +55,26 @@ CpuReadTsc(VOID);
 // PAUSE
 //
 VOID
-    CpuPause(VOID);
+CpuPause(VOID);
+
+//////////////////////////////////////////////////
+//          Interlocked (Atomic) Operations     //
+//////////////////////////////////////////////////
+
+INT64
+CpuInterlockedExchange64(INT64 volatile * Target, INT64 Value);
+
+INT64
+CpuInterlockedExchangeAdd64(INT64 volatile * Addend, INT64 Value);
+
+INT64
+CpuInterlockedIncrement64(INT64 volatile * Addend);
+
+INT64
+CpuInterlockedDecrement64(INT64 volatile * Addend);
+
+INT64
+CpuInterlockedCompareExchange64(INT64 volatile * Destination, INT64 ExChange, INT64 Comparand);
+
+UCHAR
+CpuInterlockedBitTestAndSet(volatile LONG * Base, LONG Bit);

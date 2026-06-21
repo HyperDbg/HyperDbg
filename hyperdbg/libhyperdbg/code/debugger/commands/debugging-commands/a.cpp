@@ -275,7 +275,7 @@ CommandAssemble(vector<CommandToken> CommandTokens, string Command)
 
     if (ProcId == 0)
     {
-        ProcId = GetCurrentProcessId();
+        ProcId = PlatformGetCurrentProcessId();
     }
 
     if (Address) // was the user only trying to get the bytes?

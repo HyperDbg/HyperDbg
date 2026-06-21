@@ -15,6 +15,8 @@
 //		    Display Windows Details             //
 //////////////////////////////////////////////////
 
+#ifdef _WIN32
+// HKEY / RegCloseKey are Windows registry APIs; this RAII helper is Windows-only
 struct HKeyHolder
 {
 private:
@@ -37,6 +39,7 @@ public:
 
     HKEY * operator&() { return &m_Key; }
 };
+#endif // _WIN32
 
 //////////////////////////////////////////////////
 //			    	 Functions                  //

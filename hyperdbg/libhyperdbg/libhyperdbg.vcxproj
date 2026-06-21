@@ -21,14 +21,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -87,7 +87,9 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)libraries\zydis\user"</Command>
+      <Command>copy "$(SolutionDir)libraries\libipt\libipt.lib" "$(OutDir)"
+copy "$(SolutionDir)libraries\libipt\libipt.dll" "$(OutDir)"
+msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)libraries\zydis\user"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -123,12 +125,19 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)libraries\zydis\user"</Command>
+      <Command>copy "$(SolutionDir)libraries\libipt\libipt.lib" "$(OutDir)"
+copy "$(SolutionDir)libraries\libipt\libipt.dll" "$(OutDir)"
+msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="Release MT" /p:Platform=$(Platform) /target:zydis /target:zycore /p:OutDir="$(SolutionDir)libraries\zydis\user"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\components\pe\header\pe-image-reader.h" />
     <ClInclude Include="..\include\platform\user\header\platform-intrinsics.h" />
+    <ClInclude Include="..\include\platform\user\header\platform-lib-calls.h" />
+    <ClInclude Include="..\include\platform\user\header\platform-serial.h" />
+    <ClInclude Include="..\include\platform\user\header\platform-ioctl.h" />
+    <ClInclude Include="..\include\platform\user\header\platform-signal.h" />
+    <ClInclude Include="..\include\platform\general\header\nt-list.h" />
     <ClInclude Include="..\include\platform\user\header\windows-only\windows-privilege.h" />
     <ClInclude Include="..\include\platform\user\header\Windows.h" />
     <ClInclude Include="header\assembler.h" />
@@ -165,6 +174,10 @@
   <ItemGroup>
     <ClCompile Include="..\include\components\pe\code\pe-image-reader.cpp" />
     <ClCompile Include="..\include\platform\user\code\platform-intrinsics.c" />
+    <ClCompile Include="..\include\platform\user\code\platform-lib-calls.c" />
+    <ClCompile Include="..\include\platform\user\code\platform-serial.c" />
+    <ClCompile Include="..\include\platform\user\code\platform-ioctl.c" />
+    <ClCompile Include="..\include\platform\user\code\platform-signal.c" />
     <ClCompile Include="..\include\platform\user\code\windows-only\windows-privilege.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
@@ -237,7 +250,6 @@
     <ClCompile Include="code\app\dllmain.cpp" />
     <ClCompile Include="code\app\libhyperdbg.cpp" />
     <ClCompile Include="code\common\common.cpp" />
-    <ClCompile Include="code\common\list.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\bc.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\bd.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\be.cpp" />

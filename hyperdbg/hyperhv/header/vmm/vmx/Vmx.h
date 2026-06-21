@@ -205,6 +205,12 @@ enum HYPERCALL_CODE
     HvCallFlushGuestPhysicalAddressList  = 0x00B0
 };
 
+/** @brief Hyper-V CPUID leaves
+*/
+#define HYPERV_CPUID_VENDOR_MICROSOFT_EBX 0x7263694d // "Micr"
+#define HYPERV_CPUID_VENDOR_MICROSOFT_ECX 0x666f736f // "osof"
+#define HYPERV_CPUID_VENDOR_MICROSOFT_EDX 0x76482074 // "t Hv"
+
 //////////////////////////////////////////////////
 //					Enums						//
 //////////////////////////////////////////////////
@@ -228,6 +234,9 @@ typedef enum _MOV_TO_DEBUG_REG
 //////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
+
+BOOLEAN
+VmxIsTopLevelHypervisorHyperV();
 
 BOOLEAN
 VmxCheckVmxSupport();

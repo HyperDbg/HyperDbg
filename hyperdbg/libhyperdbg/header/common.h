@@ -102,7 +102,7 @@
             &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
                                                                            \
         SyncronizationObject->IsOnWaitingState = TRUE;                     \
-        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
+        PlatformWaitForSingleObject(SyncronizationObject->EventHandle, INFINITE); \
                                                                            \
     } while (FALSE);
 
@@ -113,7 +113,7 @@
             &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId];    \
                                                                           \
         SyncronizationObject->IsOnWaitingState = TRUE;                    \
-        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE); \
+        PlatformWaitForSingleObject(SyncronizationObject->EventHandle, INFINITE); \
                                                                           \
     } while (FALSE);
 

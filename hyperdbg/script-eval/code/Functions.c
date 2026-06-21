@@ -797,16 +797,16 @@ VOID
 UserModeMicroSleep(UINT64 Us)
 {
     LARGE_INTEGER Start, End, Frequency;
-    QueryPerformanceFrequency(&Frequency);
+    PlatformQueryPerformanceFrequency(&Frequency);
 
     LONGLONG TickPerUs = Frequency.QuadPart / 1000000;
     LONGLONG Ticks     = TickPerUs * Us;
 
-    QueryPerformanceCounter(&Start);
+    PlatformQueryPerformanceCounter(&Start);
 
     while (TRUE)
     {
-        QueryPerformanceCounter(&End);
+        PlatformQueryPerformanceCounter(&End);
 
         if (End.QuadPart - Start.QuadPart > Ticks)
         {
@@ -840,7 +840,7 @@ ScriptEngineFunctionMicroSleep(UINT64 Us)
 UINT64
 ScriptEngineFunctionRdtsc()
 {
-    return __rdtsc();
+    return CpuReadTsc();
 }
 
 /**
@@ -850,8 +850,8 @@ ScriptEngineFunctionRdtsc()
 UINT64
 ScriptEngineFunctionRdtscp()
 {
-    unsigned int Aux;
-    return __rdtscp(&Aux);
+    UINT32 Aux;
+    return CpuReadTscp(&Aux);
 }
 
 /**
@@ -879,7 +879,7 @@ ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
-    Result = InterlockedExchange64(Target, Value);
+    Result = CpuInterlockedExchange64(Target, Value);
 
     return Result;
 }
@@ -909,7 +909,7 @@ ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
-    Result = InterlockedExchangeAdd64(Addend, Value);
+    Result = CpuInterlockedExchangeAdd64(Addend, Value);
 
     return Result;
 }
@@ -937,7 +937,7 @@ ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
-    Result = InterlockedIncrement64(Addend);
+    Result = CpuInterlockedIncrement64(Addend);
 
     return Result;
 }
@@ -965,7 +965,7 @@ ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
-    Result = InterlockedDecrement64(Addend);
+    Result = CpuInterlockedDecrement64(Addend);
 
     return Result;
 }
@@ -998,7 +998,7 @@ ScriptEngineFunctionInterlockedCompareExchange(
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
-    Result = InterlockedCompareExchange64(Destination, ExChange, Comperand);
+    Result = CpuInterlockedCompareExchange64(Destination, ExChange, Comperand);
 
     return Result;
 }
@@ -1338,7 +1338,7 @@ ApplyFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 
 
     *CurrentProcessedPositionFromStartOfFormat =
         *CurrentProcessedPositionFromStartOfFormat + (UINT32)strlen(CurrentSpecifier);
-    sprintf_s(TempBuffer, sizeof(TempBuffer), CurrentSpecifier, Val);
+    PlatformSprintf(TempBuffer, sizeof(TempBuffer), CurrentSpecifier, Val);
     TempBufferLen = (UINT32)strlen(TempBuffer);
 
     //
@@ -1473,8 +1473,8 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
             //
             // Zero the buffers
             //
-            RtlZeroMemory(WstrBuffer, sizeof(WstrBuffer));
-            RtlZeroMemory(AsciiBuffer, sizeof(AsciiBuffer));
+            PlatformZeroMemory(WstrBuffer, sizeof(WstrBuffer));
+            PlatformZeroMemory(AsciiBuffer, sizeof(AsciiBuffer));
 
             //
             // Check for the last block

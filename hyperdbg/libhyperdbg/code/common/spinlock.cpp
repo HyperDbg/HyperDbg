@@ -40,7 +40,7 @@ static UINT32 MaxWait = 65536;
 BOOLEAN
 SpinlockTryLock(volatile LONG * Lock)
 {
-    return (!(*Lock) && !_interlockedbittestandset(Lock, 0));
+    return (!(*Lock) && !CpuInterlockedBitTestAndSet(Lock, 0));
 }
 
 /**

@@ -8,47 +8,13 @@ HyperDbg is a large-scale project that requires a lot of time and effort from th
 
 Please make sure to create a [discussion](https://github.com/orgs/HyperDbg/discussions) or an [issue](https://github.com/HyperDbg/HyperDbg/issues), or even better, join the HyperDbg groups ([Telegram](https://t.me/HyperDbg), [Discord](https://discord.gg/anSPsGUtzN), [Matrix](https://matrix.to/#/#hyperdbg-discussion:matrix.org)) on social media. Discuss the way you want to implement your changes and inform developers, because we often see people simultaneously working on the same issue. To avoid this collision, make sure to inform us before you start developing.
 
+### Working on an Idea or a Task
+- We have a [wide range of ideas and tasks](https://github.com/orgs/HyperDbg/projects/2) that you might be interested in working on. You can choose a task and start working on it, and if you have any questions or need clarification, feel free to ask. This list will be updated frequently.
+
+### Other Things to Work on
 - Writing blog posts and creating videos about use-cases of HyperDbg (make sure to add it to the [awesome](https://github.com/HyperDbg/awesome) repository).
 - Fixing unresolved GitHub [issues](https://github.com/HyperDbg/HyperDbg/issues).
-- Troubleshooting problems with running on Hyper-V's nested virtualization.
-- Troubleshooting problems with running on VirtualBox's nested virtualization.
-- Supporting KDNET (sending data over the network).
-- Enhancing HyperDbg's [Transparent Mode](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/operation-modes#transparent-mode). These features should be added as an extension to the [HyperEvade](https://www.vusec.net/projects/hyperevade/) project (e.g., by bypassing [al-khaser](https://github.com/LordNoteworthy/al-khaser) and similar anti-debugging and anti-hypervisor projects).
-- Adding HyperDbg to the system startup using UEFI.
-- Creating a QT-based GUI.
-- Creating a SoftICE-style GUI.
-- Supporting nested-virtualization on HyperDbg itself.
-- Protecting HyperDbg code and memory from modification using VT-x capabilities.
-- Adding support for the Intel Processor Trace (PT) and event command for detecting coverage | (In progress).
-- Creating a wrapper that automatically interprets the [HyperDbg SDK](https://github.com/HyperDbg/HyperDbg/tree/master/hyperdbg/include/SDK) to GO, RUST, C#, Python, etc.
-- Creating syntax highlighting for dslang for different IDEs (VSCode, VIM, etc.).
-- Building HyperDbg using LLVM clang.
-- Helping us start supporting HyperDbg on Linux (discussion needed) | (In progress).
-- Helping us start supporting HyperDbg on AMD processors (discussion needed).
-- Adding digital (FPGA) modules to the hwdbg hardware debugger.
-- Creating a [ret-sync](https://github.com/bootleg/ret-sync) module for HyperDbg.
-- Adding fuzzing capabilities to HyperDbg (maybe integrating [AFL++](https://github.com/AFLplusplus/AFLplusplus) into HyperDbg).
-- Working on live memory migration and adding support for kernel-mode time travel debugging.
-- Integrating the [z3 project](https://github.com/Z3Prover/z3) into HyperDbg and adding commands based on the z3 solver.
-- Adding the [Bochs emulator](https://github.com/bochs-emu/Bochs) to HyperDbg.
-- Creating different examples of how to use the SDK (using different programming languages).
-- Debugging and fixing bugs related to HyperDbg's physical serial communication.
-- Reading symbol information from modules in memory (currently, HyperDbg opens a file which continues the debugger).
-- Adding APIC virtualization.
-- Reading the list of modules for the '[lm](https://docs.hyperdbg.org/commands/debugging-commands/lm)' command directly from kernel-mode.
-- Detecting and fixing anti-hypervisor methods described [here](https://github.com/Ahora57/MAJESTY-technologies).
-- Investigating why the symbols parser (DIA SDK) could not read symbols of the 'kernel32!*'.
-- Creating the 'alias' command that converts or registers scripts as a command, for example: "alias !list .script list.dbg" (discussion needed).
-- Adding support for [Hardware Performance Counters (HPC)](https://en.wikipedia.org/wiki/Hardware_performance_counter).
-- Any other interesting tasks you might find!
-
-- ~~Enhancing and adding more features to the ['.pe'](https://docs.hyperdbg.org/commands/meta-commands/.pe) command.~~ Added: [<a href="https://docs.hyperdbg.org/commands/meta-commands/.pe" target="_blank">link</a>][<a href="https://github.com/HyperDbg/HyperDbg/pull/598" target="_blank">link</a>]
-- ~~Adding routines to activate and use Last Branch Record (LBR) and Branch Trace Store (BTS).~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/lbr" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/lbrdump" target="_blank">link</a>]
-- ~~Creating commands to inspect and read details of PCIe devices.~~ Added: [<a href="https://docs.hyperdbg.org/commands/extension-commands/pcitree" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/extension-commands/pcicam" target="_blank">link</a>]
-- ~~Mitigating the anti-hypervisor method described [here](https://howtohypervise.blogspot.com/2019/01/a-common-missight-in-most-hypervisors.html).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/497)]
-- ~~Fixing the problem with [XSETBV instruction freezing](https://github.com/HyperDbg/HyperDbg/issues/429).~~ [[Fixed](https://github.com/HyperDbg/HyperDbg/pull/491)]
-
-This list will be updated frequently.
+- Any other interesting ideas you might find! (Let's have a discussion before working on them.)
 
 ## Fixing Bugs
 
