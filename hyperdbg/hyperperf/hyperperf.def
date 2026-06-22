@@ -1,0 +1,6 @@
+LIBRARY hyperperf
+
+EXPORTS
+
+    DllInitialize PRIVATE
+    DllUnload PRIVATE

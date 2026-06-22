@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
+- Added structure for the hyperperf (Hardware Performance Counter) project
 
 ### Changed
+- Separated SDK libraries for user mode and kernel mode modules
+- Added hypertrace, hyperevade, and hyperperf DLL files to SDK
 
 ## [0.20.0.0-beta] - 2026-06-21
 New release of the HyperDbg Debugger.

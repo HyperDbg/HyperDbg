@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.Windows.SDK.CPP.x64.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.x64.props" Condition="Exists('..\packages\Microsoft.Windows.SDK.CPP.x64.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.x64.props')" />
+  <Import Project="..\packages\Microsoft.Windows.SDK.CPP.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.props" Condition="Exists('..\packages\Microsoft.Windows.SDK.CPP.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.props')" />
+  <Import Project="..\packages\Microsoft.Windows.WDK.x64.10.0.28000.1839\build\native\Microsoft.Windows.WDK.x64.props" Condition="Exists('..\packages\Microsoft.Windows.WDK.x64.10.0.28000.1839\build\native\Microsoft.Windows.WDK.x64.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug|x64">
+      <Configuration>debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="release|x64">
+      <Configuration>release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{360E54B1-0B92-4BCA-8111-4BF384292621}</ProjectGuid>
+    <TemplateGuid>{1bc93793-694f-48fe-9372-81e2b05556fd}</TemplateGuid>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <Configuration>Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <RootNamespace>hyperperf</RootNamespace>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <DriverType>KMDF</DriverType>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <DriverType>KMDF</DriverType>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EnableInf2cat>false</EnableInf2cat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EnableInf2cat>false</EnableInf2cat>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
+    <DriverSign>
+      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
+    </DriverSign>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <EntryPointSymbol />
+      <NoEntryPoint>true</NoEntryPoint>
+      <ModuleDefinitionFile>hyperperf.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
+    <DriverSign>
+      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
+    </DriverSign>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>Full</Optimization>
+    </ClCompile>
+    <Link>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <EntryPointSymbol />
+      <NoEntryPoint>true</NoEntryPoint>
+      <ModuleDefinitionFile>hyperperf.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <FilesToPackage Include="$(TargetPath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
+    <ClCompile Include="code\api\PerfApi.c" />
+    <ClCompile Include="code\broadcast\Broadcast.c" />
+    <ClCompile Include="code\broadcast\DpcRoutines.c" />
+    <ClCompile Include="code\common\UnloadDll.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
+    <ClInclude Include="header\api\PerfApi.h" />
+    <ClInclude Include="header\broadcast\Broadcast.h" />
+    <ClInclude Include="header\broadcast\DpcRoutines.h" />
+    <ClInclude Include="header\common\UnloadDll.h" />
+    <ClInclude Include="header\globals\GlobalVariables.h" />
+    <ClInclude Include="header\pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\Microsoft.Windows.SDK.CPP.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.targets" Condition="Exists('..\packages\Microsoft.Windows.SDK.CPP.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.WDK.x64.10.0.28000.1839\build\native\Microsoft.Windows.WDK.x64.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.WDK.x64.10.0.28000.1839\build\native\Microsoft.Windows.WDK.x64.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.CPP.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.CPP.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.CPP.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.CPP.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.SDK.CPP.x64.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.x64.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.SDK.CPP.x64.10.0.28000.1839\build\native\Microsoft.Windows.SDK.cpp.x64.props'))" />
+  </Target>
+</Project>

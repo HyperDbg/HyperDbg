@@ -11,7 +11,7 @@
 #include "pch.h"
 
 /**
- * @brief Initialize the hyper trace module callbacks
+ * @brief Initialize the hypertrace module callbacks
  * @details This only for callback initialization, not for LBR, PT, etc. initialization
  *
  * @param HyperTraceCallbacks Pointer to the HyperTrace callbacks structure to be registered
