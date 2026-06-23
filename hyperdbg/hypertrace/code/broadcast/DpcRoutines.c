@@ -198,8 +198,11 @@ DpcRoutineEnablePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVO
     //
     PtStart();
 
-    KeSignalCallDpcSynchronize(SystemArgument2);
-    KeSignalCallDpcDone(SystemArgument1);
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
+    //
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+
     return TRUE;
 }
 
@@ -214,8 +217,11 @@ DpcRoutineDisablePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PV
 
     PtStop();
 
-    KeSignalCallDpcSynchronize(SystemArgument2);
-    KeSignalCallDpcDone(SystemArgument1);
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
+    //
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+
     return TRUE;
 }
 
@@ -230,8 +236,11 @@ DpcRoutinePausePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOI
 
     PtPause();
 
-    KeSignalCallDpcSynchronize(SystemArgument2);
-    KeSignalCallDpcDone(SystemArgument1);
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
+    //
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+
     return TRUE;
 }
 
@@ -246,8 +255,11 @@ DpcRoutineResumePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVO
 
     PtResume();
 
-    KeSignalCallDpcSynchronize(SystemArgument2);
-    KeSignalCallDpcDone(SystemArgument1);
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
+    //
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+
     return TRUE;
 }
 
@@ -269,8 +281,11 @@ DpcRoutineSizePt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID
     if (Sizes != NULL && Core < PT_MAX_CPUS_FOR_MMAP)
         Sizes[Core] = PtSize();
 
-    KeSignalCallDpcSynchronize(SystemArgument2);
-    KeSignalCallDpcDone(SystemArgument1);
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
+    //
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+
     return TRUE;
 }
 
@@ -285,8 +300,11 @@ DpcRoutineDumpPt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID
 
     PtDump();
 
-    KeSignalCallDpcSynchronize(SystemArgument2);
-    KeSignalCallDpcDone(SystemArgument1);
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
+    //
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+
     return TRUE;
 }
 
@@ -301,8 +319,11 @@ DpcRoutineFlushPt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOI
 
     PtFlush();
 
-    KeSignalCallDpcSynchronize(SystemArgument2);
-    KeSignalCallDpcDone(SystemArgument1);
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
+    //
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+
     return TRUE;
 }
 
@@ -320,7 +341,10 @@ DpcRoutineFilterPt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVO
 
     PtFilter((const PT_FILTER_OPTIONS *)DeferredContext);
 
-    KeSignalCallDpcSynchronize(SystemArgument2);
-    KeSignalCallDpcDone(SystemArgument1);
+    // ------------------------------------------------------------------------------
+    // Synchronize the end of this routine with the caller
+    //
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+
     return TRUE;
 }
