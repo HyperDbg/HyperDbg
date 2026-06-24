@@ -92,7 +92,7 @@ PoolManagerInitialize()
 VOID
 PoolManagerUninitialize()
 {
-    PLIST_ENTRY ListTemp = &g_ListOfAllocatedPoolsHead;
+    PLIST_ENTRY Link;
 
     //
     // Pool manager is not initialized anymore
@@ -101,14 +101,16 @@ PoolManagerUninitialize()
 
     SpinlockLock(&LockForReadingPool);
 
-    while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
+    Link = g_ListOfAllocatedPoolsHead.Flink;
+
+    while (Link != &g_ListOfAllocatedPoolsHead)
     {
-        ListTemp = ListTemp->Flink;
+        PLIST_ENTRY Next = Link->Flink;
 
         //
         // Get the head of the record
         //
-        PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
+        PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(Link, POOL_TABLE, PoolsList);
 
         //
         // Free the alloocated buffer (if not already changed)
@@ -121,13 +123,19 @@ PoolManagerUninitialize()
         //
         // Unlink the PoolTable
         //
-        RemoveEntryList(&PoolTable->PoolsList);
+        RemoveEntryList(Link);
 
         //
         // Free the record itself
         //
         PlatformMemFreePool(PoolTable);
+
+        Link = Next;
     }
+
+    InitializeListHead(&g_ListOfAllocatedPoolsHead);
+    g_IsNewRequestForDeAllocation       = FALSE;
+    g_IsNewRequestForAllocationReceived = FALSE;
 
     SpinlockUnlock(&LockForReadingPool);
 
@@ -311,8 +319,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 BOOLEAN
 PoolManagerCheckAndPerformAllocationAndDeallocation()
 {
-    BOOLEAN     Result   = TRUE;
-    PLIST_ENTRY ListTemp = 0;
+    BOOLEAN Result = TRUE;
 
     //
     // Make sure we're on vmx non-root and also we have new allocation
@@ -364,16 +371,16 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     if (g_IsNewRequestForDeAllocation)
     {
-        ListTemp = &g_ListOfAllocatedPoolsHead;
+        PLIST_ENTRY Link = g_ListOfAllocatedPoolsHead.Flink;
 
-        while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
+        while (Link != &g_ListOfAllocatedPoolsHead)
         {
-            ListTemp = ListTemp->Flink;
+            PLIST_ENTRY Next = Link->Flink;
 
             //
             // Get the head of the record
             //
-            PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
+            PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(Link, POOL_TABLE, PoolsList);
 
             //
             // Check whether this pool should be freed or not and
@@ -394,13 +401,15 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 //
                 // Now we should remove the entry from the g_ListOfAllocatedPoolsHead
                 //
-                RemoveEntryList(&PoolTable->PoolsList);
+                RemoveEntryList(Link);
 
                 //
                 // Free the structure pool
                 //
                 PlatformMemFreePool(PoolTable);
             }
+
+            Link = Next;
         }
     }
 
