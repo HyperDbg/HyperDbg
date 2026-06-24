@@ -12,37 +12,113 @@
  */
 #include "pch.h"
 
+#define HYPERV_VENDOR_MICROSOFT_EBX  0x7263694d // "Micr"
+#define HYPERV_VENDOR_MICROSOFT_ECX  0x666f736f // "osof"
+#define HYPERV_VENDOR_MICROSOFT_EDX  0x76482074 // "t Hv"
+#define HYPERV_INTERFACE_HV1_EAX     0x31237648 // "Hv#1"
+#define TRANSPARENT_HYPERV_CPUID_MAX HYPERV_CPUID_IMPLEMENT_LIMITS
+
+static VOID
+TransparentZeroCpuidLeaf(INT32 CpuInfo[])
+{
+    CpuInfo[0] = CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
+}
+
+static BOOLEAN
+TransparentCpuidLeafIsHypervisorRange(UINT64 Leaf)
+{
+    return Leaf >= HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS && Leaf <= HYPERV_CPUID_MAX;
+}
+
+static BOOLEAN
+TransparentGuestExecutionIsUserMode()
+{
+    return g_Callbacks.IsGuestExecutionUserMode();
+}
+
+static BOOLEAN
+TransparentReservedMsrAccessShouldFault(UINT32 TargetMsr)
+{
+    // The Hyper-V synthetic MSR range is used by the Windows kernel for timers.
+    // #GP injection for kernel traffic can crash nested guests on Meteor Lake.
+    // Ref: https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/tlfs/timers
+    return TargetMsr >= RESERVED_MSR_RANGE_LOW &&
+           TargetMsr <= RESERVED_MSR_RANGE_HI &&
+           TransparentGuestExecutionIsUserMode();
+}
+
+static VOID
+TransparentApplyBareMetalCpuidPolicy(PGUEST_REGS Regs, INT32 CpuInfo[])
+{
+    if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
+    {
+        // Intel and AMD reserve ECX[31] as the hypervisor-present bit.
+        CpuInfo[2] &= ~HYPERV_HYPERVISOR_PRESENT_BIT;
+    }
+    else if (TransparentCpuidLeafIsHypervisorRange(Regs->rax))
+    {
+        // Bare-metal policy hides the synthetic hypervisor CPUID range.
+        TransparentZeroCpuidLeaf(CpuInfo);
+    }
+}
+
+static VOID
+TransparentApplyHyperVCpuidPolicy(PGUEST_REGS Regs, INT32 CpuInfo[])
+{
+    if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
+    {
+        CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
+    }
+    else if (Regs->rax == HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS)
+    {
+        // Expose a coherent Microsoft Hyper-V identity instead of HyperDbg's Hv#0 footprint.
+        CpuInfo[0] = TRANSPARENT_HYPERV_CPUID_MAX;
+        CpuInfo[1] = HYPERV_VENDOR_MICROSOFT_EBX;
+        CpuInfo[2] = HYPERV_VENDOR_MICROSOFT_ECX;
+        CpuInfo[3] = HYPERV_VENDOR_MICROSOFT_EDX;
+    }
+    else if (Regs->rax == HYPERV_CPUID_INTERFACE)
+    {
+        CpuInfo[0] = HYPERV_INTERFACE_HV1_EAX;
+        CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
+    }
+    else if (Regs->rax >= HYPERV_CPUID_VERSION && Regs->rax <= HYPERV_CPUID_IMPLEMENT_LIMITS)
+    {
+        // Keep the Hv#1 range TLFS-coherent without advertising unbacked features.
+        TransparentZeroCpuidLeaf(CpuInfo);
+    }
+    else if (TransparentCpuidLeafIsHypervisorRange(Regs->rax) && Regs->rax > TRANSPARENT_HYPERV_CPUID_MAX)
+    {
+        TransparentZeroCpuidLeaf(CpuInfo);
+    }
+}
+
 /**
  * @brief Handle Cpuid Vmexits when the Transparent mode is enabled
  *
  * @param Regs The virtual processor's state of registers
  * @param CpuInfo The temporary logical processor registers
  *
- * @return VOID
+ * @return BOOLEAN Whether transparent CPUID handling is active
  */
-VOID
+BOOLEAN
 TransparentCheckAndModifyCpuid(PGUEST_REGS Regs, INT32 CpuInfo[])
 {
     if ((g_TransparentEvadeMask & TRANSPARENT_EVADE_MASK_CPUID) == 0)
     {
-        return;
+        return FALSE;
     }
 
-    if (Regs->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
+    if ((g_TransparentEvadeMask & TRANSPARENT_EVADE_MASK_CPUID_BARE_METAL) != 0)
     {
-        //
-        // Unset the Hypervisor Present-bit in RCX, which Intel and AMD have both
-        // reserved for this indication
-        //
-        CpuInfo[2] &= ~HYPERV_HYPERVISOR_PRESENT_BIT;
+        TransparentApplyBareMetalCpuidPolicy(Regs, CpuInfo);
     }
-    else if (Regs->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS || Regs->rax == HYPERV_CPUID_INTERFACE)
+    else
     {
-        //
-        // When transparent, all CPUID leaves in the 0x40000000+ range should contain no usable data
-        //
-        CpuInfo[0] = CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0x40000000;
+        TransparentApplyHyperVCpuidPolicy(Regs, CpuInfo);
     }
+
+    return TRUE;
 }
 
 /**
@@ -64,33 +140,13 @@ TransparentCheckAndModifyMsrRead(PGUEST_REGS Regs, UINT32 TargetMsr)
         return FALSE;
     }
 
-    //
-    // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
-    // when the guest operating system is Windows to indicate the OS identifier
-    //
-    // Sina: Needs more investigation since injecting #GP on Nested-virtualization environments
-    // will crash the VM on Meteor Lake processors since the OS expects to use synthetic timers
-    // (HV_REGISTER_STIMER0_CONFIG and HV_REGISTER_STIMER0_COUNT) to receive interrupts
-    // Ref: https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/tlfs/timers
-    //
-    // if (TargetMsr >= RESERVED_MSR_RANGE_LOW && TargetMsr <= RESERVED_MSR_RANGE_HI)
-    // {
-    //     LogInfo("RDMSR attempts to write to a reserved MSR range. MSR: %x",
-    //             TargetMsr);
-    //
-    //     g_Callbacks.EventInjectGeneralProtection();
-    //     return TRUE; // Should not emulate further
-    // }
-    // else
-    // {
-    //     //
-    //     // Not handled in the transparent-mode
-    //     //
-    //     return FALSE;
-    // }
-
     UNREFERENCED_PARAMETER(Regs);
-    UNREFERENCED_PARAMETER(TargetMsr);
+
+    if (TransparentReservedMsrAccessShouldFault(TargetMsr))
+    {
+        g_Callbacks.EventInjectGeneralProtection();
+        return TRUE;
+    }
 
     return FALSE;
 }
@@ -114,32 +170,13 @@ TransparentCheckAndModifyMsrWrite(PGUEST_REGS Regs, UINT32 TargetMsr)
         return FALSE;
     }
 
-    // if (TargetMsr >= RESERVED_MSR_RANGE_LOW && TargetMsr <= RESERVED_MSR_RANGE_HI)
-    // {
-    //     //
-    //     // The MSR range between 40000000H and 400000F0H is reserved and usually used by hypervisors
-    //     // when the guest operating system is Windows to indicate the OS identifier
-    //     //
-    //
-    //     LogInfo("WRMSR attempts to write to a reserved MSR range. MSR: %x, rax: %llx, rdx: %llx",
-    //             TargetMsr,
-    //             Regs->rax,
-    //             Regs->rdx);
-    //
-    //     g_Callbacks.EventInjectGeneralProtection();
-    //
-    //     return TRUE; // Should not emulate further
-    // }
-    // else
-    // {
-    //     //
-    //     // Not handled in the transparent-mode
-    //     //
-    //     return FALSE;
-    // }
-
     UNREFERENCED_PARAMETER(Regs);
-    UNREFERENCED_PARAMETER(TargetMsr);
+
+    if (TransparentReservedMsrAccessShouldFault(TargetMsr))
+    {
+        g_Callbacks.EventInjectGeneralProtection();
+        return TRUE;
+    }
 
     return FALSE;
 }

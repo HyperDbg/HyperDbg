@@ -44,3 +44,12 @@ BroadcasDisableMbecOnAllProcessors();
 
 VOID
 BroadcasEnableMbecOnAllProcessors();
+
+BOOLEAN
+BroadcastClearTransparentCpuidTscCompensationAllCores();
+
+BOOLEAN
+BroadcastEnableTransparentCpuidTscTimingAllCores();
+
+BOOLEAN
+BroadcastDisableTransparentCpuidTscTimingAllCores();

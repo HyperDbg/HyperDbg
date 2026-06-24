@@ -116,6 +116,12 @@ MsrHandleRdmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
         (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
+        if (g_CheckForFootprints && TransparentCheckAndModifyMsrRead(VCpu->Regs, TargetMsr))
+        {
+            HvSuppressRipIncrement(VCpu);
+            return;
+        }
+
         //
         // Apply the RDMS
         //
@@ -275,6 +281,12 @@ MsrHandleWrmsrVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
         (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
+        if (g_CheckForFootprints && TransparentCheckAndModifyMsrWrite(VCpu->Regs, TargetMsr))
+        {
+            HvSuppressRipIncrement(VCpu);
+            return;
+        }
+
         //
         // If the source register contains a non-canonical address and ECX specifies
         // one of the following MSRs:
