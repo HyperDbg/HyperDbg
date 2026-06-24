@@ -13,6 +13,7 @@ New release of the HyperDbg Debugger.
 ### Changed
 - Separated SDK libraries for user mode and kernel mode modules
 - Added hypertrace, hyperevade, and hyperperf DLL files to SDK
+- Fix pool manager uninit list corruption ([link](https://github.com/HyperDbg/HyperDbg/pull/629))
 
 ## [0.20.0.0-beta] - 2026-06-21
 New release of the HyperDbg Debugger.

@@ -15,6 +15,7 @@ TARGET_PROJECTS = [
     "hypertrace.vcxproj",
     "hyperlog.vcxproj",
     "hyperevade.vcxproj",
+    "hyperperf.vcxproj",
     "kdserial.vcxproj",
     "hyperdbg_driver.vcxproj",
 ]
