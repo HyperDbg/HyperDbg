@@ -596,6 +596,29 @@ HyperDbgUnloadKd()
 }
 
 /**
+ * @brief check if any module is loaded (KD, VMM, HyperTrace, etc.)
+ *
+ * @return BOOLEAN return TRUE if any module is loaded, otherwise return FALSE
+ */
+BOOLEAN
+HyperDbgIsAnyModuleLoaded()
+{
+    INT RetVal = 0;
+
+    //
+    // Check if any module is loaded (KD, VMM, HyperTrace, etc.)
+    //
+    if (g_IsKdModuleLoaded || g_IsVmmModuleLoaded || g_IsHyperTraceModuleLoaded)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
  * @brief unload all modules (KD, VMM, HyperTrace, etc.)
  *
  * @return INT return zero if it was successful or non-zero if there

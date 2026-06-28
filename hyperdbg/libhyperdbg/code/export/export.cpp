@@ -54,6 +54,17 @@ hyperdbg_u_load_vmm()
 }
 
 /**
+ * @brief Check if any module is loaded
+ *
+ * @return BOOLEAN Returns true if any module is loaded and false if no module is loaded
+ */
+BOOLEAN
+hyperdbg_u_is_any_module_loaded()
+{
+    return HyperDbgIsAnyModuleLoaded();
+}
+
+/**
  * @brief Unload all modules
  *
  * @return INT Returns 0 if it was successful and 1 if it was failed

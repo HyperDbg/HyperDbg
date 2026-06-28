@@ -15,6 +15,9 @@
 //            	    Functions                   //
 //////////////////////////////////////////////////
 
+BOOLEAN
+HyperDbgIsAnyModuleLoaded();
+
 INT
 HyperDbgUnloadAllModules();
 

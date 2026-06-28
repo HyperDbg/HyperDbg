@@ -167,6 +167,15 @@ CommandUnload(vector<CommandToken> CommandTokens, string Command)
             return;
         }
 
+        //
+        // Check if any module is loaded
+        //
+        if (!HyperDbgIsAnyModuleLoaded())
+        {
+            ShowMessages("no module is loaded\n");
+            return;
+        }
+
         ShowMessages("unloading all modules\n");
 
         //

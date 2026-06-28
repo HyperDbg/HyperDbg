@@ -49,6 +49,9 @@ hyperdbg_u_get_processor_vendor();
 //
 // All Modules
 //
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_is_any_module_loaded();
+
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_load_all_modules();
 

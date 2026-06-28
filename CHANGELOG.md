@@ -9,6 +9,8 @@ New release of the HyperDbg Debugger.
 
 ### Added
 - Added structure for the hyperperf (Hardware Performance Counter) project
+- The 'unload' command checks whether any module is loaded or not ([link](https://docs.hyperdbg.org/commands/debugging-commands/unload))
+- Exported SDK API for checking whether any module is loaded or not
 
 ### Changed
 - Separated SDK libraries for user mode and kernel mode modules
