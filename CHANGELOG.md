@@ -8,14 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New release of the HyperDbg Debugger.
 
 ### Added
-- Added structure for the hyperperf (Hardware Performance Counter) project
+- Added structure for the hyperperf (Hardware Performance Counter) project ([link](https://github.com/HyperDbg/HyperDbg/commit/c17ebc09c4d199a642352e66feebb3159582196c))
 - The 'unload' command checks whether any module is loaded or not ([link](https://docs.hyperdbg.org/commands/debugging-commands/unload))
-- Exported SDK API for checking whether any module is loaded or not
+- Exported SDK API for checking whether any module is loaded or not ([link](https://github.com/HyperDbg/HyperDbg/commit/19e47c804f50f5dbb698f314e66b7d685a87ac1f))
 
 ### Changed
-- Separated SDK libraries for user mode and kernel mode modules
-- Added hypertrace, hyperevade, and hyperperf DLL files to SDK
-- Fix pool manager uninit list corruption ([link](https://github.com/HyperDbg/HyperDbg/pull/629))
+- Separated SDK libraries for user mode and kernel mode modules ([link](https://github.com/HyperDbg/HyperDbg/commit/c17ebc09c4d199a642352e66feebb3159582196c))
+- Added hypertrace, hyperevade, and hyperperf DLL files to SDK ([link](https://github.com/HyperDbg/HyperDbg/commit/c17ebc09c4d199a642352e66feebb3159582196c))
+- Fix pool manager uninitialize list corruption ([link](https://github.com/HyperDbg/HyperDbg/pull/629))
+- Fix 'access denied' error on loading all modules using 'load all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
 
 ## [0.20.0.0-beta] - 2026-06-21
 New release of the HyperDbg Debugger.
