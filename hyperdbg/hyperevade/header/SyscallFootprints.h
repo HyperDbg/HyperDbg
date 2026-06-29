@@ -362,7 +362,7 @@ static const PWCH HV_FILES[] = {
     // HyperDbg Files
     //
     L"hyperhv",
-    L"hyperkd"
+    L"hyperkd",
     L"hyperlog",
     L"libhyperdbg",
 

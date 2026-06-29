@@ -16,7 +16,8 @@ New release of the HyperDbg Debugger.
 - Separated SDK libraries for user mode and kernel mode modules ([link](https://github.com/HyperDbg/HyperDbg/commit/c17ebc09c4d199a642352e66feebb3159582196c))
 - Added hypertrace, hyperevade, and hyperperf DLL files to SDK ([link](https://github.com/HyperDbg/HyperDbg/commit/c17ebc09c4d199a642352e66feebb3159582196c))
 - Fix pool manager uninitialize list corruption ([link](https://github.com/HyperDbg/HyperDbg/pull/629))
-- Fix 'access denied' error on loading all modules using 'load all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))
+- Fix 'access denied' error on loading all modules using 'load all' ([link](https://docs.hyperdbg.org/commands/debugging-commands/load))([link](https://github.com/HyperDbg/HyperDbg/commit/2b818a5116d80d466aab7b343d4aa9d1d640f082))
+- Fix concatenation error for "hyperkd" string on the hypertrace project
 
 ## [0.20.0.0-beta] - 2026-06-21
 New release of the HyperDbg Debugger.
