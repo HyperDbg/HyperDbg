@@ -41,6 +41,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     VCpu->IsOnVmxRootMode = TRUE;
 
+    if (g_CheckForFootprints)
+    {
+        VCpu->TransparencyState.LastVmexitTimeStampCounter = __rdtsc();
+    }
+
     //
     // read the exit reason and exit qualification
     //
@@ -169,10 +174,18 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
+        UINT32 CpuidLeaf    = (UINT32)(VCpu->Regs->rax & 0xffffffff);
+        UINT32 CpuidSubleaf = (UINT32)(VCpu->Regs->rcx & 0xffffffff);
+
         //
         // Dispatch and trigger the CPUID instruction events
         //
         DispatchEventCpuid(VCpu);
+
+        if (g_CheckForFootprints && g_TransparentCpuidTscCompensationEnabled)
+        {
+            CounterArmCpuidTscCompensation(VCpu, CpuidLeaf, CpuidSubleaf);
+        }
 
         break;
     }

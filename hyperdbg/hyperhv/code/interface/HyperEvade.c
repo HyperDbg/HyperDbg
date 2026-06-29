@@ -13,6 +13,14 @@
  */
 #include "pch.h"
 
+static BOOLEAN
+TransparentCallbackIsGuestExecutionUserMode()
+{
+    VMX_SEGMENT_SELECTOR Cs = GetGuestCs();
+
+    return Cs.Attributes.DescriptorPrivilegeLevel != DPL_SYSTEM;
+}
+
 /**
  * @brief Wrapper for hiding debugger on transparent-mode (activate transparent-mode)
  *
@@ -32,7 +40,7 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
         EvadeMask = TRANSPARENT_EVADE_MASK_DEFAULT;
     }
 
-    if ((EvadeMask & ~TRANSPARENT_EVADE_MASK_ALL) != 0)
+    if ((EvadeMask & ~TRANSPARENT_EVADE_MASK_VALID) != 0)
     {
         TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
         return FALSE;
@@ -80,6 +88,7 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     //
     HyperevadeCallbacks.HvHandleTrapFlag             = HvHandleTrapFlag;
     HyperevadeCallbacks.EventInjectGeneralProtection = EventInjectGeneralProtection;
+    HyperevadeCallbacks.IsGuestExecutionUserMode     = TransparentCallbackIsGuestExecutionUserMode;
 
     //
     // Call the hyperevade hide debugger function
@@ -103,6 +112,28 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
         // Status is set within the transparent mode (hyperevade) module
         //
         g_CheckForFootprints = TRUE;
+
+        if ((EvadeMask & TRANSPARENT_EVADE_MASK_CPUID) != 0)
+        {
+            if (!BroadcastEnableTransparentCpuidTscTimingAllCores())
+            {
+                BroadcastDisableTransparentCpuidTscTimingAllCores();
+
+                if (SyscallCallbackIsInitialized())
+                {
+                    SyscallCallbackUninitialize();
+                }
+
+                TransparentUnhideDebugger();
+
+                TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+                g_CheckForFootprints                 = FALSE;
+                return FALSE;
+            }
+
+            g_TransparentCpuidTscCompensationEnabled = TRUE;
+        }
+
         return TRUE;
     }
     else
@@ -124,6 +155,8 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
 BOOLEAN
 TransparentUnhideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * TransparentModeRequest)
 {
+    BOOLEAN CpuidTscCompensationEnabled = g_TransparentCpuidTscCompensationEnabled;
+
     if (SyscallCallbackIsInitialized() && !SyscallCallbackUninitialize())
     {
         if (TransparentModeRequest != NULL)
@@ -132,6 +165,25 @@ TransparentUnhideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * T
         }
 
         return FALSE;
+    }
+
+    if (CpuidTscCompensationEnabled)
+    {
+        g_CheckForFootprints = FALSE;
+
+        if (!BroadcastDisableTransparentCpuidTscTimingAllCores())
+        {
+            g_CheckForFootprints = TRUE;
+
+            if (TransparentModeRequest != NULL)
+            {
+                TransparentModeRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+            }
+
+            return FALSE;
+        }
+
+        g_TransparentCpuidTscCompensationEnabled = FALSE;
     }
 
     if (TransparentUnhideDebugger())

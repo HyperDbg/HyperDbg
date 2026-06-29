@@ -249,6 +249,11 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
+    BOOLEAN                                   ForceTransparentTimingEmulation;
+
+    ForceTransparentTimingEmulation = g_CheckForFootprints &&
+                                      g_TransparentCpuidTscCompensationEnabled &&
+                                      VCpu->TransparencyState.TransparentCpuidTscTimingEnabled;
 
     //
     // As the context to event trigger, we send the false which means
@@ -263,19 +268,27 @@ DispatchEventTsc(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp)
     //
     // Check whether we need to short-circuiting event emulation or not
     //
-    if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT ||
+        ForceTransparentTimingEmulation)
     {
-        //
-        // Handle rdtsc (emulate rdtsc/p)
-        //
-        if (IsRdtscp)
+        if (!CounterEmulateCpuidTscCompensation(VCpu, IsRdtscp))
         {
-            CounterEmulateRdtscp(VCpu);
+            //
+            // Handle rdtsc (emulate rdtsc/p)
+            //
+            if (IsRdtscp)
+            {
+                CounterEmulateRdtscp(VCpu);
+            }
+            else
+            {
+                CounterEmulateRdtsc(VCpu);
+            }
         }
-        else
-        {
-            CounterEmulateRdtsc(VCpu);
-        }
+    }
+    else
+    {
+        CounterClearCpuidTscCompensation(VCpu);
     }
 
     //
@@ -664,6 +677,11 @@ DispatchEventRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
 {
     VMM_CALLBACK_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                                   PostEventTriggerReq = FALSE;
+    BOOLEAN                                   ForceTransparentEmulation;
+
+    ForceTransparentEmulation = g_CheckForFootprints &&
+                                g_TransparentCpuidTscCompensationEnabled &&
+                                VCpu->TransparencyState.TransparentCpuidTscTimingEnabled;
 
     //
     // Triggering the pre-event
@@ -677,7 +695,8 @@ DispatchEventRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Check whether we need to short-circuiting event emulation or not
     //
-    if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    if (EventTriggerResult != VMM_CALLBACK_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT ||
+        ForceTransparentEmulation)
     {
         //
         // Handle RDPMC (emulate RDPMC)
@@ -832,6 +851,13 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     // read the exit interruption information
     //
     VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit.AsUInt);
+
+    if (InterruptExit.InterruptionType == INTERRUPT_TYPE_HARDWARE_EXCEPTION &&
+        InterruptExit.Vector == EXCEPTION_VECTOR_GENERAL_PROTECTION_FAULT &&
+        CounterHandleTransparentRdpmcGeneralProtection(VCpu))
+    {
+        return;
+    }
 
     //
     // This type of vm-exit, can be either because of an !exception event,

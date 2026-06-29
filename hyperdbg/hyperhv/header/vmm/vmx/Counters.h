@@ -22,6 +22,24 @@ VOID
 CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
+CounterArmCpuidTscCompensation(VIRTUAL_MACHINE_STATE * VCpu, UINT32 Leaf, UINT32 Subleaf);
+
+VOID
+CounterClearCpuidTscCompensation(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+CounterEnableTransparentCpuidTscTiming(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+CounterDisableTransparentCpuidTscTiming(VIRTUAL_MACHINE_STATE * VCpu);
+
+BOOLEAN
+CounterEmulateCpuidTscCompensation(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsRdtscp);
+
+BOOLEAN
+CounterHandleTransparentRdpmcGeneralProtection(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 CounterEmulateRdpmc(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
