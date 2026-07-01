@@ -1399,14 +1399,14 @@ PtDump()
  *        handles that case before broadcasting.
  */
 VOID
-PtFilter(const PT_FILTER_OPTIONS * FilterOptions)
+PtFilter(const PT_APPLY_CORE_FILTER_REQUEST * FilterRequest)
 {
     UINT32          CurrentCore;
     PT_PER_CPU *    Cpu;
     UINT32          i;
     PT_CAPABILITIES Caps = {0};
 
-    if (g_PtStateList == NULL || FilterOptions == NULL)
+    if (g_PtStateList == NULL || FilterRequest == NULL)
         return;
 
     if (PtEngineQueryCapabilities(&Caps) != 0)
@@ -1429,42 +1429,42 @@ PtFilter(const PT_FILTER_OPTIONS * FilterOptions)
     //
     // Apply only the user-tunable fields to this CPU's per-CPU config.
     //
-    Cpu->Config.TraceUser   = FilterOptions->TraceUser;
-    Cpu->Config.TraceKernel = FilterOptions->TraceKernel;
+    Cpu->Config.TraceUser   = (BOOLEAN)FilterRequest->FilterOptions.TraceUser;
+    Cpu->Config.TraceKernel = (BOOLEAN)FilterRequest->FilterOptions.TraceKernel;
 
-    if (FilterOptions->TargetCr3 != 0 && !Caps.Cr3Filtering)
+    if (FilterRequest->EnableOptions.Cr3 != 0 && !Caps.Cr3Filtering)
     {
         LogInfo("PT: CR3 filtering requested but not supported by CPU\n");
         Cpu->Config.TargetCr3 = 0;
     }
     else
     {
-        Cpu->Config.TargetCr3 = FilterOptions->TargetCr3;
+        Cpu->Config.TargetCr3 = FilterRequest->EnableOptions.Cr3;
     }
 
-    if (FilterOptions->NumAddrRanges > Caps.NumAddrRanges)
+    if (FilterRequest->FilterOptions.NumAddrRanges > Caps.NumAddrRanges)
     {
-        LogInfo("PT: requested %u IP filter ranges, but CPU only supports %u\n", FilterOptions->NumAddrRanges, Caps.NumAddrRanges);
+        LogInfo("PT: requested %u IP filter ranges, but CPU only supports %u\n", FilterRequest->FilterOptions.NumAddrRanges, Caps.NumAddrRanges);
         Cpu->Config.NumAddrRanges = Caps.NumAddrRanges;
     }
-    else if (FilterOptions->NumAddrRanges > 0 && !Caps.IpFiltering)
+    else if (FilterRequest->FilterOptions.NumAddrRanges > 0 && !Caps.IpFiltering)
     {
         LogInfo("PT: IP filtering requested but not supported by CPU\n");
         Cpu->Config.NumAddrRanges = 0;
     }
     else
     {
-        Cpu->Config.NumAddrRanges = FilterOptions->NumAddrRanges;
+        Cpu->Config.NumAddrRanges = FilterRequest->FilterOptions.NumAddrRanges;
     }
 
-    if (FilterOptions->BufferSize != 0)
+    if (FilterRequest->BufferSize != 0)
     {
-        Cpu->Config.BufferSize = FilterOptions->BufferSize;
+        Cpu->Config.BufferSize = FilterRequest->BufferSize;
     }
 
     for (i = 0; i < PT_MAX_ADDR_RANGES; i++)
     {
-        Cpu->Config.AddrRanges[i] = FilterOptions->AddrRanges[i];
+        Cpu->Config.AddrRanges[i] = FilterRequest->FilterOptions.AddrRanges[i];
     }
 
     //

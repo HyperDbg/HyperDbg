@@ -1355,6 +1355,7 @@ typedef enum _HYPERTRACE_PT_OPERATION_REQUEST_TYPE
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DISABLE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_PAUSE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_RESUME,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SIZE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FLUSH,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DUMP,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FILTER,
@@ -1395,6 +1396,7 @@ typedef struct _PT_FILTER_OPTIONS
     UINT32 TraceUser : 1;   // Trace user mode
     UINT32 TraceKernel : 1; // Trace kernel mode
 
+    UINT8         NumAddrRanges;                  /* Number of valid AddrRanges entries   */
     PT_ADDR_RANGE AddrRanges[PT_MAX_ADDR_RANGES]; // Address ranges to filter by
 
 } PT_FILTER_OPTIONS, *PPT_FILTER_OPTIONS;
@@ -1441,6 +1443,12 @@ typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
     // Packet
     //
     PT_PACKET_OPTIONS PacketOptions; /* Options for PT packets */
+
+    //
+    // Size
+    //
+    UINT32 NumCpus; /* CPUs populated in BytesPerCpu */
+    UINT64 BytesPerCpu[PT_MAX_CPUS_FOR_MMAP];
 
 } HYPERTRACE_PT_OPERATION_PACKETS, *PHYPERTRACE_PT_OPERATION_PACKETS;
 

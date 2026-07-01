@@ -13,40 +13,8 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//			    	  Constants	    			//
-//////////////////////////////////////////////////
-
-//
-// Pool tag for PT contiguous allocations (ASCII "PtHd")
-//
-#define POOL_TAG_PT 'dHtP'
-
-//////////////////////////////////////////////////
 //                  Structures                  //
 //////////////////////////////////////////////////
-
-/**
- * @brief Narrow input descriptor for PtFilter.
- *
- *        These are the only fields a caller is allowed to set per-CPU
- *        when reconfiguring an active PT trace. Engine-internal options
- *        (BranchEn, TscEn, MtcEn, CycEn, RetCompression, *Freq, etc.)
- *        stay under the engine's control and are NOT exposed here.
- *
- *        BufferSize == 0 means "keep whatever the per-CPU slot already
- *        has" — pure filter changes don't touch the ToPA / output /
- *        overflow buffers and can run from a DPC.
- */
-typedef struct _PT_FILTER_OPTIONS
-{
-    BOOLEAN       TraceUser;
-    BOOLEAN       TraceKernel;
-    UINT64        TargetCr3;
-    UINT64        BufferSize;
-    UINT32        NumAddrRanges;
-    PT_ADDR_RANGE AddrRanges[PT_MAX_ADDR_RANGES];
-
-} PT_FILTER_OPTIONS, *PPT_FILTER_OPTIONS;
 
 /**
  * @brief Per-CPU bookkeeping for the user-mode mmap surface.
@@ -62,6 +30,17 @@ typedef struct _PT_USER_MAPPING
     PVOID UserVa;
 
 } PT_USER_MAPPING, *PPT_USER_MAPPING;
+
+/**
+ * @brief PT apply core filter requests.
+ */
+typedef struct _PT_APPLY_CORE_FILTER_REQUEST
+{
+    PT_FILTER_OPTIONS FilterOptions;
+    PT_ENABLE_OPTIONS EnableOptions;
+    UINT64            BufferSize; /* Output buffer size (0 = default / PT_DEFAULT_BUFFER_SIZE)  */
+
+} PT_APPLY_CORE_FILTER_REQUEST, *PPT_APPLY_CORE_FILTER_REQUEST;
 
 //////////////////////////////////////////////////
 //                  Functions                   //
@@ -97,14 +76,14 @@ PtFlush();
 
 //
 // LBR-style filter wrapper, one CPU at a time. Mirrors LbrFilter in shape:
-// caller passes a PT_FILTER_OPTIONS describing only the user-tunable bits
+// caller passes a PT_APPLY_CORE_FILTER_REQUEST describing only the user-tunable bits
 // (TraceUser, TraceKernel, TargetCr3, BufferSize, NumAddrRanges, AddrRanges),
 // and PtFilter handles the stop / config-update / start sequence on the
 // CURRENT CPU. Engine-internal config (BranchEn, TscEn, etc.) is left
 // untouched in the per-CPU PT_TRACE_CONFIG.
 //
 VOID
-PtFilter(const PT_FILTER_OPTIONS * FilterOptions);
+PtFilter(const PT_APPLY_CORE_FILTER_REQUEST * FilterRequest);
 
 //
 // PASSIVE_LEVEL helpers — call before / after the per-core DPC broadcasts.

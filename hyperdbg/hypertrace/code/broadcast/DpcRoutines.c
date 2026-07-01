@@ -330,7 +330,7 @@ DpcRoutineFlushPt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOI
 /**
  * @brief Broadcast applying a PT filter to all cores.
  *
- *        DeferredContext carries the PT_FILTER_OPTIONS * supplied by the
+ *        DeferredContext carries the PT_APPLY_CORE_FILTER_REQUEST * supplied by the
  *        broadcaster; PtFilter writes the user-tunable fields into the
  *        current CPU's per-CPU PT_TRACE_CONFIG and reprograms PT MSRs.
  */
@@ -339,7 +339,7 @@ DpcRoutineFilterPt(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVO
 {
     UNREFERENCED_PARAMETER(Dpc);
 
-    PtFilter((const PT_FILTER_OPTIONS *)DeferredContext);
+    PtFilter((const PT_APPLY_CORE_FILTER_REQUEST *)DeferredContext);
 
     // ------------------------------------------------------------------------------
     // Synchronize the end of this routine with the caller
