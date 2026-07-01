@@ -155,23 +155,23 @@ PtFilter(UINT32 ProcessId, UINT64 Start, UINT64 End)
     HYPERTRACE_PT_OPERATION_PACKETS Op = {};
 
     Op.PtOperationType = HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FILTER;
-    Op.TraceUser       = 1;
-    Op.TargetProcessId = ProcessId;
+    Op.FilterOptions.TraceUser       = 1;
+    Op.EnableOptions.Pid = ProcessId;
 
     if (End > Start)
     {
-        Op.NumAddrRanges       = 1;
-        Op.AddrRanges[0].Start = Start;
-        Op.AddrRanges[0].End   = End;
+        Op.FilterOptions.NumAddrRanges       = 1;
+        Op.FilterOptions.AddrRanges[0].Start = Start;
+        Op.FilterOptions.AddrRanges[0].End   = End;
     }
 
     if (!hyperdbg_u_pt_operation(&Op))
         return FALSE;
 
     printf("[+] PT filter: cr3=0x%llx traceuser=%u ranges=%u buffer=0x%llx\n",
-           (unsigned long long)Op.TargetCr3,
-           Op.TraceUser,
-           Op.NumAddrRanges,
+           (unsigned long long)Op.EnableOptions.Cr3,
+           Op.FilterOptions.TraceUser,
+           Op.FilterOptions.NumAddrRanges,
            (unsigned long long)Op.BufferSize);
     return TRUE;
 }

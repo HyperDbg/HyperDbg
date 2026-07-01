@@ -48,7 +48,6 @@
 //////////////////////////////////////////////////
 
 #define PT_PAGE_SIZE           0x1000ULL    /* 4 KB                                  */
-#define PT_DEFAULT_BUFFER_SIZE 0x200000ULL  /* 2 MB                                  */
 #define PT_OVERFLOW_SIZE       PT_PAGE_SIZE /* 4 KB overflow landing zone            */
 #define PT_MAX_ADDR_RANGES     4
 

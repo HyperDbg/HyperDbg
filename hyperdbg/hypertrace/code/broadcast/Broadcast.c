@@ -153,10 +153,12 @@ BroadcastFlushPtOnAllCores()
  *        pointer is passed to every per-core DPC; KeGenericCallDpc is
  *        synchronous so the caller's storage is valid throughout.
  *
+ * @param FilterRequest Pointer to a PT_APPLY_CORE_FILTER_REQUEST structure containing the filter options to apply on all cores
+ *
  * @return VOID
  */
 VOID
-BroadcastFilterPtOnAllCores(PT_FILTER_OPTIONS * FilterOptions)
+BroadcastFilterPtOnAllCores(PT_APPLY_CORE_FILTER_REQUEST * FilterRequest)
 {
-    KeGenericCallDpc(DpcRoutineFilterPt, (PVOID)FilterOptions);
+    KeGenericCallDpc(DpcRoutineFilterPt, (PVOID)FilterRequest);
 }

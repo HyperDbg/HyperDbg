@@ -1670,13 +1670,13 @@ DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * 
         // kernel/user CR3 is chosen based on the requested trace mode so
         // it works whether or not KVA shadowing (KPTI) is enabled.
         //
-        if (HyperTracePtOperationRequest->TargetProcessId != 0 &&
-            HyperTracePtOperationRequest->TargetCr3 == 0)
+        if (HyperTracePtOperationRequest->EnableOptions.Pid != 0 &&
+            HyperTracePtOperationRequest->EnableOptions.Cr3 == 0)
         {
-            HyperTracePtOperationRequest->TargetCr3 =
-                DrvResolvePtTargetCr3(HyperTracePtOperationRequest->TargetProcessId,
-                                      (BOOLEAN)(HyperTracePtOperationRequest->TraceUser != 0),
-                                      (BOOLEAN)(HyperTracePtOperationRequest->TraceKernel != 0));
+            HyperTracePtOperationRequest->EnableOptions.Cr3 =
+                DrvResolvePtTargetCr3(HyperTracePtOperationRequest->EnableOptions.Pid,
+                                      (BOOLEAN)(HyperTracePtOperationRequest->FilterOptions.TraceUser != 0),
+                                      (BOOLEAN)(HyperTracePtOperationRequest->FilterOptions.TraceKernel != 0));
         }
 
         //

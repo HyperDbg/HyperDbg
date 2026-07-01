@@ -50,4 +50,4 @@ VOID
 BroadcastFlushPtOnAllCores();
 
 VOID
-BroadcastFilterPtOnAllCores(PT_FILTER_OPTIONS * FilterOptions);
+BroadcastFilterPtOnAllCores(PT_APPLY_CORE_FILTER_REQUEST * FilterRequest);

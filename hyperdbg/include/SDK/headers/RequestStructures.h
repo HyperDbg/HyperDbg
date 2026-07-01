@@ -1356,27 +1356,72 @@ typedef enum _HYPERTRACE_PT_OPERATION_REQUEST_TYPE
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_PAUSE,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_RESUME,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_SIZE,
-    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DUMP,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FLUSH,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_DUMP,
     HYPERTRACE_PT_OPERATION_REQUEST_TYPE_FILTER,
+    HYPERTRACE_PT_OPERATION_REQUEST_TYPE_PACKET,
 
 } HYPERTRACE_PT_OPERATION_REQUEST_TYPE;
 
 /**
+ * @brief The maximum buffer size for PT
+ *
+ */
+#define PT_DEFAULT_BUFFER_SIZE 0x200000 // 2 MB
+
+/**
+ * @brief PT enable options structure
+ *
+ */
+typedef struct _PT_ENABLE_OPTIONS
+{
+    UINT32 EnableByCr3 : 1;   // Enable by CR3
+    UINT32 EnableByPid : 1;   // Enable by PID
+    UINT32 EnableByTid : 1;   // Enable by TID
+    UINT32 EnableByPname : 1; // Enable by process name
+
+    UINT32 Pid;
+    UINT32 Tid;
+    UINT64 Cr3;
+    CHAR   ProcessName[256];
+
+} PT_ENABLE_OPTIONS, *PPT_ENABLE_OPTIONS;
+
+/**
+ * @brief PT filter options structure
+ *
+ */
+typedef struct _PT_FILTER_OPTIONS
+{
+    UINT32 TraceUser : 1;   // Trace user mode
+    UINT32 TraceKernel : 1; // Trace kernel mode
+
+    UINT8         NumAddrRanges;                  /* Number of valid AddrRanges entries   */
+    PT_ADDR_RANGE AddrRanges[PT_MAX_ADDR_RANGES]; // Address ranges to filter by
+
+} PT_FILTER_OPTIONS, *PPT_FILTER_OPTIONS;
+
+/**
+ * @brief PT packet options structure
+ *
+ */
+typedef struct _PT_PACKET_OPTIONS
+{
+    UINT32 PSB : 1;  // PSB packet
+    UINT32 PIP : 1;  // PIP packet
+    UINT32 TSC : 1;  // TSC packet
+    UINT32 MTC : 1;  // MTC packet
+    UINT32 CYC : 1;  // CYC packet
+    UINT32 TNT : 1;  // TNT packet
+    UINT32 TIP : 1;  // TIP packet
+    UINT32 FUP : 1;  // FUP packet
+    UINT32 MODE : 1; // MODE packet
+
+} PT_PACKET_OPTIONS, *PPT_PACKET_OPTIONS;
+
+/**
  * @brief The structure of HyperTrace PT result packet in HyperDbg
  *
- *        Configuration fields (TraceUser/TraceKernel/TargetCr3/BufferSize/
- *        NumAddrRanges/AddrRanges) are populated by the caller for ENABLE
- *        and FILTER operations. For other operations they are ignored.
- *
- *        BufferSize must be a power of two multiple of 4 KB (4KB ... 128MB).
- *        Pass 0 to keep the existing per-CPU value (default 2 MB on first
- *        enable).
- *
- *        For SIZE operations the kernel fills NumCpus and BytesPerCpu[]
- *        with each CPU's current PT output position, i.e. how many bytes
- *        of valid trace data are currently sitting in that CPU's main +
- *        overflow buffer; the rest of the packet is unused on output.
  */
 typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
 {
@@ -1384,23 +1429,25 @@ typedef struct _HYPERTRACE_PT_OPERATION_PACKETS
     UINT32                               KernelStatus;
 
     //
-    // Filter / config (used by FILTER and ENABLE)
+    // Enable
     //
-    UINT32        TraceUser;     /* Boolean: trace CPL > 0                 */
-    UINT32        TraceKernel;   /* Boolean: trace CPL == 0                */
-    UINT64        TargetCr3;     /* CR3 to filter by (0 = no filter)       */
-    UINT64        BufferSize;    /* Output buffer size (0 = keep current)  */
-    UINT32        NumAddrRanges;   /* Number of valid AddrRanges entries   */
-    UINT32        TargetProcessId; /* Process to trace; kernel resolves it
-                                      to TargetCr3 when TargetCr3 == 0
-                                      (0 = no PID-based CR3 filter)         */
-    PT_ADDR_RANGE AddrRanges[PT_MAX_ADDR_RANGES];
+    UINT64            BufferSize;    /* Output buffer size (0 = default / PT_DEFAULT_BUFFER_SIZE)  */
+    PT_ENABLE_OPTIONS EnableOptions; /* Options for enabling PT (CPL, CR3, PID, TID, Pname) */
 
     //
-    // SIZE output: per-CPU bytes-written snapshot
+    // Filter
     //
-    UINT32 NumCpus;   /* CPUs populated in BytesPerCpu */
-    UINT32 Reserved2; /* Padding to 8-align the array  */
+    PT_FILTER_OPTIONS FilterOptions; /* Options for filtering PT (CPL, AddrRanges) */
+
+    //
+    // Packet
+    //
+    PT_PACKET_OPTIONS PacketOptions; /* Options for PT packets */
+
+    //
+    // Size
+    //
+    UINT32 NumCpus; /* CPUs populated in BytesPerCpu */
     UINT64 BytesPerCpu[PT_MAX_CPUS_FOR_MMAP];
 
 } HYPERTRACE_PT_OPERATION_PACKETS, *PHYPERTRACE_PT_OPERATION_PACKETS;

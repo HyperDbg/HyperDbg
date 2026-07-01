@@ -36,26 +36,26 @@ HyperTracePtBuildConfig(const HYPERTRACE_PT_OPERATION_PACKETS * Req,
     // If the request specifies neither user nor kernel, default to both
     // (matches LBR behaviour when filter is empty).
     //
-    if (Req->TraceUser || Req->TraceKernel)
+    if (Req->FilterOptions.TraceUser || Req->FilterOptions.TraceKernel)
     {
-        OutCfg->TraceUser   = (Req->TraceUser != 0) ? TRUE : FALSE;
-        OutCfg->TraceKernel = (Req->TraceKernel != 0) ? TRUE : FALSE;
+        OutCfg->TraceUser   = (Req->FilterOptions.TraceUser != 0) ? TRUE : FALSE;
+        OutCfg->TraceKernel = (Req->FilterOptions.TraceKernel != 0) ? TRUE : FALSE;
     }
 
-    OutCfg->TargetCr3 = Req->TargetCr3;
+    OutCfg->TargetCr3 = Req->EnableOptions.Cr3;
 
     if (Req->BufferSize != 0)
     {
         OutCfg->BufferSize = Req->BufferSize;
     }
 
-    OutCfg->NumAddrRanges = Req->NumAddrRanges;
+    OutCfg->NumAddrRanges = Req->FilterOptions.NumAddrRanges;
     if (OutCfg->NumAddrRanges > PT_MAX_ADDR_RANGES)
         OutCfg->NumAddrRanges = PT_MAX_ADDR_RANGES;
 
     for (Copy = 0; Copy < OutCfg->NumAddrRanges; Copy++)
     {
-        OutCfg->AddrRanges[Copy] = Req->AddrRanges[Copy];
+        OutCfg->AddrRanges[Copy] = Req->FilterOptions.AddrRanges[Copy];
     }
 }
 
@@ -284,6 +284,7 @@ HyperTracePtSize(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
         return FALSE;
 
     ProcessorsCount = KeQueryActiveProcessorCount(0);
+
     if (ProcessorsCount > PT_MAX_CPUS_FOR_MMAP)
         ProcessorsCount = PT_MAX_CPUS_FOR_MMAP;
 
@@ -405,36 +406,36 @@ HyperTracePtFlush(HYPERTRACE_PT_OPERATION_PACKETS * HyperTraceOperationRequest)
 BOOLEAN
 HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
 {
-    PT_FILTER_OPTIONS FilterOptions = {0};
-    BOOLEAN           WasEnabled    = g_ProcessorTraceEnabled;
-    BOOLEAN           BufferChanged = FALSE;
-    UINT64            ExistingSize  = 0;
-    UINT32            Copy;
+    PT_APPLY_CORE_FILTER_REQUEST ApplyCoreFilterReq = {0};
+    BOOLEAN                      WasEnabled         = g_ProcessorTraceEnabled;
+    BOOLEAN                      BufferChanged      = FALSE;
+    UINT64                       ExistingSize       = 0;
 
     //
-    // Translate the user-mode packet into PT_FILTER_OPTIONS — the narrow
+    // Copy the user-mode request into a kernel-mode PT_APPLY_CORE_FILTER_REQUEST
+    //
+    memcpy(&ApplyCoreFilterReq.FilterOptions, &Req->FilterOptions, sizeof(PT_FILTER_OPTIONS));
+    memcpy(&ApplyCoreFilterReq.EnableOptions, &Req->EnableOptions, sizeof(PT_ENABLE_OPTIONS));
+    ApplyCoreFilterReq.BufferSize = Req->BufferSize;
+
+    //
+    // Translate the user-mode packet into PT_FILTER_OPTIONS - the narrow
     // surface PtFilter operates on. Default to user+kernel when the
     // caller specified neither (matches LBR's empty-filter behaviour).
     //
-    if (Req->TraceUser || Req->TraceKernel)
+    if (Req->FilterOptions.TraceUser || Req->FilterOptions.TraceKernel)
     {
-        FilterOptions.TraceUser   = (Req->TraceUser != 0) ? TRUE : FALSE;
-        FilterOptions.TraceKernel = (Req->TraceKernel != 0) ? TRUE : FALSE;
+        ApplyCoreFilterReq.FilterOptions.TraceUser   = (Req->FilterOptions.TraceUser != 0) ? TRUE : FALSE;
+        ApplyCoreFilterReq.FilterOptions.TraceKernel = (Req->FilterOptions.TraceKernel != 0) ? TRUE : FALSE;
     }
     else
     {
-        FilterOptions.TraceUser   = TRUE;
-        FilterOptions.TraceKernel = TRUE;
+        ApplyCoreFilterReq.FilterOptions.TraceUser   = TRUE;
+        ApplyCoreFilterReq.FilterOptions.TraceKernel = TRUE;
     }
-    FilterOptions.TargetCr3     = Req->TargetCr3;
-    FilterOptions.BufferSize    = Req->BufferSize;
-    FilterOptions.NumAddrRanges = Req->NumAddrRanges;
-    if (FilterOptions.NumAddrRanges > PT_MAX_ADDR_RANGES)
-        FilterOptions.NumAddrRanges = PT_MAX_ADDR_RANGES;
-    for (Copy = 0; Copy < FilterOptions.NumAddrRanges; Copy++)
-    {
-        FilterOptions.AddrRanges[Copy] = Req->AddrRanges[Copy];
-    }
+
+    if (Req->FilterOptions.NumAddrRanges > PT_MAX_ADDR_RANGES)
+        ApplyCoreFilterReq.FilterOptions.NumAddrRanges = PT_MAX_ADDR_RANGES;
 
     //
     // Decide between fast (filter-only) and slow (buffer-resize) paths.
@@ -443,7 +444,8 @@ HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
     {
         ExistingSize = g_PtStateList[0].Config.BufferSize;
     }
-    if (FilterOptions.BufferSize != 0 && FilterOptions.BufferSize != ExistingSize)
+
+    if (ApplyCoreFilterReq.BufferSize != 0 && ApplyCoreFilterReq.BufferSize != ExistingSize)
     {
         BufferChanged = TRUE;
     }
@@ -495,8 +497,8 @@ HyperTracePtFilter(HYPERTRACE_PT_OPERATION_PACKETS * Req)
         // unchanged. Force FilterOptions.BufferSize=0 so PtFilter on each core
         // keeps the buffer that's already allocated, then broadcast.
         //
-        FilterOptions.BufferSize = 0;
-        BroadcastFilterPtOnAllCores(&FilterOptions);
+        ApplyCoreFilterReq.BufferSize = 0;
+        BroadcastFilterPtOnAllCores(&ApplyCoreFilterReq);
     }
 
     if (Req != NULL)
