@@ -18,6 +18,8 @@
 #    include <sys/syscall.h>
 #    include <errno.h>
 #    include <stdint.h>
+#    include <string.h>
+#    include <signal.h>
 #endif // defined(__linux__)
 
 /**
@@ -54,6 +56,43 @@ PlatformStrDup(const char * Str)
     return _strdup(Str);
 #elif defined(__linux__)
     return strdup(Str);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for strnlen_s / strnlen
+ *
+ * @param Str      string to measure (may be non-null-terminated within MaxCount)
+ * @param MaxCount maximum number of characters to inspect
+ * @return SIZE_T length of the string, capped at MaxCount
+ */
+SIZE_T
+PlatformStrnlen(const char * Str, SIZE_T MaxCount)
+{
+#if defined(_WIN32)
+    return strnlen_s(Str, MaxCount);
+#elif defined(__linux__)
+    return strnlen(Str, MaxCount);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for DebugBreak
+ *
+ * @details Breaks into the attached debugger. On Windows this is the DebugBreak()
+ *          intrinsic; on Linux the closest analog is raising SIGTRAP.
+ */
+VOID
+PlatformDebugBreak(VOID)
+{
+#if defined(_WIN32)
+    DebugBreak();
+#elif defined(__linux__)
+    raise(SIGTRAP);
 #else
 #    error "Unsupported platform"
 #endif

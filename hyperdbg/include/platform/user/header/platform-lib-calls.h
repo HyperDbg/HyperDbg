@@ -31,6 +31,18 @@ char *
 PlatformStrDup(const char * Str);
 
 //
+// STRNLEN (bounded string length)
+//
+SIZE_T
+PlatformStrnlen(const char * Str, SIZE_T MaxCount);
+
+//
+// DEBUG BREAK (breakpoint into the attached debugger)
+//
+VOID
+PlatformDebugBreak(VOID);
+
+//
 // SET MEMORY TO ZERO
 //
 VOID

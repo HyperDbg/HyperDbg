@@ -361,7 +361,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             return;
         }
 
-        RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
+        PlatformZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
     }
 
     //
@@ -402,7 +402,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 
     ScriptGeneralRegisters.StackBuffer         = g_ScriptStackBuffer;
     ScriptGeneralRegisters.GlobalVariablesList = g_ScriptGlobalVariables;
-    RtlZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
+    PlatformZeroMemory(g_ScriptStackBuffer, MAX_STACK_BUFFER_COUNT * sizeof(UINT64));
 
     if (CodeBuffer->Message == NULL)
     {
@@ -577,7 +577,7 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     }
 
     AllocationsForCastings->Buff2 = (CHAR *)Buff1;
-    RtlZeroMemory(Buff1, SizeOfMyString1);
+    PlatformZeroMemory(Buff1, SizeOfMyString1);
     UnicodeStr1->Buffer = Buff1;
     UnicodeStr1->Length = UnicodeStr1->MaximumLength = SizeOfMyString1;
     memcpy(UnicodeStr1->Buffer, MyString1, SizeOfMyString1);
@@ -610,7 +610,7 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     }
 
     AllocationsForCastings->Buff4 = (CHAR *)Buff2;
-    RtlZeroMemory(Buff2, SizeOfMyString2);
+    PlatformZeroMemory(Buff2, SizeOfMyString2);
     UnicodeStr2->Buffer = Buff2;
     UnicodeStr2->Length = UnicodeStr2->MaximumLength = SizeOfMyString2;
     memcpy(UnicodeStr2->Buffer, MyString2, SizeOfMyString2);
@@ -690,7 +690,7 @@ ScriptEngineWrapperTestParser(const string & Expr)
         return;
     }
 
-    RtlZeroMemory(TestStruct, sizeof(TEST_STRUCT));
+    PlatformZeroMemory(TestStruct, sizeof(TEST_STRUCT));
 
     TestStruct->Var1 = 0x41414141;
     TestStruct->Var3 = 0x4242424242424242;
@@ -762,7 +762,7 @@ ScriptEngineWrapperTestParserForHwdbg(const string & Expr)
             return;
         }
 
-        RtlZeroMemory(g_HwdbgPinsStatus, MAX_HWDBG_TESTING_PIN_COUNT * sizeof(UINT64));
+        PlatformZeroMemory(g_HwdbgPinsStatus, MAX_HWDBG_TESTING_PIN_COUNT * sizeof(UINT64));
     }
 
     ScriptEngineEvalWrapper((PGUEST_REGS)g_HwdbgPinsStatus, Expr);

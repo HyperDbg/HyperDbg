@@ -239,7 +239,7 @@ StartAgain:
             //
             // Save the current operating instruction and operating mode
             //
-            RtlZeroMemory(g_CurrentRunningInstruction, MAXIMUM_INSTR_SIZE);
+            PlatformZeroMemory(g_CurrentRunningInstruction, MAXIMUM_INSTR_SIZE);
             memcpy(g_CurrentRunningInstruction, &PausePacket->InstructionBytesOnRip, MAXIMUM_INSTR_SIZE);
 
             g_IsRunningInstruction32Bit = PausePacket->IsProcessorOn32BitMode;
@@ -1166,9 +1166,9 @@ StartAgain:
                                  PcitreePacket->DeviceInfoList[i].Function,
                                  PcitreePacket->DeviceInfoList[i].ConfigSpace.VendorId,
                                  PcitreePacket->DeviceInfoList[i].ConfigSpace.DeviceId,
-                                 strnlen_s(CurrentVendorName, PCI_NAME_STR_LENGTH),
+                                 PlatformStrnlen(CurrentVendorName, PCI_NAME_STR_LENGTH),
                                  CurrentVendorName,
-                                 strnlen_s(CurrentDeviceName, PCI_NAME_STR_LENGTH),
+                                 PlatformStrnlen(CurrentDeviceName, PCI_NAME_STR_LENGTH),
                                  CurrentDeviceName
 
                     );
@@ -1229,9 +1229,9 @@ StartAgain:
                     ShowMessages("\nCommon Header:\nVID:DID: %04x:%04x\nVendor Name: %-17.*s\nDevice Name: %.*s\nCommand: %04x\n",
                                  PcidevinfoPacket->DeviceInfo.ConfigSpace.CommonHeader.VendorId,
                                  PcidevinfoPacket->DeviceInfo.ConfigSpace.CommonHeader.DeviceId,
-                                 strnlen_s(CurrentVendorName, PCI_NAME_STR_LENGTH),
+                                 PlatformStrnlen(CurrentVendorName, PCI_NAME_STR_LENGTH),
                                  CurrentVendorName,
-                                 strnlen_s(CurrentDeviceName, PCI_NAME_STR_LENGTH),
+                                 PlatformStrnlen(CurrentDeviceName, PCI_NAME_STR_LENGTH),
                                  CurrentDeviceName,
                                  PcidevinfoPacket->DeviceInfo.ConfigSpace.CommonHeader.Command);
 
@@ -1441,46 +1441,23 @@ StartAgain:
     BOOL Status; /* Status */
     CHAR SerialBuffer[MaxSerialPacketSize] = {
         0};                                         /* Buffer to send and receive data */
-    DWORD                   EventMask       = 0;    /* Event mask to trigger */
     char                    ReadData        = NULL; /* temperory Character */
-    DWORD                   NoBytesRead     = 0;    /* Bytes read by ReadFile() */
+    DWORD                   NoBytesRead     = 0;    /* Bytes read from the transport */
     UINT32                  Loop            = 0;
     PDEBUGGER_REMOTE_PACKET TheActualPacket = (PDEBUGGER_REMOTE_PACKET)SerialBuffer;
 
     //
-    // Setting Receive Mask
+    // Wait for the remote side to connect (block until the first byte arrives).
+    // Any failure here is advisory and intentionally ignored.
     //
-    Status = SetCommMask(g_SerialRemoteComPortHandle, EV_RXCHAR);
-    if (Status == FALSE)
-    {
-        // ShowMessages("warning, there is an error in setting CommMask\n");
-
-        //
-        // Sometimes, this error happens
-        //
-        // return FALSE;
-    }
-
-    //
-    // Setting WaitComm() Event
-    //
-    Status = WaitCommEvent(g_SerialRemoteComPortHandle, &EventMask, NULL); /* Wait for the character to be received */
-
-    if (Status == FALSE)
-    {
-        //
-        // Can be ignored
-        //
-        // ShowMessages("err, in setting WaitCommEvent\n");
-        // return FALSE;
-    }
+    PlatformSerialWaitForConnection(g_SerialRemoteComPortHandle);
 
     //
     // Read data and store in a buffer
     //
     do
     {
-        Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
+        Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle, &ReadData, &NoBytesRead, PLATFORM_SERIAL_IO_DEBUGGEE);
 
         //
         // Check to make sure that we don't pass the boundaries
@@ -1589,7 +1566,7 @@ StartAgain:
         //
         // It's not a HyperDbg packet, it's probably a GDB packet
         //
-        DebugBreak();
+        PlatformDebugBreak();
     }
 
     //

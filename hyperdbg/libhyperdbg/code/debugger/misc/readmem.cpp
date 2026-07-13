@@ -81,7 +81,7 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
         return FALSE;
     }
 
-    ZeroMemory(MemReadRequest, SizeOfTargetBuffer);
+    PlatformZeroMemory(MemReadRequest, SizeOfTargetBuffer);
 
     //
     // Copy the buffer to send
@@ -107,7 +107,7 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
         //
         // It's on local debugging mode
         //
-        Status = DeviceIoControl(g_DeviceHandle,              // Handle to device
+        Status = PlatformDeviceIoControl(g_DeviceHandle,              // Handle to device
                                  IOCTL_DEBUGGER_READ_MEMORY,  // IO Control Code (IOCTL)
                                  MemReadRequest,              // Input Buffer to driver.
                                  SIZEOF_DEBUGGER_READ_MEMORY, // Input buffer length
@@ -119,7 +119,7 @@ HyperDbgReadMemory(UINT64                              TargetAddress,
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             std::free(MemReadRequest);
             return FALSE;
         }
