@@ -530,6 +530,7 @@ ScriptAutomaticStatementsTestWrapper(const string & Expr, UINT64 ExpectationValu
 PVOID
 AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING AllocationsForCastings)
 {
+#ifdef _WIN32
     typedef struct _UNICODE_STRING
     {
         UINT16 Length;        // +0x000
@@ -662,6 +663,15 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
 
     //_CrtDbgBreak();
     return StupidStruct2;
+#else
+    //
+    // TODO(Linux): this cast-demo builder uses UNICODE_STRING / PWSTR and 2-byte
+    // WCHAR string literals, which depend on the deferred wchar_t -> UTF-16
+    // handling (see BasicTypes.h). Stubbed until the wide-char strategy lands.
+    //
+    (void)AllocationsForCastings;
+    return NULL;
+#endif
 }
 
 /**
@@ -697,10 +707,17 @@ ScriptEngineWrapperTestParser(const string & Expr)
 
     GUEST_REGS GuestRegs = {0};
 
-    CHAR  test[] = "Hello world !";
+    CHAR test[] = "Hello world !";
+#ifdef _WIN32
+    //
+    // TODO(Linux): 2-byte WCHAR test data depends on the deferred wchar_t ->
+    // UTF-16 handling (see BasicTypes.h); the wide-string register fixtures below
+    // are Windows-only until that lands.
+    //
     WCHAR testw[] =
         L"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 "
         L"9 a b c d e f g h i j k l m n o p q r s t u v w x y z";
+#endif
 
     CHAR * RspReg = (CHAR *)malloc(0x100);
 
@@ -711,7 +728,9 @@ ScriptEngineWrapperTestParser(const string & Expr)
         return;
     }
 
+#ifdef _WIN32
     memcpy(RspReg, testw, sizeof(testw));
+#endif
 
     GuestRegs.rax = 0x1;
     GuestRegs.rcx = (UINT64)AllocateStructForCasting(&AllocationsForCastings); // TestStruct
@@ -727,7 +746,9 @@ ScriptEngineWrapperTestParser(const string & Expr)
     GuestRegs.r11 = 0xc;
     GuestRegs.r12 = 0xd;
     GuestRegs.r13 = 0xe;
-    GuestRegs.r14 = (UINT64)testw;
+#ifdef _WIN32
+    GuestRegs.r14 = (UINT64)testw; // wide-string fixture; Linux keeps r14 at its {0} init
+#endif
     GuestRegs.r15 = (UINT64)test;
 
     ScriptEngineEvalWrapper(&GuestRegs, Expr);
