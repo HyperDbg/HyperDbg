@@ -107,7 +107,9 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include <cstring>
 #include <unordered_set>
 #include <regex>
-#include <dbghelp.h>
+#ifdef _WIN32
+#    include <dbghelp.h>
+#endif
 
 //
 // Scope definitions

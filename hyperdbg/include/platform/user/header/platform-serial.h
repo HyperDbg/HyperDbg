@@ -47,6 +47,15 @@ BOOLEAN
 PlatformSerialConfigure(HANDLE Handle, DWORD BaudRate);
 
 //
+// WAIT for the remote side to connect, i.e. block until the first byte is
+// available on the port. On Windows this is SetCommMask(EV_RXCHAR)+WaitCommEvent;
+// on Linux it will be a poll()/select() on the fd (TODO). Failures are advisory
+// only, so the return value can be ignored by the caller.
+//
+BOOLEAN
+PlatformSerialWaitForConnection(HANDLE Handle);
+
+//
 // READ a single byte. *BytesRead is set to the number of bytes actually read.
 // The caller (protocol layer) owns the packet-assembly loop.
 //

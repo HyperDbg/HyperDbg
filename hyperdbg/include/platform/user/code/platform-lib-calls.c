@@ -247,6 +247,96 @@ PlatformGetCurrentProcessName(VOID)
 }
 
 /**
+ * @brief Platform independent wrapper for CreateThread
+ *
+ * @param StartRoutine thread entry point (Win32 LPTHREAD_START_ROUTINE shape)
+ * @param Parameter    opaque argument passed to the thread routine
+ * @return HANDLE to the created thread, or NULL on failure
+ */
+HANDLE
+PlatformCreateThread(PLATFORM_THREAD_ROUTINE StartRoutine, PVOID Parameter)
+{
+#if defined(_WIN32)
+    return CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)StartRoutine, Parameter, 0, NULL);
+#elif defined(__linux__)
+    //
+    // TODO: back this with pthread_create (see platform-signal.c for the existing
+    //       pthread usage) once the Linux kernel-debugger transport exists. For
+    //       now no listening thread is spawned; return NULL so callers that store
+    //       the handle simply keep a NULL (which the teardown path already skips).
+    //
+    (void)StartRoutine;
+    (void)Parameter;
+    return NULL;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper to obtain a human-readable OS name/version
+ *
+ * @param Buffer     destination buffer for the OS string
+ * @param BufferSize size of Buffer in bytes
+ * @return BOOLEAN TRUE on success
+ */
+BOOLEAN
+PlatformGetOsVersion(CHAR * Buffer, DWORD BufferSize)
+{
+#if defined(_WIN32)
+    HKEY  CurrentVersion;
+    DWORD ValueType;
+    BYTE  ProductName[256]    = {0};
+    BYTE  CurrentBuild[256]   = {0};
+    BYTE  DisplayVersion[256] = {0};
+    DWORD Size;
+
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                      L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
+                      0,
+                      KEY_QUERY_VALUE,
+                      &CurrentVersion) != ERROR_SUCCESS)
+    {
+        return FALSE;
+    }
+
+    Size = sizeof(ProductName);
+    RegQueryValueExA(CurrentVersion, "ProductName", NULL, &ValueType, ProductName, &Size);
+
+    Size = sizeof(DisplayVersion);
+    RegQueryValueExA(CurrentVersion, "DisplayVersion", NULL, &ValueType, DisplayVersion, &Size);
+
+    Size = sizeof(CurrentBuild);
+    RegQueryValueExA(CurrentVersion, "CurrentBuild", NULL, &ValueType, CurrentBuild, &Size);
+
+    RegCloseKey(CurrentVersion);
+
+    sprintf_s(Buffer,
+              BufferSize,
+              "%s %s %s (OS Build %s)",
+              (CHAR *)ProductName,
+              IsWindowsServer() ? "- Server" : "- Client",
+              (CHAR *)DisplayVersion,
+              (CHAR *)CurrentBuild);
+
+    return TRUE;
+#elif defined(__linux__)
+    //
+    // TODO: report the real distribution / kernel version (uname(2) or
+    //       /etc/os-release). The OS string is only cosmetic in the debuggee
+    //       banner, so leave it empty until the Linux debuggee side exists.
+    //
+    if (Buffer != NULL && BufferSize > 0)
+    {
+        Buffer[0] = '\0';
+    }
+    return FALSE;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
  * @brief Platform independent wrapper for CreateEvent
  *
  * @param ManualReset  TRUE for a manual-reset event, FALSE for auto-reset

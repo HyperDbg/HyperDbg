@@ -110,6 +110,24 @@ PlatformSerialConfigure(HANDLE Handle, DWORD BaudRate)
 }
 
 BOOLEAN
+PlatformSerialWaitForConnection(HANDLE Handle)
+{
+    DWORD EventMask = 0;
+
+    //
+    // Arm the receive-character event, then block until a byte arrives. Both
+    // calls are advisory in the protocol layer (their failures are ignored), so
+    // we simply forward the final status.
+    //
+    if (SetCommMask(Handle, EV_RXCHAR) == FALSE)
+    {
+        return FALSE;
+    }
+
+    return (BOOLEAN)WaitCommEvent(Handle, &EventMask, NULL);
+}
+
+BOOLEAN
 PlatformSerialReadByte(HANDLE                  Handle,
                        CHAR *                  OutByte,
                        DWORD *                 BytesRead,
@@ -231,6 +249,13 @@ PlatformSerialConfigure(HANDLE Handle, DWORD BaudRate)
 {
     (void)Handle;
     (void)BaudRate;
+    return FALSE;
+}
+
+BOOLEAN
+PlatformSerialWaitForConnection(HANDLE Handle)
+{
+    (void)Handle;
     return FALSE;
 }
 

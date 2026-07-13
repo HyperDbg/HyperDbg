@@ -67,6 +67,7 @@ typedef int SOCKET;
 
 // Windows calling convention (no-op on Linux)
 #    define WINAPI
+#    define NTAPI
 
 // Windows module handle (equivalent to dlopen's void * on Linux)
 typedef void * HMODULE;

@@ -172,7 +172,7 @@
             &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
                                                                            \
         SyncronizationObject->IsOnWaitingState = FALSE;                    \
-        SetEvent(SyncronizationObject->EventHandle);                       \
+        PlatformSetEvent(SyncronizationObject->EventHandle);               \
     } while (FALSE);
 
 #define DbgReceivedUserResponse(UserSyncObjectId)                      \
@@ -182,7 +182,7 @@
             &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId]; \
                                                                        \
         SyncronizationObject->IsOnWaitingState = FALSE;                \
-        SetEvent(SyncronizationObject->EventHandle);                   \
+        PlatformSetEvent(SyncronizationObject->EventHandle);           \
     } while (FALSE);
 
 //////////////////////////////////////////////////

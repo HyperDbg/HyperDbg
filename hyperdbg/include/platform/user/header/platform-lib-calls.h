@@ -122,6 +122,28 @@ VOID
 PlatformUnmapFile(VOID * BaseAddress, SIZE_T FileSize, HANDLE FileHandle);
 
 //
+// THREAD CREATION
+//
+// Cross-platform thread entry-point signature. Matches the Win32
+// LPTHREAD_START_ROUTINE prototype (WINAPI is a no-op on Linux) so existing
+// thread functions compile unchanged on both platforms.
+//
+typedef DWORD(WINAPI * PLATFORM_THREAD_ROUTINE)(PVOID Parameter);
+
+HANDLE
+PlatformCreateThread(PLATFORM_THREAD_ROUTINE StartRoutine, PVOID Parameter);
+
+//
+// OS VERSION / NAME
+//
+// Fills Buffer with a human-readable OS name/version string. On Windows this
+// comes from the registry (CurrentVersion) plus IsWindowsServer(); on Linux it
+// is a TODO (empty for now).
+//
+BOOLEAN
+PlatformGetOsVersion(CHAR * Buffer, DWORD BufferSize);
+
+//
 // PROCESS / THREAD IDENTITY
 //
 UINT32
