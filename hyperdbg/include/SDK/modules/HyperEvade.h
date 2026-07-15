@@ -1,6 +1,7 @@
 /**
  * @file HyperEvade.h
  * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author jtaw5649
  * @brief HyperDbg's SDK for hyperevade project
  * @details This file contains definitions of HyperEvade routines
  * @version 0.14
@@ -100,6 +101,12 @@ typedef VOID (*HV_HANDLE_TRAPFLAG)();
  */
 typedef VOID (*EVENT_INJECT_GENERAL_PROTECTION)();
 
+/**
+ * @brief A function that reports whether the current guest execution is user-mode
+ *
+ */
+typedef BOOLEAN (*HV_IS_GUEST_EXECUTION_USER_MODE)();
+
 //////////////////////////////////////////////////
 //			   Callback Structure               //
 //////////////////////////////////////////////////
@@ -149,5 +156,6 @@ typedef struct _HYPEREVADE_CALLBACKS
     //
     HV_HANDLE_TRAPFLAG              HvHandleTrapFlag;
     EVENT_INJECT_GENERAL_PROTECTION EventInjectGeneralProtection;
+    HV_IS_GUEST_EXECUTION_USER_MODE IsGuestExecutionUserMode;
 
 } HYPEREVADE_CALLBACKS, *PHYPEREVADE_CALLBACKS;

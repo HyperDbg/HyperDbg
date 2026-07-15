@@ -67,7 +67,8 @@ VOID
 HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
 {
     INT32       CpuInfo[4];
-    PGUEST_REGS Regs = VCpu->Regs;
+    BOOLEAN     ApplyHyperDbgCpuidPolicy = TRUE;
+    PGUEST_REGS Regs                     = VCpu->Regs;
 
     //
     // Otherwise, issue the CPUID to the logical processor based on the indexes
@@ -75,12 +76,12 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
     //
     CpuCpuIdEx(CpuInfo, (INT32)Regs->rax, (INT32)Regs->rcx);
 
-    //
-    // check whether we are in transparent mode or not
-    // if we are in transparent mode then ignore the
-    // cpuid modifications e.g. hyperviosr name or bit
-    //
-    if (!g_CheckForFootprints)
+    if (g_CheckForFootprints)
+    {
+        ApplyHyperDbgCpuidPolicy = !TransparentCheckAndModifyCpuid(Regs, CpuInfo);
+    }
+
+    if (ApplyHyperDbgCpuidPolicy)
     {
         //
         // Check if this was CPUID 1h, which is the features request
@@ -115,10 +116,6 @@ HvHandleCpuid(VIRTUAL_MACHINE_STATE * VCpu)
             CpuInfo[0] = '0#vH'; // Hv#0
             CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
         }
-    }
-    else
-    {
-        TransparentCheckAndModifyCpuid(Regs, CpuInfo);
     }
 
     //

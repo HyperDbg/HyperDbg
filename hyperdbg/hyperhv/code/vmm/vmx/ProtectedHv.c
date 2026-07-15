@@ -295,6 +295,12 @@ ProtectedHvSetTscVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set, PROTECTED_HV_
     //
     if (Set == FALSE)
     {
+        if (VCpu->TransparencyState.TransparentCpuidTscTimingEnabled)
+        {
+            VCpu->TransparencyState.TransparentCpuidTscHadForcedRdtscExiting = TRUE;
+            return;
+        }
+
         //
         // Check the top-level driver's state
         //
@@ -671,6 +677,37 @@ VOID
 ProtectedHvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 {
     ProtectedHvSetTscVmexit(VCpu, Set, PASSING_OVER_NONE);
+}
+
+/**
+ * @brief Set vm-exit for RDPMC instructions
+ * @details Should be called in vmx-root
+ *
+ * @param VCpu The virtual processor's state
+ * @param Set Set or unset the vm-exits
+ * @return VOID
+ */
+VOID
+ProtectedHvSetPmcVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
+{
+    if (Set == FALSE)
+    {
+        if (VCpu->TransparencyState.TransparentCpuidTscTimingEnabled)
+        {
+            VCpu->TransparencyState.TransparentCpuidTscHadForcedRdpmcExiting = TRUE;
+            return;
+        }
+
+        if (VmmCallbackQueryTerminateProtectedResource(VCpu->CoreId,
+                                                       PROTECTED_HV_RESOURCES_RDPMC_EXITING,
+                                                       NULL,
+                                                       PASSING_OVER_NONE))
+        {
+            return;
+        }
+    }
+
+    HvSetPmcVmexit(Set);
 }
 
 /**

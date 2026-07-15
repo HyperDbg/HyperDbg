@@ -130,6 +130,12 @@ PVOID g_SystemCallHookAddress;
  */
 BOOLEAN g_CheckForFootprints;
 
+/**
+ * @brief Shows whether transparent CPUID timing compensation is enabled or not
+ *
+ */
+BOOLEAN g_TransparentCpuidTscCompensationEnabled;
+
 //////////////////////////////////////////////////
 //  	Global Variable (debugger-related)	    //
 //////////////////////////////////////////////////

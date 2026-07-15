@@ -951,6 +951,57 @@ DpcRoutineDisableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
 }
 
 /**
+ * @brief Clears transparent CPUID timing compensation on all cores
+ *
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID
+DpcRoutineClearTransparentCpuidTscCompensationAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+
+    if (AsmVmxVmcall(VMCALL_CLEAR_TRANSPARENT_CPUID_TSC_COMPENSATION, 0, 0, 0) != STATUS_SUCCESS)
+    {
+        InterlockedIncrement((LONG volatile *)DeferredContext);
+    }
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+VOID
+DpcRoutineEnableTransparentCpuidTscTimingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+
+    if (AsmVmxVmcall(VMCALL_SET_TRANSPARENT_CPUID_TSC_TIMING, 0, 0, 0) != STATUS_SUCCESS)
+    {
+        InterlockedIncrement((LONG volatile *)DeferredContext);
+    }
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+VOID
+DpcRoutineDisableTransparentCpuidTscTimingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+
+    if (AsmVmxVmcall(VMCALL_UNSET_TRANSPARENT_CPUID_TSC_TIMING, 0, 0, 0) != STATUS_SUCCESS)
+    {
+        InterlockedIncrement((LONG volatile *)DeferredContext);
+    }
+
+    KeSignalCallDpcSynchronize(SystemArgument2);
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enable Exception Bitmaps on all cores
  *
  * @param Dpc

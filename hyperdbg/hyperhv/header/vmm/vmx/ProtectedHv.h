@@ -52,6 +52,9 @@ VOID
 ProtectedHvSetRdtscExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 VOID
+ProtectedHvSetPmcVmexit(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
+
+VOID
 ProtectedHvDisableRdtscExitingForDisablingTscCommands(VIRTUAL_MACHINE_STATE * VCpu);
 
 //
