@@ -188,6 +188,18 @@ PlatformGetCurrentThreadId(VOID);
 UINT32
 PlatformGetCurrentProcessorNumber(VOID);
 
+//
+// Number of logical processors currently online. Windows uses the classic
+// GetSystemInfo count; Linux uses sysconf(_SC_NPROCESSORS_ONLN). Returns 0 if
+// the count cannot be determined.
+//
+// NOTE: rdmsr.cpp keeps its own NUMA-aware GetLogicalProcessorInformationEx
+// chain on Windows and only falls back to this wrapper on Linux, so the
+// Windows core count there is unchanged.
+//
+SIZE_T
+PlatformGetActiveProcessorCount(VOID);
+
 UINT32
 PlatformGetCurrentProcessId(VOID);
 

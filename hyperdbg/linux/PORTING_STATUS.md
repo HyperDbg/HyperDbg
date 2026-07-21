@@ -113,6 +113,16 @@ equivalent, behavior-preserving.
   script-engine builds as a Linux `.so`.
 - SDK import/interface headers (`include/SDK/HyperDbgSdk.h`,
   `include/SDK/imports/user/HyperDbg*Imports.h`) adjusted for the Linux build.
+- Upstream `d44c726d` ("add float type in script engine") re-broke the Linux
+  build; fixed with two mechanical swaps:
+  - `pch.h` — define `_GNU_SOURCE` on Linux ahead of every libc header. The
+    float-literal parser's `#else` branch calls `strtof_l`/`strtod_l`, which
+    glibc declares in `<stdlib.h>` only under `__USE_GNU`. `newlocale`/
+    `freelocale` in the same branch are plain POSIX-2008 and already resolved.
+  - `script-engine.c:1381,1400` — 2× `_snprintf_s(Buf, sizeof(Buf), _TRUNCATE,
+    "%d", …)` → `PlatformSprintf(Buf, sizeof(Buf), "%d", …)`. Both buffers are
+    `CHAR[32]` formatting a single `%d`, so the dropped `_TRUNCATE` truncation
+    semantics are unreachable.
 
 ### Kernel-level debugger (remote protocol)
 - `kd.cpp` — largest sweep (~46 `Platform*`): serial open/configure/close via

@@ -324,6 +324,27 @@ PlatformGetCurrentProcessorNumber(VOID)
 }
 
 /**
+ * @brief Platform independent count of online logical processors
+ *
+ * @return SIZE_T number of logical processors online, or 0 if unknown
+ */
+SIZE_T
+PlatformGetActiveProcessorCount(VOID)
+{
+#if defined(_WIN32)
+    SYSTEM_INFO SysInfo;
+    GetSystemInfo(&SysInfo);
+    return (SIZE_T)SysInfo.dwNumberOfProcessors;
+#elif defined(__linux__)
+// Not yet tested!!
+    long Count = sysconf(_SC_NPROCESSORS_ONLN);
+    return Count > 0 ? (SIZE_T)Count : 0;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
  * @brief Platform independent wrapper for GetCurrentProcessId / getpid
  *
  * @return UINT32 PID of the calling process

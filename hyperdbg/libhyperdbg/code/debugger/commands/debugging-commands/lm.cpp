@@ -48,6 +48,7 @@ CommandLmHelp()
  *
  * @return wstring
  */
+#ifdef _WIN32
 std::wstring
 CommandLmConvertWow64CompatibilityPaths(const WCHAR * LocalFilePath)
 {
@@ -72,6 +73,12 @@ CommandLmConvertWow64CompatibilityPaths(const WCHAR * LocalFilePath)
 
     return filePath;
 }
+#endif // _WIN32
+//
+// TODO(Linux): no Linux counterpart — the WoW64 system32/SysWOW64 and
+// "Program Files (x86)" redirections are NT-specific, and the only caller is
+// the user-mode module listing below, which is itself Windows-only for now.
+//
 
 /**
  * @brief show modules for specified user mode process
@@ -83,6 +90,20 @@ CommandLmConvertWow64CompatibilityPaths(const WCHAR * LocalFilePath)
 BOOLEAN
 CommandLmShowUserModeModule(UINT32 ProcessId, const CHAR * SearchModule)
 {
+#ifndef _WIN32
+    //
+    // TODO(Linux): the module-name filter converts the search string with
+    // mbstowcs into a buffer sized for 2-byte WCHAR, which native 4-byte
+    // wchar_t would overrun, and the listing formats 2-byte WCHAR paths as
+    // std::wstring. Both need the wide-char item resolved. Stubbed rather than
+    // cast so no bogus reinterpretation (or heap overrun) can be reached.
+    //
+    UNREFERENCED_PARAMETER(ProcessId);
+    UNREFERENCED_PARAMETER(SearchModule);
+
+    ShowMessages("err, listing user-mode modules is not supported on Linux yet\n");
+    return FALSE;
+#else
     BOOLEAN                         Status;
     ULONG                           ReturnedLength;
     UINT32                          ModuleDetailsSize    = 0;
@@ -263,6 +284,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const CHAR * SearchModule)
         ShowErrorMessage(ModuleCountRequest.Result);
         return FALSE;
     }
+#endif // _WIN32
 }
 
 /**
@@ -274,6 +296,18 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const CHAR * SearchModule)
 BOOLEAN
 CommandLmShowKernelModeModule(const CHAR * SearchModule)
 {
+#ifndef _WIN32
+    //
+    // TODO(Linux): NT-style system module enumeration (PRTL_PROCESS_MODULES via
+    // NtQuerySystemInformation) has no Linux analog — same reason
+    // DebuggerGetNtoskrnlBase is stubbed. Needs a Linux mechanism
+    // (/proc/modules) once the kernel side exists.
+    //
+    UNREFERENCED_PARAMETER(SearchModule);
+
+    ShowMessages("err, listing kernel-mode modules is not supported on Linux yet\n");
+    return FALSE;
+#else
     PRTL_PROCESS_MODULES ModulesInfo = NULL;
     string               SearchModuleString;
 
@@ -344,6 +378,7 @@ CommandLmShowKernelModeModule(const CHAR * SearchModule)
     free(ModulesInfo);
 
     return TRUE;
+#endif // _WIN32
 }
 
 /**
