@@ -108,6 +108,7 @@ GetWindowsNumaNumberOfCores()
     free(Buffer);
     return NumCores;
 }
+#endif // _WIN32
 
 /**
  * @brief rdmsr command handler
