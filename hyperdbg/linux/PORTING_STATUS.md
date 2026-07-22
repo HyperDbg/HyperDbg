@@ -287,6 +287,39 @@ helpers (`GetWindowsCompatibleNumberOfCores` via `GetSystemInfo`, and
   Linux `sysconf(_SC_NPROCESSORS_ONLN)` (returns 0 if unknown). ⚠️ Linux branch
   marked "Not yet tested!!" in the source — verify before relying on it.
 
+### settings.cpp config-file I/O — DONE (2026-07-22)
+
+`debugging-commands/settings.cpp` reads/writes the settings INI via a wide-char
+(`WCHAR[MAX_PATH]`) path and `std::ifstream`/`std::ofstream`. Two Linux-only
+blockers, both the deferred wide-char item: (1) `GetConfigFilePath(PWCHAR)` — on
+Linux `WCHAR` is `unsigned short` but `PWCHAR` is `short *` (signedness mismatch,
+`-fpermissive`); (2) libstdc++ has **no** `basic_ifstream`/`basic_ofstream`
+constructor taking a 2-byte `WCHAR*`, and no cast can bridge wide→`char*`.
+
+Both `CommandSettingsGetValueFromConfigFile` and `CommandSettingsSetValueFromConfigFile`
+are already dead on Linux (`GetConfigFilePath` empties the path,
+`IsFileExistW` returns FALSE), so their whole bodies were guarded `#ifdef _WIN32`
+(Windows verbatim) with a Linux `#else` stub (`return FALSE` / no-op +
+`UNREFERENCED_PARAMETER` + TODO(Linux)). Same pattern-1 convention already used
+for `GetConfigFilePath`/`IsFileExistW`/`ListDirectory` in common.cpp. This also
+moves the `GetConfigFilePath` call sites into the Windows branch, resolving the
+`PWCHAR` signedness error without touching the shared typedef.
+`CommandSettingsLoadDefaultValuesFromConfigFile` only calls the guarded getter —
+no wide-char of its own, left as-is.
+
+### debug.cpp serial connect — DONE (2026-07-22)
+
+`meta-commands/debug.cpp` (the `.debug` command — connect to a remote debuggee
+over serial/namedpipe). Two mechanical fixes:
+- `_stricmp`×4 (COM-port name compare in `CommandDebugCheckComPort`) →
+  `PlatformStrCaseCmp` (the existing common.cpp wrapper; Windows `_stricmp`,
+  Linux `strcasecmp`).
+- `CBR_*` baud-rate constants (`CommandDebugCheckBaudrate` validation) — **pure
+  addition** to `Environment.h` Linux block: the 15 winbase.h `CBR_110`…`CBR_256000`
+  `#define`s kept at their canonical Windows values (each equals its baud rate).
+  Matches the CTRL_*/PROCESS_*/ERROR_* constant blocks already there. Actual Linux
+  serial I/O is still the platform-serial termios TODO.
+
 ---
 
 ## TODO ledger — revisit before Linux is functional

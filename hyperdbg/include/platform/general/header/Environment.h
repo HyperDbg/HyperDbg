@@ -106,4 +106,24 @@ typedef void * HMODULE;
 #    define ERROR_ACCESS_DENIED 5
 #    define ERROR_GEN_FAILURE   31
 
+// Win32 serial baud-rate constants (winbase.h CBR_*), kept at their Windows
+// values so the shared serial-config / baud-rate-validation code compiles
+// unchanged. Each constant equals its baud rate; actual Linux serial I/O is
+// handled by the platform-serial layer (termios impl still TODO).
+#    define CBR_110    110
+#    define CBR_300    300
+#    define CBR_600    600
+#    define CBR_1200   1200
+#    define CBR_2400   2400
+#    define CBR_4800   4800
+#    define CBR_9600   9600
+#    define CBR_14400  14400
+#    define CBR_19200  19200
+#    define CBR_38400  38400
+#    define CBR_56000  56000
+#    define CBR_57600  57600
+#    define CBR_115200 115200
+#    define CBR_128000 128000
+#    define CBR_256000 256000
+
 #endif // HYPERDBG_ENV_LINUX
