@@ -22,6 +22,7 @@ extern TCHAR g_TestLocation[MAX_PATH];
  * @param BufferLength Setup test process name
  * @return BOOLEAN
  */
+#ifdef _WIN32
 BOOLEAN
 SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
               ULONG                                         BufferLength)
@@ -98,6 +99,7 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
     //
     return TRUE;
 }
+#endif // _WIN32
 
 /**
  * @brief Create a Process And Open Pipe Connection object
@@ -112,6 +114,7 @@ CreateProcessAndOpenPipeConnection(PHANDLE ConnectionPipeHandle,
                                    PHANDLE ThreadHandle,
                                    PHANDLE ProcessHandle)
 {
+#ifdef _WIN32
     HANDLE              PipeHandle;
     BOOLEAN             SentMessageResult;
     UINT32              ReadBytes;
@@ -297,6 +300,18 @@ CreateProcessAndOpenPipeConnection(PHANDLE ConnectionPipeHandle,
     free(BufferToSend);
 
     return FALSE;
+#else
+    //
+    // TODO(Linux): the test harness spawns a Windows test executable
+    // (hyperdbg-test.exe) and handshakes with it over a named pipe. There is no
+    // Linux backend yet — both the process spawn (CreateProcess / STARTUPINFO)
+    // and the named pipe are stubbed — so this returns failure for now.
+    //
+    UNREFERENCED_PARAMETER(ConnectionPipeHandle);
+    UNREFERENCED_PARAMETER(ThreadHandle);
+    UNREFERENCED_PARAMETER(ProcessHandle);
+    return FALSE;
+#endif // _WIN32
 }
 
 /**
@@ -313,6 +328,7 @@ OpenHyperDbgTestProcess(PHANDLE ThreadHandle,
                         PHANDLE ProcessHandle,
                         CHAR *  Args)
 {
+#ifdef _WIN32
     PROCESS_INFORMATION ProcessInfo       = {0};
     STARTUPINFO         StartupInfo       = {0};
     CHAR                CmdArgs[MAX_PATH] = {0};
@@ -354,6 +370,16 @@ OpenHyperDbgTestProcess(PHANDLE ThreadHandle,
     }
 
     return FALSE;
+#else
+    //
+    // TODO(Linux): no Linux process-spawn backend yet (the future home is a
+    // narrow variant of PlatformCreateProcess). STARTUPINFO is Windows-only.
+    //
+    UNREFERENCED_PARAMETER(ThreadHandle);
+    UNREFERENCED_PARAMETER(ProcessHandle);
+    UNREFERENCED_PARAMETER(Args);
+    return FALSE;
+#endif // _WIN32
 }
 
 /**
@@ -369,10 +395,20 @@ CloseProcessAndClosePipeConnection(HANDLE ConnectionPipeHandle,
                                    HANDLE ThreadHandle,
                                    HANDLE ProcessHandle)
 {
+#ifdef _WIN32
     //
     // Close the connection and handles
     //
     NamedPipeServerCloseHandle(ConnectionPipeHandle);
     CloseHandle(ThreadHandle);
     CloseHandle(ProcessHandle);
+#else
+    //
+    // TODO(Linux): counterpart of the stubbed test-process spawn above; the
+    // handles are never created on Linux, so there is nothing to close yet.
+    //
+    UNREFERENCED_PARAMETER(ConnectionPipeHandle);
+    UNREFERENCED_PARAMETER(ThreadHandle);
+    UNREFERENCED_PARAMETER(ProcessHandle);
+#endif // _WIN32
 }
