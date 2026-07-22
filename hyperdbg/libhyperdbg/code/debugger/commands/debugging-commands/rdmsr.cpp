@@ -199,8 +199,12 @@ CommandRdmsr(vector<CommandToken> CommandTokens, string Command)
     //
     // Find logical cores count
     //
+#ifdef _WIN32
     SIZE_T NumCores = GetWindowsNumaNumberOfCores();
     NumCPU          = NumCores > 0 ? NumCores : GetWindowsCompatibleNumberOfCores();
+#else
+    NumCPU = PlatformGetActiveProcessorCount();
+#endif
 
     //
     // allocate buffer for transferring messages

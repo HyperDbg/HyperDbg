@@ -269,6 +269,24 @@ reasons (`RTL_PROCESS_MODULES` / `RTL_PROCESS_MODULE_INFORMATION` undeclared, an
 `WCHAR *` vs `wchar_t *` — the wide-char item below); none of those are on lines
 this sweep touched.
 
+### rdmsr.cpp core-count — DONE (2026-07-22)
+
+Follow-up to the bucket-1 sweep of `rdmsr.cpp` above (this is a separate bucket-2
+change, not part of the mechanical batch). The command needs the online logical-CPU
+count to size its per-core transfer buffer; on Windows that came from two static
+helpers (`GetWindowsCompatibleNumberOfCores` via `GetSystemInfo`, and
+`GetWindowsNumaNumberOfCores` via `GetLogicalProcessorInformationEx` — the latter
+`GetProcAddress`-loaded from `kernel32.dll`, so entirely Win32).
+
+- Both static helpers + their `glpie_t` typedef guarded `#ifdef _WIN32` (rdmsr.cpp
+  lines 36–111). Windows bodies untouched.
+- Call site (`CommandRdmsr`, ~line 199): Windows path keeps the NUMA-then-fallback
+  logic; Linux `#else` calls the new `PlatformGetActiveProcessorCount()`.
+- **Pure addition:** `PlatformGetActiveProcessorCount(VOID)` in
+  `platform-lib-calls.{h,c}` — Windows `GetSystemInfo`→`dwNumberOfProcessors`;
+  Linux `sysconf(_SC_NPROCESSORS_ONLN)` (returns 0 if unknown). ⚠️ Linux branch
+  marked "Not yet tested!!" in the source — verify before relying on it.
+
 ---
 
 ## TODO ledger — revisit before Linux is functional
