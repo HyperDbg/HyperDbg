@@ -1,6 +1,6 @@
 /**
  * @file platform-serial.c
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode cross-platform implementation of the kernel-debugger serial transport
  * @details See platform-serial.h. The Windows branch wraps the Win32 serial primitives
  *          (CreateFile / Comm* / overlapped ReadFile/WriteFile) and owns the per-direction

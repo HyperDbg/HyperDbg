@@ -193,6 +193,8 @@ if(UNIX)
     list(APPEND SourceFiles "code/debugger/user-level/pe-parser-linux.cpp")
     list(REMOVE_ITEM SourceFiles "code/debugger/driver-loader/install.cpp")
     list(APPEND SourceFiles "code/debugger/driver-loader/install-linux.cpp")
+    list(REMOVE_ITEM SourceFiles "code/debugger/communication/namedpipe.cpp")
+    list(APPEND SourceFiles "code/debugger/communication/namedpipe-linux.cpp")
 endif()
 
 add_library(libhyperdbg SHARED ${SourceFiles})

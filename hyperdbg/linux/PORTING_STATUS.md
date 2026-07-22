@@ -77,9 +77,11 @@ Shared, OS-neutral headers:
 | `.../script-engine/symbol-linux.cpp` | `symbol.cpp` (DbgHelp + PDB) | All `Symbol*` functions. Only `SymbolConvertNameOrExprToAddress` does real work: parses a plain hex/decimal literal so numeric addresses work. | Real ELF/DWARF symbol parser (libdw / libelf / libbfd). |
 | `.../user-level/pe-parser-linux.cpp` | `pe-parser.cpp` (Windows PE format) | The 3 public fns: `PeShowSectionInformationAndDump`, `PeIsPE32BitOr64Bit` (→ FALSE), `PeGetSyscallNumber` (→ 0). | Recreate the Windows `IMAGE_*` headers for Linux, then port `pe-parser.cpp`. Only needed for Windows-target debugging on Linux. |
 | `.../driver-loader/install-linux.cpp` | `install.cpp` (SCM driver loader) | The 2 Linux-visible public fns: `ManageDriver` (→ FALSE) and `SetupPathForFileName` (→ FALSE). The 4 `SC_HANDLE` helpers (`InstallDriver`/`RemoveDriver`/`StartDriver`/`StopDriver`) are guarded out of `install.h` on Linux (never referenced there). | `ManageDriver`: load/unload a future HyperDbg Linux kernel module via `finit_module`/`delete_module` (needs CAP_SYS_MODULE). `SetupPathForFileName`: `readlink("/proc/self/exe")` + strip + append + `access()` (generic "find a file beside my binary"; also used by hwdbg). |
+| `.../communication/namedpipe-linux.cpp` | `namedpipe.cpp` (Win32 named-pipe IPC) | All 10 public `NamedPipeServer*`/`NamedPipeClient*` fns. `Create*` → `INVALID_HANDLE_VALUE` (print); send/read → 0/FALSE; close → no-op (quiet, unreachable once Create fails). The two internal `*Example()` demos are not in the Linux TU. | Back with a filesystem FIFO (`mkfifo`) or, better for framed bidirectional messages, an `AF_UNIX` socket derived from the `\\.\pipe\NAME` string; overlapped/event I/O collapses to blocking `read`/`write`. |
 
-All three self-guard with `#ifdef __linux__` and print
-`"... is not supported on Linux yet"` at runtime.
+All four self-guard with `#ifdef __linux__` and print
+`"... is not supported on Linux yet"` at runtime (named-pipe: only in the
+`Create*` entry points, to avoid per-loop spam).
 
 ---
 
@@ -319,6 +321,55 @@ over serial/namedpipe). Two mechanical fixes:
   `#define`s kept at their canonical Windows values (each equals its baud rate).
   Matches the CTRL_*/PROCESS_*/ERROR_* constant blocks already there. Actual Linux
   serial I/O is still the platform-serial termios TODO.
+
+### formats.cpp DECIMAL_DIG — DONE (2026-07-22)
+
+`meta-commands/formats.cpp:94` uses `DECIMAL_DIG` (the ISO C99 `<float.h>` macro,
+widest-float round-trip digit count) in a `.formats` output format string. MSVC
+exposes it transitively via its CRT/pch; glibc needs the explicit include.
+**Pure addition:** `#include <float.h>` in the `Environment.h` Linux block
+(next to `<wchar.h>`/`<unistd.h>`). Standard header, cross-platform-safe.
+
+### forwarding.cpp output-event forwarding — DONE (2026-07-22)
+
+`communication/forwarding.cpp` is the debug-output forwarding subsystem (sinks:
+file / TCP / named-pipe / loadable module). Bucket-2, multi-category. User chose
+**new Platform\* wrappers** for both non-trivial subsystems (not guards).
+
+- **Clean swap:** `WriteFile`→`PlatformWriteFile` (exact match; the original
+  assigns the result then unconditionally `return TRUE`, so the error-check below
+  was already dead code — `BytesWritten` out-param dropped, still referenced by
+  that dead code so no unused-var). `CloseHandle` (FILE source)→`PlatformCloseFile`
+  (fclose on Linux — matches the FILE\* the new open returns).
+- **File sink** (`CreateFileA`, narrow path + `OPEN_ALWAYS`): existing
+  `PlatformOpenFileForWriting` did NOT fit (it is wide + `CREATE_ALWAYS`/truncate),
+  so **pure addition** `PlatformOpenFileForWritingNarrow(const CHAR *)` — Windows
+  `CreateFileA(...OPEN_ALWAYS...)`; Linux `fopen("r+b")` then `fopen("w+b")`
+  (open-existing-no-truncate, else create) returning the `FILE*` as the HANDLE.
+  Named `...Narrow` (user preference) to flag the char-width difference vs the
+  wide variant. Because the path is already a narrow `std::string`, this sink
+  actually works on Linux — no wide-char blocker.
+- **Module/plugin sink** (`LoadLibraryA`/`GetProcAddress`/`FreeLibrary`): **pure
+  additions** `PlatformLoadLibrary`/`PlatformGetProcAddress`/`PlatformFreeLibrary`
+  in platform-lib-calls — Windows real; Linux `dlopen(RTLD_NOW|RTLD_LOCAL)`/
+  `dlsym`/`dlclose` (dlclose return inverted to keep "non-zero == success").
+  `PlatformGetProcAddress` returns `PVOID` (no `FARPROC` on Linux); caller casts.
+- **Build:** added `#include <dlfcn.h>` to the platform-lib-calls Linux includes;
+  added `${CMAKE_DL_LIBS}` to the `libhyperdbg` link (top-level CMakeLists) — the
+  portable dl link (empty where dl is in libc). Only libhyperdbg compiles
+  platform-lib-calls.c on Linux, so no other target needed it.
+- ⚠️ All four new Linux branches marked `NOT YET TESTED!!` in source.
+
+### namedpipe.cpp — DONE via namedpipe-linux.cpp + CMake swap (2026-07-22)
+
+`communication/namedpipe.cpp` is a whole Windows-only TU (Win32 named-pipe IPC:
+server `CreateNamedPipe`/`ConnectNamedPipe`, client `CreateFileA` on `\\.\pipe\`
++ overlapped `ReadFile`/`WriteFile` via `g_OverlappedIoStructureFor*Debugger`).
+Followed pattern-2 (like symbol/pe-parser/install): new `namedpipe-linux.cpp`
+`#ifdef __linux__` stubs of the 10 public `NamedPipe{Server,Client}*` fns;
+`namedpipe.cpp` left 100% untouched; CMake `if(UNIX)` REMOVE_ITEM + APPEND swap.
+6 callers link the stubs transparently (forwarding/kd/debug/export/tests/test).
+See the Linux-replacement-files table above for the FIFO/AF_UNIX TODO.
 
 ---
 

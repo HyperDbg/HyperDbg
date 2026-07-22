@@ -1,6 +1,6 @@
 /**
  * @file platform-lib-calls.c
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode Cross platform APIs for platofrm dependend library calls
  * @details
  * @version 0.19
@@ -21,6 +21,7 @@
 #    include <string.h>
 #    include <strings.h>
 #    include <signal.h>
+#    include <dlfcn.h>
 #endif // defined(__linux__)
 
 /**
@@ -644,6 +645,46 @@ PlatformOpenFileForWriting(const WCHAR * Path)
 }
 
 /**
+ * @brief Platform independent wrapper to open a file for writing with
+ *        OPEN_ALWAYS semantics (open existing without truncating, else create),
+ *        taking a narrow (char*) path
+ *
+ * @details Unlike PlatformOpenFileForWriting (wide path, CREATE_ALWAYS/truncate)
+ *          this keeps any existing file content. The Linux handle is a FILE* so
+ *          it works with PlatformWriteFile / PlatformCloseFile.
+ *
+ * @param Path narrow path of the file to open or create
+ * @return HANDLE to the opened file, or INVALID_HANDLE_VALUE on failure
+ */
+HANDLE
+PlatformOpenFileForWritingNarrow(const CHAR * Path)
+{
+#if defined(_WIN32)
+    return CreateFileA(Path, GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+#elif defined(__linux__)
+    //
+    // NOT YET TESTED!!
+    // "r+b" opens an existing file at offset 0 without truncating (matching
+    // OPEN_ALWAYS on an existing file); if it does not exist, create it with
+    // "w+b". Return the FILE* as the HANDLE (PlatformWriteFile/PlatformCloseFile
+    // treat the Linux handle as a FILE*).
+    //
+    FILE * File = fopen(Path, "r+b");
+    if (File == NULL)
+    {
+        File = fopen(Path, "w+b");
+    }
+    if (File == NULL)
+    {
+        return INVALID_HANDLE_VALUE;
+    }
+    return (HANDLE)File;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
  * @brief Platform independent wrapper to write a buffer to an open file
  *
  * @param FileHandle handle returned by PlatformOpenFileForWriting
@@ -986,6 +1027,68 @@ PlatformGetExitCodeProcess(HANDLE Process, LPDWORD ExitCode)
     (void)Process;
     (void)ExitCode;
     return FALSE;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for LoadLibrary
+ *
+ * @param ModulePath narrow path of the shared module to load
+ * @return HMODULE handle to the loaded module, or NULL on failure
+ */
+HMODULE
+PlatformLoadLibrary(const CHAR * ModulePath)
+{
+#if defined(_WIN32)
+    return LoadLibraryA(ModulePath);
+#elif defined(__linux__)
+    // NOT YET TESTED!!
+    return (HMODULE)dlopen(ModulePath, RTLD_NOW | RTLD_LOCAL);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for GetProcAddress
+ *
+ * @param Module module handle returned by PlatformLoadLibrary
+ * @param ProcName name of the exported symbol to resolve
+ * @return PVOID address of the symbol, or NULL if not found
+ */
+PVOID
+PlatformGetProcAddress(HMODULE Module, const CHAR * ProcName)
+{
+#if defined(_WIN32)
+    return (PVOID)GetProcAddress(Module, ProcName);
+#elif defined(__linux__)
+    // NOT YET TESTED!!
+    return dlsym((void *)Module, ProcName);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Platform independent wrapper for FreeLibrary
+ *
+ * @param Module module handle returned by PlatformLoadLibrary
+ * @return BOOL non-zero on success, zero on failure
+ */
+BOOL
+PlatformFreeLibrary(HMODULE Module)
+{
+#if defined(_WIN32)
+    return FreeLibrary(Module);
+#elif defined(__linux__)
+    //
+    // NOT YET TESTED!!
+    // dlclose returns 0 on success (opposite of FreeLibrary), so invert it to
+    // preserve the "non-zero == success" contract.
+    //
+    return (BOOL)(dlclose((void *)Module) == 0);
 #else
 #    error "Unsupported platform"
 #endif

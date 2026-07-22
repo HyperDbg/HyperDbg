@@ -50,6 +50,10 @@
 // POSIX sleep primitives (usleep) backing the Win32 Sleep() shim below
 #    include <unistd.h>
 
+// DECIMAL_DIG and the FLT/DBL limits (ISO C99 <float.h>); MSVC exposes these
+// transitively through its CRT/pch, glibc needs the explicit include
+#    include <float.h>
+
 // Windows string/char types
 typedef char         TCHAR;
 typedef char *       LPTSTR;

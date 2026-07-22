@@ -1,6 +1,6 @@
 /**
  * @file platform-signal.h
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode cross-platform interface for the console-control (CTRL+C / CTRL+BREAK) handler
  * @details HyperDbg installs a single handler (BreakController) that pauses the
  *          debuggee when the user hits CTRL+C / CTRL+BREAK. The handler body is

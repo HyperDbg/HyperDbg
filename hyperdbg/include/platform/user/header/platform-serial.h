@@ -1,6 +1,6 @@
 /**
  * @file platform-serial.h
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode cross-platform interface for the kernel-debugger serial transport
  * @details The kernel-debugging *protocol* in kd.cpp is platform independent; only
  *          the byte transport underneath it (serial COM port / named pipe) is OS

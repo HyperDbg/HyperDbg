@@ -1,6 +1,6 @@
 /**
  * @file platform-lib-calls.h
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode Cross platform APIs for platofrm dependend library calls
  * @details
  * @version 0.19
@@ -157,6 +157,16 @@ PlatformWriteConsole(const VOID * Buffer, DWORD NumberOfBytes);
 HANDLE
 PlatformOpenFileForWriting(const WCHAR * Path);
 
+//
+// Narrow (char*) variant with OPEN_ALWAYS semantics (open existing, else
+// create; no truncate), as opposed to the wide PlatformOpenFileForWriting above
+// which truncates (CREATE_ALWAYS). Used by the event-forwarding file sink, whose
+// path is already a narrow std::string, so it sidesteps the wide-char issue and
+// works on Linux.
+//
+HANDLE
+PlatformOpenFileForWritingNarrow(const CHAR * Path);
+
 BOOLEAN
 PlatformWriteFile(HANDLE FileHandle, const VOID * Buffer, DWORD NumberOfBytes);
 
@@ -228,3 +238,20 @@ PlatformResumeThread(HANDLE Thread);
 
 BOOL
 PlatformGetExitCodeProcess(HANDLE Process, LPDWORD ExitCode);
+
+//
+// DYNAMIC LIBRARY LOADING
+//
+// Thin wrappers over LoadLibrary/GetProcAddress/FreeLibrary, used by the
+// event-forwarding "module" sink (loads a plugin exporting
+// hyperdbg_event_forwarding). Windows = the Win32 calls; Linux = dlopen/dlsym/
+// dlclose (exact 1:1 semantic map).
+//
+HMODULE
+PlatformLoadLibrary(const CHAR * ModulePath);
+
+PVOID
+PlatformGetProcAddress(HMODULE Module, const CHAR * ProcName);
+
+BOOL
+PlatformFreeLibrary(HMODULE Module);
