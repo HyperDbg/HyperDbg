@@ -52,6 +52,7 @@ User-mode abstractions in `include/platform/user/` (`header/` = interface,
 | `platform-serial.{h,c}` | Serial byte transport for remote kernel debugging | **Stub** — Linux branch returns false; termios impl TODO |
 | `platform-ioctl.{h,c}` | Local kernel-driver IOCTL interface (`PlatformDeviceIoControl`) + device open (`PlatformOpenDevice`) | **Stub** — no Linux kernel module yet; `PlatformOpenDevice` returns `INVALID_HANDLE_VALUE` |
 | `platform-signal.{h,c}` | Console control handler (Ctrl-C / Ctrl-Break) | Implemented (blocks signals + `sigwait` thread) |
+| `platform-socket.{h,c}` | TCP remote-debugging transport: the few Winsock ops that diverge from POSIX (`WSAStartup`/`WSACleanup` lifecycle, `closesocket`, `SD_SEND` shutdown, `WSAGetLastError`) + the `accept()` length-type (`PLATFORM_SOCKLEN`). Also owns the Linux POSIX socket-header includes | Implemented (BSD sockets) — the portable socket calls stay at the tcpclient/tcpserver call sites |
 
 Kernel-mode equivalents live in `include/platform/kernel/`. Two were extended for
 the port because the shared `script-eval/` code compiles in both user and kernel
@@ -370,6 +371,45 @@ Followed pattern-2 (like symbol/pe-parser/install): new `namedpipe-linux.cpp`
 `namedpipe.cpp` left 100% untouched; CMake `if(UNIX)` REMOVE_ITEM + APPEND swap.
 6 callers link the stubs transparently (forwarding/kd/debug/export/tests/test).
 See the Linux-replacement-files table above for the FIFO/AF_UNIX TODO.
+
+### TCP transport (tcpclient/tcpserver/remote-connection) — DONE (2026-07-22)
+
+The TCP remote-debugging path. Unlike namedpipe, the socket code is genuinely
+cross-platform — Winsock and POSIX share the BSD-socket API almost verbatim — so
+it stays as shared `.cpp` (no `-linux.cpp` fork). A new **`platform-socket.{h,c}`
+module** (sibling to platform-serial/-signal; wired into pch.h, top-level +
+libhyperdbg CMake, and the Windows `.vcxproj`/`.filters`) isolates the handful of
+things that actually diverge. User chose the platform-API route over Winsock-name
+shims in `Environment.h`.
+
+- **`communication/tcpclient.cpp` / `tcpserver.cpp`** — the portable calls
+  (`socket`/`connect`/`bind`/`listen`/`accept`/`send`/`recv`/`shutdown`/
+  `getaddrinfo`) stay at the call sites unchanged. Swapped only the divergent
+  ones to `Platform*`: `WSAStartup(MAKEWORD(2,2),&wsaData)`→`PlatformSocketInitialize()`
+  (WSADATA local + MAKEWORD dropped; keeps the `IResult != 0` shape — wrapper
+  returns 0 on success), `WSACleanup()`→`PlatformSocketCleanup()`,
+  `closesocket`→`PlatformCloseSocket`, `shutdown(...,SD_SEND)`→`PlatformShutdownSocketSend`,
+  `WSAGetLastError()`→`PlatformGetSocketError()`, plus the bucket-1
+  `ZeroMemory`→`PlatformZeroMemory`. tcpserver's `accept()` length out-param
+  `INT AddrLen`→`PLATFORM_SOCKLEN AddrLen` — the one genuine type incompatibility
+  (Winsock `int*` vs POSIX `socklen_t*`).
+- **`communication/remote-connection.cpp`** — bucket-1 sweep (`.listen`/`.connect`
+  command layer over the sockets): `RtlZeroMemory`×3→`PlatformZeroMemory`,
+  `SetEvent`→`PlatformSetEvent`, `CreateEvent(NULL,FALSE,FALSE,NULL)`→`PlatformCreateEvent(FALSE,FALSE)`,
+  `CreateThread(...)`→`PlatformCreateThread(fn,NULL)` (unused `DWORD ThreadId` local
+  dropped), `WaitForSingleObject`→`PlatformWaitForSingleObject`.
+- **`platform-socket.{h,c}`** (pure addition): `PlatformSocketInitialize`/
+  `PlatformSocketCleanup`/`PlatformCloseSocket`/`PlatformShutdownSocketSend`/
+  `PlatformGetSocketError` + the `PLATFORM_SOCKLEN` typedef. The `.c` maps the
+  divergent primitives (close / shutdown-flag / last-error) via small per-OS
+  macros so each wrapper body is written once; only the WSAStartup vs no-op
+  lifecycle keeps a small in-body guard. The `.h` also owns the Linux POSIX
+  socket-header includes (`<sys/socket.h>`/`<netdb.h>`/`<netinet/in.h>`/
+  `<arpa/inet.h>`/`<unistd.h>`), so any TU using sockets gets them via pch.
+  ⚠️ Linux branches not yet exercised at runtime (compile-verified only).
+
+Note the pre-existing latent teardown-ordering issue is unchanged; see the
+`PlatformTerminateThread` TODO below (remote-connection's listening thread).
 
 ---
 

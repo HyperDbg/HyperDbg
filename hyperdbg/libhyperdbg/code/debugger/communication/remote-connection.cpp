@@ -134,7 +134,7 @@ RemoteConnectionListen(PCSTR Port)
     //
     // Zero the buffer for next command
     //
-    RtlZeroMemory(recvbuf, COMMUNICATION_BUFFER_SIZE);
+    PlatformZeroMemory(recvbuf, COMMUNICATION_BUFFER_SIZE);
 
     while (true)
     {
@@ -175,7 +175,7 @@ RemoteConnectionListen(PCSTR Port)
         //
         // Zero the buffer for next command
         //
-        RtlZeroMemory(recvbuf, COMMUNICATION_BUFFER_SIZE);
+        PlatformZeroMemory(recvbuf, COMMUNICATION_BUFFER_SIZE);
     }
 
     //
@@ -271,13 +271,13 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
             //
             // Trigger the event
             //
-            SetEvent(g_EndOfMessageReceivedEvent);
+            PlatformSetEvent(g_EndOfMessageReceivedEvent);
         }
 
         //
         // Clear the buffer
         //
-        RtlZeroMemory(RecvBuf, COMMUNICATION_BUFFER_SIZE);
+        PlatformZeroMemory(RecvBuf, COMMUNICATION_BUFFER_SIZE);
     }
 
     //
@@ -314,7 +314,6 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
 VOID
 RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
 {
-    DWORD  ThreadId;
     CHAR   Recv[3]  = {0};
     UINT32 BuffRecv = 0;
 
@@ -412,7 +411,7 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
         //
         if (g_EndOfMessageReceivedEvent == NULL)
         {
-            g_EndOfMessageReceivedEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+            g_EndOfMessageReceivedEvent = PlatformCreateEvent(FALSE, FALSE);
         }
 
         //
@@ -420,13 +419,9 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
         // the remote debuggee for new messages
         // Listen for upcoming messages
         //
-        g_RemoteDebuggeeListeningThread = CreateThread(
-            NULL,
-            0,
+        g_RemoteDebuggeeListeningThread = PlatformCreateThread(
             RemoteConnectionThreadListeningToDebuggee,
-            NULL,
-            0,
-            &ThreadId);
+            NULL);
 
         ShowMessages("connected to %s:%s\n", Ip, Port);
     }
@@ -458,7 +453,7 @@ RemoteConnectionSendCommand(const CHAR * sendbuf, INT len)
     //
     // We wait for the debuggee to send the message
     //
-    WaitForSingleObject(
+    PlatformWaitForSingleObject(
         g_EndOfMessageReceivedEvent,
         INFINITE);
 
