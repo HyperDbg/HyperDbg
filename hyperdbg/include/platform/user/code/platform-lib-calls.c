@@ -166,6 +166,43 @@ PlatformSprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...)
 }
 
 /**
+ * @brief Platform independent wrapper for _snprintf_s(..., _TRUNCATE, ...)
+ *
+ * Writes a formatted string into Buffer. If the output is larger than the
+ * buffer, it is truncated and always null-terminated.
+ *
+ * @param Buffer output buffer
+ * @param BufferSize size of the output buffer
+ * @param Format format string
+ * @return INT number of characters written, or -1 if truncation or an error occurred.
+ */
+INT
+PlatformSnprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...)
+{
+    va_list Args;
+    INT     Result;
+
+    va_start(Args, Format);
+
+#if defined(_WIN32)
+    Result = _vsnprintf_s(Buffer, BufferSize, _TRUNCATE, Format, Args);
+#elif defined(__linux__)
+    Result = vsnprintf(Buffer, BufferSize, Format, Args);
+
+    /* Match Windows _TRUNCATE behavior: return -1 on truncation. */
+    if (Result >= 0 && (SIZE_T)Result >= BufferSize)
+    {
+        Result = -1;
+    }
+#else
+#    error "Unsupported platform"
+#endif
+
+    va_end(Args);
+    return Result;
+}
+
+/**
  * @brief Platform independent wrapper for strnlen_s / strnlen
  *
  * @param Str string to measure (must not be NULL)
@@ -337,7 +374,7 @@ PlatformGetActiveProcessorCount(VOID)
     GetSystemInfo(&SysInfo);
     return (SIZE_T)SysInfo.dwNumberOfProcessors;
 #elif defined(__linux__)
-// Not yet tested!!
+    // Not yet tested!!
     long Count = sysconf(_SC_NPROCESSORS_ONLN);
     return Count > 0 ? (SIZE_T)Count : 0;
 #else

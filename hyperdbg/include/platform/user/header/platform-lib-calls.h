@@ -49,6 +49,12 @@ INT
 PlatformSprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...);
 
 //
+// SNPRINTF
+//
+INT
+PlatformSnprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...);
+
+//
 // BOUNDED STRING LENGTH
 //
 SIZE_T
@@ -83,7 +89,7 @@ PlatformSleep(DWORD Milliseconds);
 // DEBUG BREAK (raise a breakpoint trap in the calling process)
 //
 VOID
-PlatformDebugBreak(VOID);
+    PlatformDebugBreak(VOID);
 
 //
 // HIGH-RESOLUTION PERFORMANCE COUNTER
