@@ -1,6 +1,6 @@
 /**
  * @file platform-signal.c
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode cross-platform implementation of the console-control handler
  * @details See platform-signal.h. The Windows branch forwards to SetConsoleCtrlHandler.
  *          The Linux branch blocks the handled signals and dispatches them from a

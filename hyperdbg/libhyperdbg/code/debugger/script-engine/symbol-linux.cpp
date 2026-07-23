@@ -1,6 +1,6 @@
 /**
  * @file symbol-linux.cpp
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief Linux stub implementations of the symbol subsystem
  * @details The Windows implementation uses DbgHelp + PDB files (symbol-parser/).
  *          Linux uses ELF/DWARF which requires a separate implementation.

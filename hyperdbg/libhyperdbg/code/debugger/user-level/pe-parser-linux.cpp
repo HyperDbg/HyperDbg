@@ -1,6 +1,6 @@
 /**
  * @file pe-parser-linux.cpp
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief Linux stub implementations of the PE (Portable Executable) parser
  * @details The Windows implementation (pe-parser.cpp) parses the full PE image
  *          format and depends on the complete set of Windows IMAGE_* headers,

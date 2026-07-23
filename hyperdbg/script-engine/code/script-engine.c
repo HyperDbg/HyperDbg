@@ -1378,7 +1378,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 *Error = SCRIPT_ENGINE_ERROR_INCOMPLETE_TYPE;
                 break;
             }
-            _snprintf_s(SizeText, sizeof(SizeText), _TRUNCATE, "%d", OperandType->Size);
+            PlatformSprintf(SizeText, sizeof(SizeText), "%d", OperandType->Size);
             SizeToken = NewToken(DECIMAL, SizeText);
             SizeToken->VariableType = VARIABLE_TYPE_ULLONG;
             RemoveToken(&Op0);
@@ -1397,7 +1397,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 *Error = SCRIPT_ENGINE_ERROR_INCOMPLETE_TYPE;
                 break;
             }
-            _snprintf_s(SizeText, sizeof(SizeText), _TRUNCATE, "%d", ResolvedType->Size);
+            PlatformSprintf(SizeText, sizeof(SizeText), "%d", ResolvedType->Size);
             SizeToken = NewToken(DECIMAL, SizeText);
             SizeToken->VariableType = VARIABLE_TYPE_ULLONG;
             Push(MatchedStack, SizeToken);

@@ -12,6 +12,13 @@
  */
 #include "pch.h"
 
+//
+// std::sqrt / pow / log / sqrt: MSVC exposes these transitively through its
+// CRT/pch, libstdc++ needs the explicit <cmath> (which also declares the
+// unqualified ::pow/::log/::sqrt used below). Standard header, cross-platform-safe.
+//
+#include <cmath>
+
 /**
  * @brief get the median of a vector
  *

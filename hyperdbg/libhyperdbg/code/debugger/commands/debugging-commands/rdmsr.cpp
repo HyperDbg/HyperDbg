@@ -33,6 +33,7 @@ CommandRdmsrHelp()
     ShowMessages("\t\te.g : rdmsr c0000082 core 2\n");
 }
 
+#ifdef _WIN32
 /// defines the GetLogicalProcessorInformationEx function
 typedef BOOL(WINAPI * glpie_t)(
     LOGICAL_PROCESSOR_RELATIONSHIP,
@@ -107,6 +108,7 @@ GetWindowsNumaNumberOfCores()
     free(Buffer);
     return NumCores;
 }
+#endif // _WIN32
 
 /**
  * @brief rdmsr command handler
@@ -197,8 +199,12 @@ CommandRdmsr(vector<CommandToken> CommandTokens, string Command)
     //
     // Find logical cores count
     //
+#ifdef _WIN32
     SIZE_T NumCores = GetWindowsNumaNumberOfCores();
     NumCPU          = NumCores > 0 ? NumCores : GetWindowsCompatibleNumberOfCores();
+#else
+    NumCPU = PlatformGetActiveProcessorCount();
+#endif
 
     //
     // allocate buffer for transferring messages

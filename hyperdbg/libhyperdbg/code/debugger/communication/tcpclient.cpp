@@ -22,7 +22,6 @@
 INT
 CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketArg)
 {
-    WSADATA          wsaData;
     SOCKET           ConnectSocket = INVALID_SOCKET;
     struct addrinfo *result = NULL, *ptr = NULL, hints;
     INT              IResult;
@@ -30,14 +29,14 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
     //
     // Initialize Winsock
     //
-    IResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    IResult = PlatformSocketInitialize();
     if (IResult != 0)
     {
         ShowMessages("err, WSAStartup failed (%x)\n", IResult);
         return 1;
     }
 
-    ZeroMemory(&hints, sizeof(hints));
+    PlatformZeroMemory(&hints, sizeof(hints));
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
@@ -49,7 +48,7 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
     if (IResult != 0)
     {
         ShowMessages("getaddrinfo failed (%x)\n", IResult);
-        WSACleanup();
+        PlatformSocketCleanup();
         return 1;
     }
 
@@ -64,8 +63,8 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
         ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
         if (ConnectSocket == INVALID_SOCKET)
         {
-            ShowMessages("socket failed with error: %ld\n", WSAGetLastError());
-            WSACleanup();
+            ShowMessages("socket failed with error: %ld\n", PlatformGetSocketError());
+            PlatformSocketCleanup();
             return 1;
         }
 
@@ -75,7 +74,7 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
         IResult = connect(ConnectSocket, ptr->ai_addr, (INT)ptr->ai_addrlen);
         if (IResult == SOCKET_ERROR)
         {
-            closesocket(ConnectSocket);
+            PlatformCloseSocket(ConnectSocket);
             ConnectSocket = INVALID_SOCKET;
             continue;
         }
@@ -87,7 +86,7 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
     if (ConnectSocket == INVALID_SOCKET)
     {
         ShowMessages("unable to connect to the server\n");
-        WSACleanup();
+        PlatformSocketCleanup();
         return 1;
     }
 
@@ -118,9 +117,9 @@ CommunicationClientSendMessage(SOCKET ConnectSocket, const CHAR * sendbuf, INT b
     IResult = send(ConnectSocket, sendbuf, buflen, 0);
     if (IResult == SOCKET_ERROR)
     {
-        ShowMessages("err, send failed (%x)\n", WSAGetLastError());
-        closesocket(ConnectSocket);
-        WSACleanup();
+        ShowMessages("err, send failed (%x)\n", PlatformGetSocketError());
+        PlatformCloseSocket(ConnectSocket);
+        PlatformSocketCleanup();
         return 1;
     }
 
@@ -141,7 +140,7 @@ CommunicationClientShutdownConnection(SOCKET ConnectSocket)
     //
     // shutdown the connection since no more data will be sent
     //
-    IResult = shutdown(ConnectSocket, SD_SEND);
+    IResult = PlatformShutdownSocketSend(ConnectSocket);
     if (IResult == SOCKET_ERROR)
     {
         //
@@ -150,11 +149,11 @@ CommunicationClientShutdownConnection(SOCKET ConnectSocket)
         //
 
         /*
-    ShowMessages("err, shutdown failed (%x)\n", WSAGetLastError());
+    ShowMessages("err, shutdown failed (%x)\n", PlatformGetSocketError());
     */
 
-        closesocket(ConnectSocket);
-        WSACleanup();
+        PlatformCloseSocket(ConnectSocket);
+        PlatformSocketCleanup();
         return 1;
     }
     return 0;
@@ -197,7 +196,7 @@ CommunicationClientReceiveMessage(SOCKET ConnectSocket, CHAR * RecvBuf, UINT32 M
     }
     else
     {
-        ShowMessages("\nrecv failed with error: %d\n", WSAGetLastError());
+        ShowMessages("\nrecv failed with error: %d\n", PlatformGetSocketError());
         ShowMessages("the remote system closes the connection.\n\n");
 
         return 1;
@@ -218,8 +217,8 @@ CommunicationClientCleanup(SOCKET ConnectSocket)
     //
     // cleanup
     //
-    closesocket(ConnectSocket);
-    WSACleanup();
+    PlatformCloseSocket(ConnectSocket);
+    PlatformSocketCleanup();
 
     return 0;
 }

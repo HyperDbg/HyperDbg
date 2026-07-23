@@ -52,6 +52,7 @@ User-mode abstractions in `include/platform/user/` (`header/` = interface,
 | `platform-serial.{h,c}` | Serial byte transport for remote kernel debugging | **Stub** — Linux branch returns false; termios impl TODO |
 | `platform-ioctl.{h,c}` | Local kernel-driver IOCTL interface (`PlatformDeviceIoControl`) + device open (`PlatformOpenDevice`) | **Stub** — no Linux kernel module yet; `PlatformOpenDevice` returns `INVALID_HANDLE_VALUE` |
 | `platform-signal.{h,c}` | Console control handler (Ctrl-C / Ctrl-Break) | Implemented (blocks signals + `sigwait` thread) |
+| `platform-socket.{h,c}` | TCP remote-debugging transport: the few Winsock ops that diverge from POSIX (`WSAStartup`/`WSACleanup` lifecycle, `closesocket`, `SD_SEND` shutdown, `WSAGetLastError`) + the `accept()` length-type (`PLATFORM_SOCKLEN`). Also owns the Linux POSIX socket-header includes | Implemented (BSD sockets) — the portable socket calls stay at the tcpclient/tcpserver call sites |
 
 Kernel-mode equivalents live in `include/platform/kernel/`. Two were extended for
 the port because the shared `script-eval/` code compiles in both user and kernel
@@ -77,9 +78,11 @@ Shared, OS-neutral headers:
 | `.../script-engine/symbol-linux.cpp` | `symbol.cpp` (DbgHelp + PDB) | All `Symbol*` functions. Only `SymbolConvertNameOrExprToAddress` does real work: parses a plain hex/decimal literal so numeric addresses work. | Real ELF/DWARF symbol parser (libdw / libelf / libbfd). |
 | `.../user-level/pe-parser-linux.cpp` | `pe-parser.cpp` (Windows PE format) | The 3 public fns: `PeShowSectionInformationAndDump`, `PeIsPE32BitOr64Bit` (→ FALSE), `PeGetSyscallNumber` (→ 0). | Recreate the Windows `IMAGE_*` headers for Linux, then port `pe-parser.cpp`. Only needed for Windows-target debugging on Linux. |
 | `.../driver-loader/install-linux.cpp` | `install.cpp` (SCM driver loader) | The 2 Linux-visible public fns: `ManageDriver` (→ FALSE) and `SetupPathForFileName` (→ FALSE). The 4 `SC_HANDLE` helpers (`InstallDriver`/`RemoveDriver`/`StartDriver`/`StopDriver`) are guarded out of `install.h` on Linux (never referenced there). | `ManageDriver`: load/unload a future HyperDbg Linux kernel module via `finit_module`/`delete_module` (needs CAP_SYS_MODULE). `SetupPathForFileName`: `readlink("/proc/self/exe")` + strip + append + `access()` (generic "find a file beside my binary"; also used by hwdbg). |
+| `.../communication/namedpipe-linux.cpp` | `namedpipe.cpp` (Win32 named-pipe IPC) | All 10 public `NamedPipeServer*`/`NamedPipeClient*` fns. `Create*` → `INVALID_HANDLE_VALUE` (print); send/read → 0/FALSE; close → no-op (quiet, unreachable once Create fails). The two internal `*Example()` demos are not in the Linux TU. | Back with a filesystem FIFO (`mkfifo`) or, better for framed bidirectional messages, an `AF_UNIX` socket derived from the `\\.\pipe\NAME` string; overlapped/event I/O collapses to blocking `read`/`write`. |
 
-All three self-guard with `#ifdef __linux__` and print
-`"... is not supported on Linux yet"` at runtime.
+All four self-guard with `#ifdef __linux__` and print
+`"... is not supported on Linux yet"` at runtime (named-pipe: only in the
+`Create*` entry points, to avoid per-loop spam).
 
 ---
 
@@ -113,6 +116,16 @@ equivalent, behavior-preserving.
   script-engine builds as a Linux `.so`.
 - SDK import/interface headers (`include/SDK/HyperDbgSdk.h`,
   `include/SDK/imports/user/HyperDbg*Imports.h`) adjusted for the Linux build.
+- Upstream `d44c726d` ("add float type in script engine") re-broke the Linux
+  build; fixed with two mechanical swaps:
+  - `pch.h` — define `_GNU_SOURCE` on Linux ahead of every libc header. The
+    float-literal parser's `#else` branch calls `strtof_l`/`strtod_l`, which
+    glibc declares in `<stdlib.h>` only under `__USE_GNU`. `newlocale`/
+    `freelocale` in the same branch are plain POSIX-2008 and already resolved.
+  - `script-engine.c:1381,1400` — 2× `_snprintf_s(Buf, sizeof(Buf), _TRUNCATE,
+    "%d", …)` → `PlatformSprintf(Buf, sizeof(Buf), "%d", …)`. Both buffers are
+    `CHAR[32]` formatting a single `%d`, so the dropped `_TRUNCATE` truncation
+    semantics are unreachable.
 
 ### Kernel-level debugger (remote protocol)
 - `kd.cpp` — largest sweep (~46 `Platform*`): serial open/configure/close via
@@ -258,6 +271,145 @@ calls. Note `lm.cpp` still does not compile, but for unrelated pre-existing
 reasons (`RTL_PROCESS_MODULES` / `RTL_PROCESS_MODULE_INFORMATION` undeclared, and
 `WCHAR *` vs `wchar_t *` — the wide-char item below); none of those are on lines
 this sweep touched.
+
+### rdmsr.cpp core-count — DONE (2026-07-22)
+
+Follow-up to the bucket-1 sweep of `rdmsr.cpp` above (this is a separate bucket-2
+change, not part of the mechanical batch). The command needs the online logical-CPU
+count to size its per-core transfer buffer; on Windows that came from two static
+helpers (`GetWindowsCompatibleNumberOfCores` via `GetSystemInfo`, and
+`GetWindowsNumaNumberOfCores` via `GetLogicalProcessorInformationEx` — the latter
+`GetProcAddress`-loaded from `kernel32.dll`, so entirely Win32).
+
+- Both static helpers + their `glpie_t` typedef guarded `#ifdef _WIN32` (rdmsr.cpp
+  lines 36–111). Windows bodies untouched.
+- Call site (`CommandRdmsr`, ~line 199): Windows path keeps the NUMA-then-fallback
+  logic; Linux `#else` calls the new `PlatformGetActiveProcessorCount()`.
+- **Pure addition:** `PlatformGetActiveProcessorCount(VOID)` in
+  `platform-lib-calls.{h,c}` — Windows `GetSystemInfo`→`dwNumberOfProcessors`;
+  Linux `sysconf(_SC_NPROCESSORS_ONLN)` (returns 0 if unknown). ⚠️ Linux branch
+  marked "Not yet tested!!" in the source — verify before relying on it.
+
+### settings.cpp config-file I/O — DONE (2026-07-22)
+
+`debugging-commands/settings.cpp` reads/writes the settings INI via a wide-char
+(`WCHAR[MAX_PATH]`) path and `std::ifstream`/`std::ofstream`. Two Linux-only
+blockers, both the deferred wide-char item: (1) `GetConfigFilePath(PWCHAR)` — on
+Linux `WCHAR` is `unsigned short` but `PWCHAR` is `short *` (signedness mismatch,
+`-fpermissive`); (2) libstdc++ has **no** `basic_ifstream`/`basic_ofstream`
+constructor taking a 2-byte `WCHAR*`, and no cast can bridge wide→`char*`.
+
+Both `CommandSettingsGetValueFromConfigFile` and `CommandSettingsSetValueFromConfigFile`
+are already dead on Linux (`GetConfigFilePath` empties the path,
+`IsFileExistW` returns FALSE), so their whole bodies were guarded `#ifdef _WIN32`
+(Windows verbatim) with a Linux `#else` stub (`return FALSE` / no-op +
+`UNREFERENCED_PARAMETER` + TODO(Linux)). Same pattern-1 convention already used
+for `GetConfigFilePath`/`IsFileExistW`/`ListDirectory` in common.cpp. This also
+moves the `GetConfigFilePath` call sites into the Windows branch, resolving the
+`PWCHAR` signedness error without touching the shared typedef.
+`CommandSettingsLoadDefaultValuesFromConfigFile` only calls the guarded getter —
+no wide-char of its own, left as-is.
+
+### debug.cpp serial connect — DONE (2026-07-22)
+
+`meta-commands/debug.cpp` (the `.debug` command — connect to a remote debuggee
+over serial/namedpipe). Two mechanical fixes:
+- `_stricmp`×4 (COM-port name compare in `CommandDebugCheckComPort`) →
+  `PlatformStrCaseCmp` (the existing common.cpp wrapper; Windows `_stricmp`,
+  Linux `strcasecmp`).
+- `CBR_*` baud-rate constants (`CommandDebugCheckBaudrate` validation) — **pure
+  addition** to `Environment.h` Linux block: the 15 winbase.h `CBR_110`…`CBR_256000`
+  `#define`s kept at their canonical Windows values (each equals its baud rate).
+  Matches the CTRL_*/PROCESS_*/ERROR_* constant blocks already there. Actual Linux
+  serial I/O is still the platform-serial termios TODO.
+
+### formats.cpp DECIMAL_DIG — DONE (2026-07-22)
+
+`meta-commands/formats.cpp:94` uses `DECIMAL_DIG` (the ISO C99 `<float.h>` macro,
+widest-float round-trip digit count) in a `.formats` output format string. MSVC
+exposes it transitively via its CRT/pch; glibc needs the explicit include.
+**Pure addition:** `#include <float.h>` in the `Environment.h` Linux block
+(next to `<wchar.h>`/`<unistd.h>`). Standard header, cross-platform-safe.
+
+### forwarding.cpp output-event forwarding — DONE (2026-07-22)
+
+`communication/forwarding.cpp` is the debug-output forwarding subsystem (sinks:
+file / TCP / named-pipe / loadable module). Bucket-2, multi-category. User chose
+**new Platform\* wrappers** for both non-trivial subsystems (not guards).
+
+- **Clean swap:** `WriteFile`→`PlatformWriteFile` (exact match; the original
+  assigns the result then unconditionally `return TRUE`, so the error-check below
+  was already dead code — `BytesWritten` out-param dropped, still referenced by
+  that dead code so no unused-var). `CloseHandle` (FILE source)→`PlatformCloseFile`
+  (fclose on Linux — matches the FILE\* the new open returns).
+- **File sink** (`CreateFileA`, narrow path + `OPEN_ALWAYS`): existing
+  `PlatformOpenFileForWriting` did NOT fit (it is wide + `CREATE_ALWAYS`/truncate),
+  so **pure addition** `PlatformOpenFileForWritingNarrow(const CHAR *)` — Windows
+  `CreateFileA(...OPEN_ALWAYS...)`; Linux `fopen("r+b")` then `fopen("w+b")`
+  (open-existing-no-truncate, else create) returning the `FILE*` as the HANDLE.
+  Named `...Narrow` (user preference) to flag the char-width difference vs the
+  wide variant. Because the path is already a narrow `std::string`, this sink
+  actually works on Linux — no wide-char blocker.
+- **Module/plugin sink** (`LoadLibraryA`/`GetProcAddress`/`FreeLibrary`): **pure
+  additions** `PlatformLoadLibrary`/`PlatformGetProcAddress`/`PlatformFreeLibrary`
+  in platform-lib-calls — Windows real; Linux `dlopen(RTLD_NOW|RTLD_LOCAL)`/
+  `dlsym`/`dlclose` (dlclose return inverted to keep "non-zero == success").
+  `PlatformGetProcAddress` returns `PVOID` (no `FARPROC` on Linux); caller casts.
+- **Build:** added `#include <dlfcn.h>` to the platform-lib-calls Linux includes;
+  added `${CMAKE_DL_LIBS}` to the `libhyperdbg` link (top-level CMakeLists) — the
+  portable dl link (empty where dl is in libc). Only libhyperdbg compiles
+  platform-lib-calls.c on Linux, so no other target needed it.
+- ⚠️ All four new Linux branches marked `NOT YET TESTED!!` in source.
+
+### namedpipe.cpp — DONE via namedpipe-linux.cpp + CMake swap (2026-07-22)
+
+`communication/namedpipe.cpp` is a whole Windows-only TU (Win32 named-pipe IPC:
+server `CreateNamedPipe`/`ConnectNamedPipe`, client `CreateFileA` on `\\.\pipe\`
++ overlapped `ReadFile`/`WriteFile` via `g_OverlappedIoStructureFor*Debugger`).
+Followed pattern-2 (like symbol/pe-parser/install): new `namedpipe-linux.cpp`
+`#ifdef __linux__` stubs of the 10 public `NamedPipe{Server,Client}*` fns;
+`namedpipe.cpp` left 100% untouched; CMake `if(UNIX)` REMOVE_ITEM + APPEND swap.
+6 callers link the stubs transparently (forwarding/kd/debug/export/tests/test).
+See the Linux-replacement-files table above for the FIFO/AF_UNIX TODO.
+
+### TCP transport (tcpclient/tcpserver/remote-connection) — DONE (2026-07-22)
+
+The TCP remote-debugging path. Unlike namedpipe, the socket code is genuinely
+cross-platform — Winsock and POSIX share the BSD-socket API almost verbatim — so
+it stays as shared `.cpp` (no `-linux.cpp` fork). A new **`platform-socket.{h,c}`
+module** (sibling to platform-serial/-signal; wired into pch.h, top-level +
+libhyperdbg CMake, and the Windows `.vcxproj`/`.filters`) isolates the handful of
+things that actually diverge. User chose the platform-API route over Winsock-name
+shims in `Environment.h`.
+
+- **`communication/tcpclient.cpp` / `tcpserver.cpp`** — the portable calls
+  (`socket`/`connect`/`bind`/`listen`/`accept`/`send`/`recv`/`shutdown`/
+  `getaddrinfo`) stay at the call sites unchanged. Swapped only the divergent
+  ones to `Platform*`: `WSAStartup(MAKEWORD(2,2),&wsaData)`→`PlatformSocketInitialize()`
+  (WSADATA local + MAKEWORD dropped; keeps the `IResult != 0` shape — wrapper
+  returns 0 on success), `WSACleanup()`→`PlatformSocketCleanup()`,
+  `closesocket`→`PlatformCloseSocket`, `shutdown(...,SD_SEND)`→`PlatformShutdownSocketSend`,
+  `WSAGetLastError()`→`PlatformGetSocketError()`, plus the bucket-1
+  `ZeroMemory`→`PlatformZeroMemory`. tcpserver's `accept()` length out-param
+  `INT AddrLen`→`PLATFORM_SOCKLEN AddrLen` — the one genuine type incompatibility
+  (Winsock `int*` vs POSIX `socklen_t*`).
+- **`communication/remote-connection.cpp`** — bucket-1 sweep (`.listen`/`.connect`
+  command layer over the sockets): `RtlZeroMemory`×3→`PlatformZeroMemory`,
+  `SetEvent`→`PlatformSetEvent`, `CreateEvent(NULL,FALSE,FALSE,NULL)`→`PlatformCreateEvent(FALSE,FALSE)`,
+  `CreateThread(...)`→`PlatformCreateThread(fn,NULL)` (unused `DWORD ThreadId` local
+  dropped), `WaitForSingleObject`→`PlatformWaitForSingleObject`.
+- **`platform-socket.{h,c}`** (pure addition): `PlatformSocketInitialize`/
+  `PlatformSocketCleanup`/`PlatformCloseSocket`/`PlatformShutdownSocketSend`/
+  `PlatformGetSocketError` + the `PLATFORM_SOCKLEN` typedef. The `.c` maps the
+  divergent primitives (close / shutdown-flag / last-error) via small per-OS
+  macros so each wrapper body is written once; only the WSAStartup vs no-op
+  lifecycle keeps a small in-body guard. The `.h` also owns the Linux POSIX
+  socket-header includes (`<sys/socket.h>`/`<netdb.h>`/`<netinet/in.h>`/
+  `<arpa/inet.h>`/`<unistd.h>`), so any TU using sockets gets them via pch.
+  ⚠️ Linux branches not yet exercised at runtime (compile-verified only).
+
+Note the pre-existing latent teardown-ordering issue is unchanged; see the
+`PlatformTerminateThread` TODO below (remote-connection's listening thread).
 
 ---
 

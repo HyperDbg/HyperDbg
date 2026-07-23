@@ -142,7 +142,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
         //
         // Close the handle
         //
-        CloseHandle(SourceDescriptor->Handle);
+        PlatformCloseFile(SourceDescriptor->Handle);
 
         //
         // Return the status
@@ -183,7 +183,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor)
         //
         // Free the library
         //
-        FreeLibrary(SourceDescriptor->Module);
+        PlatformFreeLibrary(SourceDescriptor->Module);
 
         //
         // Return the status
@@ -226,7 +226,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
         //
         // Create a new file
         //
-        HANDLE FileHandle = CreateFileA(Description.c_str(), GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+        HANDLE FileHandle = PlatformOpenFileForWritingNarrow(Description.c_str());
 
         //
         // The handle might be INVALID_HANDLE_VALUE which will be
@@ -236,7 +236,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
     }
     else if (SourceType == EVENT_FORWARDING_MODULE)
     {
-        HMODULE ModuleHandle = LoadLibraryA(Description.c_str());
+        HMODULE ModuleHandle = PlatformLoadLibrary(Description.c_str());
 
         if (ModuleHandle == NULL)
         {
@@ -244,7 +244,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
             return INVALID_HANDLE_VALUE;
         }
 
-        hyperdbg_event_forwarding_t hyperdbg_event_forwarding = (hyperdbg_event_forwarding_t)GetProcAddress(ModuleHandle, "hyperdbg_event_forwarding");
+        hyperdbg_event_forwarding_t hyperdbg_event_forwarding = (hyperdbg_event_forwarding_t)PlatformGetProcAddress(ModuleHandle, "hyperdbg_event_forwarding");
 
         if (hyperdbg_event_forwarding == NULL)
         {
@@ -503,11 +503,9 @@ ForwardingWriteToFile(HANDLE FileHandle, CHAR * Message, UINT32 MessageLength)
     DWORD BytesWritten = 0;
     BOOL  ErrorFlag    = FALSE;
 
-    ErrorFlag = WriteFile(FileHandle,    // open file handle
-                          Message,       // start of data to write
-                          MessageLength, // number of bytes to write
-                          &BytesWritten, // number of bytes that were written
-                          NULL);         // no overlapped structure
+    ErrorFlag = PlatformWriteFile(FileHandle,     // open file handle
+                                  Message,        // start of data to write
+                                  MessageLength); // number of bytes to write
 
     return TRUE;
 

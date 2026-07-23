@@ -1,6 +1,6 @@
 /**
  * @file nt-list.h
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief Cross-platform NT-style intrusive doubly-linked list helpers + CONTAINING_RECORD
  * @details The shared debugger code uses the NT LIST_ENTRY API (InitializeListHead,
  *          InsertHeadList, RemoveEntryList, CONTAINING_RECORD, ...). On Windows these
