@@ -18,13 +18,13 @@ extern HANDLE g_SerialListeningThreadHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern HANDLE g_DebuggeeStopCommandEventHandle;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-                                        g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
-extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
-extern BOOLEAN                          g_IsConnectedToHyperDbgLocally;
+               g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
+extern BYTE    g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
+extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 #ifdef _WIN32
-extern OVERLAPPED                       g_OverlappedIoStructureForReadDebugger;
-extern OVERLAPPED                       g_OverlappedIoStructureForWriteDebugger;
-extern OVERLAPPED                       g_OverlappedIoStructureForReadDebuggee;
+extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
+extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
+extern OVERLAPPED g_OverlappedIoStructureForReadDebuggee;
 #endif // _WIN32
 extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_RESULT
@@ -344,9 +344,9 @@ BOOLEAN
 KdSendUserCpuidPacketToDebuggee(UINT32 FunctionId, UINT32 SubFunctionId)
 {
     DEBUGGER_CPUID_REQUEST_RESPONSE CpuidPacket = {0};
-    CpuidPacket.FunctionId = FunctionId;
-    CpuidPacket.SubFunctionId = SubFunctionId;
-    
+    CpuidPacket.FunctionId                      = FunctionId;
+    CpuidPacket.SubFunctionId                   = SubFunctionId;
+
     //
     // Send 'ucpuid' command as CPUID packet
     //
@@ -731,7 +731,7 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
            EventBufferLength);
 
     PlatformZeroMemory(&g_DebuggeeResultOfRegisteringEvent,
-                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
+                       sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
     //
     // Send register event packet
@@ -798,7 +798,7 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
            GeneralActionLength);
 
     PlatformZeroMemory(&g_DebuggeeResultOfAddingActionsToEvent,
-                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
+                       sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
     //
     // Send add action to event packet
@@ -2527,7 +2527,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
                              BOOLEAN      IsNamedPipe,
                              BOOLEAN      PauseAfterConnection)
 {
-    HANDLE                     Comm; /* Handle to the Serial port */
+    HANDLE Comm; /* Handle to the Serial port */
 #ifdef _WIN32
     BOOL         Status;             /* Status */
     DCB          SerialParams = {0}; /* Initializing DCB structure */

@@ -25,22 +25,19 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandUserCpuidHelp()
 {
-    ShowMessages("ucpuid : reads CPUID information.\n\n");
-    ShowMessages("syntax : \tucpuid [Function] [SubFunction]\n\n");
+    ShowMessages("ucpuid : reads CPUID information on the target debuggee.\n\n");
+
+    ShowMessages("syntax : \tucpuid [Function (hex)] [SubFunction (hex)]\n\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : ucpuid 1\n");
     ShowMessages("\t\te.g : ucpuid 4 2\n");
     ShowMessages("\t\te.g : ucpuid D 0\n");
     ShowMessages("\t\te.g : ucpuid 0x80000008 0\n\n");
-    ShowMessages("  # Input Formats:\n");
-    ShowMessages("     - Hex (default):  No prefix needed. Examples: 1, 4, D, 0x80000008\n");
-    ShowMessages("     - Decimal:       Use 'n' prefix. Examples: n10, n15, n2147483648\n");
-    ShowMessages("     - Decimal:       Use '0n' prefix. Examples: 0n10, 0n15\n\n");
-    ShowMessages("  # Notes:\n");
-    ShowMessages("     - Function IDs are 32-bit values (max 0xFFFFFFFF / 4294967295).\n");
-    ShowMessages("     - Extended function IDs range: 0x80000000 - 0x8FFFFFFF.\n");
-    ShowMessages("     - Values beyond 0xFFFFFFFF are automatically rejected.\n");
-    ShowMessages("     - Use `ucpuid 0` to see the maximum supported CPUID leaf.\n");
-    ShowMessages("     - Use `ucpuid 0x80000000` to see the maximum supported extended leaf.\n\n");
+
+    ShowMessages("\n");
+    ShowMessages("note 1: use `ucpuid 0` to see the maximum supported CPUID leaf\n");
+    ShowMessages("note 2: use `ucpuid 0x80000000` to see the maximum supported extended leaf\n");
 }
 
 /**
@@ -49,8 +46,8 @@ CommandUserCpuidHelp()
  * @return VOID
  */
 VOID
-CommandShowUserCpuidMessage(UINT32 FunctionId, 
-                            UINT32 SubFunctionId, 
+CommandShowUserCpuidMessage(UINT32                           FunctionId,
+                            UINT32                           SubFunctionId,
                             PDEBUGGER_CPUID_REQUEST_RESPONSE CpuidRequest)
 {
     CONST CHAR * TypeName = NULL;
@@ -64,7 +61,7 @@ CommandShowUserCpuidMessage(UINT32 FunctionId,
         ShowMessages("  NULL value!\n");
         return;
     }
-    
+
     //
     // display result
     //
@@ -2079,7 +2076,7 @@ CommandCpuidRequestCpuid(UINT32 FunctionId, UINT32 SubFunctionId)
     PDEBUGGER_CPUID_REQUEST_RESPONSE CpuidRequest       = &CpuidRequestBuffer;
     CpuidRequest->FunctionId                            = FunctionId;
     CpuidRequest->SubFunctionId                         = SubFunctionId;
-    
+
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //

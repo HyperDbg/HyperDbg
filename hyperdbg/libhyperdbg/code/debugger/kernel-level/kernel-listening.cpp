@@ -584,7 +584,7 @@ StartAgain:
 
             if (CpuidPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
             {
-                UINT32                          FunctionId    = CpuidPacket->FunctionId;
+                UINT32 FunctionId    = CpuidPacket->FunctionId;
                 UINT32 SubFunctionId = CpuidPacket->SubFunctionId;
 
                 CommandShowUserCpuidMessage(FunctionId, SubFunctionId, CpuidPacket);
@@ -1466,7 +1466,7 @@ StartAgain:
     CHAR SerialBuffer[MaxSerialPacketSize] = {
         0}; /* Buffer to send and receive data */
 #ifdef _WIN32
-    DWORD                   EventMask       = 0;    /* Event mask to trigger */
+    DWORD EventMask = 0;                            /* Event mask to trigger */
 #endif                                              // _WIN32
     char                    ReadData        = NULL; /* temperory Character */
     DWORD                   NoBytesRead     = 0;    /* Bytes read by ReadFile() */

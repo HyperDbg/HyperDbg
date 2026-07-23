@@ -1035,7 +1035,7 @@ hyperdbg_u_pt_mmap(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest)
  * @return BOOLEAN TRUE if successful, FALSE otherwise
  */
 BOOLEAN
-hyperdbg_u_user_cpuid(UINT32 FunctionId, UINT32 SubFunctionId)
+hyperdbg_u_request_cpuid(UINT32 FunctionId, UINT32 SubFunctionId)
 {
     //
     // Call the existing CPUID command handler

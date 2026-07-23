@@ -1756,7 +1756,7 @@ typedef struct _DEBUGGER_CPUID_REQUEST_RESPONSE
 
     UINT32 FunctionId;
     UINT32 SubFunctionId;
-    
+
     UINT32 Leaf4MaxSubLeaf;
     UINT32 LeafBMaxSubleaf;
     UINT32 Leaf12MaxSubLeaf;
