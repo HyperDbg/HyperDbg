@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0.0] - 2026-XX-XX
+New release of the HyperDbg Debugger.
+
+### Added
+- Added the 'ucpuid' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/ucpuid))([link](https://github.com/HyperDbg/HyperDbg/pull/658))
+- Added floating-point support in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/data-types-and-operators))([link](https://github.com/HyperDbg/HyperDbg/pull/655))
+- Added new platform functions for missed CPUID wrapper ([link](https://github.com/HyperDbg/HyperDbg/commit/dd38a30d224d05bb9cfab28f6024db8cc51acffd))
+- Added guards and compilation flags in CMake ([link](https://github.com/HyperDbg/HyperDbg/commit/860f736bd21a274930420a12ed7eac970732717a))
+- Added SDK function for the 'ucpuid' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/ucpuid))([link](https://github.com/HyperDbg/HyperDbg/pull/659))
+- Added a new socket platform API and named-pipe Linux file ([link](https://github.com/HyperDbg/HyperDbg/commit/6683c2dc3db640e8b75786570759daf4e630c7f0))
+
+### Changed
+- Updated variable types and added float types in the script engine ([link](https://github.com/HyperDbg/HyperDbg/commit/d44c726dff91402a1f093455b69449b65657bce0))
+- Porting status update and terminate thread platform call ([link](https://github.com/HyperDbg/HyperDbg/commit/a29e210ab067d4a96a0d130f61aeed5b53387565))
+- Sweep and extra guards and some new platform functions ([link](https://github.com/HyperDbg/HyperDbg/commit/926070135d44b7459409e1cce1d4595426062daa))
+- Fix UInt32 conversion for negative (signed) values ([link](https://github.com/HyperDbg/HyperDbg/commit/d4132ee7db092140b526d4cd31e445114aa470ec))
+- Fix the 'snprintf_s' wrapper function for cross-platform compilation ([link](https://github.com/HyperDbg/HyperDbg/commit/aa96eaa617c0c1a432682b83a5021ac4963182d1))
+- Changed 'CpuIdEx' variants to a cross-platform 'CpuCpuIdEx' ([link](https://github.com/HyperDbg/HyperDbg/commit/c13f45f8b05743c5d87d3a50687507defe54af2b))
+- Updated number of CPUs to a cross-platform function ([link](https://github.com/HyperDbg/HyperDbg/commit/5fdd2e7738e6f68ed5ff516467fbc5bfdaec9759))
+
 ## [0.22.0.0] - 2026-07-20
 New release of the HyperDbg Debugger.
 
