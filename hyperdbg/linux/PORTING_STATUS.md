@@ -135,6 +135,30 @@ equivalent, behavior-preserving.
   (undefined `ResolveIncludePath`/`ParseIncludeFile`/`FileExists`/`InsertStrNew`)
   and `include/platform/user/code/platform-lib-calls.c` (undefined `Platform*` in
   libscript-engine.so). Adding both is the next script-engine build step.
+- `code/script_include.c` + `platform-lib-calls.c` — DONE (2026-07-24).
+  `libscript-engine.so` is now fully self-contained (zero undefined refs):
+  - Added `../include/platform/user/code/platform-lib-calls.c` to the base
+    `SourceFiles` — it's compiled into libhyperdbg too, but each `.so` needs its
+    own copy of the `Platform*` symbols (script-engine calls `PlatformSnprintf`/
+    `PlatformStrDup`/`PlatformVsnprintf`/`PlatformZeroMemory`). No swap: it builds
+    on both OSes. Needed one root-cause fix — added `#include <time.h>` to its
+    Linux include block (`clock_gettime`/`CLOCK_MONOTONIC` in
+    `PlatformQueryPerformanceCounter`); it previously only compiled because
+    libhyperdbg's pch pulled `<time.h>` in transitively, but script-engine's pch
+    doesn't.
+  - Added `code/script_include.c` to base `SourceFiles`, then swapped it for a new
+    empty stub `code/script_include-linux.c` under `if(UNIX)` (user chose stubs
+    over porting the Win32 path logic for now). The stub implements
+    `ResolveIncludePath`/`FileExists`/`ParseIncludeFile`/`InsertStrNew` as
+    no-op/failure; script `#include` resolution is unsupported on Linux until a
+    real resolver (`readlink("/proc/self/exe")` + `stat`) lands. `script_include.c`
+    left pristine (Windows path uses `GetModuleFileNameA`/`GetFileAttributesA`).
+
+  Result: every remaining CLI-link undefined ref (23) now belongs to
+  `liblibhyperdbg.so` alone — keystone (`ks_*`, 5), the excluded `pt.cpp`
+  (`CommandPt*`/`HyperDbgPt*`, 4), and missing libhyperdbg TUs behind the
+  PCI-ID/Vendor, Stepping, text-callback, `ShowMessages`, `IrpBasedBufferThread`
+  symbols (14).
 
 ### Kernel-level debugger (remote protocol)
 - `kd.cpp` — largest sweep (~46 `Platform*`): serial open/configure/close via
