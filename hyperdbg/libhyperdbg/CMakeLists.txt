@@ -225,10 +225,11 @@ if(UNIX)
     #
     # pt.cpp (Intel PT command) is an un-ported Windows process-control TU
     # (OpenProcess/CreateToolhelp32Snapshot/CreateThread/WaitForMultipleObjects).
-    # Keep it out of the Linux build until the process-control port lands;
-    # CommandPt stays unresolved (same as before it was added to the list).
+    # Keep it out of the Linux build until the process-control port lands and
+    # swap in the stub that provides its 4 externally visible functions.
     #
     list(REMOVE_ITEM SourceFiles "code/debugger/commands/extension-commands/pt.cpp")
+    list(APPEND SourceFiles "code/debugger/commands/extension-commands/pt-linux.cpp")
 
     #
     # The MASM (.asm) implementation only builds with the Microsoft assembler,
