@@ -288,6 +288,45 @@ reasons (`RTL_PROCESS_MODULES` / `RTL_PROCESS_MODULE_INFORMATION` undeclared, an
 `WCHAR *` vs `wchar_t *` — the wide-char item below); none of those are on lines
 this sweep touched.
 
+### Command files wired into Linux CMake — DONE (2026-07-24)
+
+The 2026-07-20 sweep ported these files' bucket-1 calls but never added them to
+`libhyperdbg/CMakeLists.txt`, so they were compiled on Windows only and their
+`Command*` symbols were unresolved at the Linux CLI link. Added the 12 missing
+command TUs to `SourceFiles`:
+- Debugging: `continue.cpp`, `gg.cpp`
+- Extension: `apic.cpp`, `idt.cpp`, `ioapic.cpp`, `lbr.cpp`, `lbrdump.cpp`,
+  `pcicam.cpp`, `pcitree.cpp`, `smi.cpp`, `xsetbv.cpp`
+- Plus top-level `ucpuid.cpp` (defines `CommandUserCpuid` / `CommandUserCpuidHelp`
+  / `CommandCpuidRequestCpuid` / `CommandShowUserCpuidMessage`; lives at
+  `libhyperdbg/ucpuid.cpp`, not under `code/`, which is why the earlier diff
+  missed it).
+
+Stragglers the 07-20 sweep didn't cover, fixed to compile (all mechanical):
+- `apic.cpp` — 2× `RtlCopyMemory`→`PlatformCopyMemory` (sweep only did the
+  ZeroMemory family).
+- Enum-first aggregate init `= {0}`→`= {}` (GCC rejects `int`→enum in `{0}`;
+  `{}` value-inits identically): `lbr.cpp:332`, `lbrdump.cpp:242`,
+  `pcicam.cpp:51`, `pcitree.cpp:49`, `smi.cpp:125`. (apic's `LAPIC_PAGE {0}` and
+  lbrdump's `CHAR[] {0}` are scalar-first and compile fine, left as-is.)
+- `ucpuid.cpp` — `DeviceIoControl`→`PlatformDeviceIoControl`,
+  `GetLastError`→`PlatformGetLastError` (1 each; same drop-in as the sweep).
+- `Environment.h` — added the two missing generic Win32 aliases `ucpuid.cpp`
+  needs: `#define CONST const` and `typedef float FLOAT;` (winnt.h spellings;
+  benefits any future file too).
+
+**`pt.cpp` deliberately excluded from the Linux build** via an `if(UNIX)`
+`REMOVE_ITEM` (like namedpipe/symbol/pe-parser). It's the un-started
+process-control port (`OpenProcess(PROCESS_ALL_ACCESS)`,
+`CreateToolhelp32Snapshot`, `CreateThread`, `WaitForMultipleObjects`, Win32
+process/thread handles) — see the `pt.cpp` TODO below. `CommandPt`/`CommandPtHelp`
+stay unresolved, same as before it was added to the list.
+
+Result: every `Command*` link error is resolved except the two `CommandPt*`.
+Remaining CLI-link buckets are unrelated: `Sym*` (symbol-linux stub, 15), `ks_*`
+(keystone Linux lib, 5), `Platform*` + include-family (script_include.c /
+platform-lib-calls.c missing from script-engine's CMake, 8).
+
 ### rdmsr.cpp core-count — DONE (2026-07-22)
 
 Follow-up to the bucket-1 sweep of `rdmsr.cpp` above (this is a separate bucket-2

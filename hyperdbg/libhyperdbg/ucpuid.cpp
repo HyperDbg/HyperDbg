@@ -2098,7 +2098,7 @@ CommandCpuidRequestCpuid(UINT32 FunctionId, UINT32 SubFunctionId)
         // want to pass some other arguments to the kernel in
         // the future
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                         // Handle to device
             IOCTL_DEBUGGER_CPUID,                   // IO Control Code (IOCTL)
             CpuidRequest,                           // Input Buffer to driver.
@@ -2112,7 +2112,7 @@ CommandCpuidRequestCpuid(UINT32 FunctionId, UINT32 SubFunctionId)
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             return;
         }
 

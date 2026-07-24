@@ -64,6 +64,12 @@ typedef const char * PCSTR;
 typedef char *       PSTR;
 typedef short *      PWCHAR;
 
+// Windows generic type aliases (winnt.h): CONST is the const qualifier keyword,
+// FLOAT is a plain float. Kept so shared source using the Win32 spellings
+// compiles unchanged.
+#    define CONST const
+typedef float FLOAT;
+
 // Windows socket type (Linux sockets are plain int)
 typedef int SOCKET;
 #    define INVALID_SOCKET ((SOCKET)(-1))
