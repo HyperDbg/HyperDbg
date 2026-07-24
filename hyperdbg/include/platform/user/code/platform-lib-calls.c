@@ -22,6 +22,7 @@
 #    include <strings.h>
 #    include <signal.h>
 #    include <dlfcn.h>
+#    include <time.h> // clock_gettime / CLOCK_MONOTONIC (PlatformQueryPerformanceCounter)
 #endif // defined(__linux__)
 
 /**

@@ -494,7 +494,19 @@ Grouped by subsystem. These are the shortcuts taken to reach compilation.
   I/O and the user-debugger path can actually open files.
 
 ### Symbols
-- [ ] Replace `symbol-linux.cpp` stubs with a real ELF/DWARF symbol parser.
+- [x] symbol-parser (`Sym*`) Linux stubs — DONE (2026-07-24). The 15 `Sym*`
+  exports (`SymConvertNameToAddress`, `SymLoadFileSymbol`, `SymbolInitLoad`,
+  `SymGetFieldOffset`, `SymShowDataBasedOnSymbolTypes`, `SymSetTextMessageCallback`,
+  …) live in the Windows-only `symbol-parser/` subproject (DbgHelp + DIA-SDK
+  pdbex, ~3800 LOC, not built on Linux). They're called only by
+  `script-engine/code/script-engine.c`, so `libscript-engine.so` was the one with
+  the unresolved refs. Added `script-engine/code/symbol-stub-linux.c` (new file,
+  `#ifdef __linux__`) implementing all 15 as no-op/failure stubs (return `0`/`FALSE`,
+  out-params cleared), signatures mirroring `HyperDbgSymImports.h`. Wired into
+  `script-engine/CMakeLists.txt` under `if(UNIX)`. User chose the stub path over a
+  real backend port. Resolves all 15 `Sym*` link errors.
+- [ ] Replace the `symbol-linux.cpp` (`Symbol*`) and `symbol-stub-linux.c`
+  (`Sym*`) stubs with a real ELF/DWARF (or LLVM DebugInfo/PDB) symbol parser.
 
 ### PE parsing
 - [ ] Recreate Windows `IMAGE_*` headers for Linux and port `pe-parser.cpp`
