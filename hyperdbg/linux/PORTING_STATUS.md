@@ -616,15 +616,66 @@ helper code reached only through those entry points, so it does not exist in the
 Linux TU. `pt.cpp` is still left 100% untouched. CMake `if(UNIX)` now does the
 usual REMOVE_ITEM + APPEND pair.
 
-**Result: `hyperdbg-cli` links and runs on Linux for the first time.** The binary
-starts, prints its banner and reaches the `HyperDbg>` prompt, and `.exit` exits
-cleanly (0). The port is out of the compile/link phase and into the runtime phase.
+**Result: `hyperdbg-cli` links and runs on Linux for the first time.** With the
+symbol-visibility fix below also in place, the binary starts, reaches the
+`HyperDbg>` prompt and executes host-side commands correctly — verified with
+`.help`, `.help !monitor`, `.formats 0x1337` (full hex/decimal/octal/binary/char/
+time/float/double output) and `? 5 * 8` (script engine) — then exits cleanly on
+`.exit`. The port is out of the compile/link phase and into the runtime phase.
+
+Run it with:
+```bash
+LD_LIBRARY_PATH=$PWD/libhyperdbg:$PWD/script-engine ./hyperdbg-cli/hyperdbg-cli
+```
 
 - [ ] Port `pt.cpp` for real — see the process-control entry in the TODO ledger.
 
----
+### Symbol visibility: honour the existing IMPORT_EXPORT_* model — DONE (2026-07-24)
 
-## TODO ledger — revisit before Linux is functional
+Build-system change in the top-level `CMakeLists.txt`, two parts:
+
+```cmake
+target_compile_definitions(script-engine PRIVATE HYPERDBG_SCRIPT_ENGINE)
+target_compile_definitions(libhyperdbg  PRIVATE HYPERDBG_LIBHYPERDBG)
+
+set_target_properties(script-engine libhyperdbg PROPERTIES
+    C_VISIBILITY_PRESET   hidden
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON)
+```
+
+**Why.** `include/SDK/imports/user/HyperDbg*Imports.h` already carries a Linux
+branch for each library's export macro — `IMPORT_EXPORT_LIBHYPERDBG` and friends
+expand to `__attribute__((visibility("default")))` when the library's own
+`HYPERDBG_*` macro is defined, and to nothing otherwise, mirroring the
+`__declspec(dllexport)`/`dllimport` pair used on Windows. 77 symbols are annotated
+for libhyperdbg and 29 for script-engine. Neither half was active on Linux: the
+`HYPERDBG_*` defines were never set by CMake, and `visibility("default")` is a
+no-op unless the compiler's baseline visibility is `hidden` (it can only raise a
+symbol above the baseline, and the baseline was already default). So the whole
+export model existed in the headers but did nothing, and every symbol in both
+libraries was exported.
+
+That matters because ELF merges same-named exported symbols across shared objects,
+whereas a Windows DLL's non-exported globals are private to it. Three globals were
+defined independently in both libraries and were being silently collapsed into one
+object at load time:
+
+| Symbol | libhyperdbg | script-engine |
+|--------|-------------|---------------|
+| `g_MessageHandler` | `header/globals/globals.h:460` | `code/globals.c:24` |
+| `g_HwdbgInstanceInfo` | ” | ” |
+| `g_HwdbgInstanceInfoIsValid` | ” | ” |
+
+Turning both halves on restores the Windows semantics (private unless explicitly
+exported). Exported data symbols drop to **0** in both libraries; total exports go
+from everything to 264 (libhyperdbg) and 25 (script-engine). The link stays clean
+— **0 undefined references** — so nothing was relying on an unannotated symbol
+crossing a library boundary. No source file was touched.
+
+⚠️ `VISIBILITY_INLINES_HIDDEN` is included to match the usual CMake pairing; if a
+future change takes the address of an inline member across a library boundary and
+compares it, that flag is the first thing to re-check.
 
 Grouped by subsystem. These are the shortcuts taken to reach compilation.
 
