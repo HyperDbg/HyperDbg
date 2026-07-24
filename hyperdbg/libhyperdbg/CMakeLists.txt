@@ -42,13 +42,25 @@ set(SourceFiles
     "../script-eval/code/ScriptEngineEval.c"
     "code/common/spinlock.cpp"
     "code/debugger/commands/debugging-commands/a.cpp"
+    "code/debugger/commands/debugging-commands/continue.cpp"
+    "code/debugger/commands/debugging-commands/gg.cpp"
     "code/debugger/commands/debugging-commands/core.cpp"
     "code/debugger/commands/debugging-commands/dt-struct.cpp"
     "code/debugger/commands/debugging-commands/gu.cpp"
     "code/debugger/commands/debugging-commands/k.cpp"
     "code/debugger/commands/debugging-commands/preactivate.cpp"
     "code/debugger/commands/debugging-commands/prealloc.cpp"
+    "code/debugger/commands/extension-commands/apic.cpp"
     "code/debugger/commands/extension-commands/crwrite.cpp"
+    "code/debugger/commands/extension-commands/idt.cpp"
+    "code/debugger/commands/extension-commands/ioapic.cpp"
+    "code/debugger/commands/extension-commands/lbr.cpp"
+    "code/debugger/commands/extension-commands/lbrdump.cpp"
+    "code/debugger/commands/extension-commands/pcicam.cpp"
+    "code/debugger/commands/extension-commands/pcitree.cpp"
+    "code/debugger/commands/extension-commands/pt.cpp"
+    "code/debugger/commands/extension-commands/smi.cpp"
+    "code/debugger/commands/extension-commands/xsetbv.cpp"
     "code/debugger/commands/extension-commands/rev.cpp"
     "code/debugger/commands/extension-commands/trace.cpp"
     "code/debugger/commands/extension-commands/track.cpp"
@@ -118,6 +130,7 @@ set(SourceFiles
     "code/debugger/commands/debugging-commands/wrmsr.cpp"
     "code/debugger/commands/debugging-commands/x.cpp"
     "code/debugger/commands/extension-commands/cpuid.cpp"
+    "ucpuid.cpp"
     "code/debugger/commands/extension-commands/dr.cpp"
     "code/debugger/commands/extension-commands/epthook.cpp"
     "code/debugger/commands/extension-commands/epthook2.cpp"
@@ -200,6 +213,14 @@ if(UNIX)
     list(APPEND SourceFiles "code/debugger/driver-loader/install-linux.cpp")
     list(REMOVE_ITEM SourceFiles "code/debugger/communication/namedpipe.cpp")
     list(APPEND SourceFiles "code/debugger/communication/namedpipe-linux.cpp")
+
+    #
+    # pt.cpp (Intel PT command) is an un-ported Windows process-control TU
+    # (OpenProcess/CreateToolhelp32Snapshot/CreateThread/WaitForMultipleObjects).
+    # Keep it out of the Linux build until the process-control port lands;
+    # CommandPt stays unresolved (same as before it was added to the list).
+    #
+    list(REMOVE_ITEM SourceFiles "code/debugger/commands/extension-commands/pt.cpp")
 
     #
     # The MASM (.asm) implementation only builds with the Microsoft assembler,

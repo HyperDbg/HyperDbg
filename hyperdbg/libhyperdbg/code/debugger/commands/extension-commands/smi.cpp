@@ -122,7 +122,7 @@ HyperDbgPerformSmiOperation(SMI_OPERATION_PACKETS * SmiOperation)
 VOID
 CommandSmi(vector<CommandToken> CommandTokens, string Command)
 {
-    SMI_OPERATION_PACKETS SmiOperationRequest = {0};
+    SMI_OPERATION_PACKETS SmiOperationRequest = {};
 
     if (CommandTokens.size() != 2)
     {

@@ -90,7 +90,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
         else
         {
             *IsUsingX2APIC = ApicRequest->IsUsingX2APIC;
-            RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
+            PlatformCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
 
             free(ApicRequest);
             return TRUE;
@@ -139,7 +139,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
             // Fill the request buffer
             //
             *IsUsingX2APIC = ApicRequest->IsUsingX2APIC;
-            RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
+            PlatformCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
 
             free(ApicRequest);
             return TRUE;

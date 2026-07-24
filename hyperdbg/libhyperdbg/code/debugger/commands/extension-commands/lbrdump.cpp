@@ -239,7 +239,7 @@ CommandLbrdumpPrint(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
 VOID
 CommandLbrdump(vector<CommandToken> CommandTokens, string Command)
 {
-    HYPERTRACE_LBR_DUMP_PACKETS LbrdumpRequest          = {0};
+    HYPERTRACE_LBR_DUMP_PACKETS LbrdumpRequest          = {};
     UINT32                      CoreId                  = 0;
     BOOLEAN                     ContinueDumpingAllCores = TRUE;
 
