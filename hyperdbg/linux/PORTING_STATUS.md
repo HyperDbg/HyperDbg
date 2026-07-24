@@ -599,6 +599,29 @@ Affects the `a` (assemble) command and anything calling `HyperDbgAssemble`.
 (`CommandPt`, `CommandPtHelp`, `HyperDbgPtMmapSendRequest`,
 `HyperDbgPerformPtOperation`) — the one remaining deliberate exclusion.
 
+### pt.cpp stubbed on Linux — DONE (2026-07-24) — **THE LINK NOW SUCCEEDS**
+
+The last 4 undefined refs (`CommandPt`, `CommandPtHelp`,
+`HyperDbgPerformPtOperation`, `HyperDbgPtMmapSendRequest`). `pt.cpp` was already
+`REMOVE_ITEM`'d from the Linux build; it now gets a replacement stub instead of
+leaving the symbols dangling, following the same pattern as symbol.cpp,
+pe-parser.cpp, install.cpp and namedpipe.cpp.
+
+New `code/debugger/commands/extension-commands/pt-linux.cpp` (`#ifdef __linux__`)
+implements only the 4 externally visible functions — the two command entry
+points reached from the dispatch table (`CommandPt`, `CommandPtHelp`) and the two
+kernel-request helpers declared in `debugger.h`. Each prints a "not supported on
+Linux yet" note; the `BOOLEAN` pair returns FALSE. Everything else in `pt.cpp` is
+helper code reached only through those entry points, so it does not exist in the
+Linux TU. `pt.cpp` is still left 100% untouched. CMake `if(UNIX)` now does the
+usual REMOVE_ITEM + APPEND pair.
+
+**Result: `hyperdbg-cli` links and runs on Linux for the first time.** The binary
+starts, prints its banner and reaches the `HyperDbg>` prompt, and `.exit` exits
+cleanly (0). The port is out of the compile/link phase and into the runtime phase.
+
+- [ ] Port `pt.cpp` for real — see the process-control entry in the TODO ledger.
+
 ---
 
 ## TODO ledger — revisit before Linux is functional
