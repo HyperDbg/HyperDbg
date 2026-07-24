@@ -272,6 +272,76 @@ PlatformStrCpy(char * Dest, SIZE_T DestSize, const char * Src)
 }
 
 /**
+ * @brief Platform independent wrapper for strncpy_s
+ *
+ * @details Copies the first D characters of Src into the DestSize-byte Dest
+ * buffer and appends a null terminator, where D is the lesser of Count and the
+ * length of Src. If those characters do not fit while still leaving room for the
+ * terminator, Dest is set to an empty string and a non-zero error is returned.
+ * Passing _TRUNCATE as Count instead copies as much of Src as fits, returning
+ * STRUNCATE when anything had to be dropped. On Linux there is no standard
+ * strncpy_s, so this reproduces those same rules.
+ *
+ * @param Dest destination buffer
+ * @param DestSize size of the destination buffer in bytes
+ * @param Src source string
+ * @param Count maximum characters to copy, or _TRUNCATE
+ * @return INT 0 on success, STRUNCATE if truncated, non-zero on failure
+ */
+INT
+PlatformStrNCpy(char * Dest, SIZE_T DestSize, const char * Src, SIZE_T Count)
+{
+#if defined(_WIN32)
+    return strncpy_s(Dest, DestSize, Src, Count);
+#elif defined(__linux__)
+    // NOT YET TESTED!! So needs some testing to see if it actually behaves the same as strncpy_s on windows
+    SIZE_T Length;
+
+    if (Dest == NULL || DestSize == 0 || Src == NULL)
+    {
+        if (Dest != NULL && DestSize != 0)
+        {
+            Dest[0] = '\0';
+        }
+        return -1;
+    }
+
+    //
+    // Never read past Count characters of Src; it need not be null-terminated
+    // within that span
+    //
+    Length = PlatformStrnlen(Src, Count == _TRUNCATE ? DestSize : Count);
+
+    if (Count == _TRUNCATE)
+    {
+        //
+        // Copy as much as fits and report whether anything was dropped
+        //
+        if (Length >= DestSize)
+        {
+            memcpy(Dest, Src, DestSize - 1);
+            Dest[DestSize - 1] = '\0';
+            return STRUNCATE;
+        }
+    }
+    else if (Length >= DestSize)
+    {
+        //
+        // Source does not fit (need room for the null terminator too)
+        //
+        Dest[0] = '\0';
+        return -1;
+    }
+
+    memcpy(Dest, Src, Length);
+    Dest[Length] = '\0';
+    return 0;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
  * @brief Platform independent wrapper for _stricmp
  *
  * @details Compares two strings ignoring case. Returns 0 when equal; a value
