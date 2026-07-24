@@ -503,6 +503,64 @@ and the `if(UNIX)` block REMOVE_ITEMs it, APPENDs the `.s`, and calls
 `libhyperdbg.vcxproj` + `.filters` `<MASM Include=...>` updated to the renamed
 `-masm-windows.asm`. Assemble-verified with `as` (exports `AsmVmxSupportDetection`).
 
+### Remaining libhyperdbg TUs wired into Linux CMake — DONE (2026-07-24)
+
+Same gap class as the 2026-07-24 command-file batch: four TUs present in
+`libhyperdbg.vcxproj` all along but never added to `libhyperdbg/CMakeLists.txt`,
+so they were compiled on Windows only and their symbols were unresolved at the
+Linux CLI link. Added to `SourceFiles` (plus their four header entries):
+
+| TU | Symbols it was missing |
+|----|------------------------|
+| `code/app/messaging.cpp` | `ShowMessages`, `SetTextMessageCallback`, `SetTextMessageCallbackUsingSharedBuffer`, `UnsetTextMessageCallback` |
+| `code/app/packets.cpp` | `IrpBasedBufferThread` |
+| `code/debugger/core/steppings.cpp` | `SteppingStepOver`, `SteppingStepOverForGu`, `SteppingRegularStepIn`, `SteppingInstrumentationStepIn`, `SteppingInstrumentationStepInForTracking` |
+| `code/debugger/misc/pci-id.cpp` | `GetVendorById`, `GetDeviceFromVendor`, `FreeVendor`, `FreePciIdDatabase` |
+
+`steppings.cpp` compiled with no changes at all. The others needed:
+
+- `messaging.cpp` — 1 bucket-1 swap: `RtlZeroMemory`→`PlatformZeroMemory` (line 57).
+- `packets.cpp` — bucket-1 sweep: `ZeroMemory`→`PlatformZeroMemory`,
+  `DeviceIoControl`→`PlatformDeviceIoControl`, `SetEvent`→`PlatformSetEvent`,
+  `CloseHandle`→`PlatformCloseHandle`, `GetLastError`×2→`PlatformGetLastError`.
+  Plus the packet-reader's dedicated device handle: the same
+  `CreateFileA("\\.\HyperDbgDebuggerDevice", GENERIC_READ|GENERIC_WRITE, …)`
+  block already ported in `libhyperdbg.cpp` → `PlatformOpenDevice(...)`, with the
+  surrounding `ERROR_ACCESS_DENIED`/`ERROR_GEN_FAILURE` handling left at the call
+  site (identical shape to the libhyperdbg.cpp call site).
+- `pci-id.cpp` — 4× `strncpy_s`→ new `PlatformStrNCpy` (below), and
+  `GetVendorById` body guarded `#ifdef _WIN32` (below).
+
+**Pure addition: `PlatformStrNCpy(Dest, DestSize, Src, Count)`** in
+`platform-lib-calls.{h,c}` — Windows `strncpy_s` verbatim; Linux reproduces the
+documented rules: copies D = min(Count, strlen(Src)) chars and null-terminates,
+or empties Dest + returns non-zero if D doesn't fit; `Count == _TRUNCATE` instead
+copies as much as fits and returns `STRUNCATE`. Sibling of the existing
+`PlatformStrCpy`; a plain `PlatformStrCpy` could not be reused because
+`ReadLine` (pci-id.cpp:76) copies a *substring* out of a longer stream buffer.
+Also **pure addition** to the `Environment.h` Linux block: `_TRUNCATE`
+(`((SIZE_T)-1)`) and `STRUNCATE` (`80`) at their canonical MSVC values, matching
+the existing `CBR_*`/`ERROR_*`/`PROCESS_*` constant blocks.
+⚠️ Linux branch marked `NOT YET TESTED!!` in source, like `PlatformStrCpy`.
+
+**`GetVendorById` body guarded `#ifdef _WIN32`** (pattern 1; user chose the stub
+over porting). It resolves the PCI ID database *relative to the executable*:
+`GetModuleHandle`/`GetModuleFileName`, then `strrchr(Path, '\\')` to strip the
+exe name and append `PCI_ID_DATABASE_PATH`. The two Win32 calls would wrap
+cleanly (`readlink("/proc/self/exe")`), but the surrounding logic is
+Windows-path-shaped in two places — the `'\\'` separator and the constant itself
+(`pci-id.h:44`, `"constants\\pci.ids"`) — so wrapping only the calls would leave
+`strrchr` returning NULL, silently overwriting the whole path and resolving
+against the cwd. That is a behaviour change, not a port, so the whole body is
+Windows-only and Linux returns NULL. `GetVendorByIdStr`, `GetDeviceFromVendor`,
+`FreeVendor` and `FreePciIdDatabase` are plain C and compile unchanged.
+Consequence: `!pcitree` / `!pcicam` show no vendor or device names on Linux.
+
+**Result: the CLI link is down from 23 undefined refs to 9**, and every
+"missing TU" bucket is now closed. What is left is both known and deliberate:
+`ks_*` (5 — keystone, no Linux lib linked) and `CommandPt*`/`HyperDbgPt*`
+(4 — `pt.cpp` excluded from the Linux build, port not started).
+
 ---
 
 ## TODO ledger — revisit before Linux is functional
@@ -531,6 +589,12 @@ Grouped by subsystem. These are the shortcuts taken to reach compilation.
   real backend port. Resolves all 15 `Sym*` link errors.
 - [ ] Replace the `symbol-linux.cpp` (`Symbol*`) and `symbol-stub-linux.c`
   (`Sym*`) stubs with a real ELF/DWARF (or LLVM DebugInfo/PDB) symbol parser.
+
+### PCI ID database
+- [ ] `pci-id.cpp::GetVendorById` — Linux returns NULL (whole body Windows-only).
+  Needs `readlink("/proc/self/exe")` **plus** a portable path separator and a
+  portable `PCI_ID_DATABASE_PATH` (`pci-id.h:44` is `"constants\\pci.ids"`).
+  Until then `!pcitree` / `!pcicam` print no vendor/device names on Linux.
 
 ### PE parsing
 - [ ] Recreate Windows `IMAGE_*` headers for Linux and port `pe-parser.cpp`

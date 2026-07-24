@@ -304,6 +304,7 @@ FreePciIdDatabase()
 Vendor *
 GetVendorById(UINT16 VendorId)
 {
+#ifdef _WIN32
     CHAR    VendorIdAsStr[5];
     CHAR    ExecutablePath[MAX_PATH];
     HMODULE hModule = GetModuleHandle(NULL);
@@ -326,6 +327,17 @@ GetVendorById(UINT16 VendorId)
     strncpy(ExecutableName, PCI_ID_DATABASE_PATH, sizeof(PCI_ID_DATABASE_PATH));
 
     return GetVendorByIdStr(ExecutablePath, ToLower(VendorIdAsStr));
+#else
+    //
+    // TODO(Linux): resolve the PCI ID database next to the executable via
+    // readlink("/proc/self/exe") once the path separator and
+    // PCI_ID_DATABASE_PATH ("constants\\pci.ids") are made portable. Until
+    // then no vendor/device names are available on Linux.
+    //
+    UNREFERENCED_PARAMETER(VendorId);
+
+    return NULL;
+#endif
 }
 
 /**
