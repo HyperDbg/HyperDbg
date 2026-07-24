@@ -561,6 +561,44 @@ Consequence: `!pcitree` / `!pcicam` show no vendor or device names on Linux.
 `ks_*` (5 — keystone, no Linux lib linked) and `CommandPt*`/`HyperDbgPt*`
 (4 — `pt.cpp` excluded from the Linux build, port not started).
 
+### keystone assembler stubbed on Linux — DONE (2026-07-24)
+
+The 5 `ks_*` link errors (`ks_open`/`ks_option`/`ks_asm`/`ks_errno`/`ks_close`).
+Only a **Windows** `keystone.lib` is vendored (`libraries/keystone/release-lib/`,
+PE/COFF) and `dependencies/keystone/` ships **headers only** — no Linux library,
+no source, not a git submodule. The `link_directories(...keystone...)` and the
+`keystone` entry in `target_link_libraries` were previously commented out in the
+top-level `CMakeLists.txt` to get past `cannot find -lkeystone`, which is what
+left the 5 symbols unresolved.
+
+Because `dependencies/keystone/include/keystone/keystone.h` *is* present (and
+included unconditionally from `pch.h:138`), every `ks_*` **type and constant**
+(`ks_engine`, `ks_err`, `ks_arch`, `KS_ARCH_X86`, `KS_MODE_64`,
+`KS_OPT_SYNTAX_INTEL`, …) resolves fine on Linux — only the 5 *functions* are
+missing. That means no header surgery and no `-linux.cpp` fork were needed:
+`assembler.h`'s class declaration (which has `ks_err KsErr` as a member and
+`ks_arch`/`KS_*` as default arguments) compiles untouched.
+
+All 5 calls are confined to one method, so this is pattern 1 — the body of
+`AssembleData::Assemble` (`assembler.cpp:119`) is guarded `#ifdef _WIN32`
+(Windows verbatim) with a Linux `#else` that emits
+`"err, the assembler is not supported on Linux yet"` and returns `-1`, plus
+`UNREFERENCED_PARAMETER` ×4 and a TODO(Linux). No call-site changes were needed:
+both callers (`HyperDbgAssembleGetLength`, `HyperDbgAssemble`) already treat a
+non-zero `Assemble()` return as failure and return `FALSE`, so the stub flows
+through the existing error paths. The rest of the TU stays live on Linux —
+notably `ParseAssemblyData`, which does the `<symbol>` resolution.
+
+Affects the `a` (assemble) command and anything calling `HyperDbgAssemble`.
+
+- [ ] Real fix: build upstream Keystone for Linux → `libkeystone.a`/`.so`, then
+  restore the two commented-out lines in the top-level `CMakeLists.txt` and drop
+  the guard.
+
+**Result: the CLI link is down to 4 undefined refs**, all `pt.cpp`
+(`CommandPt`, `CommandPtHelp`, `HyperDbgPtMmapSendRequest`,
+`HyperDbgPerformPtOperation`) — the one remaining deliberate exclusion.
+
 ---
 
 ## TODO ledger — revisit before Linux is functional
@@ -589,6 +627,11 @@ Grouped by subsystem. These are the shortcuts taken to reach compilation.
   real backend port. Resolves all 15 `Sym*` link errors.
 - [ ] Replace the `symbol-linux.cpp` (`Symbol*`) and `symbol-stub-linux.c`
   (`Sym*`) stubs with a real ELF/DWARF (or LLVM DebugInfo/PDB) symbol parser.
+
+### Assembler (keystone)
+- [ ] `assembler.cpp::AssembleData::Assemble` — Linux body stubbed (`return -1`).
+  Needs a Linux Keystone build plus the two restored CMake lines; see the
+  keystone section above.
 
 ### PCI ID database
 - [ ] `pci-id.cpp::GetVendorById` — Linux returns NULL (whole body Windows-only).
