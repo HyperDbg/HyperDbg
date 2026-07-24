@@ -126,6 +126,15 @@ equivalent, behavior-preserving.
     "%d", …)` → `PlatformSprintf(Buf, sizeof(Buf), "%d", …)`. Both buffers are
     `CHAR[32]` formatting a single `%d`, so the dropped `_TRUNCATE` truncation
     semantics are unreachable.
+- `code/hardware.c` (+ `header/hardware.h`) — added to script-engine CMake
+  `SourceFiles` (was in the vcxproj, missing from the Linux build). Provides the
+  `HardwareScriptInterpreter*` family the hwdbg TUs call. One bucket-1 swap to
+  compile: `RtlZeroMemory`→`PlatformZeroMemory` ×2 (lines 499, 564). Resolves the
+  `HardwareScriptInterpreter*` link errors. NOTE: two more files are still in the
+  vcxproj but missing from script-engine's CMake — `code/script_include.c`
+  (undefined `ResolveIncludePath`/`ParseIncludeFile`/`FileExists`/`InsertStrNew`)
+  and `include/platform/user/code/platform-lib-calls.c` (undefined `Platform*` in
+  libscript-engine.so). Adding both is the next script-engine build step.
 
 ### Kernel-level debugger (remote protocol)
 - `kd.cpp` — largest sweep (~46 `Platform*`): serial open/configure/close via
@@ -181,6 +190,13 @@ equivalent, behavior-preserving.
 
 ### hwdbg
 - `hwdbg-interpreter.cpp` — `RtlCopyMemory`→`PlatformCopyMemory`, `RtlZeroMemory`→`PlatformZeroMemory`.
+- `hwdbg-scripts.cpp` + `hwdbg-commands/hw.cpp` — added to libhyperdbg CMake
+  `SourceFiles` (were missing from the Linux build; present in the vcxproj all
+  along), plus the `header/hwdbg/hwdbg-scripts.h` list entry. `hw.cpp` built
+  clean; `hwdbg-scripts.cpp` needed one bucket-1 swap: `RtlZeroMemory`→
+  `PlatformZeroMemory` (line 415). Both compile on Linux now. NOTE: their
+  `HardwareScriptInterpreter*` callees live in `script-engine/code/hardware.c`,
+  now added to script-engine's CMake (see the script-engine subproject section).
 
 ### objects
 - `objects.cpp` — wrapper sweep: `RtlCopyMemory`×2→`PlatformCopyMemory`,

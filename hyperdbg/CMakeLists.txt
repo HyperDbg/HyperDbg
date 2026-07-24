@@ -72,10 +72,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 #target_link_libraries(script-engine symbol-parser)
 
 add_subdirectory(script-engine)
-link_directories(libraries/zydis/user libraries/keystone/release-lib)
+#link_directories(libraries/zydis/user libraries/keystone/release-lib)
 add_subdirectory(libhyperdbg)
 find_package(Threads REQUIRED)
-target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone Threads::Threads ${CMAKE_DL_LIBS})
+#target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone Threads::Threads ${CMAKE_DL_LIBS})
+target_link_libraries(libhyperdbg Zycore Zydis script-engine Threads::Threads ${CMAKE_DL_LIBS})
 
 add_subdirectory(hyperdbg-cli)
 target_link_libraries(hyperdbg-cli libhyperdbg)
