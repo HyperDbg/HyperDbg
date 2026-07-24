@@ -160,7 +160,7 @@ set(SourceFiles
     "code/debugger/tests/tests.cpp"
     "code/debugger/transparency/gaussian-rng.cpp"
     "code/debugger/transparency/transparency.cpp"
-    "code/assembly/asm-vmx-checks.asm"
+    "code/assembly/asm-vmx-checks-masm-windows.asm"
 )
 include_directories(
     "../dependencies/phnt"
@@ -197,6 +197,15 @@ if(UNIX)
     list(APPEND SourceFiles "code/debugger/driver-loader/install-linux.cpp")
     list(REMOVE_ITEM SourceFiles "code/debugger/communication/namedpipe.cpp")
     list(APPEND SourceFiles "code/debugger/communication/namedpipe-linux.cpp")
+
+    #
+    # The MASM (.asm) implementation only builds with the Microsoft assembler,
+    # so swap it for the GAS (AT&T syntax) port and enable the ASM language so
+    # CMake assembles the .s file with the system assembler.
+    #
+    list(REMOVE_ITEM SourceFiles "code/assembly/asm-vmx-checks-masm-windows.asm")
+    list(APPEND SourceFiles "code/assembly/asm-vmx-checks-gas-unix.s")
+    enable_language(ASM)
 endif()
 
 add_library(libhyperdbg SHARED ${SourceFiles})

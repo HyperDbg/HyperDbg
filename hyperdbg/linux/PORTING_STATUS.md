@@ -411,6 +411,19 @@ shims in `Environment.h`.
 Note the pre-existing latent teardown-ordering issue is unchanged; see the
 `PlatformTerminateThread` TODO below (remote-connection's listening thread).
 
+### asm-vmx-checks — DONE via GAS port + CMake swap (2026-07-24)
+
+`code/assembly/asm-vmx-checks-masm-windows.asm` (MASM, `AsmVmxSupportDetection`:
+CPUID.1 → `bt ecx,5` → return 1/0 for VMX support) only assembles with ml64.
+Ported to a new GAS/AT&T-syntax `code/assembly/asm-vmx-checks-gas-unix.s` —
+instruction-for-instruction equivalent, `.globl AsmVmxSupportDetection`, plus a
+`.note.GNU-stack` non-exec-stack marker. No logic change. The Windows `.asm` is
+left untouched. CMake: base `SourceFiles` entry renamed to `-masm-windows.asm`,
+and the `if(UNIX)` block REMOVE_ITEMs it, APPENDs the `.s`, and calls
+`enable_language(ASM)` so CMake assembles it with the system assembler. Windows
+`libhyperdbg.vcxproj` + `.filters` `<MASM Include=...>` updated to the renamed
+`-masm-windows.asm`. Assemble-verified with `as` (exports `AsmVmxSupportDetection`).
+
 ---
 
 ## TODO ledger — revisit before Linux is functional

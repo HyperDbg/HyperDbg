@@ -331,7 +331,7 @@ msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="R
     <ClCompile Include="code\debugger\tests\tests.cpp" />
     <ClCompile Include="code\debugger\transparency\gaussian-rng.cpp" />
     <ClCompile Include="code\debugger\transparency\transparency.cpp" />
-    <MASM Include="code\assembly\asm-vmx-checks.asm" />
+    <MASM Include="code\assembly\asm-vmx-checks-masm-windows.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
