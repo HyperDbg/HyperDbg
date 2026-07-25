@@ -329,7 +329,7 @@ CommandLbrShowSuccessMessage(const HYPERTRACE_LBR_OPERATION_PACKETS * LbrRequest
 VOID
 CommandLbr(vector<CommandToken> CommandTokens, string Command)
 {
-    HYPERTRACE_LBR_OPERATION_PACKETS LbrRequest  = {0};
+    HYPERTRACE_LBR_OPERATION_PACKETS LbrRequest  = {};
     BOOLEAN                          ParseResult = FALSE;
 
     if (CommandTokens.size() == 1)

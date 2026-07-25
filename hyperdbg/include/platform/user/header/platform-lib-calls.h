@@ -71,6 +71,18 @@ INT
 PlatformStrCpy(char * Dest, SIZE_T DestSize, const char * Src);
 
 //
+// BOUNDED COUNTED STRING COPY
+//
+// Mirrors strncpy_s: copies at most Count characters of Src into Dest (of
+// DestSize bytes) and always null-terminates. Passing _TRUNCATE as Count means
+// "copy as much as fits", returning STRUNCATE if it had to truncate. Otherwise
+// returns 0 on success, non-zero if the arguments are invalid or Count does not
+// fit (in which case Dest is left as an empty string).
+//
+INT
+PlatformStrNCpy(char * Dest, SIZE_T DestSize, const char * Src, SIZE_T Count);
+
+//
 // CASE-INSENSITIVE STRING COMPARE
 //
 // Mirrors _stricmp: returns 0 when the strings are equal ignoring case, and a

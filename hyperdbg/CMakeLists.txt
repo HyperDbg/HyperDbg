@@ -72,10 +72,34 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 #target_link_libraries(script-engine symbol-parser)
 
 add_subdirectory(script-engine)
-link_directories(libraries/zydis/user libraries/keystone/release-lib)
+#link_directories(libraries/zydis/user libraries/keystone/release-lib)
 add_subdirectory(libhyperdbg)
 find_package(Threads REQUIRED)
-target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone Threads::Threads ${CMAKE_DL_LIBS})
+#target_link_libraries(libhyperdbg Zycore Zydis script-engine keystone Threads::Threads ${CMAKE_DL_LIBS})
+target_link_libraries(libhyperdbg Zycore Zydis script-engine Threads::Threads ${CMAKE_DL_LIBS})
+
+#
+# Each library must define its own HYPERDBG_* macro so that the IMPORT_EXPORT_*
+# annotations in include/SDK/imports/user/ resolve to the "export" form
+# (visibility("default")) while it is being built, and to the "import" form in
+# every other translation unit. This mirrors what the Windows .vcxproj files do
+# with __declspec(dllexport)/dllimport.
+#
+target_compile_definitions(script-engine PRIVATE HYPERDBG_SCRIPT_ENGINE)
+target_compile_definitions(libhyperdbg PRIVATE HYPERDBG_LIBHYPERDBG)
+
+#
+# The annotations above only mean something if the default visibility is hidden;
+# otherwise every symbol is exported anyway and visibility("default") is a no-op.
+# Hiding by default matches the Windows model (private unless dllexport-ed) and
+# keeps each library's internal globals private, so same-named module-private
+# globals in different libraries are no longer merged by the dynamic linker.
+#
+set_target_properties(script-engine libhyperdbg PROPERTIES
+    C_VISIBILITY_PRESET   hidden
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON
+)
 
 add_subdirectory(hyperdbg-cli)
 target_link_libraries(hyperdbg-cli libhyperdbg)

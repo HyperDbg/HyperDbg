@@ -496,7 +496,7 @@ HardwareScriptInterpreterCompressBuffer(UINT64 * Buffer,
     //
     // Copy the compressed data back to the original buffer
     //
-    RtlZeroMemory(Buffer, BufferLength);
+    PlatformZeroMemory(Buffer, BufferLength);
     memcpy(Buffer, TempBuffer, *NewBufferSize);
 
     //
@@ -561,7 +561,7 @@ HardwareScriptInterpreterConvertSymbolToHwdbgShortSymbolBuffer(
     //
     // Zeroing the short symbol buffer
     //
-    RtlZeroMemory(HwdbgShortSymbolBuffer, *NewBufferSize);
+    PlatformZeroMemory(HwdbgShortSymbolBuffer, *NewBufferSize);
 
     //
     // Filling the short symbol buffer from original buffer

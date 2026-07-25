@@ -54,7 +54,7 @@ SetTextMessageCallbackUsingSharedBuffer(PVOID Handler)
         return NULL;
     }
 
-    RtlZeroMemory(g_MessageHandlerSharedBuffer, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
+    PlatformZeroMemory(g_MessageHandlerSharedBuffer, COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT);
 
     return g_MessageHandlerSharedBuffer;
 }

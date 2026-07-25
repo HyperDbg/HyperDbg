@@ -46,7 +46,7 @@ CommandPcitree(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                                     Status;
     ULONG                                    ReturnedLength;
-    DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket = {0};
+    DEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreePacket = {};
 
     if (CommandTokens.size() != 1)
     {

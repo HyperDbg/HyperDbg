@@ -747,7 +747,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="code\assembly\asm-vmx-checks.asm">
+    <MASM Include="code\assembly\asm-vmx-checks-masm-windows.asm">
       <Filter>code\assembly</Filter>
     </MASM>
   </ItemGroup>

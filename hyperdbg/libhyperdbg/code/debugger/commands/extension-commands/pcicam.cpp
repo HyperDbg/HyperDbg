@@ -48,7 +48,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                                        Status;
     ULONG                                       ReturnedLength;
-    DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket = {0};
+    DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket = {};
     UINT32                                      TargetBus        = 0;
     UINT32                                      TargetDevice     = 0;
     UINT32                                      TargetFunction   = 0;

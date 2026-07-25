@@ -118,6 +118,7 @@ AssembleData::ParseAssemblyData()
 INT
 AssembleData::Assemble(UINT64 StartAddr, ks_arch Arch, INT Mode, INT Syntax)
 {
+#ifdef _WIN32
     ks_engine * Ks;
 
     KsErr = ks_open(Arch, Mode, &Ks);
@@ -175,6 +176,24 @@ AssembleData::Assemble(UINT64 StartAddr, ks_arch Arch, INT Mode, INT Syntax)
     }
     ks_close(Ks);
     return -1;
+#else
+    //
+    // TODO(Linux): the Keystone assembler engine is not linked on Linux. Only a
+    // Windows keystone.lib is vendored (libraries/keystone/release-lib) and
+    // dependencies/keystone/ ships headers only, so the ks_* types and constants
+    // resolve but the 5 ks_* functions do not. Build upstream Keystone for Linux
+    // and restore link_directories()/target_link_libraries(keystone) in the
+    // top-level CMakeLists.txt to make this real.
+    //
+    UNREFERENCED_PARAMETER(StartAddr);
+    UNREFERENCED_PARAMETER(Arch);
+    UNREFERENCED_PARAMETER(Mode);
+    UNREFERENCED_PARAMETER(Syntax);
+
+    ShowMessages("err, the assembler is not supported on Linux yet\n");
+
+    return -1;
+#endif
 }
 
 AssembleData *
