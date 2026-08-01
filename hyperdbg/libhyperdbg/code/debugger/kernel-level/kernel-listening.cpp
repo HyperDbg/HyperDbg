@@ -1451,6 +1451,75 @@ StartAgain:
     return TRUE;
 }
 
+//
+// Set when the debuggee-side listening loop desyncs, so the warning is shown
+// once per episode (cleared on the next good frame) instead of on every
+// overflow while the stream stays desynced.
+//
+static BOOLEAN g_ListeningDebuggeeDesyncReported = FALSE;
+
+/**
+ * @brief Discard bytes until the next end-of-buffer marker, re-aligning the
+ * debuggee-side listening loop to a frame boundary after a desync
+ *
+ * @details Bounded by SERIAL_RESYNC_MAX_BYTES so a dead or garbage link cannot
+ * spin forever.
+ *
+ * @return BOOLEAN TRUE if a marker was found (stream re-aligned), FALSE on a
+ * read error or if too many bytes arrived without a marker
+ */
+static BOOLEAN
+ListeningDebuggeeResyncToNextFrame()
+{
+    BYTE   Window[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {NULL_ZERO, NULL_ZERO, NULL_ZERO, NULL_ZERO};
+    UINT32 Discarded                                = 0;
+
+    while (Discarded < SERIAL_RESYNC_MAX_BYTES)
+    {
+        char  ReadData    = NULL_ZERO;
+        DWORD NoBytesRead = 0;
+        BOOL  Status;
+
+#ifdef _WIN32
+        Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
+#else
+        //
+        // Linux: read one byte through the cross-platform serial transport
+        //
+        Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                        &ReadData,
+                                        &NoBytesRead,
+                                        PLATFORM_SERIAL_IO_DEBUGGEE);
+#endif // _WIN32
+
+        if (!Status)
+        {
+            return FALSE;
+        }
+
+        if (NoBytesRead == 0)
+        {
+            continue;
+        }
+
+        Window[0] = Window[1];
+        Window[1] = Window[2];
+        Window[2] = Window[3];
+        Window[3] = (BYTE)ReadData;
+        Discarded++;
+
+        if (Window[0] == SERIAL_END_OF_BUFFER_CHAR_1 &&
+            Window[1] == SERIAL_END_OF_BUFFER_CHAR_2 &&
+            Window[2] == SERIAL_END_OF_BUFFER_CHAR_3 &&
+            Window[3] == SERIAL_END_OF_BUFFER_CHAR_4)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 /**
  * @brief Check if the remote debugger needs to pause the system
  *
@@ -1528,22 +1597,49 @@ StartAgain:
 #endif // _WIN32
 
         //
+        // Hard read error: restart the listen. StartAgain re-arms the wait,
+        // which blocks until data arrives, so it cannot busy-loop.
+        //
+        if (!Status)
+        {
+            goto StartAgain;
+        }
+
+        //
         // Check to make sure that we don't pass the boundaries
         //
-        if (!Status || !(MaxSerialPacketSize > Loop))
+        if (!(MaxSerialPacketSize > Loop))
         {
             //
-            // Invalid buffer
+            // Overflowed without an end-of-buffer marker: the stream is
+            // desynced. Restarting into the same desynced stream floods the
+            // output, so show the warning once per episode and resync to the
+            // next frame boundary instead.
             //
-            ShowMessages("err, a buffer received in debuggee which exceeds the "
-                         "buffer limitation\n");
-            goto StartAgain;
+            if (!g_ListeningDebuggeeDesyncReported)
+            {
+                ShowMessages("err, serial stream desynced in debuggee (a buffer "
+                             "exceeded the buffer limitation with no end marker); resyncing\n");
+                g_ListeningDebuggeeDesyncReported = TRUE;
+            }
+
+            if (!ListeningDebuggeeResyncToNextFrame())
+            {
+                goto StartAgain;
+            }
+
+            Loop = 0;
+            continue;
         }
 
         SerialBuffer[Loop] = ReadData;
 
         if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)SerialBuffer))
         {
+            //
+            // A full frame arrived, so the stream is back in sync.
+            //
+            g_ListeningDebuggeeDesyncReported = FALSE;
             break;
         }
 
