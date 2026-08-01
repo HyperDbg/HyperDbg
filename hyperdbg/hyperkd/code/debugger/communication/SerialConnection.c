@@ -87,12 +87,6 @@ SerialConnectionCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffe
     return FALSE;
 }
 
-//
-// Set when the serial stream desyncs so the warning is logged once per episode
-// (cleared on the next good frame) instead of on every overflow
-//
-static BOOLEAN g_SerialConnectionDesyncReported = FALSE;
-
 /**
  * @brief Discard bytes until the next end of buffer marker to re-align the
  * stream to a frame boundary after a desync
@@ -437,6 +431,11 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
         DebuggeeRequest->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT;
         return STATUS_UNSUCCESSFUL;
     }
+
+    //
+    // Not in the desync state (reset desync flag)
+    //
+    g_SerialConnectionDesyncReported = FALSE;
 
     //
     // Prepare the structures needed for connecting remote port

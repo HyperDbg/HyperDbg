@@ -42,6 +42,22 @@ public:
 #endif // _WIN32
 
 //////////////////////////////////////////////////
+//				      enums    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Type of resync
+ *
+ */
+typedef enum _DEBUGGER_PACKET_RESYNC_ENUM
+{
+    DEBUGGER_PACKET_RESYNC_DEBUGGEE,
+    DEBUGGER_PACKET_RESYNC_DEBUGGER,
+    DEBUGGER_PACKET_RESYNC_LISTENING
+
+} DEBUGGER_PACKET_RESYNC_ENUM;
+
+//////////////////////////////////////////////////
 //			    	 Functions                  //
 //////////////////////////////////////////////////
 
@@ -227,6 +243,9 @@ KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeP
 
 BOOLEAN
 KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket);
+
+BOOLEAN
+KdResyncStreamToNextFrame(DEBUGGER_PACKET_RESYNC_ENUM ReSyncType);
 
 VOID
 KdUninitializeConnection();

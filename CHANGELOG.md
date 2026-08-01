@@ -4,25 +4,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.23.0.0] - 2026-XX-XX
+## [0.23.0.0] - 2026-08-03
 New release of the HyperDbg Debugger.
 
 ### Added
-- Added the 'ucpuid' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/ucpuid))([link](https://github.com/HyperDbg/HyperDbg/pull/658))
+- Added the 'ucpuid' command, thanks to [@nikzad66](https://github.com/nikzad66) ([link](https://docs.hyperdbg.org/commands/debugging-commands/ucpuid))([link](https://github.com/HyperDbg/HyperDbg/pull/658))
 - Added floating-point support in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/data-types-and-operators))([link](https://github.com/HyperDbg/HyperDbg/pull/655))
 - Added new platform functions for missed CPUID wrapper ([link](https://github.com/HyperDbg/HyperDbg/commit/dd38a30d224d05bb9cfab28f6024db8cc51acffd))
 - Added guards and compilation flags in CMake ([link](https://github.com/HyperDbg/HyperDbg/commit/860f736bd21a274930420a12ed7eac970732717a))
 - Added SDK function for the 'ucpuid' command ([link](https://docs.hyperdbg.org/commands/debugging-commands/ucpuid))([link](https://github.com/HyperDbg/HyperDbg/pull/659))
 - Added a new socket platform API and named-pipe Linux file ([link](https://github.com/HyperDbg/HyperDbg/commit/6683c2dc3db640e8b75786570759daf4e630c7f0))
+- Added unix implementation of 'asm-vmx-checks.asm', and made naming convention for both files ([link](https://github.com/HyperDbg/HyperDbg/commit/7141e23aadd6cc92d7edf1259fc0a6438a96737a)) 
+- Added the hwdbg files to the CMake files and replaced the platform files, 'RTLZeroMemory' ([link](https://github.com/HyperDbg/HyperDbg/commit/f5f822a46f5aa3041cda6f7a1c29aaf18f705f15)) 
+- Added ucpuid to CMakeList.txt and made it portable ([link](https://github.com/HyperDbg/HyperDbg/commit/8583d99d14eed83e982df08106d8f50d04c36e6a)) 
+- Script engine Linux build completed, and added undefined references with empty stubs for the Linux port and updated the CMake file accordingly ([link](https://github.com/HyperDbg/HyperDbg/commit/5175381c7304a268660377f3ed1c2e8860f96c55)) 
+- Added missing files to the CMake build file and swept them for the Platform functions and guarded Windows-only code ([link](https://github.com/HyperDbg/HyperDbg/commit/4bf987a5968a65eebdbb69f514e50ee08d74aa34)) 
+- Added stub for vendorID on the 'pci-id.cpp' file ([link](https://github.com/HyperDbg/HyperDbg/commit/600eaa47ba7bc5731c677030dea7d0562e95b97b)) 
+- Added Linux kernel module build file (Kbuild) ([link](https://github.com/HyperDbg/HyperDbg/commit/e8650e43ac563d451c835b1a01c0241929cf3c2c)) 
+- Added PlatformCPU Linux implementation ([link](https://github.com/HyperDbg/HyperDbg/commit/953af9388a163b9e71f48bc68966f8e670fcef27)) 
+- Added 'vprintk' in the kernel module files for Linux ([link](https://github.com/HyperDbg/HyperDbg/commit/652721be62f759535d59fec5e603923076bc62b0)) 
 
 ### Changed
 - Updated variable types and added float types in the script engine ([link](https://github.com/HyperDbg/HyperDbg/commit/d44c726dff91402a1f093455b69449b65657bce0))
 - Porting status update and terminate thread platform call ([link](https://github.com/HyperDbg/HyperDbg/commit/a29e210ab067d4a96a0d130f61aeed5b53387565))
 - Sweep and extra guards and some new platform functions ([link](https://github.com/HyperDbg/HyperDbg/commit/926070135d44b7459409e1cce1d4595426062daa))
-- Fix UInt32 conversion for negative (signed) values ([link](https://github.com/HyperDbg/HyperDbg/commit/d4132ee7db092140b526d4cd31e445114aa470ec))
+- Fix 'UInt32' conversion for negative (signed) values ([link](https://github.com/HyperDbg/HyperDbg/commit/d4132ee7db092140b526d4cd31e445114aa470ec))
 - Fix the 'snprintf_s' wrapper function for cross-platform compilation ([link](https://github.com/HyperDbg/HyperDbg/commit/aa96eaa617c0c1a432682b83a5021ac4963182d1))
 - Changed 'CpuIdEx' variants to a cross-platform 'CpuCpuIdEx' ([link](https://github.com/HyperDbg/HyperDbg/commit/c13f45f8b05743c5d87d3a50687507defe54af2b))
 - Updated number of CPUs to a cross-platform function ([link](https://github.com/HyperDbg/HyperDbg/commit/5fdd2e7738e6f68ed5ff516467fbc5bfdaec9759))
+- Empty Linux stub for the keystone library ([link](https://github.com/HyperDbg/HyperDbg/commit/f938929a8cd8391a00c52f39dd9a129a7abf9b33))
+- Build file edit for first build on 'hyperdbg-cli' ([link](https://github.com/HyperDbg/HyperDbg/commit/2024cb9374e29fbd511ba931ab8b2bf7d483457c))
+- Fixed bug that made script-engine segfault, so we can type commands now ([link](https://github.com/HyperDbg/HyperDbg/commit/bdc7a150cbefbc3d85a05d2a995bad4db34fc321))
+- Resync serial stream on framing overflow instead of flooding the debuggee, thanks to [@munraimix](https://github.com/munraimix) ([link](https://github.com/HyperDbg/HyperDbg/pull/663))([link](https://github.com/HyperDbg/HyperDbg/issues/661))
+- Resync libhyperdbg's serial receivers on framing overflow too, thanks to [@munraimix](https://github.com/munraimix) ([link](https://github.com/HyperDbg/HyperDbg/pull/663))([link](https://github.com/HyperDbg/HyperDbg/issues/661))
+- Updated Linux port documentation ([link](https://github.com/HyperDbg/HyperDbg/commit/622ea9df9730e3fe0a8ff22f035772631308ac36))
+
+### Removed
+- Removed unused serial codes ([link](https://github.com/HyperDbg/HyperDbg/commit/b77df6a62bacf4bff29198b3d1acd7961a3e7f38))
 
 ## [0.22.0.0] - 2026-07-20
 New release of the HyperDbg Debugger.
