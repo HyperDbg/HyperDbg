@@ -32,6 +32,16 @@ GetToken(char * c, char * str)
         {
             *c = sgetc(str);
 
+            //
+            // An unterminated string literal would otherwise spin here forever,
+            // since sgetc() keeps returning EOF without consuming any input
+            //
+            if ((int)*c == EOF)
+            {
+                Token->Type = UNKNOWN;
+                return Token;
+            }
+
             if (*c == '\\')
             {
                 *c = sgetc(str);
@@ -649,6 +659,16 @@ GetToken(char * c, char * str)
             do
             {
                 *c = sgetc(str);
+
+                //
+                // An unterminated wide string literal would otherwise spin here
+                // forever, since sgetc() keeps returning EOF without consuming input
+                //
+                if ((int)*c == EOF)
+                {
+                    Token->Type = UNKNOWN;
+                    return Token;
+                }
 
                 if (*c == '\\')
                 {

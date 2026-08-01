@@ -86,10 +86,14 @@ NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
     //
     // Init fields
     //
+    // Note that MaxLen is never allowed to be zero here. AppendByte()/AppendWchar()
+    // test for a full buffer with 'Len >= MaxLen - 1' on an unsigned type, so a zero
+    // MaxLen would wrap around and let those routines write past the allocation
+    //
     unsigned int Len         = (unsigned int)strlen(Value);
     Token->Type              = Type;
     Token->Len               = Len;
-    Token->MaxLen            = Len;
+    Token->MaxLen            = Len > TOKEN_VALUE_MAX_LEN ? Len : TOKEN_VALUE_MAX_LEN;
     Token->Value             = (char *)calloc(Token->MaxLen + 1, sizeof(char));
     Token->VariableType      = (VARIABLE_TYPE *)VARIABLE_TYPE_LONG;
     Token->VariableMemoryIdx = 0;
@@ -254,11 +258,16 @@ AppendByte(PSCRIPT_ENGINE_TOKEN Token, char c)
         //
         // Double the length of the allocated space for the string
         //
-        Token->MaxLen *= 2;
-        char * NewValue = (char *)calloc(Token->MaxLen + 1, sizeof(char));
+        unsigned int NewMaxLen = Token->MaxLen * 2;
+        char *       NewValue  = (char *)calloc(NewMaxLen + 1, sizeof(char));
 
         if (NewValue == NULL)
         {
+            //
+            // MaxLen is only committed once the bigger buffer is in hand, otherwise
+            // it would describe a buffer that was never allocated and the next call
+            // would consider the (still small) buffer to have free space in it
+            //
             printf("err, could not allocate buffer");
             return;
         }
@@ -268,7 +277,8 @@ AppendByte(PSCRIPT_ENGINE_TOKEN Token, char c)
         //
         memcpy(NewValue, Token->Value, Token->Len);
         free(Token->Value);
-        Token->Value = NewValue;
+        Token->Value  = NewValue;
+        Token->MaxLen = NewMaxLen;
     }
 
     //
@@ -296,11 +306,15 @@ AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c)
         //
         // Double the length of the allocated space for the wstring
         //
-        Token->MaxLen *= 2;
-        char * NewValue = (char *)calloc(Token->MaxLen + 2, sizeof(char));
+        unsigned int NewMaxLen = Token->MaxLen * 2;
+        char *       NewValue  = (char *)calloc(NewMaxLen + 2, sizeof(char));
 
         if (NewValue == NULL)
         {
+            //
+            // Keep MaxLen describing the buffer that is actually allocated, see the
+            // matching comment in AppendByte()
+            //
             printf("err, could not allocate buffer");
             return;
         }
@@ -310,7 +324,8 @@ AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c)
         //
         memcpy(NewValue, Token->Value, Token->Len);
         free(Token->Value);
-        Token->Value = NewValue;
+        Token->Value  = NewValue;
+        Token->MaxLen = NewMaxLen;
     }
 
     //
@@ -339,11 +354,35 @@ CopyToken(PSCRIPT_ENGINE_TOKEN Token)
         return NULL;
     }
 
-    TokenCopy->Type         = Token->Type;
-    TokenCopy->MaxLen       = Token->MaxLen;
-    TokenCopy->Len          = Token->Len;
-    TokenCopy->Value        = (char *)calloc(strlen(Token->Value) + 1, sizeof(char));
-    TokenCopy->VariableType = Token->VariableType;
+    //
+    // The number of bytes to copy is the larger of Len and the string length:
+    //
+    //  - WSTRING tokens hold UTF-16 data whose embedded null bytes make strlen()
+    //    (and strcpy()) stop early, so Len is the meaningful size for them
+    //  - tokens taken from the static grammar tables in parse-table.c only have
+    //    their Type and Value initialized, leaving Len at zero, so the string
+    //    length is the meaningful size for those
+    //
+    unsigned int ValueLen = (unsigned int)strlen(Token->Value);
+    unsigned int CopyLen  = Token->Len > ValueLen ? Token->Len : ValueLen;
+    unsigned int MaxLen   = Token->MaxLen > CopyLen ? Token->MaxLen : CopyLen;
+
+    if (MaxLen < TOKEN_VALUE_MAX_LEN)
+    {
+        MaxLen = TOKEN_VALUE_MAX_LEN;
+    }
+
+    TokenCopy->Type = Token->Type;
+    //
+    // MaxLen describes the buffer that is actually allocated below. It used to be
+    // copied verbatim from the source token while the allocation was sized from the
+    // string length, so the two could disagree and let AppendByte()/AppendWchar()
+    // write past the end of the copy
+    //
+    TokenCopy->MaxLen            = MaxLen;
+    TokenCopy->Len               = Token->Len;
+    TokenCopy->Value             = (char *)calloc(MaxLen + 2, sizeof(char));
+    TokenCopy->VariableType      = Token->VariableType;
     TokenCopy->VariableMemoryIdx = Token->VariableMemoryIdx;
     TokenCopy->AddressSpace      = Token->AddressSpace;
     TokenCopy->IsAddress         = Token->IsAddress;
@@ -357,7 +396,7 @@ CopyToken(PSCRIPT_ENGINE_TOKEN Token)
         return NULL;
     }
 
-    strcpy(TokenCopy->Value, Token->Value);
+    memcpy(TokenCopy->Value, Token->Value, CopyLen);
 
     return TokenCopy;
 }
@@ -395,6 +434,15 @@ NewTokenList(void)
     // Allocation of memory for SCRIPT_ENGINE_TOKEN_LIST buffer
     //
     TokenList->Head = (PSCRIPT_ENGINE_TOKEN *)malloc(TokenList->Size * sizeof(PSCRIPT_ENGINE_TOKEN));
+
+    if (TokenList->Head == NULL)
+    {
+        //
+        // There was an error allocating buffer
+        //
+        free(TokenList);
+        return NULL;
+    }
 
     return TokenList;
 }
@@ -612,7 +660,7 @@ IsLetter(char c)
 char
 IsUnderscore(char c)
 {
-    if (c >= '_')
+    if (c == '_')
         return 1;
     else
     {
@@ -661,8 +709,8 @@ IsOctal(char c)
 PSCRIPT_ENGINE_TOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
-    static unsigned int TempID = 0;
-    int                 i;
+    unsigned int TempID = 0;
+    int          i;
     for (i = 0; i < MAX_TEMP_COUNT; i++)
     {
         if (CurrentUserDefinedFunction->TempMap[i] == 0)
@@ -674,15 +722,42 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
     }
     if (i == MAX_TEMP_COUNT)
     {
+        //
+        // No slot is free. The error is reported to the caller, which aborts the
+        // code generation. A token is still returned so that the (many) call sites
+        // that dereference the result before testing *Error keep working
+        //
+        // TempID is deliberately a plain local rather than a static: when it was
+        // static it kept the id handed out by the previous call, so an exhausted
+        // temp list produced a token aliasing a temporary that was still in use
+        //
         *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
     }
+
     PSCRIPT_ENGINE_TOKEN Temp = NewUnknownToken();
-    char                 TempValue[8];
+
+    if (Temp == NULL)
+    {
+        //
+        // There was an error allocating the token, so release the reserved slot
+        //
+        if (i != MAX_TEMP_COUNT)
+        {
+            CurrentUserDefinedFunction->TempMap[i] = 0;
+        }
+        return NULL;
+    }
+
+    char TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
     Temp->Type = TEMP;
 
-    if (CurrentUserDefinedFunction->MaxTempNumber < (i + 1))
+    //
+    // 'i' is only a valid temporary index when a free slot was actually found,
+    // otherwise this would size the frame for MAX_TEMP_COUNT + 1 temporaries
+    //
+    if (i != MAX_TEMP_COUNT && CurrentUserDefinedFunction->MaxTempNumber < (unsigned long long)(i + 1))
     {
         CurrentUserDefinedFunction->MaxTempNumber = i + 1;
     }
@@ -699,8 +774,18 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 VOID
 FreeTemp(PSCRIPT_ENGINE_TOKEN Temp)
 {
+    if (Temp->Type != TEMP && Temp->Type != DEFERENCE_TEMP)
+    {
+        return;
+    }
+
+    //
+    // The index is derived from the token's textual value, so it is range-checked
+    // before indexing the MAX_TEMP_COUNT-entry map
+    //
     INT Id = (INT)DecimalToInt(Temp->Value);
-    if (Temp->Type == TEMP || Temp->Type == DEFERENCE_TEMP)
+
+    if (Id >= 0 && Id < MAX_TEMP_COUNT)
     {
         CurrentUserDefinedFunction->TempMap[Id] = 0;
     }
@@ -1544,6 +1629,16 @@ RotateLeftStringOnce(char * str)
 {
     INT  Length = (INT)strlen(str);
     CHAR Temp   = str[0];
+
+    //
+    // An empty string has nothing to rotate, and writing the saved character back
+    // would land on str[-1]
+    //
+    if (Length == 0)
+    {
+        return;
+    }
+
     for (int i = 0; i < (Length - 1); i++)
     {
         str[i] = str[i + 1];
