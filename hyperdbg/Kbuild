@@ -1,0 +1,231 @@
+# SPDX-License-Identifier: GPL-3.0
+#
+# Kbuild for the HyperDbg Linux kernel module.
+#
+# This file is read by the kernel build system when it is invoked with
+# M= pointing at this directory (the hyperdbg/ repo root):
+#
+#     make -C /lib/modules/$(uname -r)/build M=<hyperdbg root> modules
+#
+# It is driven by linux/kernel/Makefile. kbuild prefers a file named "Kbuild"
+# over "Makefile" in the M= directory, so the CMake-generated ./Makefile (which
+# builds the *user-mode* CLI) is left untouched — the two build systems coexist.
+#
+# ---------------------------------------------------------------------------
+# DESIGN
+# ---------------------------------------------------------------------------
+# Windows builds SEVEN separate kernel binaries (hyperkd.sys + hyperhv/hyperlog/
+# hyperevade/hypertrace/hyperperf/kdserial as KMDF "export driver" DLLs that link
+# against each other's import .libs). Linux has no equivalent of that idiom, so
+# everything collapses into a SINGLE module: HyperDbg.ko. All the cross-module
+# __declspec(dllexport/dllimport) plumbing and the DllInitialize/DllUnload unload
+# trick simply disappear (one link unit, all symbols internal). kdserial is
+# dropped entirely (Windows-only serial transport).
+#
+# Because M= is the repo root, every source the module needs already lives under
+# it — no copying/symlinking, and full relative object paths mean the several
+# same-named files (Common.c, DpcRoutines.c, UnloadDll.c, Broadcast.c ...) never
+# collide.
+#
+# ---------------------------------------------------------------------------
+# STATUS
+# ---------------------------------------------------------------------------
+# Only the objects under "ACTIVE" below actually compile as kernel code today
+# (the Platform* memory/intrinsic wrappers, proven by linux/mock/kernel). Every
+# other object is listed but COMMENTED OUT: the source still targets the Windows
+# WDK (ntoskrnl/WDF/ntifs.h) and will not compile until its dependencies are
+# routed through the platform layer. Uncomment each line as its translation unit
+# is ported — the module still links and loads in the meantime.
+#
+# The list mirrors the .c files actually present on disk (the per-module
+# CMakeLists.txt files are stale and were NOT trusted).
+# ===========================================================================
+
+obj-m += HyperDbg.o
+
+# Include paths (union; harmless for the commented-out sources).
+#   linux/kernel -> the unified kernel pch.h that every `#include "pch.h"` hits
+#   include      -> SDK/, platform/, config/, macros/, components/ roots
+ccflags-y += -I$(src)/linux/kernel
+ccflags-y += -I$(src)/include
+ccflags-y += -I$(src)/dependencies
+
+# Force default C dialect etc. can be added here later, e.g.:
+# ccflags-y += -Wno-declaration-after-statement
+#
+# When the module translation units come online they all `#include "pch.h"`,
+# which resolves to linux/kernel/pch.h via the -I above. If a module header dir
+# that itself contains a pch.h (e.g. hyperkd/header) is ever added to ccflags,
+# put it AFTER -I$(src)/linux/kernel or the wrong pch wins.
+
+# ===========================================================================
+# ACTIVE — compiles + links today
+# ===========================================================================
+HyperDbg-objs += linux/kernel/Entry.o
+HyperDbg-objs += include/platform/kernel/code/PlatformMem.o
+HyperDbg-objs += include/platform/kernel/code/PlatformIntrinsics.o
+HyperDbg-objs += include/platform/kernel/code/PlatformIntrinsicsVmx.o
+
+# ===========================================================================
+# PENDING — uncomment as each is ported off the WDK
+# ===========================================================================
+
+# --- platform/kernel (OS abstraction layer) --------------------------------
+HyperDbg-objs += include/platform/kernel/code/PlatformBroadcast.o
+HyperDbg-objs += include/platform/kernel/code/PlatformCpu.o
+HyperDbg-objs += include/platform/kernel/code/PlatformDbg.o
+HyperDbg-objs += include/platform/kernel/code/PlatformDpc.o
+HyperDbg-objs += include/platform/kernel/code/PlatformEvent.o
+HyperDbg-objs += include/platform/kernel/code/PlatformIo.o
+HyperDbg-objs += include/platform/kernel/code/PlatformIrql.o
+HyperDbg-objs += include/platform/kernel/code/PlatformProcess.o
+HyperDbg-objs += include/platform/kernel/code/PlatformSpinlock.o
+HyperDbg-objs += include/platform/kernel/code/PlatformTime.o
+
+# --- components (shared, header-driven) ------------------------------------
+# HyperDbg-objs += include/components/spinlock/code/Spinlock.o
+# HyperDbg-objs += include/components/optimizations/code/AvlTree.o
+# HyperDbg-objs += include/components/optimizations/code/BinarySearch.o
+# HyperDbg-objs += include/components/optimizations/code/InsertionSort.o
+# HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
+# HyperDbg-objs += include/components/callback/code/HyperLogCallback.o
+
+# --- script-eval (script engine kernel eval) -------------------------------
+# HyperDbg-objs += script-eval/code/Functions.o
+# HyperDbg-objs += script-eval/code/Keywords.o
+# HyperDbg-objs += script-eval/code/PseudoRegisters.o
+# HyperDbg-objs += script-eval/code/Regs.o
+# HyperDbg-objs += script-eval/code/ScriptEngineEval.o
+
+# --- hyperlog (message logging/tracing) ------------------------------------
+# HyperDbg-objs += hyperlog/code/Logging.o
+# HyperDbg-objs += hyperlog/code/UnloadDll.o
+
+# --- hyperhv (hypervisor: VMX/EPT) -----------------------------------------
+# HyperDbg-objs += hyperhv/code/broadcast/Broadcast.o
+# HyperDbg-objs += hyperhv/code/broadcast/DpcRoutines.o
+# HyperDbg-objs += hyperhv/code/common/Bitwise.o
+# HyperDbg-objs += hyperhv/code/common/Common.o
+# HyperDbg-objs += hyperhv/code/common/UnloadDll.o
+# HyperDbg-objs += hyperhv/code/components/registers/DebugRegisters.o
+# HyperDbg-objs += hyperhv/code/devices/Apic.o
+# HyperDbg-objs += hyperhv/code/devices/Pci.o
+# HyperDbg-objs += hyperhv/code/disassembler/Disassembler.o
+# HyperDbg-objs += hyperhv/code/disassembler/ZydisKernel.o
+# HyperDbg-objs += hyperhv/code/features/CompatibilityChecks.o
+# HyperDbg-objs += hyperhv/code/features/DirtyLogging.o
+# HyperDbg-objs += hyperhv/code/globals/GlobalVariableManagement.o
+# HyperDbg-objs += hyperhv/code/hooks/ept-hook/EptHook.o
+# HyperDbg-objs += hyperhv/code/hooks/ept-hook/ExecTrap.o
+# HyperDbg-objs += hyperhv/code/hooks/ept-hook/ModeBasedExecHook.o
+# HyperDbg-objs += hyperhv/code/hooks/syscall-hook/EferHook.o
+# HyperDbg-objs += hyperhv/code/hooks/syscall-hook/SyscallCallback.o
+# HyperDbg-objs += hyperhv/code/interface/Callback.o
+# HyperDbg-objs += hyperhv/code/interface/Configuration.o
+# HyperDbg-objs += hyperhv/code/interface/DirectVmcall.o
+# HyperDbg-objs += hyperhv/code/interface/Dispatch.o
+# HyperDbg-objs += hyperhv/code/interface/Export.o
+# HyperDbg-objs += hyperhv/code/interface/HyperEvade.o
+# HyperDbg-objs += hyperhv/code/memory/AddressCheck.o
+# HyperDbg-objs += hyperhv/code/memory/Conversion.o
+# HyperDbg-objs += hyperhv/code/memory/Layout.o
+# HyperDbg-objs += hyperhv/code/memory/MemoryManager.o
+# HyperDbg-objs += hyperhv/code/memory/MemoryMapper.o
+# HyperDbg-objs += hyperhv/code/memory/Segmentation.o
+# HyperDbg-objs += hyperhv/code/memory/SwitchLayout.o
+# HyperDbg-objs += hyperhv/code/mmio/MmioShadowing.o
+# HyperDbg-objs += hyperhv/code/processor/Idt.o
+# HyperDbg-objs += hyperhv/code/processor/Smm.o
+# HyperDbg-objs += hyperhv/code/vmm/ept/Ept.o
+# HyperDbg-objs += hyperhv/code/vmm/ept/Invept.o
+# HyperDbg-objs += hyperhv/code/vmm/ept/Vpid.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/Counters.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmcalls.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmexits.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/Events.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/Hv.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/IdtEmulation.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/IoHandler.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/ManageRegs.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/MsrHandlers.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/Mtf.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/ProtectedHv.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmcall.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmexit.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmx.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxBroadcast.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxMechanisms.o
+# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxRegions.o
+#   hyperhv assembly (MASM -> GAS/.S translation required; not just a build change)
+# HyperDbg-objs += hyperhv/code/assembly/AsmCommon.o
+# HyperDbg-objs += hyperhv/code/assembly/AsmEpt.o
+# HyperDbg-objs += hyperhv/code/assembly/AsmHooks.o
+# HyperDbg-objs += hyperhv/code/assembly/AsmInterruptHandlers.o
+# HyperDbg-objs += hyperhv/code/assembly/AsmSegmentRegs.o
+# HyperDbg-objs += hyperhv/code/assembly/AsmVmexitHandler.o
+# HyperDbg-objs += hyperhv/code/assembly/AsmVmxContextState.o
+# HyperDbg-objs += hyperhv/code/assembly/AsmVmxOperation.o
+
+# --- hyperkd (the driver: device/IOCTL + debugger core) --------------------
+# HyperDbg-objs += hyperkd/code/common/Common.o
+# HyperDbg-objs += hyperkd/code/common/Synchronization.o
+# HyperDbg-objs += hyperkd/code/debugger/broadcast/DpcRoutines.o
+# HyperDbg-objs += hyperkd/code/debugger/broadcast/HaltedBroadcast.o
+# HyperDbg-objs += hyperkd/code/debugger/broadcast/HaltedRoutines.o
+# HyperDbg-objs += hyperkd/code/debugger/commands/BreakpointCommands.o
+# HyperDbg-objs += hyperkd/code/debugger/commands/Callstack.o
+# HyperDbg-objs += hyperkd/code/debugger/commands/DebuggerCommands.o
+# HyperDbg-objs += hyperkd/code/debugger/commands/ExtensionCommands.o
+# HyperDbg-objs += hyperkd/code/debugger/communication/SerialConnection.o
+# HyperDbg-objs += hyperkd/code/debugger/core/Debugger.o
+# HyperDbg-objs += hyperkd/code/debugger/core/DebuggerVmcalls.o
+# HyperDbg-objs += hyperkd/code/debugger/core/HaltedCore.o
+# HyperDbg-objs += hyperkd/code/debugger/events/ApplyEvents.o
+# HyperDbg-objs += hyperkd/code/debugger/events/DebuggerEvents.o
+# HyperDbg-objs += hyperkd/code/debugger/events/Termination.o
+# HyperDbg-objs += hyperkd/code/debugger/events/ValidateEvents.o
+# HyperDbg-objs += hyperkd/code/debugger/kernel-level/Kd.o
+# HyperDbg-objs += hyperkd/code/debugger/memory/Allocations.o
+# HyperDbg-objs += hyperkd/code/debugger/memory/PoolManager.o
+# HyperDbg-objs += hyperkd/code/debugger/meta-events/MetaDispatch.o
+# HyperDbg-objs += hyperkd/code/debugger/meta-events/Tracing.o
+# HyperDbg-objs += hyperkd/code/debugger/objects/Process.o
+# HyperDbg-objs += hyperkd/code/debugger/objects/Thread.o
+# HyperDbg-objs += hyperkd/code/debugger/script-engine/ScriptEngine.o
+# HyperDbg-objs += hyperkd/code/debugger/tests/KernelTests.o
+# HyperDbg-objs += hyperkd/code/debugger/user-level/Attaching.o
+# HyperDbg-objs += hyperkd/code/debugger/user-level/ThreadHolder.o
+# HyperDbg-objs += hyperkd/code/debugger/user-level/Ud.o
+# HyperDbg-objs += hyperkd/code/debugger/user-level/UserAccess.o
+# HyperDbg-objs += hyperkd/code/driver/Driver.o
+# HyperDbg-objs += hyperkd/code/driver/Ioctl.o
+# HyperDbg-objs += hyperkd/code/driver/Loader.o
+#   hyperkd assembly (MASM -> GAS/.S translation required)
+# HyperDbg-objs += hyperkd/code/assembly/AsmDebugger.o
+
+# --- hyperevade (transparency / anti-detection) ----------------------------
+# HyperDbg-objs += hyperevade/code/SyscallFootprints.o
+# HyperDbg-objs += hyperevade/code/Transparency.o
+# HyperDbg-objs += hyperevade/code/UnloadDll.o
+# HyperDbg-objs += hyperevade/code/VmxFootprints.o
+
+# --- hyperperf (PMU) -------------------------------------------------------
+# HyperDbg-objs += hyperperf/code/api/PerfApi.o
+# HyperDbg-objs += hyperperf/code/broadcast/Broadcast.o
+# HyperDbg-objs += hyperperf/code/broadcast/DpcRoutines.o
+# HyperDbg-objs += hyperperf/code/common/UnloadDll.o
+
+# --- hypertrace (LBR / Intel PT) -------------------------------------------
+# HyperDbg-objs += hypertrace/code/api/LbrApi.o
+# HyperDbg-objs += hypertrace/code/api/PtApi.o
+# HyperDbg-objs += hypertrace/code/api/TraceApi.o
+# HyperDbg-objs += hypertrace/code/broadcast/Broadcast.o
+# HyperDbg-objs += hypertrace/code/broadcast/DpcRoutines.o
+# HyperDbg-objs += hypertrace/code/common/UnloadDll.o
+# HyperDbg-objs += hypertrace/code/lbr/Lbr.o
+# HyperDbg-objs += hypertrace/code/pt/Pt.o
+
+# --- zydis (kernel disassembler, needed by hyperhv/disassembler) -----------
+# Built with ZYAN_NO_LIBC;ZYDIS_NO_LIBC;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD.
+# Enumerate dependencies/zydis/src/*.c + dependencies/zydis/.../zycore/*.c here,
+# or build them into a built-in.a. Deferred until hyperhv compiles.

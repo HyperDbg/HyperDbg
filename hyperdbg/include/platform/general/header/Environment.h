@@ -44,15 +44,22 @@
 #    define _Out_writes_bytes_(x)
 #    define _Inout_updates_bytes_all_(x)
 
+// The following libc headers exist only in user space; a Linux KERNEL build
+// (HYPERDBG_KERNEL_MODE) has no libc, so they are guarded out there. User-mode
+// Linux is unaffected — HYPERDBG_KERNEL_MODE is never defined in that path.
+#    ifndef HYPERDBG_KERNEL_MODE
+
 // wchar_t is a C++ built-in but needs this header in C
-#    include <wchar.h>
+#        include <wchar.h>
 
 // POSIX sleep primitives (usleep) backing the Win32 Sleep() shim below
-#    include <unistd.h>
+#        include <unistd.h>
 
 // DECIMAL_DIG and the FLT/DBL limits (ISO C99 <float.h>); MSVC exposes these
 // transitively through its CRT/pch, glibc needs the explicit include
-#    include <float.h>
+#        include <float.h>
+
+#    endif // !HYPERDBG_KERNEL_MODE
 
 // Windows string/char types
 typedef char         TCHAR;
