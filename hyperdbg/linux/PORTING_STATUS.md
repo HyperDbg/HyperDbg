@@ -9,7 +9,8 @@ the *state* of the work; the README is the *method*.
 
 > Status in one line: the userspace library (`libhyperdbg`) compiles file-by-file
 > on Linux. Many Windows-only paths are **stubbed to compile+link**, not yet
-> implemented. See the TODO ledger below.
+> implemented. See the TODO ledger below. Work has now also started on the
+> **kernel module** (`HyperDbg.ko`) — see its section near the end.
 
 ---
 
@@ -814,7 +815,90 @@ but out of scope for the port.
 ### Build system
 - [ ] Add `.gitignore` rules for the in-source CMake build output
   (`CMakeCache.txt`, `CMakeFiles/`, generated `Makefile`, `cmake_install.cmake`,
-  `*.o`, `*.so`) — or switch to an out-of-source `build/` directory.
+  `*.o`, `*.so`) — or switch to an out-of-source `build/` directory. Now also
+  applies to the kbuild output (`*.ko`, `*.mod`, `*.mod.c`, `.*.cmd`,
+  `modules.order`, `Module.symvers`), which lands in-tree at the repo root.
+
+---
+
+## Kernel module (`HyperDbg.ko`) — IN PROGRESS
+
+Phase two. Windows' seven kernel binaries (hyperkd.sys + hyperhv/hyperlog/
+hyperevade/hypertrace/hyperperf/kdserial, KMDF export drivers) collapse into one
+Linux module. Design notes: the root [`Kbuild`](../Kbuild) header.
+
+```bash
+cd linux/kernel     # NOT the CMake root Makefile — that builds the user-mode CLI
+make                # -> HyperDbg.ko at the repo root
+make clean / load / unload
+make KDIR=/path/to/linux-headers
+```
+
+kbuild prefers the root `Kbuild` under `M=`, so both build systems coexist.
+`Kbuild` lists every future object with the un-ported ones commented out. Current
+front: the ten `include/platform/kernel/` TUs, all uncommented — so the build
+stops at the first `#error "Not yet implemented"`.
+
+| TU | Status |
+|----|--------|
+| `PlatformMem.c` | ✅ builds (pre-existing) |
+| `PlatformIntrinsics.c` | ✅ builds (pre-existing) |
+| `PlatformIntrinsicsVmx.c` | ✅ builds (pre-existing) |
+| `PlatformBroadcast.c` | ✅ ported 2026-08-01 |
+| `PlatformCpu.c` | ✅ ported 2026-08-01 — see below |
+| `PlatformDbg.c` | ✅ ported 2026-08-01 — see below |
+| `PlatformDpc.c` | ❌ 2 stubs — **next to fail**; also 2 *type* errors (see below) |
+| `PlatformIrql.c` | ❌ 2 stubs |
+| `PlatformEvent.c` | ❌ 3 stubs |
+| `PlatformIo.c` | ❌ 3 stubs |
+| `PlatformSpinlock.c` | ❌ 3 stubs |
+| `PlatformTime.c` | ❌ 3 stubs |
+| `PlatformProcess.c` | ❌ 5 stubs |
+
+### `PlatformCpu.c` — DONE (2026-08-01)
+
+| Windows | Linux |
+|---------|-------|
+| `KeQueryActiveProcessorCount(0)` | `num_online_cpus()` |
+| `KeGetCurrentProcessorNumberEx(NULL)` | `raw_smp_processor_id()` |
+
+Both Windows calls return system-wide (all-group) values, matching Linux's flat
+CPU numbering — no group translation.
+
+`raw_` chosen deliberately: plain `smp_processor_id()` asserts preemption is
+disabled (`CONFIG_DEBUG_PREEMPT` splat), a precondition the Windows API doesn't
+have and no caller establishes. Both current callers can run preemptible
+(`Logging.c:1001` per-core VMX buffer index, but only on the vmx-root path;
+`PseudoRegisters.c:49` `$core`). The 72 raw `KeGetCurrentProcessorNumberEx` sites
+in 21 files still pending (`__CPU_INDEX__`, `g_GuestState[]`/`g_DbgState[]`) are
+all vmx-root/raised-IRQL — identical either way.
+
+No new include needed (resolves via `linux/kernel/pch.h`; add `<linux/smp.h>` if
+that ever breaks).
+
+### `PlatformDbg.c` — DONE (2026-08-01)
+
+| Windows | Linux |
+|---------|-------|
+| `vDbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, Format, ArgList)` | `vprintk(Format, ArgList)` |
+
+`va_start`/`va_end` scaffolding unchanged; no new include needed.
+
+Nuances, deliberately not "fixed" (would be logic changes; callers unaffected):
+- printk reads its level from a `KERN_*` prefix on the format string and no caller
+  has one → messages land at the default loglevel, not "info".
+- printk isn't MSVC's CRT (no `%I64d`/`%ws`). All six callers use only `%s`/`%x`.
+- `Logging.c:833` chunks at `DbgPrintLimitation` (512, `Constants.h:223`) =
+  DbgPrint's limit, not printk's `LOG_LINE_MAX`. Works, just mis-sized.
+
+- [ ] Revisit loglevel + `DbgPrintLimitation` sizing once kernel logging is exercised.
+
+### Next up: `PlatformDpc.c`
+
+Not a body swap — the signatures fail too (`PRKDPC`, `PKDEFERRED_ROUTINE` unknown
+on Linux). Needs Linux types for the KDPC object + deferred-routine fn-ptr first.
+Backing it with `smp_call_function_single_async` / `irq_work` / `tasklet` is a
+design decision, not a mechanical swap.
 
 ---
 
