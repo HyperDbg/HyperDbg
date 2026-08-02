@@ -114,7 +114,7 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
 
         if (f == NULL)
         {
-            ShowMessages("Error: Cannot open file '%s': error %d\n", Filename, errno);
+            ShowMessages("err, cannot open file '%s' (error 0x%x)\n", Filename, errno);
             return NULL;
         }
 
@@ -124,7 +124,7 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
 
         if (FileSize < 0)
         {
-            ShowMessages("Error: Cannot determine the size of file '%s': error %d\n", Filename, errno);
+            ShowMessages("err, cannot determine the size of file '%s' (error: 0x%x)\n", Filename, errno);
             fclose(f);
             return NULL;
         }

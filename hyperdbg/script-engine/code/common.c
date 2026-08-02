@@ -703,17 +703,11 @@ IsOctal(char c)
         return 0;
 }
 
-/**
- * @brief Allocates a new temporary variable and returns it
- *
- * @param Error the error type pointer
- * @return PSCRIPT_ENGINE_TOKEN
- */
 PSCRIPT_ENGINE_TOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
-    unsigned int TempID = 0;
-    int          i;
+    static unsigned int TempID = 0;
+    int                 i;
     for (i = 0; i < MAX_TEMP_COUNT; i++)
     {
         if (CurrentUserDefinedFunction->TempMap[i] == 0)
@@ -725,42 +719,15 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
     }
     if (i == MAX_TEMP_COUNT)
     {
-        //
-        // No slot is free. The error is reported to the caller, which aborts the
-        // code generation. A token is still returned so that the (many) call sites
-        // that dereference the result before testing *Error keep working
-        //
-        // TempID is deliberately a plain local rather than a static: when it was
-        // static it kept the id handed out by the previous call, so an exhausted
-        // temp list produced a token aliasing a temporary that was still in use
-        //
         *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
     }
-
     PSCRIPT_ENGINE_TOKEN Temp = NewUnknownToken();
-
-    if (Temp == NULL)
-    {
-        //
-        // There was an error allocating the token, so release the reserved slot
-        //
-        if (i != MAX_TEMP_COUNT)
-        {
-            CurrentUserDefinedFunction->TempMap[i] = 0;
-        }
-        return NULL;
-    }
-
-    char TempValue[8];
+    char                 TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
     Temp->Type = TEMP;
 
-    //
-    // 'i' is only a valid temporary index when a free slot was actually found,
-    // otherwise this would size the frame for MAX_TEMP_COUNT + 1 temporaries
-    //
-    if (i != MAX_TEMP_COUNT && CurrentUserDefinedFunction->MaxTempNumber < (unsigned long long)(i + 1))
+    if (CurrentUserDefinedFunction->MaxTempNumber < (i + 1))
     {
         CurrentUserDefinedFunction->MaxTempNumber = i + 1;
     }

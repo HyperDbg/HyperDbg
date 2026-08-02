@@ -38,6 +38,8 @@ New release of the HyperDbg Debugger.
 - Resync serial stream on framing overflow instead of flooding the debuggee, thanks to [@munraimix](https://github.com/munraimix) ([link](https://github.com/HyperDbg/HyperDbg/pull/663))([link](https://github.com/HyperDbg/HyperDbg/issues/661))
 - Resync libhyperdbg's serial receivers on framing overflow too, thanks to [@munraimix](https://github.com/munraimix) ([link](https://github.com/HyperDbg/HyperDbg/pull/663))([link](https://github.com/HyperDbg/HyperDbg/issues/661))
 - Updated Linux port documentation ([link](https://github.com/HyperDbg/HyperDbg/commit/622ea9df9730e3fe0a8ff22f035772631308ac36))
+- Applied cleanup for resync serial codes ([link](https://github.com/HyperDbg/HyperDbg/commit/a24c8c0a91485132ac9e28bfb588a689c8359359))
+- Fix memory-safety and robustness issues in the script engine and the PCI ID parser, thanks to [@enzo-berry](https://github.com/enzo-berry) ([link](https://github.com/HyperDbg/HyperDbg/pull/665))
 
 ### Removed
 - Removed unused serial codes ([link](https://github.com/HyperDbg/HyperDbg/commit/b77df6a62bacf4bff29198b3d1acd7961a3e7f38))
