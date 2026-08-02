@@ -13,6 +13,9 @@
 #include "pch.h"
 #include "platform/user/header/platform-lib-calls.h"
 
+#include <errno.h>
+#include <locale.h>
+
 // #define _SCRIPT_ENGINE_LALR_DBG_EN
 // #define _SCRIPT_ENGINE_LL1_DBG_EN
 // #define _SCRIPT_ENGINE_CODEGEN_DBG_EN
@@ -39,6 +42,530 @@ static unsigned int             StructPointerDepth;
 static PVARIABLE_TYPE           CurrentStructDefinition;
 static PSCRIPT_ENGINE_TOKEN     LastStructObject;
 static PVARIABLE_TYPE           LastStructObjectType;
+
+typedef struct _SIZEOF_COMPILATION_CONTEXT
+{
+    UINT32 CodePointer;
+    UINT64 MaxTempNumber;
+    CHAR   TempMap[MAX_TEMP_COUNT];
+} SIZEOF_COMPILATION_CONTEXT;
+
+static SIZEOF_COMPILATION_CONTEXT SizeofContexts[16];
+static UINT32                     SizeofContextCount;
+
+typedef struct _LOGICAL_COMPILATION_CONTEXT
+{
+    BOOLEAN              IsOr;
+    UINT32               BeginJumpTargetIndex;
+    PSCRIPT_ENGINE_TOKEN ResultToken;
+} LOGICAL_COMPILATION_CONTEXT;
+
+static LOGICAL_COMPILATION_CONTEXT LogicalContexts[16];
+static UINT32                      LogicalContextCount;
+
+static UINT64
+GetScriptScalarTypeId(PVARIABLE_TYPE VariableType);
+
+static PVARIABLE_TYPE
+ResolveIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
+{
+    PVARIABLE_TYPE VariableType = Token ? (PVARIABLE_TYPE)Token->VariableType : NULL;
+
+    if (!Token)
+    {
+        return NULL;
+    }
+
+    if (Token->Type == LOCAL_ID)
+    {
+        VariableType          = GetLocalIdentifierVariableType(Token);
+        Token->IsImplicitType = GetLocalIdentifierIsImplicitType(Token);
+    }
+    else if (Token->Type == GLOBAL_ID)
+    {
+        VariableType          = GetGlobalIdentifierVariableType(Token);
+        Token->IsImplicitType = GetGlobalIdentifierIsImplicitType(Token);
+    }
+
+    if (VariableType)
+    {
+        Token->VariableType = VariableType;
+    }
+
+    return VariableType;
+}
+
+static PVARIABLE_TYPE
+ResolveTypeNameFromStack(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack,
+                         PSCRIPT_ENGINE_ERROR_TYPE Error)
+{
+    UINT32         PointerDepth = 0;
+    PVARIABLE_TYPE BaseType;
+
+    while (MatchedStack->Pointer && !strcmp(Top(MatchedStack)->Value, "@DECLARE_POINTER_TYPE"))
+    {
+        PSCRIPT_ENGINE_TOKEN PointerMarker = Pop(MatchedStack);
+        RemoveToken(&PointerMarker);
+        PointerDepth++;
+    }
+
+    if (!MatchedStack->Pointer)
+    {
+        *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+        return VARIABLE_TYPE_UNKNOWN;
+    }
+
+    if (Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE)
+    {
+        BaseType = HandleType(MatchedStack);
+    }
+    else
+    {
+        PSCRIPT_ENGINE_TOKEN TagToken = Pop(MatchedStack);
+        BaseType                      = FindStructType(TagToken->Value);
+        RemoveToken(&TagToken);
+    }
+
+    // LALR reductions execute their semantic action after the complete RHS,
+    // so abstract-declarator markers are below the reduced base-type token.
+    // The LL(1) grammar emits the same markers above it.  Accept both stack
+    // layouts while preserving one serialized type representation.
+    while (MatchedStack->Pointer && !strcmp(Top(MatchedStack)->Value, "@DECLARE_POINTER_TYPE"))
+    {
+        PSCRIPT_ENGINE_TOKEN PointerMarker = Pop(MatchedStack);
+        RemoveToken(&PointerMarker);
+        PointerDepth++;
+    }
+
+    if (!BaseType || BaseType->Kind == TY_UNKNOWN)
+    {
+        *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+        return VARIABLE_TYPE_UNKNOWN;
+    }
+
+    while (PointerDepth--)
+    {
+        BaseType = CreatePointerType(BaseType);
+        if (!BaseType)
+        {
+            *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
+            return VARIABLE_TYPE_UNKNOWN;
+        }
+    }
+    if (MatchedStack->Pointer && !strcmp(Top(MatchedStack)->Value, "@TYPE_NAME_BEGIN"))
+    {
+        PSCRIPT_ENGINE_TOKEN TypeMarker = Pop(MatchedStack);
+        RemoveToken(&TypeMarker);
+    }
+    return BaseType;
+}
+
+static PSCRIPT_ENGINE_TOKEN
+EmitTruthValue(PSYMBOL_BUFFER            CodeBuffer,
+               PSCRIPT_ENGINE_TOKEN      Operand,
+               PSCRIPT_ENGINE_ERROR_TYPE Error)
+{
+    PVARIABLE_TYPE       OperandType = (PVARIABLE_TYPE)Operand->VariableType;
+    UINT64               TypeId      = GetScriptScalarTypeId(OperandType);
+    PSCRIPT_ENGINE_TOKEN FirstTemp;
+    PSCRIPT_ENGINE_TOKEN ResultTemp;
+    PSYMBOL              Symbol;
+    PSYMBOL              OperandSymbol;
+    PSYMBOL              FirstTempSymbol;
+    PSYMBOL              ResultTempSymbol;
+
+    if (TypeId == SCRIPT_SCALAR_TYPE_INVALID || TypeId == SCRIPT_SCALAR_TYPE_F80)
+    {
+        *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+        return NULL;
+    }
+
+    FirstTemp  = NewTemp(Error);
+    ResultTemp = NewTemp(Error);
+    if (!FirstTemp || !ResultTemp || *Error != SCRIPT_ENGINE_ERROR_FREE)
+        return NULL;
+    FirstTemp->VariableType  = VARIABLE_TYPE_INT;
+    ResultTemp->VariableType = VARIABLE_TYPE_INT;
+    OperandSymbol            = ToSymbol(Operand, Error);
+    FirstTempSymbol          = ToSymbol(FirstTemp, Error);
+    ResultTempSymbol         = ToSymbol(ResultTemp, Error);
+    Symbol                   = NewSymbol();
+
+    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+    Symbol->Value = FUNC_LOGICAL_NOT_TYPED;
+    PushSymbol(CodeBuffer, Symbol);
+    PushSymbol(CodeBuffer, OperandSymbol);
+    PushSymbol(CodeBuffer, FirstTempSymbol);
+    Symbol->Type  = SYMBOL_NUM_TYPE;
+    Symbol->Value = TypeId;
+    PushSymbol(CodeBuffer, Symbol);
+
+    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+    Symbol->Value = FUNC_LOGICAL_NOT_TYPED;
+    PushSymbol(CodeBuffer, Symbol);
+    PushSymbol(CodeBuffer, FirstTempSymbol);
+    PushSymbol(CodeBuffer, ResultTempSymbol);
+    Symbol->Type  = SYMBOL_NUM_TYPE;
+    Symbol->Value = SCRIPT_SCALAR_TYPE_I32;
+    PushSymbol(CodeBuffer, Symbol);
+    RemoveSymbol(&Symbol);
+    FreeTemp(FirstTemp);
+    RemoveToken(&FirstTemp);
+    return ResultTemp;
+}
+
+static PVARIABLE_TYPE
+GetUnsignedTypeForAccessWidth(UINT32 AccessWidth)
+{
+    if (AccessWidth == 1)
+        return VARIABLE_TYPE_UCHAR;
+    if (AccessWidth == 2)
+        return VARIABLE_TYPE_USHORT;
+    if (AccessWidth == 4)
+        return VARIABLE_TYPE_UINT;
+    if (AccessWidth == 8)
+        return VARIABLE_TYPE_ULLONG;
+    return VARIABLE_TYPE_UNKNOWN;
+}
+
+static PSCRIPT_ENGINE_TOKEN
+EmitTypedScalarLoad(PSYMBOL_BUFFER            CodeBuffer,
+                    PSCRIPT_ENGINE_TOKEN      AddressToken,
+                    UINT32                    AddressSpace,
+                    PVARIABLE_TYPE            DeclaredType,
+                    PSCRIPT_ENGINE_ERROR_TYPE Error)
+{
+    PVARIABLE_TYPE       RawType;
+    PSCRIPT_ENGINE_TOKEN RawTemp = NULL;
+    PSCRIPT_ENGINE_TOKEN ValueTemp;
+    PSCRIPT_ENGINE_TOKEN LoadDestination;
+    PSYMBOL              Symbol;
+    BOOLEAN              NeedsIntegerNormalization;
+
+    RawType = GetUnsignedTypeForAccessWidth((UINT32)DeclaredType->Size);
+    if (RawType == VARIABLE_TYPE_UNKNOWN)
+    {
+        *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+        return NULL;
+    }
+
+    ValueTemp = NewTemp(Error);
+    if (!ValueTemp || *Error != SCRIPT_ENGINE_ERROR_FREE)
+        return NULL;
+    ValueTemp->VariableType   = DeclaredType;
+    NeedsIntegerNormalization = IsIntegerVariableType(DeclaredType) &&
+                                GetScriptScalarTypeId(RawType) != GetScriptScalarTypeId(DeclaredType);
+    if (NeedsIntegerNormalization)
+    {
+        RawTemp = NewTemp(Error);
+        if (!RawTemp || *Error != SCRIPT_ENGINE_ERROR_FREE)
+        {
+            FreeTemp(ValueTemp);
+            RemoveToken(&ValueTemp);
+            return NULL;
+        }
+        RawTemp->VariableType = RawType;
+    }
+    LoadDestination = RawTemp ? RawTemp : ValueTemp;
+
+    Symbol        = NewSymbol();
+    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+    Symbol->Value = FUNC_TYPED_LOAD;
+    PushSymbol(CodeBuffer, Symbol);
+    RemoveSymbol(&Symbol);
+    Symbol = ToSymbol(AddressToken, Error);
+    PushSymbol(CodeBuffer, Symbol);
+    RemoveSymbol(&Symbol);
+    Symbol        = NewSymbol();
+    Symbol->Type  = SYMBOL_NUM_TYPE;
+    Symbol->Value = AddressSpace;
+    PushSymbol(CodeBuffer, Symbol);
+    Symbol->Value = DeclaredType->Size;
+    PushSymbol(CodeBuffer, Symbol);
+    RemoveSymbol(&Symbol);
+    Symbol = ToSymbol(LoadDestination, Error);
+    PushSymbol(CodeBuffer, Symbol);
+    RemoveSymbol(&Symbol);
+
+    if (RawTemp)
+    {
+        Symbol        = NewSymbol();
+        Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+        Symbol->Value = FUNC_CAST_SCALAR;
+        PushSymbol(CodeBuffer, Symbol);
+        RemoveSymbol(&Symbol);
+        Symbol = ToSymbol(RawTemp, Error);
+        PushSymbol(CodeBuffer, Symbol);
+        RemoveSymbol(&Symbol);
+        Symbol = ToSymbol(ValueTemp, Error);
+        PushSymbol(CodeBuffer, Symbol);
+        RemoveSymbol(&Symbol);
+        Symbol        = NewSymbol();
+        Symbol->Type  = SYMBOL_NUM_TYPE;
+        Symbol->Value = GetScriptScalarTypeId(RawType);
+        PushSymbol(CodeBuffer, Symbol);
+        Symbol->Value = GetScriptScalarTypeId(DeclaredType);
+        PushSymbol(CodeBuffer, Symbol);
+        RemoveSymbol(&Symbol);
+        FreeTemp(RawTemp);
+        RemoveToken(&RawTemp);
+    }
+
+    return ValueTemp;
+}
+
+static UINT64
+GetFloatingValueKind(PVARIABLE_TYPE VariableType)
+{
+    if (VariableType && VariableType->Kind == TY_FLOAT)
+    {
+        return SYMBOL_VALUE_KIND_FLOAT32;
+    }
+
+    if (VariableType && VariableType->Kind == TY_DOUBLE)
+    {
+        return SYMBOL_VALUE_KIND_FLOAT64;
+    }
+
+    return SYMBOL_VALUE_KIND_INTEGER;
+}
+
+static BOOLEAN
+IsFloatingVariableType(PVARIABLE_TYPE VariableType)
+{
+    return VariableType && (VariableType->Kind == TY_FLOAT || VariableType->Kind == TY_DOUBLE);
+}
+
+static UINT64
+GetScriptScalarTypeId(PVARIABLE_TYPE VariableType)
+{
+    if (!VariableType)
+        return SCRIPT_SCALAR_TYPE_INVALID;
+    if (VariableType->Kind == TY_BOOL)
+        return SCRIPT_SCALAR_TYPE_BOOL;
+    if (VariableType->Kind == TY_CHAR)
+        return VariableType->IsUnsigned ? SCRIPT_SCALAR_TYPE_U8 : SCRIPT_SCALAR_TYPE_I8;
+    if (VariableType->Kind == TY_SHORT)
+        return VariableType->IsUnsigned ? SCRIPT_SCALAR_TYPE_U16 : SCRIPT_SCALAR_TYPE_I16;
+    if (VariableType->Kind == TY_INT || VariableType->Kind == TY_ENUM)
+        return VariableType->IsUnsigned ? SCRIPT_SCALAR_TYPE_U32 : SCRIPT_SCALAR_TYPE_I32;
+    if (VariableType->Kind == TY_LONG || VariableType->Kind == TY_LLONG)
+        return VariableType->IsUnsigned ? SCRIPT_SCALAR_TYPE_U64 : SCRIPT_SCALAR_TYPE_I64;
+    if (VariableType->Kind == TY_FLOAT)
+        return SCRIPT_SCALAR_TYPE_F32;
+    if (VariableType->Kind == TY_DOUBLE)
+        return SCRIPT_SCALAR_TYPE_F64;
+    if (VariableType->Kind == TY_PTR)
+        return SCRIPT_SCALAR_TYPE_POINTER;
+    if (VariableType->Kind == TY_LDOUBLE)
+        return SCRIPT_SCALAR_TYPE_F80;
+    return SCRIPT_SCALAR_TYPE_INVALID;
+}
+
+static UINT64
+GetTypedBinaryOpcode(const CHAR * Operator)
+{
+    if (!strcmp(Operator, "@ADD"))
+        return FUNC_ADD_TYPED;
+    if (!strcmp(Operator, "@SUB"))
+        return FUNC_SUB_TYPED;
+    if (!strcmp(Operator, "@MUL"))
+        return FUNC_MUL_TYPED;
+    if (!strcmp(Operator, "@DIV"))
+        return FUNC_DIV_TYPED;
+    if (!strcmp(Operator, "@MOD"))
+        return FUNC_MOD_TYPED;
+    if (!strcmp(Operator, "@AND"))
+        return FUNC_BITWISE_AND_TYPED;
+    if (!strcmp(Operator, "@OR"))
+        return FUNC_BITWISE_OR_TYPED;
+    if (!strcmp(Operator, "@XOR"))
+        return FUNC_BITWISE_XOR_TYPED;
+    if (!strcmp(Operator, "@ASL"))
+        return FUNC_SHIFT_LEFT_TYPED;
+    if (!strcmp(Operator, "@ASR"))
+        return FUNC_SHIFT_RIGHT_TYPED;
+    if (!strcmp(Operator, "@GT"))
+        return FUNC_GT_TYPED;
+    if (!strcmp(Operator, "@LT"))
+        return FUNC_LT_TYPED;
+    if (!strcmp(Operator, "@EGT"))
+        return FUNC_EGT_TYPED;
+    if (!strcmp(Operator, "@ELT"))
+        return FUNC_ELT_TYPED;
+    if (!strcmp(Operator, "@EQUAL"))
+        return FUNC_EQUAL_TYPED;
+    if (!strcmp(Operator, "@NEQ"))
+        return FUNC_NEQ_TYPED;
+    return FUNC_UNDEFINED;
+}
+
+static UINT64
+GetTypedAssignmentOpcode(const CHAR * Operator)
+{
+    if (!strcmp(Operator, "@ADD_ASSIGNMENT"))
+        return FUNC_ADD_TYPED;
+    if (!strcmp(Operator, "@SUB_ASSIGNMENT"))
+        return FUNC_SUB_TYPED;
+    if (!strcmp(Operator, "@MUL_ASSIGNMENT"))
+        return FUNC_MUL_TYPED;
+    if (!strcmp(Operator, "@DIV_ASSIGNMENT"))
+        return FUNC_DIV_TYPED;
+    if (!strcmp(Operator, "@MOD_ASSIGNMENT"))
+        return FUNC_MOD_TYPED;
+    if (!strcmp(Operator, "@AND_ASSIGNMENT"))
+        return FUNC_BITWISE_AND_TYPED;
+    if (!strcmp(Operator, "@OR_ASSIGNMENT"))
+        return FUNC_BITWISE_OR_TYPED;
+    if (!strcmp(Operator, "@XOR_ASSIGNMENT"))
+        return FUNC_BITWISE_XOR_TYPED;
+    if (!strcmp(Operator, "@ASL_ASSIGNMENT"))
+        return FUNC_SHIFT_LEFT_TYPED;
+    if (!strcmp(Operator, "@ASR_ASSIGNMENT"))
+        return FUNC_SHIFT_RIGHT_TYPED;
+    return FUNC_UNDEFINED;
+}
+
+static BOOLEAN
+IsFloatingComparisonOperator(const CHAR * Operator)
+{
+    return !strcmp(Operator, "@GT") || !strcmp(Operator, "@LT") ||
+           !strcmp(Operator, "@EGT") || !strcmp(Operator, "@ELT") ||
+           !strcmp(Operator, "@EQUAL") || !strcmp(Operator, "@NEQ");
+}
+
+static UINT64
+GetFloatingBinaryOpcode(const CHAR * Operator)
+{
+    if (!strcmp(Operator, "@ADD"))
+    {
+        return FUNC_ADD_FLOAT;
+    }
+    if (!strcmp(Operator, "@SUB"))
+    {
+        return FUNC_SUB_FLOAT;
+    }
+    if (!strcmp(Operator, "@MUL"))
+    {
+        return FUNC_MUL_FLOAT;
+    }
+    if (!strcmp(Operator, "@DIV"))
+    {
+        return FUNC_DIV_FLOAT;
+    }
+    if (!strcmp(Operator, "@GT"))
+    {
+        return FUNC_GT_FLOAT;
+    }
+    if (!strcmp(Operator, "@LT"))
+    {
+        return FUNC_LT_FLOAT;
+    }
+    if (!strcmp(Operator, "@EGT"))
+    {
+        return FUNC_EGT_FLOAT;
+    }
+    if (!strcmp(Operator, "@ELT"))
+    {
+        return FUNC_ELT_FLOAT;
+    }
+    if (!strcmp(Operator, "@EQUAL"))
+    {
+        return FUNC_EQUAL_FLOAT;
+    }
+    if (!strcmp(Operator, "@NEQ"))
+    {
+        return FUNC_NEQ_FLOAT;
+    }
+    return 0;
+}
+
+static BOOLEAN
+FloatingLiteralHasNonzeroDigit(const CHAR * Text)
+{
+    while (*Text)
+    {
+        if (*Text >= '1' && *Text <= '9')
+        {
+            return TRUE;
+        }
+        Text++;
+    }
+    return FALSE;
+}
+
+static BOOLEAN
+ParseFloatingLiteral(const CHAR * Text, UINT64 ValueKind, PUINT64 RawBits, PSCRIPT_ENGINE_ERROR_TYPE Error)
+{
+    CHAR * End = NULL;
+
+    if (!Text || !RawBits || (ValueKind != SYMBOL_VALUE_KIND_FLOAT32 && ValueKind != SYMBOL_VALUE_KIND_FLOAT64))
+    {
+        *Error = SCRIPT_ENGINE_ERROR_INVALID_FLOAT_LITERAL;
+        return FALSE;
+    }
+
+#ifdef _WIN32
+    _locale_t Locale = _create_locale(LC_NUMERIC, "C");
+    if (!Locale)
+    {
+        *Error = SCRIPT_ENGINE_ERROR_INVALID_FLOAT_LITERAL;
+        return FALSE;
+    }
+
+    if (ValueKind == SYMBOL_VALUE_KIND_FLOAT32)
+    {
+        float  Value = _strtof_l(Text, &End, Locale);
+        UINT32 Bits  = 0;
+        memcpy(&Bits, &Value, sizeof(Bits));
+        *RawBits = Bits;
+    }
+    else
+    {
+        double Value = _strtod_l(Text, &End, Locale);
+        memcpy(RawBits, &Value, sizeof(Value));
+    }
+    _free_locale(Locale);
+#else
+    locale_t Locale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
+    if (!Locale)
+    {
+        *Error = SCRIPT_ENGINE_ERROR_INVALID_FLOAT_LITERAL;
+        return FALSE;
+    }
+
+    if (ValueKind == SYMBOL_VALUE_KIND_FLOAT32)
+    {
+        float  Value = strtof_l(Text, &End, Locale);
+        UINT32 Bits  = 0;
+        memcpy(&Bits, &Value, sizeof(Bits));
+        *RawBits = Bits;
+    }
+    else
+    {
+        double Value = strtod_l(Text, &End, Locale);
+        memcpy(RawBits, &Value, sizeof(Value));
+    }
+    freelocale(Locale);
+#endif
+
+    if (End == Text || *End != '\0')
+    {
+        *Error = SCRIPT_ENGINE_ERROR_INVALID_FLOAT_LITERAL;
+        return FALSE;
+    }
+
+    if ((ValueKind == SYMBOL_VALUE_KIND_FLOAT32 && ((*RawBits & 0x7f800000ULL) == 0x7f800000ULL)) ||
+        (ValueKind == SYMBOL_VALUE_KIND_FLOAT64 && ((*RawBits & 0x7ff0000000000000ULL) == 0x7ff0000000000000ULL)) ||
+        ((*RawBits & (ValueKind == SYMBOL_VALUE_KIND_FLOAT32 ? 0x7fffffffULL : 0x7fffffffffffffffULL)) == 0 &&
+         FloatingLiteralHasNonzeroDigit(Text)))
+    {
+        *Error = SCRIPT_ENGINE_ERROR_FLOAT_OUT_OF_RANGE;
+        return FALSE;
+    }
+
+    return TRUE;
+}
 
 static unsigned int
 GetStructPointerAddressSpace(PVARIABLE_TYPE PointerType, PSCRIPT_ENGINE_TOKEN PointerToken)
@@ -77,15 +604,15 @@ ResetStructDeclarators(VOID)
         free(StructDeclarators);
         StructDeclarators = Next;
     }
-    StructDeclaratorsTail  = NULL;
-    StructPointerDepth     = 0;
+    StructDeclaratorsTail = NULL;
+    StructPointerDepth    = 0;
 }
 
 static PVARIABLE_TYPE
 ApplyStructDeclarator(PVARIABLE_TYPE BaseType, PSTRUCT_DECLARATOR_STATE Declarator)
 {
     PVARIABLE_TYPE Type = BaseType;
-    unsigned int Index;
+    unsigned int   Index;
 
     for (Index = 0; Index < Declarator->PointerDepth; Index++)
     {
@@ -110,7 +637,7 @@ ApplyStructDeclarator(PVARIABLE_TYPE BaseType, PSTRUCT_DECLARATOR_STATE Declarat
 static PVARIABLE_TYPE
 PopStructBaseType(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
-    PVARIABLE_TYPE Type;
+    PVARIABLE_TYPE       Type;
     PSCRIPT_ENGINE_TOKEN TagToken;
 
     if (MatchedStack->Pointer && Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE)
@@ -465,6 +992,8 @@ ScriptEngineParse(char * str)
     CurrentStructDefinition = NULL;
     LastStructObject        = NULL;
     LastStructObjectType    = NULL;
+    SizeofContextCount      = 0;
+    LogicalContextCount     = 0;
 
     PSCRIPT_ENGINE_TOKEN_LIST Stack        = NewTokenList();
     PSCRIPT_ENGINE_TOKEN_LIST MatchedStack = NewTokenList();
@@ -872,14 +1401,264 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
     while (TRUE)
     {
-        if (!strcmp(Operator->Value, "@STRUCT_POINTER"))
+        if (!strcmp(Operator->Value, "@TYPE_NAME_BEGIN"))
+        {
+            Push(MatchedStack, CopyToken(Operator));
+        }
+        else if (!strcmp(Operator->Value, "@SIZEOF_BEGIN"))
+        {
+            if (SizeofContextCount >= 16)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+            SizeofContexts[SizeofContextCount].CodePointer   = CodeBuffer->Pointer;
+            SizeofContexts[SizeofContextCount].MaxTempNumber = CurrentUserDefinedFunction->MaxTempNumber;
+            memcpy(SizeofContexts[SizeofContextCount].TempMap,
+                   CurrentUserDefinedFunction->TempMap,
+                   MAX_TEMP_COUNT);
+            SizeofContextCount++;
+        }
+        else if (!strcmp(Operator->Value, "@SIZEOF_EXPRESSION"))
+        {
+            CHAR                 SizeText[32];
+            PVARIABLE_TYPE       OperandType;
+            PSCRIPT_ENGINE_TOKEN SizeToken;
+            if (!SizeofContextCount || !MatchedStack->Pointer)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+            Op0         = Pop(MatchedStack);
+            OperandType = (PVARIABLE_TYPE)Op0->VariableType;
+            SizeofContextCount--;
+            CodeBuffer->Pointer                       = SizeofContexts[SizeofContextCount].CodePointer;
+            CurrentUserDefinedFunction->MaxTempNumber = SizeofContexts[SizeofContextCount].MaxTempNumber;
+            memcpy(CurrentUserDefinedFunction->TempMap,
+                   SizeofContexts[SizeofContextCount].TempMap,
+                   MAX_TEMP_COUNT);
+            if (!OperandType || OperandType->Kind == TY_VOID || OperandType->Kind == TY_FUNC ||
+                (OperandType->Kind == TY_STRUCT && !OperandType->IsComplete) || OperandType->Size <= 0)
+            {
+                RemoveToken(&Op0);
+                *Error = SCRIPT_ENGINE_ERROR_INCOMPLETE_TYPE;
+                break;
+            }
+            PlatformSnprintf(SizeText, sizeof(SizeText), "%d", OperandType->Size);
+            SizeToken               = NewToken(DECIMAL, SizeText);
+            SizeToken->VariableType = VARIABLE_TYPE_ULLONG;
+            RemoveToken(&Op0);
+            Push(MatchedStack, SizeToken);
+        }
+        else if (!strcmp(Operator->Value, "@SIZEOF_TYPE"))
+        {
+            CHAR                 SizeText[32];
+            PSCRIPT_ENGINE_TOKEN SizeToken;
+            PVARIABLE_TYPE       ResolvedType = ResolveTypeNameFromStack(MatchedStack, Error);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                break;
+            if (ResolvedType->Kind == TY_VOID || ResolvedType->Kind == TY_FUNC ||
+                (ResolvedType->Kind == TY_STRUCT && !ResolvedType->IsComplete) || ResolvedType->Size <= 0)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_INCOMPLETE_TYPE;
+                break;
+            }
+            PlatformSnprintf(SizeText, sizeof(SizeText), "%d", ResolvedType->Size);
+            SizeToken               = NewToken(DECIMAL, SizeText);
+            SizeToken->VariableType = VARIABLE_TYPE_ULLONG;
+            Push(MatchedStack, SizeToken);
+        }
+        else if (!strcmp(Operator->Value, "@CAST_SCALAR"))
+        {
+            PVARIABLE_TYPE SourceType;
+            PVARIABLE_TYPE DestinationType;
+            UINT64         SourceTypeId;
+            UINT64         DestinationTypeId;
+            PSYMBOL        TypeSymbol;
+
+            Op0               = Pop(MatchedStack);
+            DestinationType   = ResolveTypeNameFromStack(MatchedStack, Error);
+            SourceType        = (PVARIABLE_TYPE)Op0->VariableType;
+            SourceTypeId      = GetScriptScalarTypeId(SourceType);
+            DestinationTypeId = GetScriptScalarTypeId(DestinationType);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE || SourceTypeId == SCRIPT_SCALAR_TYPE_INVALID ||
+                DestinationTypeId == SCRIPT_SCALAR_TYPE_INVALID || SourceTypeId == SCRIPT_SCALAR_TYPE_F80 ||
+                DestinationTypeId == SCRIPT_SCALAR_TYPE_F80 ||
+                ((SourceTypeId == SCRIPT_SCALAR_TYPE_POINTER || DestinationTypeId == SCRIPT_SCALAR_TYPE_POINTER) &&
+                 (IsFloatingVariableType(SourceType) || IsFloatingVariableType(DestinationType))))
+            {
+                RemoveToken(&Op0);
+                *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                break;
+            }
+
+            if (DestinationType->Kind == TY_PTR)
+            {
+                DestinationType->PointerProvenance = SourceType->Kind == TY_PTR ? SourceType->PointerProvenance : POINTER_PROVENANCE_REMOTE;
+            }
+
+            Op0Symbol = ToSymbol(Op0, Error);
+            if (Op0->Type == FLOAT_LITERAL)
+            {
+                UINT64 SourceKind = GetFloatingValueKind(SourceType);
+                if (!ParseFloatingLiteral(Op0->Value, SourceKind, &Op0Symbol->Value, Error))
+                {
+                    RemoveToken(&Op0);
+                    break;
+                }
+                Op0Symbol->Len = SourceKind;
+            }
+            Temp                  = NewTemp(Error);
+            Temp->VariableType    = DestinationType;
+            TempSymbol            = ToSymbol(Temp, Error);
+            TempSymbol->Len       = GetFloatingValueKind(DestinationType);
+            OperatorSymbol->Value = FUNC_CAST_SCALAR;
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, TempSymbol);
+            TypeSymbol        = NewSymbol();
+            TypeSymbol->Type  = SYMBOL_NUM_TYPE;
+            TypeSymbol->Value = SourceTypeId;
+            PushSymbol(CodeBuffer, TypeSymbol);
+            TypeSymbol->Value = DestinationTypeId;
+            PushSymbol(CodeBuffer, TypeSymbol);
+            RemoveSymbol(&TypeSymbol);
+            FreeTemp(Op0);
+            RemoveToken(&Op0);
+            Push(MatchedStack, Temp);
+        }
+        else if (!strcmp(Operator->Value, "@LOGICAL_NOT_TYPED"))
+        {
+            PSYMBOL TypeSymbol;
+            Op0          = Pop(MatchedStack);
+            VariableType = (PVARIABLE_TYPE)Op0->VariableType;
+            if (GetScriptScalarTypeId(VariableType) == SCRIPT_SCALAR_TYPE_INVALID || VariableType->Kind == TY_LDOUBLE)
+            {
+                RemoveToken(&Op0);
+                *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                break;
+            }
+            Op0Symbol             = ToSymbol(Op0, Error);
+            Temp                  = NewTemp(Error);
+            Temp->VariableType    = VARIABLE_TYPE_INT;
+            TempSymbol            = ToSymbol(Temp, Error);
+            OperatorSymbol->Value = FUNC_LOGICAL_NOT_TYPED;
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, TempSymbol);
+            TypeSymbol        = NewSymbol();
+            TypeSymbol->Type  = SYMBOL_NUM_TYPE;
+            TypeSymbol->Value = GetScriptScalarTypeId(VariableType);
+            PushSymbol(CodeBuffer, TypeSymbol);
+            RemoveSymbol(&TypeSymbol);
+            FreeTemp(Op0);
+            RemoveToken(&Op0);
+            Push(MatchedStack, Temp);
+        }
+        else if (!strcmp(Operator->Value, "@LOGICAL_OR_BEGIN") ||
+                 !strcmp(Operator->Value, "@LOGICAL_AND_BEGIN"))
+        {
+            PSCRIPT_ENGINE_TOKEN TruthToken;
+            PSYMBOL              TruthSymbol;
+            PSYMBOL              ResultSymbol;
+            PSYMBOL              Symbol;
+            if (!MatchedStack->Pointer || LogicalContextCount >= 16)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+            TruthToken = EmitTruthValue(CodeBuffer, Top(MatchedStack), Error);
+            if (!TruthToken || *Error != SCRIPT_ENGINE_ERROR_FREE)
+                break;
+            TruthSymbol                                                    = ToSymbol(TruthToken, Error);
+            LogicalContexts[LogicalContextCount].IsOr                      = !strcmp(Operator->Value, "@LOGICAL_OR_BEGIN");
+            LogicalContexts[LogicalContextCount].ResultToken               = NewTemp(Error);
+            LogicalContexts[LogicalContextCount].ResultToken->VariableType = VARIABLE_TYPE_INT;
+            ResultSymbol                                                   = ToSymbol(LogicalContexts[LogicalContextCount].ResultToken, Error);
+            Symbol                                                         = NewSymbol();
+
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = FUNC_MOV;
+            PushSymbol(CodeBuffer, Symbol);
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = LogicalContexts[LogicalContextCount].IsOr ? 1 : 0;
+            PushSymbol(CodeBuffer, Symbol);
+            PushSymbol(CodeBuffer, ResultSymbol);
+
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = LogicalContexts[LogicalContextCount].IsOr ? FUNC_JNZ : FUNC_JZ;
+            PushSymbol(CodeBuffer, Symbol);
+            LogicalContexts[LogicalContextCount].BeginJumpTargetIndex = CodeBuffer->Pointer;
+            Symbol->Type                                              = SYMBOL_NUM_TYPE;
+            Symbol->Value                                             = 0;
+            PushSymbol(CodeBuffer, Symbol);
+            PushSymbol(CodeBuffer, TruthSymbol);
+            RemoveSymbol(&Symbol);
+            FreeTemp(TruthToken);
+            RemoveToken(&TruthToken);
+            LogicalContextCount++;
+        }
+        else if (!strcmp(Operator->Value, "@LOGICAL_OR_END") ||
+                 !strcmp(Operator->Value, "@LOGICAL_AND_END"))
+        {
+            LOGICAL_COMPILATION_CONTEXT * Context;
+            PSCRIPT_ENGINE_TOKEN          TruthToken;
+            PSYMBOL                       TruthSymbol;
+            PSYMBOL                       ResultSymbol;
+            PSYMBOL                       Symbol;
+            UINT32                        EndJumpTargetIndex;
+            if (!LogicalContextCount || MatchedStack->Pointer < 2)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+            LogicalContextCount--;
+            Context    = &LogicalContexts[LogicalContextCount];
+            Op0        = Pop(MatchedStack);
+            Op1        = Pop(MatchedStack);
+            TruthToken = EmitTruthValue(CodeBuffer, Op0, Error);
+            if (!TruthToken || *Error != SCRIPT_ENGINE_ERROR_FREE)
+                break;
+            TruthSymbol  = ToSymbol(TruthToken, Error);
+            ResultSymbol = ToSymbol(Context->ResultToken, Error);
+            Symbol       = NewSymbol();
+
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = Context->IsOr ? FUNC_JNZ : FUNC_JZ;
+            PushSymbol(CodeBuffer, Symbol);
+            EndJumpTargetIndex = CodeBuffer->Pointer;
+            Symbol->Type       = SYMBOL_NUM_TYPE;
+            Symbol->Value      = 0;
+            PushSymbol(CodeBuffer, Symbol);
+            PushSymbol(CodeBuffer, TruthSymbol);
+
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = FUNC_MOV;
+            PushSymbol(CodeBuffer, Symbol);
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = Context->IsOr ? 0 : 1;
+            PushSymbol(CodeBuffer, Symbol);
+            PushSymbol(CodeBuffer, ResultSymbol);
+            RemoveSymbol(&Symbol);
+
+            CodeBuffer->Head[Context->BeginJumpTargetIndex].Value = CodeBuffer->Pointer;
+            CodeBuffer->Head[EndJumpTargetIndex].Value            = CodeBuffer->Pointer;
+            FreeTemp(TruthToken);
+            RemoveToken(&TruthToken);
+            FreeTemp(Op0);
+            FreeTemp(Op1);
+            RemoveToken(&Op0);
+            RemoveToken(&Op1);
+            Push(MatchedStack, Context->ResultToken);
+        }
+        else if (!strcmp(Operator->Value, "@STRUCT_POINTER"))
         {
             StructPointerDepth++;
         }
         else if (!strcmp(Operator->Value, "@STRUCT_ARRAY_DIMENSION"))
         {
             unsigned long long Dimension;
-            Op0 = Pop(MatchedStack);
+            Op0       = Pop(MatchedStack);
             Dimension = strtoull(Op0->Value, NULL, 0);
             RemoveToken(&Op0);
             if (!Dimension || Dimension > UINT32_MAX)
@@ -897,15 +1676,15 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         else if (!strcmp(Operator->Value, "@STRUCT_DECLARATOR_COMPLETE"))
         {
             PSTRUCT_DECLARATOR_STATE Declarator;
-            Op0 = Pop(MatchedStack);
+            Op0        = Pop(MatchedStack);
             Declarator = (PSTRUCT_DECLARATOR_STATE)calloc(1, sizeof(STRUCT_DECLARATOR_STATE));
             if (!Declarator)
             {
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 break;
             }
-            Declarator->Name           = PlatformStrDup(Op0->Value);
-            Declarator->PointerDepth   = StructPointerDepth;
+            Declarator->Name         = PlatformStrDup(Op0->Value);
+            Declarator->PointerDepth = StructPointerDepth;
             RemoveToken(&Op0);
 
             if (StructDeclaratorsTail)
@@ -930,7 +1709,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (!strcmp(Operator->Value, "@STRUCT_DEFINITION_BEGIN"))
         {
-            Op0 = Pop(MatchedStack);
+            Op0                     = Pop(MatchedStack);
             CurrentStructDefinition = FindStructType(Op0->Value);
             if (CurrentStructDefinition && CurrentStructDefinition->IsComplete)
             {
@@ -948,7 +1727,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (!strcmp(Operator->Value, "@STRUCT_MEMBER_DECLARATION"))
         {
-            PVARIABLE_TYPE BaseType = PopStructBaseType(MatchedStack, Error);
+            PVARIABLE_TYPE           BaseType = PopStructBaseType(MatchedStack, Error);
             PSTRUCT_DECLARATOR_STATE Declarator;
             if (!BaseType)
             {
@@ -960,9 +1739,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 PVARIABLE_TYPE MemberType = ApplyStructDeclarator(BaseType, Declarator);
                 if (!MemberType)
                 {
-                    *Error = (BaseType->Kind == TY_STRUCT && !BaseType->IsComplete) ?
-                                 SCRIPT_ENGINE_ERROR_INCOMPLETE_TYPE :
-                                 SCRIPT_ENGINE_ERROR_INVALID_ARRAY_SIZE;
+                    *Error = (BaseType->Kind == TY_STRUCT && !BaseType->IsComplete) ? SCRIPT_ENGINE_ERROR_INCOMPLETE_TYPE : SCRIPT_ENGINE_ERROR_INVALID_ARRAY_SIZE;
                     break;
                 }
                 if (MemberType->Kind == TY_STRUCT && !MemberType->IsComplete)
@@ -987,7 +1764,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (!strcmp(Operator->Value, "@STRUCT_VARIABLE_DECLARATION"))
         {
-            PVARIABLE_TYPE BaseType;
+            PVARIABLE_TYPE           BaseType;
             PSTRUCT_DECLARATOR_STATE Declarator;
 
             if (CurrentStructDefinition && CurrentStructDefinition->IsComplete && !MatchedStack->Pointer)
@@ -1005,7 +1782,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
             for (Declarator = StructDeclarators; Declarator; Declarator = Declarator->Next)
             {
-                PVARIABLE_TYPE ObjectType = ApplyStructDeclarator(BaseType, Declarator);
+                PVARIABLE_TYPE       ObjectType = ApplyStructDeclarator(BaseType, Declarator);
                 PSCRIPT_ENGINE_TOKEN IdToken;
                 if (!ObjectType || (ObjectType->Kind == TY_STRUCT && !ObjectType->IsComplete))
                 {
@@ -1023,10 +1800,10 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 SetLocalIdentifierVariableType(IdToken, ObjectType);
                 if (LastStructObject)
                     RemoveToken(&LastStructObject);
-                IdToken->Type        = LOCAL_ID;
+                IdToken->Type         = LOCAL_ID;
                 IdToken->VariableType = ObjectType;
-                LastStructObject     = CopyToken(IdToken);
-                LastStructObjectType = ObjectType;
+                LastStructObject      = CopyToken(IdToken);
+                LastStructObjectType  = ObjectType;
                 RemoveToken(&IdToken);
             }
             ResetStructDeclarators();
@@ -1039,9 +1816,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         else if (!strcmp(Operator->Value, "@STRUCT_INITIALIZER_END"))
         {
             PSCRIPT_ENGINE_TOKEN Values[64];
-            unsigned int Count = 0;
-            PSTRUCT_MEMBER Member;
-            PSYMBOL Symbol;
+            unsigned int         Count = 0;
+            PSTRUCT_MEMBER       Member;
+            PSYMBOL              Symbol;
 
             while (MatchedStack->Pointer && strcmp(Top(MatchedStack)->Value, "@STRUCT_INITIALIZER_BEGIN"))
             {
@@ -1061,17 +1838,31 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             Op0 = Pop(MatchedStack);
             RemoveToken(&Op0);
 
-            Symbol = NewSymbol(); Symbol->Type = SYMBOL_SEMANTIC_RULE_TYPE; Symbol->Value = FUNC_AGGREGATE_ZERO; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-            Symbol = ToSymbol(LastStructObject, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-            Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-            Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = LastStructObjectType->Size; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = FUNC_AGGREGATE_ZERO;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+            Symbol = ToSymbol(LastStructObject, Error);
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = LastStructObjectType->Size;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
             Member = LastStructObjectType->Members;
             while (Count && Member)
             {
-                PSCRIPT_ENGINE_TOKEN ValueToken = Values[--Count];
-                PSCRIPT_ENGINE_TOKEN AddressToken = LastStructObject;
-                BOOLEAN AddressIsTemp = FALSE;
+                PSCRIPT_ENGINE_TOKEN ValueToken    = Values[--Count];
+                PSCRIPT_ENGINE_TOKEN AddressToken  = LastStructObject;
+                BOOLEAN              AddressIsTemp = FALSE;
                 if (Member->Type->Kind == TY_STRUCT || Member->Type->Kind == TY_ARRAY ||
                     (Member->Type->Size != 1 && Member->Type->Size != 2 && Member->Type->Size != 4 && Member->Type->Size != 8))
                 {
@@ -1081,21 +1872,50 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 }
                 if (Member->Offset)
                 {
-                    Temp = NewTemp(Error);
+                    Temp               = NewTemp(Error);
                     Temp->VariableType = CreatePointerType(Member->Type);
-                    Symbol = NewSymbol(); Symbol->Type = SYMBOL_SEMANTIC_RULE_TYPE; Symbol->Value = FUNC_ADD; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                    Symbol = ToSymbol(LastStructObject, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                    Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Member->Offset; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                    Symbol = ToSymbol(Temp, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                    AddressToken = Temp;
+                    Symbol             = NewSymbol();
+                    Symbol->Type       = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value      = FUNC_ADD;
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+                    Symbol = ToSymbol(LastStructObject, Error);
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = Member->Offset;
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+                    Symbol = ToSymbol(Temp, Error);
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+                    AddressToken  = Temp;
                     AddressIsTemp = TRUE;
                 }
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_SEMANTIC_RULE_TYPE; Symbol->Value = FUNC_TYPED_STORE; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = ToSymbol(ValueToken, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = ToSymbol(AddressToken, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Member->Type->Size; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                if (AddressIsTemp) FreeTemp(Temp);
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                Symbol->Value = FUNC_TYPED_STORE;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+                Symbol = ToSymbol(ValueToken, Error);
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+                Symbol = ToSymbol(AddressToken, Error);
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_NUM_TYPE;
+                Symbol->Value = SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_NUM_TYPE;
+                Symbol->Value = Member->Type->Size;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+                if (AddressIsTemp)
+                    FreeTemp(Temp);
                 RemoveToken(&ValueToken);
                 Member = Member->Next;
             }
@@ -1105,7 +1925,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         else if (!strcmp(Operator->Value, "@STRUCT_POINTER_CAST"))
         {
             PVARIABLE_TYPE RemotePointerType;
-            PSYMBOL Symbol;
+            PSYMBOL        Symbol;
             Op0 = Pop(MatchedStack);
             while (MatchedStack->Pointer && Top(MatchedStack)->Type != LOCAL_UNRESOLVED_ID && Top(MatchedStack)->Type != LOCAL_ID)
             {
@@ -1127,9 +1947,17 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             LastStructObjectType           = RemotePointerType;
             LastStructObject->VariableType = RemotePointerType;
             SetLocalIdentifierVariableType(LastStructObject, RemotePointerType);
-            Symbol = NewSymbol(); Symbol->Type = SYMBOL_SEMANTIC_RULE_TYPE; Symbol->Value = FUNC_MOV; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-            Symbol = ToSymbol(Op0, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-            Symbol = ToSymbol(LastStructObject, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = FUNC_MOV;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+            Symbol = ToSymbol(Op0, Error);
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+            Symbol = ToSymbol(LastStructObject, Error);
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
             RemoveToken(&Op0);
         }
         else if (!strcmp(Operator->Value, "@MEMBER_DOT_LVALUE") ||
@@ -1137,16 +1965,16 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                  !strcmp(Operator->Value, "@MEMBER_DOT_READ") ||
                  !strcmp(Operator->Value, "@MEMBER_ARROW_READ"))
         {
-            BOOLEAN          IsArrow = strstr(Operator->Value, "ARROW") != NULL;
-            BOOLEAN          IsRead  = strstr(Operator->Value, "READ") != NULL;
-            PVARIABLE_TYPE   BaseType;
-            PVARIABLE_TYPE   PointerType = NULL;
-            PSTRUCT_MEMBER   Member;
+            BOOLEAN              IsArrow = strstr(Operator->Value, "ARROW") != NULL;
+            BOOLEAN              IsRead  = strstr(Operator->Value, "READ") != NULL;
+            PVARIABLE_TYPE       BaseType;
+            PVARIABLE_TYPE       PointerType = NULL;
+            PSTRUCT_MEMBER       Member;
             PSCRIPT_ENGINE_TOKEN AddressToken;
-            PSYMBOL          Symbol;
+            PSYMBOL              Symbol;
 
-            Op0 = Pop(MatchedStack); /* member name */
-            Op1 = Pop(MatchedStack); /* object, pointer, or prior member address */
+            Op0      = Pop(MatchedStack); /* member name */
+            Op1      = Pop(MatchedStack); /* object, pointer, or prior member address */
             BaseType = (PVARIABLE_TYPE)Op1->VariableType;
             if (!BaseType && (Op1->Type == LOCAL_ID || Op1->Type == LOCAL_UNRESOLVED_ID))
                 BaseType = GetLocalIdentifierVariableType(Op1);
@@ -1158,7 +1986,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 if (!BaseType || BaseType->Kind != TY_PTR || !BaseType->Base || BaseType->Base->Kind != TY_STRUCT)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
-                    RemoveToken(&Op0); RemoveToken(&Op1);
+                    RemoveToken(&Op0);
+                    RemoveToken(&Op1);
                     break;
                 }
                 AddressToken = Op1;
@@ -1170,7 +1999,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 if (!BaseType || BaseType->Kind != TY_STRUCT)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
-                    RemoveToken(&Op0); RemoveToken(&Op1);
+                    RemoveToken(&Op0);
+                    RemoveToken(&Op1);
                     break;
                 }
                 AddressToken = Op1;
@@ -1179,26 +2009,38 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             if (!BaseType->IsComplete || !(Member = FindStructMember(BaseType, Op0->Value)))
             {
                 *Error = BaseType->IsComplete ? SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE : SCRIPT_ENGINE_ERROR_INCOMPLETE_TYPE;
-                RemoveToken(&Op0); RemoveToken(&Op1);
+                RemoveToken(&Op0);
+                RemoveToken(&Op1);
                 break;
             }
 
             Temp = NewTemp(Error);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
-                RemoveToken(&Op0); RemoveToken(&Op1);
+                RemoveToken(&Op0);
+                RemoveToken(&Op1);
                 break;
             }
             Temp->VariableType = Member->Type;
             Temp->IsAddress    = TRUE;
-            Temp->AddressSpace = IsArrow ?
-                                     GetStructPointerAddressSpace(PointerType, Op1) :
-                                     (Op1->AddressSpace ? Op1->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL);
+            Temp->AddressSpace = IsArrow ? GetStructPointerAddressSpace(PointerType, Op1) : (Op1->AddressSpace ? Op1->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL);
 
-            Symbol = NewSymbol(); Symbol->Type = SYMBOL_SEMANTIC_RULE_TYPE; Symbol->Value = FUNC_ADD; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-            Symbol = ToSymbol(AddressToken, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-            Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Member->Offset; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-            Symbol = ToSymbol(Temp, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value = FUNC_ADD;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+            Symbol = ToSymbol(AddressToken, Error);
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+            Symbol        = NewSymbol();
+            Symbol->Type  = SYMBOL_NUM_TYPE;
+            Symbol->Value = Member->Offset;
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
+            Symbol = ToSymbol(Temp, Error);
+            PushSymbol(CodeBuffer, Symbol);
+            RemoveSymbol(&Symbol);
 
             RemoveToken(&Op0);
             RemoveToken(&Op1);
@@ -1212,13 +2054,12 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     FreeTemp(Temp);
                     break;
                 }
-                ValueTemp = NewTemp(Error);
-                ValueTemp->VariableType = Member->Type;
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_SEMANTIC_RULE_TYPE; Symbol->Value = FUNC_TYPED_LOAD; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = ToSymbol(Temp, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Temp->AddressSpace; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Member->Type->Size; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = ToSymbol(ValueTemp, Error); PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
+                ValueTemp = EmitTypedScalarLoad(CodeBuffer, Temp, Temp->AddressSpace, Member->Type, Error);
+                if (!ValueTemp || *Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    FreeTemp(Temp);
+                    break;
+                }
                 FreeTemp(Temp);
                 Push(MatchedStack, ValueTemp);
             }
@@ -1230,7 +2071,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         else if (!strcmp(Operator->Value, "@TYPEDEF_DECLARATION"))
         {
             PVARIABLE_TYPE BaseType;
-            unsigned int Index;
+            unsigned int   Index;
             Op0      = Pop(MatchedStack);
             BaseType = PopStructBaseType(MatchedStack, Error);
             if (!BaseType)
@@ -1703,7 +2544,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 //
                 // Add return variable symbol
                 //
-                Temp = NewTemp(Error);
+                Temp               = NewTemp(Error);
+                Temp->VariableType = (PVARIABLE_TYPE)Node->VariableType;
                 Push(MatchedStack, Temp);
 
                 Symbol        = NewSymbol();
@@ -1732,15 +2574,27 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (!strcmp(Operator->Value, "@MULTIPLE_ASSIGNMENT"))
         {
-            int                    Op1Capacity = 8;
-            int                    Op1Count    = 0;
-            PSCRIPT_ENGINE_TOKEN * Op1Array    = (PSCRIPT_ENGINE_TOKEN *)malloc(sizeof(PSCRIPT_ENGINE_TOKEN) * Op1Capacity);
-            PSYMBOL                Symbol      = NewSymbol();
-            Symbol->Type                       = SYMBOL_SEMANTIC_RULE_TYPE;
-            Symbol->Value                      = FUNC_MOV;
+            int                    Op1Capacity                = 8;
+            int                    Op1Count                   = 0;
+            BOOLEAN                HasExplicitDestinationType = FALSE;
+            PSCRIPT_ENGINE_TOKEN * Op1Array                   = (PSCRIPT_ENGINE_TOKEN *)malloc(sizeof(PSCRIPT_ENGINE_TOKEN) * Op1Capacity);
+            PSYMBOL                Symbol                     = NewSymbol();
+            Symbol->Type                                      = SYMBOL_SEMANTIC_RULE_TYPE;
+            Symbol->Value                                     = FUNC_MOV;
 
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
+
+            for (unsigned int i = 0; i < MatchedStack->Pointer; i++)
+            {
+                PSCRIPT_ENGINE_TOKEN Candidate = *(MatchedStack->Head + i);
+                if (Candidate->Type == SCRIPT_VARIABLE_TYPE ||
+                    !strcmp(Candidate->Value, "@DECLARE_POINTER_TYPE"))
+                {
+                    HasExplicitDestinationType = TRUE;
+                    break;
+                }
+            }
 
             for (int i = MatchedStack->Pointer; i > 0; i--)
             {
@@ -1761,6 +2615,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 }
                 else if (Op1->Type == GLOBAL_UNRESOLVED_ID)
                 {
+                    Op1->VariableType   = GetDefaultImplicitVariableType();
+                    Op1->IsImplicitType = !HasExplicitDestinationType;
                     PushSymbol(CodeBuffer, Symbol);
                     PushSymbol(CodeBuffer, Op0Symbol);
 
@@ -1768,11 +2624,14 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     free((void *)Op1Symbol->Value);
                     Op1Symbol->Value = NewGlobalIdentifier(Op1);
                     SetType(&Op1Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
+                    SetGlobalIdentifierVariableType(Op1, GetDefaultImplicitVariableType());
                     Pop(MatchedStack);
                     PushSymbol(CodeBuffer, Op1Symbol);
                 }
                 else if (Op1->Type == LOCAL_UNRESOLVED_ID)
                 {
+                    Op1->VariableType   = GetDefaultImplicitVariableType();
+                    Op1->IsImplicitType = !HasExplicitDestinationType;
                     PushSymbol(CodeBuffer, Symbol);
                     PushSymbol(CodeBuffer, Op0Symbol);
 
@@ -1780,6 +2639,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     free((void *)Op1Symbol->Value);
                     Op1Symbol->Value = NewLocalIdentifier(Op1, 8);
                     SetType(&Op1Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
+                    SetLocalIdentifierVariableType(Op1, GetDefaultImplicitVariableType());
                     Pop(MatchedStack);
                     PushSymbol(CodeBuffer, Op1Symbol);
                     RemoveSymbol(&Op1Symbol);
@@ -1967,17 +2827,26 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
             if (!strcmp(Operator->Value, "@ARRAY_INDEX_READ"))
             {
-                Symbol        = NewSymbol();
-                Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
-                Symbol->Value = FUNC_POI;
-                PushSymbol(CodeBuffer, Symbol);
-
-                PushSymbol(CodeBuffer, OffsetSymbol);
-                PushSymbol(CodeBuffer, OffsetSymbol);
+                PSCRIPT_ENGINE_TOKEN ValueToken = EmitTypedScalarLoad(
+                    CodeBuffer,
+                    OffsetToken,
+                    IdToken->AddressSpace ? IdToken->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL,
+                    VariableType,
+                    Error);
+                if (!ValueToken || *Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
+                FreeTemp(OffsetToken);
+                RemoveToken(&OffsetToken);
+                OffsetToken = ValueToken;
             }
             else if (!strcmp(Operator->Value, "@ARRAY_INDEX_WRITE"))
             {
-                OffsetToken->Type = DEFERENCE_TEMP;
+                OffsetToken->Type         = DEFERENCE_TEMP;
+                OffsetToken->VariableType = VariableType;
+                OffsetToken->IsAddress    = TRUE;
+                OffsetToken->AddressSpace = IdToken->AddressSpace ? IdToken->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
             }
 
             Push(MatchedStack, OffsetToken);
@@ -1986,24 +2855,39 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (!strcmp(Operator->Value, "@MOV"))
         {
+            BOOLEAN              IsFloatingInitialization   = FALSE;
+            BOOLEAN              ScalarAssignmentConverted  = FALSE;
+            BOOLEAN              HasExplicitDestinationType = FALSE;
+            PSCRIPT_ENGINE_TOKEN ConvertedTemp              = NULL;
+            PSYMBOL              ConvertedTempSymbol        = NULL;
+
             PushSymbol(CodeBuffer, OperatorSymbol);
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Op1 = Pop(MatchedStack);
+            Op1                        = Pop(MatchedStack);
+            HasExplicitDestinationType = MatchedStack->Pointer > 0 &&
+                                         (!strcmp(Top(MatchedStack)->Value, "@DECLARE_POINTER_TYPE") ||
+                                          Top(MatchedStack)->Type == SCRIPT_VARIABLE_TYPE);
             if (Op1->Type == GLOBAL_UNRESOLVED_ID)
             {
-                Op1Symbol = NewSymbol();
+                Op1->VariableType   = GetDefaultImplicitVariableType();
+                Op1->IsImplicitType = !HasExplicitDestinationType;
+                Op1Symbol           = NewSymbol();
                 free((void *)Op1Symbol->Value);
                 Op1Symbol->Value = NewGlobalIdentifier(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
+                SetGlobalIdentifierVariableType(Op1, GetDefaultImplicitVariableType());
             }
             else if (Op1->Type == LOCAL_UNRESOLVED_ID)
             {
-                Op1Symbol = NewSymbol();
+                Op1->VariableType   = GetDefaultImplicitVariableType();
+                Op1->IsImplicitType = !HasExplicitDestinationType;
+                Op1Symbol           = NewSymbol();
                 free((void *)Op1Symbol->Value);
                 Op1Symbol->Value = NewLocalIdentifier(Op1, 8);
                 SetType(&Op1Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
+                SetLocalIdentifierVariableType(Op1, GetDefaultImplicitVariableType());
             }
             else
             {
@@ -2038,6 +2922,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                         VariableType              = PointerVariableType;
                     }
 
+                    Op1->VariableType        = VariableType;
+                    IsFloatingInitialization = VariableType->Kind == TY_FLOAT || VariableType->Kind == TY_DOUBLE;
+
                     if (Op1->Type == LOCAL_UNRESOLVED_ID || Op1->Type == LOCAL_ID)
                     {
                         SetLocalIdentifierVariableType(Op1, VariableType);
@@ -2049,6 +2936,92 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 }
             }
 
+            if (Op0->VariableType && Op1->VariableType)
+            {
+                UINT64  SourceTypeId             = GetScriptScalarTypeId((PVARIABLE_TYPE)Op0->VariableType);
+                UINT64  DestinationTypeId        = GetScriptScalarTypeId((PVARIABLE_TYPE)Op1->VariableType);
+                BOOLEAN PointerConversionAllowed = TRUE;
+
+                if (SourceTypeId == SCRIPT_SCALAR_TYPE_POINTER && DestinationTypeId != SCRIPT_SCALAR_TYPE_POINTER &&
+                    !(Op1->IsImplicitType && DestinationTypeId == SCRIPT_SCALAR_TYPE_U64))
+                    PointerConversionAllowed = FALSE;
+                if (DestinationTypeId == SCRIPT_SCALAR_TYPE_POINTER && SourceTypeId != SCRIPT_SCALAR_TYPE_POINTER &&
+                    !((Op0->Type == HEX || Op0->Type == OCTAL || Op0->Type == BINARY || Op0->Type == DECIMAL) &&
+                      Op0Symbol->Value == 0))
+                    PointerConversionAllowed = FALSE;
+
+                if (SourceTypeId != SCRIPT_SCALAR_TYPE_INVALID && DestinationTypeId != SCRIPT_SCALAR_TYPE_INVALID &&
+                    SourceTypeId != SCRIPT_SCALAR_TYPE_F80 && DestinationTypeId != SCRIPT_SCALAR_TYPE_F80 &&
+                    PointerConversionAllowed && SourceTypeId != DestinationTypeId &&
+                    !(Op0->Type == FLOAT_LITERAL && IsFloatingVariableType((PVARIABLE_TYPE)Op1->VariableType)))
+                {
+                    PSYMBOL TypeSymbol;
+                    if (Op0->Type == FLOAT_LITERAL)
+                    {
+                        UINT64 SourceKind = GetFloatingValueKind((PVARIABLE_TYPE)Op0->VariableType);
+                        if (!ParseFloatingLiteral(Op0->Value, SourceKind, &Op0Symbol->Value, Error))
+                            break;
+                        Op0Symbol->Len = SourceKind;
+                    }
+
+                    ConvertedTemp               = NewTemp(Error);
+                    ConvertedTemp->VariableType = (PVARIABLE_TYPE)Op1->VariableType;
+                    ConvertedTempSymbol         = ToSymbol(ConvertedTemp, Error);
+                    ConvertedTempSymbol->Len    = GetFloatingValueKind((PVARIABLE_TYPE)Op1->VariableType);
+
+                    (CodeBuffer->Head + CodeBuffer->Pointer - 1)->Value = FUNC_CAST_SCALAR;
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, ConvertedTempSymbol);
+                    TypeSymbol        = NewSymbol();
+                    TypeSymbol->Type  = SYMBOL_NUM_TYPE;
+                    TypeSymbol->Value = SourceTypeId;
+                    PushSymbol(CodeBuffer, TypeSymbol);
+                    TypeSymbol->Value = DestinationTypeId;
+                    PushSymbol(CodeBuffer, TypeSymbol);
+                    RemoveSymbol(&TypeSymbol);
+                    ScalarAssignmentConverted = TRUE;
+                }
+                else if (!PointerConversionAllowed)
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                    break;
+                }
+            }
+
+            if (!ScalarAssignmentConverted && IsFloatingInitialization)
+            {
+                UINT64  ValueKind          = GetFloatingValueKind(VariableType);
+                BOOLEAN RequiresConversion = FALSE;
+
+                if (Op1->Type != LOCAL_UNRESOLVED_ID && Op1->Type != LOCAL_ID)
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_UNSUPPORTED_FLOAT_OPERATION;
+                    break;
+                }
+
+                if (Op0->Type == FLOAT_LITERAL)
+                {
+                    if (!ParseFloatingLiteral(Op0->Value, ValueKind, &Op0Symbol->Value, Error))
+                    {
+                        break;
+                    }
+                    Op0Symbol->Len = ValueKind;
+                }
+                else if (!IsFloatingVariableType((PVARIABLE_TYPE)Op0->VariableType))
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_UNSUPPORTED_FLOAT_OPERATION;
+                    break;
+                }
+                else
+                {
+                    RequiresConversion = Op0Symbol->Len != ValueKind;
+                }
+
+                Op1Symbol->Len = ValueKind;
+                (CodeBuffer->Head + CodeBuffer->Pointer - 1)->Value =
+                    RequiresConversion ? FUNC_CONVERT_FLOAT : FUNC_MOV_FLOAT;
+            }
+
             if (Op0->VariableType && Op1->VariableType &&
                 ((PVARIABLE_TYPE)Op0->VariableType)->Kind == TY_PTR &&
                 ((PVARIABLE_TYPE)Op1->VariableType)->Kind == TY_PTR)
@@ -2056,7 +3029,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 PVARIABLE_TYPE SourcePointerType      = (PVARIABLE_TYPE)Op0->VariableType;
                 PVARIABLE_TYPE DestinationPointerType = (PVARIABLE_TYPE)Op1->VariableType;
                 PVARIABLE_TYPE AssignedPointerType    = CreateStructPointerType(DestinationPointerType->Base,
-                                                                              SourcePointerType->PointerProvenance);
+                                                                                SourcePointerType->PointerProvenance);
                 if (!AssignedPointerType)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
@@ -2086,14 +3059,55 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 }
                 (CodeBuffer->Head + CodeBuffer->Pointer - 1)->Value = FUNC_AGGREGATE_COPY;
                 PushSymbol(CodeBuffer, Op1Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Op1->AddressSpace ? Op1->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_NUM_TYPE;
+                Symbol->Value = Op1->AddressSpace ? Op1->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
                 PushSymbol(CodeBuffer, Op0Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Op0->AddressSpace ? Op0->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = ((PVARIABLE_TYPE)Op0->VariableType)->Size; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_NUM_TYPE;
+                Symbol->Value = Op0->AddressSpace ? Op0->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_NUM_TYPE;
+                Symbol->Value = ((PVARIABLE_TYPE)Op0->VariableType)->Size;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+            }
+            else if (ScalarAssignmentConverted)
+            {
+                PSYMBOL Symbol = NewSymbol();
+                if (Op1->IsAddress)
+                {
+                    PVARIABLE_TYPE DestinationType = (PVARIABLE_TYPE)Op1->VariableType;
+                    Symbol->Type                   = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value                  = FUNC_TYPED_STORE;
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, ConvertedTempSymbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = Op1->AddressSpace;
+                    PushSymbol(CodeBuffer, Symbol);
+                    Symbol->Value = DestinationType->Size;
+                    PushSymbol(CodeBuffer, Symbol);
+                }
+                else
+                {
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = IsFloatingVariableType((PVARIABLE_TYPE)Op1->VariableType) ? FUNC_MOV_FLOAT : FUNC_MOV;
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, ConvertedTempSymbol);
+                    Op1Symbol->Len = GetFloatingValueKind((PVARIABLE_TYPE)Op1->VariableType);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                }
+                RemoveSymbol(&Symbol);
+                FreeTemp(ConvertedTemp);
             }
             else if (Op1->IsAddress)
             {
-                PSYMBOL Symbol;
+                PSYMBOL        Symbol;
                 PVARIABLE_TYPE DestinationType = (PVARIABLE_TYPE)Op1->VariableType;
                 if (!DestinationType || (DestinationType->Size != 1 && DestinationType->Size != 2 && DestinationType->Size != 4 && DestinationType->Size != 8))
                 {
@@ -2103,8 +3117,16 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 (CodeBuffer->Head + CodeBuffer->Pointer - 1)->Value = FUNC_TYPED_STORE;
                 PushSymbol(CodeBuffer, Op0Symbol);
                 PushSymbol(CodeBuffer, Op1Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Op1->AddressSpace; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = DestinationType->Size; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_NUM_TYPE;
+                Symbol->Value = Op1->AddressSpace;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
+                Symbol        = NewSymbol();
+                Symbol->Type  = SYMBOL_NUM_TYPE;
+                Symbol->Value = DestinationType->Size;
+                PushSymbol(CodeBuffer, Symbol);
+                RemoveSymbol(&Symbol);
             }
             else
             {
@@ -2254,7 +3276,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
             if (!VariableType)
             {
-                VariableType = VARIABLE_TYPE_LONG;
+                VariableType = GetDefaultImplicitVariableType();
             }
 
             BaseTypeSize = VariableType->Size;
@@ -2444,7 +3466,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             unsigned int       AddressSpace;
 
             Op0 = Pop(MatchedStack);
-            if (!Op0->VariableType)
+            if (!ResolveIdentifierVariableType(Op0))
             {
                 *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
                 RemoveToken(&Op0);
@@ -2452,9 +3474,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             }
 
             AddressSpace = Op0->AddressSpace ? Op0->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
-            Provenance   = AddressSpace == SCRIPT_ENGINE_ADDRESS_SPACE_REMOTE ?
-                               POINTER_PROVENANCE_REMOTE :
-                               POINTER_PROVENANCE_LOCAL;
+            Provenance   = AddressSpace == SCRIPT_ENGINE_ADDRESS_SPACE_REMOTE ? POINTER_PROVENANCE_REMOTE : POINTER_PROVENANCE_LOCAL;
 
             Temp = NewTemp(Error);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
@@ -2516,22 +3536,82 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (IsType1Func(Operator))
         {
-            PushSymbol(CodeBuffer, OperatorSymbol);
-            Op0          = Pop(MatchedStack);
-            VariableType = (VARIABLE_TYPE *)Op0->VariableType;
-            Op0Symbol    = ToSymbol(Op0, Error);
+            Op0 = Pop(MatchedStack);
 
-            Temp = NewTemp(Error);
-            Push(MatchedStack, Temp);
-            TempSymbol = ToSymbol(Temp, Error);
-
-            PushSymbol(CodeBuffer, Op0Symbol);
-            PushSymbol(CodeBuffer, TempSymbol);
-
-            FreeTemp(Op0);
-            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            if (!strcmp(Operator->Value, "@NEG") && Op0->Type == FLOAT_LITERAL)
             {
-                break;
+                PSCRIPT_ENGINE_TOKEN FoldedToken;
+                CHAR *               FoldedValue;
+                SIZE_T               ValueLength = strlen(Op0->Value);
+
+                if (Op0->Value[0] == '-')
+                {
+                    FoldedToken = NewToken(FLOAT_LITERAL, Op0->Value + 1);
+                }
+                else
+                {
+                    FoldedValue = (CHAR *)malloc(ValueLength + 2);
+                    if (!FoldedValue)
+                    {
+                        *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
+                        RemoveToken(&Op0);
+                        break;
+                    }
+                    FoldedValue[0] = '-';
+                    memcpy(FoldedValue + 1, Op0->Value, ValueLength + 1);
+                    FoldedToken = NewToken(FLOAT_LITERAL, FoldedValue);
+                    free(FoldedValue);
+                }
+
+                FoldedToken->VariableType = (VARIABLE_TYPE *)VARIABLE_TYPE_DOUBLE;
+                RemoveToken(&Op0);
+                Push(MatchedStack, FoldedToken);
+            }
+            else
+            {
+                VariableType                = (VARIABLE_TYPE *)Op0->VariableType;
+                Op0Symbol                   = ToSymbol(Op0, Error);
+                BOOLEAN IsTypedIntegerUnary = FALSE;
+
+                if (!strcmp(Operator->Value, "@NEG") &&
+                    VariableType &&
+                    (VariableType->Kind == TY_FLOAT || VariableType->Kind == TY_DOUBLE))
+                {
+                    OperatorSymbol->Value = FUNC_NEG_FLOAT;
+                }
+                else if (IsIntegerVariableType(VariableType) &&
+                         (!strcmp(Operator->Value, "@NEG") || !strcmp(Operator->Value, "@NOT")))
+                {
+                    VariableType          = PromoteIntegerVariableType(VariableType);
+                    OperatorSymbol->Value = !strcmp(Operator->Value, "@NEG") ? FUNC_NEG_TYPED : FUNC_BITWISE_NOT_TYPED;
+                    IsTypedIntegerUnary   = TRUE;
+                }
+
+                PushSymbol(CodeBuffer, OperatorSymbol);
+                Temp               = NewTemp(Error);
+                Temp->VariableType = (!strcmp(Operator->Value, "@NEG") ||
+                                      !strcmp(Operator->Value, "@NOT"))
+                                         ? VariableType
+                                         : GetDefaultImplicitVariableType();
+                Push(MatchedStack, Temp);
+                TempSymbol = ToSymbol(Temp, Error);
+
+                PushSymbol(CodeBuffer, Op0Symbol);
+                PushSymbol(CodeBuffer, TempSymbol);
+                if (IsTypedIntegerUnary)
+                {
+                    PSYMBOL TypeSymbol = NewSymbol();
+                    TypeSymbol->Type   = SYMBOL_NUM_TYPE;
+                    TypeSymbol->Value  = GetScriptScalarTypeId(VariableType);
+                    PushSymbol(CodeBuffer, TypeSymbol);
+                    RemoveSymbol(&TypeSymbol);
+                }
+
+                FreeTemp(Op0);
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
             }
         }
         else if (IsType4Func(Operator))
@@ -2613,7 +3693,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     CHAR Temp = *(Str + 1);
 
                     if (Temp == 'd' || Temp == 'i' || Temp == 'u' || Temp == 'o' ||
-                        Temp == 'x' || Temp == 'c' || Temp == 'p' || Temp == 's' ||
+                        Temp == 'x' || Temp == 'c' || Temp == 'p' || Temp == 's' || Temp == 'f' ||
 
                         !strncmp(Str, "%ws", 3) || !strncmp(Str, "%ls", 3) ||
 
@@ -2665,7 +3745,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         {
             PushSymbol(CodeBuffer, OperatorSymbol);
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -2696,7 +3777,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 break;
             }
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -2744,7 +3826,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -2794,8 +3877,11 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
             if (Op1->IsAddress && ((VARIABLE_TYPE *)Op1->VariableType)->Kind != TY_PTR)
             {
-                PVARIABLE_TYPE LValueType = (PVARIABLE_TYPE)Op1->VariableType;
-                PSYMBOL        Symbol;
+                PVARIABLE_TYPE       LValueType = (PVARIABLE_TYPE)Op1->VariableType;
+                PVARIABLE_TYPE       CommonType;
+                UINT64               TypedOpcode;
+                PSCRIPT_ENGINE_TOKEN LoadedValue;
+                PSYMBOL              Symbol;
 
                 if (LValueType->Size != 1 && LValueType->Size != 2 &&
                     LValueType->Size != 4 && LValueType->Size != 8)
@@ -2807,36 +3893,106 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     break;
                 }
 
-                Op0  = Pop(MatchedStack);
-                Op1  = Pop(MatchedStack);
-                Temp = NewTemp(Error);
-                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                Op0         = Pop(MatchedStack);
+                Op1         = Pop(MatchedStack);
+                LoadedValue = EmitTypedScalarLoad(CodeBuffer,
+                                                  Op1,
+                                                  Op1->AddressSpace,
+                                                  LValueType,
+                                                  Error);
+                if (!LoadedValue || *Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     Handled = TRUE;
                     break;
                 }
-                Temp->VariableType = LValueType;
 
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_SEMANTIC_RULE_TYPE; Symbol->Value = FUNC_TYPED_LOAD; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Op1Symbol = ToSymbol(Op1, Error); PushSymbol(CodeBuffer, Op1Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Op1->AddressSpace; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = LValueType->Size; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                TempSymbol = ToSymbol(Temp, Error); PushSymbol(CodeBuffer, TempSymbol);
+                CommonType  = GetCommonVariableType((PVARIABLE_TYPE)Op0->VariableType, LValueType);
+                TypedOpcode = GetTypedAssignmentOpcode(Operator->Value);
+                Op0Symbol   = ToSymbol(Op0, Error);
+                Op1Symbol   = ToSymbol(Op1, Error);
 
-                PushSymbol(CodeBuffer, OperatorSymbol);
-                Op0Symbol = ToSymbol(Op0, Error); PushSymbol(CodeBuffer, Op0Symbol);
-                PushSymbol(CodeBuffer, TempSymbol);
-                PushSymbol(CodeBuffer, TempSymbol);
+                if (IsIntegerVariableType(CommonType) && TypedOpcode != FUNC_UNDEFINED &&
+                    IsIntegerVariableType(LValueType))
+                {
+                    PSCRIPT_ENGINE_TOKEN OperationTemp = NewTemp(Error);
+                    PSCRIPT_ENGINE_TOKEN CastTemp      = NewTemp(Error);
+                    PSYMBOL              OperationTempSymbol;
+                    PSYMBOL              CastTempSymbol;
+                    PSYMBOL              LoadedValueSymbol;
 
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_SEMANTIC_RULE_TYPE; Symbol->Value = FUNC_TYPED_STORE; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                PushSymbol(CodeBuffer, TempSymbol);
-                PushSymbol(CodeBuffer, Op1Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = Op1->AddressSpace; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
-                Symbol = NewSymbol(); Symbol->Type = SYMBOL_NUM_TYPE; Symbol->Value = LValueType->Size; PushSymbol(CodeBuffer, Symbol); RemoveSymbol(&Symbol);
+                    OperationTemp->VariableType = CommonType;
+                    CastTemp->VariableType      = LValueType;
+                    OperationTempSymbol         = ToSymbol(OperationTemp, Error);
+                    CastTempSymbol              = ToSymbol(CastTemp, Error);
+                    LoadedValueSymbol           = ToSymbol(LoadedValue, Error);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = TypedOpcode;
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, LoadedValueSymbol);
+                    PushSymbol(CodeBuffer, OperationTempSymbol);
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = GetScriptScalarTypeId(CommonType);
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_CAST_SCALAR;
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, OperationTempSymbol);
+                    PushSymbol(CodeBuffer, CastTempSymbol);
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = GetScriptScalarTypeId(CommonType);
+                    PushSymbol(CodeBuffer, Symbol);
+                    Symbol->Value = GetScriptScalarTypeId(LValueType);
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_TYPED_STORE;
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, CastTempSymbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = Op1->AddressSpace;
+                    PushSymbol(CodeBuffer, Symbol);
+                    Symbol->Value = LValueType->Size;
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+
+                    FreeTemp(OperationTemp);
+                    FreeTemp(CastTemp);
+                    RemoveToken(&OperationTemp);
+                    RemoveToken(&CastTemp);
+                }
+                else
+                {
+                    TempSymbol = ToSymbol(LoadedValue, Error);
+                    PushSymbol(CodeBuffer, OperatorSymbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, TempSymbol);
+                    PushSymbol(CodeBuffer, TempSymbol);
+
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_TYPED_STORE;
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+                    PushSymbol(CodeBuffer, TempSymbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    Symbol        = NewSymbol();
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = Op1->AddressSpace;
+                    PushSymbol(CodeBuffer, Symbol);
+                    Symbol->Value = LValueType->Size;
+                    PushSymbol(CodeBuffer, Symbol);
+                    RemoveSymbol(&Symbol);
+                }
 
                 FreeTemp(Op0);
                 FreeTemp(Op1);
-                FreeTemp(Temp);
+                FreeTemp(LoadedValue);
+                RemoveToken(&LoadedValue);
                 Handled = TRUE;
                 if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
@@ -2937,16 +4093,68 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
             if (!Handled)
             {
-                PushSymbol(CodeBuffer, OperatorSymbol);
-                Op0       = Pop(MatchedStack);
-                Op0Symbol = ToSymbol(Op0, Error);
+                PVARIABLE_TYPE CommonType;
+                UINT64         TypedOpcode;
+                Op0         = Pop(MatchedStack);
+                Op1         = Pop(MatchedStack);
+                Op0Symbol   = ToSymbol(Op0, Error);
+                Op1Symbol   = ToSymbol(Op1, Error);
+                CommonType  = GetCommonVariableType((PVARIABLE_TYPE)Op0->VariableType,
+                                                    (PVARIABLE_TYPE)Op1->VariableType);
+                TypedOpcode = GetTypedAssignmentOpcode(Operator->Value);
 
-                Op1       = Pop(MatchedStack);
-                Op1Symbol = ToSymbol(Op1, Error);
+                if (IsIntegerVariableType(CommonType) && TypedOpcode != FUNC_UNDEFINED &&
+                    IsIntegerVariableType((PVARIABLE_TYPE)Op1->VariableType))
+                {
+                    PSCRIPT_ENGINE_TOKEN OperationTemp = NewTemp(Error);
+                    PSCRIPT_ENGINE_TOKEN CastTemp      = NewTemp(Error);
+                    PSYMBOL              OperationTempSymbol;
+                    PSYMBOL              CastTempSymbol;
+                    PSYMBOL              Symbol = NewSymbol();
+                    OperationTemp->VariableType = CommonType;
+                    CastTemp->VariableType      = (PVARIABLE_TYPE)Op1->VariableType;
+                    OperationTempSymbol         = ToSymbol(OperationTemp, Error);
+                    CastTempSymbol              = ToSymbol(CastTemp, Error);
 
-                PushSymbol(CodeBuffer, Op0Symbol);
-                PushSymbol(CodeBuffer, Op1Symbol);
-                PushSymbol(CodeBuffer, Op1Symbol);
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = TypedOpcode;
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    PushSymbol(CodeBuffer, OperationTempSymbol);
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = GetScriptScalarTypeId(CommonType);
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_CAST_SCALAR;
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, OperationTempSymbol);
+                    PushSymbol(CodeBuffer, CastTempSymbol);
+                    Symbol->Type  = SYMBOL_NUM_TYPE;
+                    Symbol->Value = GetScriptScalarTypeId(CommonType);
+                    PushSymbol(CodeBuffer, Symbol);
+                    Symbol->Value = GetScriptScalarTypeId((PVARIABLE_TYPE)Op1->VariableType);
+                    PushSymbol(CodeBuffer, Symbol);
+
+                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+                    Symbol->Value = FUNC_MOV;
+                    PushSymbol(CodeBuffer, Symbol);
+                    PushSymbol(CodeBuffer, CastTempSymbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    RemoveSymbol(&Symbol);
+                    FreeTemp(OperationTemp);
+                    FreeTemp(CastTemp);
+                    RemoveToken(&OperationTemp);
+                    RemoveToken(&CastTemp);
+                }
+                else
+                {
+                    PushSymbol(CodeBuffer, OperatorSymbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                }
 
                 //
                 // Free the operand if it is a temp value
@@ -2964,16 +4172,145 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             Op0          = TopIndexed(MatchedStack, 0);
             Op1          = TopIndexed(MatchedStack, 1);
 
-            if (!strcmp(Operator->Value, "@ADD") || !strcmp(Operator->Value, "@SUB"))
+            if (IsFloatingVariableType((PVARIABLE_TYPE)Op0->VariableType) ||
+                IsFloatingVariableType((PVARIABLE_TYPE)Op1->VariableType))
             {
-                if (((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_PTR && ((VARIABLE_TYPE *)Op1->VariableType)->Kind == TY_PTR)
+                UINT64 FloatingOpcode = GetFloatingBinaryOpcode(Operator->Value);
+                if (!FloatingOpcode ||
+                    (!IsFloatingVariableType((PVARIABLE_TYPE)Op0->VariableType) &&
+                     !IsIntegerVariableType((PVARIABLE_TYPE)Op0->VariableType)) ||
+                    (!IsFloatingVariableType((PVARIABLE_TYPE)Op1->VariableType) &&
+                     !IsIntegerVariableType((PVARIABLE_TYPE)Op1->VariableType)))
                 {
-                    *Error  = SCRIPT_ENGINE_ERROR_SYNTAX;
-                    Op0     = Pop(MatchedStack);
-                    Op1     = Pop(MatchedStack);
+                    *Error = SCRIPT_ENGINE_ERROR_UNSUPPORTED_FLOAT_OPERATION;
+                    Op0    = Pop(MatchedStack);
+                    Op1    = Pop(MatchedStack);
+                    RemoveToken(&Op0);
+                    RemoveToken(&Op1);
                     Handled = TRUE;
                 }
-                else if (((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_PTR && ((VARIABLE_TYPE *)Op1->VariableType)->Kind != TY_PTR)
+                else
+                {
+                    PVARIABLE_TYPE ResultType =
+                        ((PVARIABLE_TYPE)Op0->VariableType)->Kind == TY_DOUBLE ||
+                                ((PVARIABLE_TYPE)Op1->VariableType)->Kind == TY_DOUBLE
+                            ? VARIABLE_TYPE_DOUBLE
+                            : VARIABLE_TYPE_FLOAT;
+                    PSCRIPT_ENGINE_TOKEN ConvertedOp0 = NULL;
+                    PSCRIPT_ENGINE_TOKEN ConvertedOp1 = NULL;
+                    PSYMBOL              Symbol;
+
+                    Op0       = Pop(MatchedStack);
+                    Op1       = Pop(MatchedStack);
+                    Op0Symbol = ToSymbol(Op0, Error);
+                    Op1Symbol = ToSymbol(Op1, Error);
+
+                    if ((PVARIABLE_TYPE)Op0->VariableType != ResultType)
+                    {
+                        ConvertedOp0               = NewTemp(Error);
+                        ConvertedOp0->VariableType = ResultType;
+                        PSYMBOL ConvertedSymbol    = ToSymbol(ConvertedOp0, Error);
+                        Symbol                     = NewSymbol();
+                        Symbol->Type               = SYMBOL_SEMANTIC_RULE_TYPE;
+                        Symbol->Value              = FUNC_CAST_SCALAR;
+                        PushSymbol(CodeBuffer, Symbol);
+                        PushSymbol(CodeBuffer, Op0Symbol);
+                        PushSymbol(CodeBuffer, ConvertedSymbol);
+                        Symbol->Type  = SYMBOL_NUM_TYPE;
+                        Symbol->Value = GetScriptScalarTypeId((PVARIABLE_TYPE)Op0->VariableType);
+                        PushSymbol(CodeBuffer, Symbol);
+                        Symbol->Value = GetScriptScalarTypeId(ResultType);
+                        PushSymbol(CodeBuffer, Symbol);
+                        RemoveSymbol(&Symbol);
+                        Op0Symbol = ConvertedSymbol;
+                    }
+                    if ((PVARIABLE_TYPE)Op1->VariableType != ResultType)
+                    {
+                        ConvertedOp1               = NewTemp(Error);
+                        ConvertedOp1->VariableType = ResultType;
+                        PSYMBOL ConvertedSymbol    = ToSymbol(ConvertedOp1, Error);
+                        Symbol                     = NewSymbol();
+                        Symbol->Type               = SYMBOL_SEMANTIC_RULE_TYPE;
+                        Symbol->Value              = FUNC_CAST_SCALAR;
+                        PushSymbol(CodeBuffer, Symbol);
+                        PushSymbol(CodeBuffer, Op1Symbol);
+                        PushSymbol(CodeBuffer, ConvertedSymbol);
+                        Symbol->Type  = SYMBOL_NUM_TYPE;
+                        Symbol->Value = GetScriptScalarTypeId((PVARIABLE_TYPE)Op1->VariableType);
+                        PushSymbol(CodeBuffer, Symbol);
+                        Symbol->Value = GetScriptScalarTypeId(ResultType);
+                        PushSymbol(CodeBuffer, Symbol);
+                        RemoveSymbol(&Symbol);
+                        Op1Symbol = ConvertedSymbol;
+                    }
+                    Temp               = NewTemp(Error);
+                    Temp->VariableType = IsFloatingComparisonOperator(Operator->Value) ? VARIABLE_TYPE_INT : ResultType;
+                    TempSymbol         = ToSymbol(Temp, Error);
+
+                    OperatorSymbol->Value = FloatingOpcode;
+                    PushSymbol(CodeBuffer, OperatorSymbol);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    PushSymbol(CodeBuffer, TempSymbol);
+                    Push(MatchedStack, Temp);
+
+                    FreeTemp(Op0);
+                    FreeTemp(Op1);
+                    if (ConvertedOp0)
+                    {
+                        FreeTemp(ConvertedOp0);
+                        RemoveToken(&ConvertedOp0);
+                    }
+                    if (ConvertedOp1)
+                    {
+                        FreeTemp(ConvertedOp1);
+                        RemoveToken(&ConvertedOp1);
+                    }
+                    Handled = TRUE;
+                }
+            }
+
+            if (!Handled && (!strcmp(Operator->Value, "@ADD") || !strcmp(Operator->Value, "@SUB")))
+            {
+                PVARIABLE_TYPE Op0Type = (PVARIABLE_TYPE)Op0->VariableType;
+                PVARIABLE_TYPE Op1Type = (PVARIABLE_TYPE)Op1->VariableType;
+
+                if (Op0Type && Op1Type && Op0Type->Kind == TY_PTR && Op1Type->Kind == TY_PTR)
+                {
+                    Op0 = Pop(MatchedStack);
+                    Op1 = Pop(MatchedStack);
+                    if (!strcmp(Operator->Value, "@SUB") &&
+                        ((PVARIABLE_TYPE)Op0->VariableType)->Base == ((PVARIABLE_TYPE)Op1->VariableType)->Base &&
+                        ((PVARIABLE_TYPE)Op0->VariableType)->Base &&
+                        ((PVARIABLE_TYPE)Op0->VariableType)->Base->Size > 0)
+                    {
+                        PSYMBOL TypeSymbol;
+                        OperatorSymbol->Value = FUNC_POINTER_DIFF;
+                        PushSymbol(CodeBuffer, OperatorSymbol);
+                        Op0Symbol          = ToSymbol(Op0, Error);
+                        Op1Symbol          = ToSymbol(Op1, Error);
+                        Temp               = NewTemp(Error);
+                        Temp->VariableType = VARIABLE_TYPE_LONG;
+                        TempSymbol         = ToSymbol(Temp, Error);
+                        PushSymbol(CodeBuffer, Op0Symbol);
+                        PushSymbol(CodeBuffer, Op1Symbol);
+                        PushSymbol(CodeBuffer, TempSymbol);
+                        TypeSymbol        = NewSymbol();
+                        TypeSymbol->Type  = SYMBOL_NUM_TYPE;
+                        TypeSymbol->Value = ((PVARIABLE_TYPE)Op0->VariableType)->Base->Size;
+                        PushSymbol(CodeBuffer, TypeSymbol);
+                        RemoveSymbol(&TypeSymbol);
+                        Push(MatchedStack, Temp);
+                        FreeTemp(Op0);
+                        FreeTemp(Op1);
+                    }
+                    else
+                    {
+                        *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                    }
+                    Handled = TRUE;
+                }
+                else if (Op0Type && Op0Type->Kind == TY_PTR && (!Op1Type || Op1Type->Kind != TY_PTR))
                 {
                     if (!strcmp(Operator->Value, "@SUB"))
                     {
@@ -3003,8 +4340,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                         Op1Symbol = ToSymbol(Op1, Error);
                         PushSymbol(CodeBuffer, Op1Symbol);
 
-                        Temp       = NewTemp(Error);
-                        TempSymbol = ToSymbol(Temp, Error);
+                        Temp               = NewTemp(Error);
+                        Temp->VariableType = (PVARIABLE_TYPE)Op0->VariableType;
+                        TempSymbol         = ToSymbol(Temp, Error);
                         PushSymbol(CodeBuffer, TempSymbol);
 
                         PushSymbol(CodeBuffer, OperatorSymbol);
@@ -3027,7 +4365,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     }
                     Handled = TRUE;
                 }
-                else if (((VARIABLE_TYPE *)Op0->VariableType)->Kind != TY_PTR && ((VARIABLE_TYPE *)Op1->VariableType)->Kind == TY_PTR)
+                else if ((!Op0Type || Op0Type->Kind != TY_PTR) && Op1Type && Op1Type->Kind == TY_PTR)
                 {
                     PSYMBOL Symbol = NULL;
 
@@ -3048,8 +4386,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
                     PushSymbol(CodeBuffer, Op0Symbol);
 
-                    Temp       = NewTemp(Error);
-                    TempSymbol = ToSymbol(Temp, Error);
+                    Temp               = NewTemp(Error);
+                    Temp->VariableType = (PVARIABLE_TYPE)Op1->VariableType;
+                    TempSymbol         = ToSymbol(Temp, Error);
                     PushSymbol(CodeBuffer, TempSymbol);
 
                     PushSymbol(CodeBuffer, OperatorSymbol);
@@ -3072,14 +4411,14 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     Handled = TRUE;
                 }
 
-                else if (((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_ARRAY && ((VARIABLE_TYPE *)Op1->VariableType)->Kind == TY_ARRAY)
+                else if (Op0Type && Op1Type && Op0Type->Kind == TY_ARRAY && Op1Type->Kind == TY_ARRAY)
                 {
                     *Error  = SCRIPT_ENGINE_ERROR_SYNTAX;
                     Op0     = Pop(MatchedStack);
                     Op1     = Pop(MatchedStack);
                     Handled = TRUE;
                 }
-                else if (((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_ARRAY && ((VARIABLE_TYPE *)Op1->VariableType)->Kind != TY_ARRAY)
+                else if (Op0Type && Op0Type->Kind == TY_ARRAY && (!Op1Type || Op1Type->Kind != TY_ARRAY))
                 {
                     if (!strcmp(Operator->Value, "@SUB"))
                     {
@@ -3116,8 +4455,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                         Op1Symbol = ToSymbol(Op1, Error);
                         PushSymbol(CodeBuffer, Op1Symbol);
 
-                        Temp       = NewTemp(Error);
-                        TempSymbol = ToSymbol(Temp, Error);
+                        Temp               = NewTemp(Error);
+                        Temp->VariableType = CreatePointerType(((PVARIABLE_TYPE)Op0->VariableType)->Base);
+                        TempSymbol         = ToSymbol(Temp, Error);
                         PushSymbol(CodeBuffer, TempSymbol);
 
                         PushSymbol(CodeBuffer, OperatorSymbol);
@@ -3140,7 +4480,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     }
                     Handled = TRUE;
                 }
-                else if (((VARIABLE_TYPE *)Op0->VariableType)->Kind != TY_ARRAY && ((VARIABLE_TYPE *)Op1->VariableType)->Kind == TY_ARRAY)
+                else if ((!Op0Type || Op0Type->Kind != TY_ARRAY) && Op1Type && Op1Type->Kind == TY_ARRAY)
                 {
                     PSYMBOL Symbol           = NULL;
                     int     VariableBaseSize = 0;
@@ -3168,8 +4508,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
                     PushSymbol(CodeBuffer, Op0Symbol);
 
-                    Temp       = NewTemp(Error);
-                    TempSymbol = ToSymbol(Temp, Error);
+                    Temp               = NewTemp(Error);
+                    Temp->VariableType = CreatePointerType(((PVARIABLE_TYPE)Op1->VariableType)->Base);
+                    TempSymbol         = ToSymbol(Temp, Error);
                     PushSymbol(CodeBuffer, TempSymbol);
 
                     PushSymbol(CodeBuffer, OperatorSymbol);
@@ -3193,23 +4534,78 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 }
             }
 
+            if (!Handled && IsFloatingComparisonOperator(Operator->Value) &&
+                Op0->VariableType && Op1->VariableType &&
+                ((PVARIABLE_TYPE)Op0->VariableType)->Kind == TY_PTR &&
+                ((PVARIABLE_TYPE)Op1->VariableType)->Kind == TY_PTR)
+            {
+                PSYMBOL TypeSymbol;
+                if (((PVARIABLE_TYPE)Op0->VariableType)->Base != ((PVARIABLE_TYPE)Op1->VariableType)->Base &&
+                    ((PVARIABLE_TYPE)Op0->VariableType)->Base != VARIABLE_TYPE_VOID &&
+                    ((PVARIABLE_TYPE)Op1->VariableType)->Base != VARIABLE_TYPE_VOID)
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                    Op0    = Pop(MatchedStack);
+                    Op1    = Pop(MatchedStack);
+                }
+                else
+                {
+                    Op0                   = Pop(MatchedStack);
+                    Op1                   = Pop(MatchedStack);
+                    OperatorSymbol->Value = GetTypedBinaryOpcode(Operator->Value);
+                    PushSymbol(CodeBuffer, OperatorSymbol);
+                    Op0Symbol          = ToSymbol(Op0, Error);
+                    Op1Symbol          = ToSymbol(Op1, Error);
+                    Temp               = NewTemp(Error);
+                    Temp->VariableType = VARIABLE_TYPE_INT;
+                    TempSymbol         = ToSymbol(Temp, Error);
+                    PushSymbol(CodeBuffer, Op0Symbol);
+                    PushSymbol(CodeBuffer, Op1Symbol);
+                    PushSymbol(CodeBuffer, TempSymbol);
+                    TypeSymbol        = NewSymbol();
+                    TypeSymbol->Type  = SYMBOL_NUM_TYPE;
+                    TypeSymbol->Value = SCRIPT_SCALAR_TYPE_POINTER;
+                    PushSymbol(CodeBuffer, TypeSymbol);
+                    RemoveSymbol(&TypeSymbol);
+                    Push(MatchedStack, Temp);
+                    FreeTemp(Op0);
+                    FreeTemp(Op1);
+                }
+                Handled = TRUE;
+            }
+
             if (!Handled)
             {
-                PushSymbol(CodeBuffer, OperatorSymbol);
                 Op0       = Pop(MatchedStack);
                 Op0Symbol = ToSymbol(Op0, Error);
 
                 Op1       = Pop(MatchedStack);
                 Op1Symbol = ToSymbol(Op1, Error);
 
+                PVARIABLE_TYPE CommonType            = GetCommonVariableType((PVARIABLE_TYPE)Op0->VariableType,
+                                                                             (PVARIABLE_TYPE)Op1->VariableType);
+                UINT64         TypedOpcode           = GetTypedBinaryOpcode(Operator->Value);
+                BOOLEAN        TypedIntegerOperation = IsIntegerVariableType(CommonType) && TypedOpcode != FUNC_UNDEFINED;
+                if (TypedIntegerOperation)
+                    OperatorSymbol->Value = TypedOpcode;
+                PushSymbol(CodeBuffer, OperatorSymbol);
+
                 Temp               = NewTemp(Error);
-                Temp->VariableType = (VARIABLE_TYPE *)GetCommonVariableType((VARIABLE_TYPE *)Op0->VariableType, (VARIABLE_TYPE *)Op1->VariableType);
+                Temp->VariableType = IsFloatingComparisonOperator(Operator->Value) ? VARIABLE_TYPE_INT : CommonType;
                 Push(MatchedStack, Temp);
                 TempSymbol = ToSymbol(Temp, Error);
 
                 PushSymbol(CodeBuffer, Op0Symbol);
                 PushSymbol(CodeBuffer, Op1Symbol);
                 PushSymbol(CodeBuffer, TempSymbol);
+                if (TypedIntegerOperation)
+                {
+                    PSYMBOL TypeSymbol = NewSymbol();
+                    TypeSymbol->Type   = SYMBOL_NUM_TYPE;
+                    TypeSymbol->Value  = GetScriptScalarTypeId(CommonType);
+                    PushSymbol(CodeBuffer, TypeSymbol);
+                    RemoveSymbol(&TypeSymbol);
+                }
 
                 //
                 // Free the operand if it is a temp value
@@ -3922,7 +5318,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -3951,7 +5348,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 break;
             }
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -3978,7 +5376,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -4000,7 +5399,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -4029,7 +5429,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 break;
             }
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -4057,7 +5458,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp(Error);
+            Temp               = NewTemp(Error);
+            Temp->VariableType = GetDefaultImplicitVariableType();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -4507,6 +5909,7 @@ PSYMBOL
 ToSymbol(PSCRIPT_ENGINE_TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     PSYMBOL Symbol = NewSymbol();
+    ResolveIdentifierVariableType(Token);
     switch (Token->Type)
     {
     case GLOBAL_ID:
@@ -4517,6 +5920,7 @@ ToSymbol(PSCRIPT_ENGINE_TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
     case LOCAL_ID:
     {
         Symbol->Value = GetLocalIdentifierVal(Token);
+        Symbol->Len   = GetFloatingValueKind((PVARIABLE_TYPE)Token->VariableType);
 
         if (((VARIABLE_TYPE *)Token->VariableType)->Kind == TY_ARRAY ||
             ((VARIABLE_TYPE *)Token->VariableType)->Kind == TY_STRUCT)
@@ -4551,6 +5955,16 @@ ToSymbol(PSCRIPT_ENGINE_TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
         SetType(&Symbol->Type, SYMBOL_NUM_TYPE);
         return Symbol;
 
+    case FLOAT_LITERAL:
+        if (!ParseFloatingLiteral(Token->Value, SYMBOL_VALUE_KIND_FLOAT64, &Symbol->Value, Error))
+        {
+            Symbol->Type = INVALID;
+            return Symbol;
+        }
+        Symbol->Len = SYMBOL_VALUE_KIND_FLOAT64;
+        SetType(&Symbol->Type, SYMBOL_NUM_TYPE);
+        return Symbol;
+
     case REGISTER:
         Symbol->Value = RegisterToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_REGISTER_TYPE);
@@ -4569,13 +5983,14 @@ ToSymbol(PSCRIPT_ENGINE_TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
     case TEMP:
 
         Symbol->Value = DecimalToInt(Token->Value);
+        Symbol->Len   = GetFloatingValueKind((PVARIABLE_TYPE)Token->VariableType);
 
         if (Token->IsAddress)
         {
             SetType(&Symbol->Type, SYMBOL_TEMP_TYPE);
         }
         else if (((VARIABLE_TYPE *)Token->VariableType)->Kind == TY_ARRAY ||
-            ((VARIABLE_TYPE *)Token->VariableType)->Kind == TY_STRUCT)
+                 ((VARIABLE_TYPE *)Token->VariableType)->Kind == TY_STRUCT)
         {
             SetType(&Symbol->Type, SYMBOL_REFERENCE_TEMP_TYPE);
         }
@@ -5062,6 +6477,15 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     case SCRIPT_ENGINE_ERROR_INVALID_ARRAY_SIZE:
         strcat(Message, "Invalid or overflowing array size");
         return Message;
+    case SCRIPT_ENGINE_ERROR_INVALID_FLOAT_LITERAL:
+        strcat(Message, "Invalid floating-point literal");
+        return Message;
+    case SCRIPT_ENGINE_ERROR_FLOAT_OUT_OF_RANGE:
+        strcat(Message, "Floating-point literal is out of range");
+        return Message;
+    case SCRIPT_ENGINE_ERROR_UNSUPPORTED_FLOAT_OPERATION:
+        strcat(Message, "Unsupported floating-point operation");
+        return Message;
     default:
         strcat(Message, "Unknown Error: ");
         return Message;
@@ -5163,6 +6587,21 @@ GetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
     return 0;
 }
 
+BOOLEAN
+GetGlobalIdentifierIsImplicitType(PSCRIPT_ENGINE_TOKEN Token)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < GlobalIdTable->Pointer; i++)
+    {
+        CurrentToken = *(GlobalIdTable->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            return CurrentToken->IsImplicitType;
+        }
+    }
+    return FALSE;
+}
+
 /**
  * @brief Allocates a new local variable and returns the integer assigned to it
  *
@@ -5218,6 +6657,21 @@ GetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
         }
     }
     return 0;
+}
+
+BOOLEAN
+GetLocalIdentifierIsImplicitType(PSCRIPT_ENGINE_TOKEN Token)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Pointer; i++)
+    {
+        CurrentToken = *(((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->IdTable)->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            return CurrentToken->IsImplicitType;
+        }
+    }
+    return FALSE;
 }
 
 /**
@@ -5331,6 +6785,10 @@ LalrIsOperandType(PSCRIPT_ENGINE_TOKEN Token)
     {
         return TRUE;
     }
+    else if (Token->Type == SCRIPT_VARIABLE_TYPE)
+    {
+        return TRUE;
+    }
     else if (Token->Type == DECIMAL)
     {
         return TRUE;
@@ -5344,6 +6802,10 @@ LalrIsOperandType(PSCRIPT_ENGINE_TOKEN Token)
         return TRUE;
     }
     else if (Token->Type == BINARY)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == FLOAT_LITERAL)
     {
         return TRUE;
     }
@@ -5407,33 +6869,129 @@ FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * 
 
     switch (FuncType)
     {
+    case FUNC_CAST_SCALAR:
 
-    //
-	// This code is not tested yet, so they are commented out for now
-    // 
-    //case FUNC_TYPED_LOAD:
-    //    *NumberOfGetOperands = 3;
-    //    *NumberOfSetOperands = 1;
-    //    Result               = TRUE;
-    //    break;
+        *NumberOfGetOperands = 3;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
 
-    //case FUNC_TYPED_STORE:
-    //    *NumberOfGetOperands = 4;
-    //    *NumberOfSetOperands = 0;
-    //    Result               = TRUE;
-    //    break;
+        break;
 
-    //case FUNC_AGGREGATE_COPY:
-    //    *NumberOfGetOperands = 5;
-    //    *NumberOfSetOperands = 0;
-    //    Result               = TRUE;
-    //    break;
+    case FUNC_ADD_TYPED:
+    case FUNC_SUB_TYPED:
+    case FUNC_MUL_TYPED:
+    case FUNC_DIV_TYPED:
+    case FUNC_MOD_TYPED:
+    case FUNC_BITWISE_AND_TYPED:
+    case FUNC_BITWISE_OR_TYPED:
+    case FUNC_BITWISE_XOR_TYPED:
+    case FUNC_SHIFT_LEFT_TYPED:
+    case FUNC_SHIFT_RIGHT_TYPED:
+    case FUNC_GT_TYPED:
+    case FUNC_LT_TYPED:
+    case FUNC_EGT_TYPED:
+    case FUNC_ELT_TYPED:
+    case FUNC_EQUAL_TYPED:
+    case FUNC_NEQ_TYPED:
+    case FUNC_POINTER_DIFF:
 
-    //case FUNC_AGGREGATE_ZERO:
-    //    *NumberOfGetOperands = 3;
-    //    *NumberOfSetOperands = 0;
-    //    Result               = TRUE;
-    //    break;
+        *NumberOfGetOperands = 3;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_NEG_TYPED:
+    case FUNC_BITWISE_NOT_TYPED:
+    case FUNC_LOGICAL_NOT_TYPED:
+
+        *NumberOfGetOperands = 2;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_TYPED_LOAD:
+
+        *NumberOfGetOperands = 3;
+        *NumberOfSetOperands = 1;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_TYPED_STORE:
+
+        *NumberOfGetOperands = 4;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_AGGREGATE_COPY:
+
+        *NumberOfGetOperands = 5;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+    case FUNC_AGGREGATE_ZERO:
+
+        *NumberOfGetOperands = 3;
+        *NumberOfSetOperands = 0;
+        Result               = TRUE;
+
+        break;
+
+        //
+        // This code is not tested yet, so they are commented out for now
+        //
+        // case FUNC_MOV_FLOAT:
+        // case FUNC_NEG_FLOAT:
+        // case FUNC_CONVERT_FLOAT:
+        //    *NumberOfGetOperands = 1;
+        //    *NumberOfSetOperands = 1;
+        //    Result               = TRUE;
+        //    break;
+
+        // case FUNC_ADD_FLOAT:
+        // case FUNC_SUB_FLOAT:
+        // case FUNC_MUL_FLOAT:
+        // case FUNC_DIV_FLOAT:
+        // case FUNC_GT_FLOAT:
+        // case FUNC_LT_FLOAT:
+        // case FUNC_EGT_FLOAT:
+        // case FUNC_ELT_FLOAT:
+        // case FUNC_EQUAL_FLOAT:
+        // case FUNC_NEQ_FLOAT:
+        //     *NumberOfGetOperands = 2;
+        //     *NumberOfSetOperands = 1;
+        //     Result               = TRUE;
+        //     break;
+
+        // case FUNC_TYPED_LOAD:
+        //     *NumberOfGetOperands = 3;
+        //     *NumberOfSetOperands = 1;
+        //     Result               = TRUE;
+        //     break;
+
+        // case FUNC_TYPED_STORE:
+        //     *NumberOfGetOperands = 4;
+        //     *NumberOfSetOperands = 0;
+        //     Result               = TRUE;
+        //     break;
+
+        // case FUNC_AGGREGATE_COPY:
+        //     *NumberOfGetOperands = 5;
+        //     *NumberOfSetOperands = 0;
+        //     Result               = TRUE;
+        //     break;
+
+        // case FUNC_AGGREGATE_ZERO:
+        //     *NumberOfGetOperands = 3;
+        //     *NumberOfSetOperands = 0;
+        //     Result               = TRUE;
+        //     break;
 
     case FUNC_INC:
 

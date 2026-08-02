@@ -142,8 +142,8 @@ class LALR1Parser:
         self.SourceFile.write("};\n")
 
     def WriteTerminalList(self):
-        self.SourceFile.write("const char* LalrTerminalMap[TERMINAL_COUNT]= \n{\n")
-        self.HeaderFile.write("extern const char* LalrTerminalMap[TERMINAL_COUNT];\n")
+        self.SourceFile.write("const char* LalrTerminalMap[LALR_TERMINAL_COUNT]=\n{\n")
+        self.HeaderFile.write("extern const char* LalrTerminalMap[LALR_TERMINAL_COUNT];\n")
         Counter = 0
         for X in self.TerminalList:
             if Counter == len(self.TerminalList)-1:
@@ -154,8 +154,8 @@ class LALR1Parser:
         self.SourceFile.write("};\n")
 
     def WriteNoneTermianlList(self):
-        self.SourceFile.write("const char* LalrNoneTerminalMap[NONETERMINAL_COUNT]= \n{\n")
-        self.HeaderFile.write("extern const char* LalrNoneTerminalMap[NONETERMINAL_COUNT];\n")
+        self.SourceFile.write("const char* LalrNoneTerminalMap[LALR_NONTERMINAL_COUNT]=\n{\n")
+        self.HeaderFile.write("extern const char* LalrNoneTerminalMap[LALR_NONTERMINAL_COUNT];\n")
         Counter = 0
         for X in self.NonTerminalList:
             if Counter == len(self.NonTerminalList)-1:
@@ -201,6 +201,8 @@ class LALR1Parser:
 
         elif Var in self.SPECIAL_TOKENS:
             return "SPECIAL_TOKEN"
+        elif Var == "_float":
+            return "FLOAT_LITERAL"
         elif Var[0] == "_":
             return Var[1:].upper()
         else:
@@ -290,9 +292,9 @@ class LALR1Parser:
 
         self.TerminalSet.add("$")
         
-        self.NonTerminalList = list(self.NonTerminalSet)
+        self.NonTerminalList = sorted(self.NonTerminalSet)
         
-        self.TerminalList = list(self.TerminalSet)
+        self.TerminalList = sorted(self.TerminalSet)
 
     def FillActionTable(self):
         self.ActionTable = [[self.INVALID for y in range(len(self.TerminalList))] for X in range(self.StateCount)]
@@ -303,9 +305,21 @@ class LALR1Parser:
                 Action = self.ParseTable.action[RowId][Terminal] 
                 Type = None
                 StateId = None
-                for Element in Action:
-                    Type = Element[0]
-                    StateId = Element[1]
+                Elements = list(Action)
+                ShiftActions = [Element for Element in Elements if Element[0] == 'S']
+                AcceptActions = [Element for Element in Elements if Element[0] == 'accept']
+                ReduceActions = [Element for Element in Elements if Element[0] == 'R']
+                if AcceptActions:
+                    Type, StateId = AcceptActions[0]
+                elif ShiftActions:
+                    # Match conventional yacc behavior for shift/reduce
+                    # conflicts.  In particular, sizeof '(' must shift so
+                    # SIZEOF_PAREN can distinguish a type-name from an
+                    # expression instead of prematurely reducing the
+                    # unparenthesized sizeof production.
+                    Type, StateId = sorted(ShiftActions, key=lambda Element: int(Element[1]))[0]
+                elif ReduceActions:
+                    Type, StateId = sorted(ReduceActions, key=lambda Element: int(Element[1]))[0]
                 if Type != None:
                     if Type == 'S':
                         self.ActionTable[RowId][self.GetTerminalId(Terminal)] = StateId

@@ -328,7 +328,7 @@ GetToken(char * c, char * str)
         else
         {
             strcpy(Token->Value, "!");
-            Token->Type = UNKNOWN;
+            Token->Type = SPECIAL_TOKEN;
             return Token;
         }
     case '%':
@@ -502,6 +502,18 @@ GetToken(char * c, char * str)
     case '.':
         AppendByte(Token, *c);
         *c = sgetc(str);
+        if (IsDecimal(*c))
+        {
+            do
+            {
+                AppendByte(Token, *c);
+                *c = sgetc(str);
+            } while (IsDecimal(*c));
+
+            Token->Type = FLOAT_LITERAL;
+            Token->VariableType = (VARIABLE_TYPE *)VARIABLE_TYPE_DOUBLE;
+            return Token;
+        }
         if (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'))
         {
             do
@@ -539,6 +551,7 @@ GetToken(char * c, char * str)
                     {
                         Token->Type         = GLOBAL_ID;
                         Token->VariableType = GetGlobalIdentifierVariableType(Token);
+                        Token->IsImplicitType = GetGlobalIdentifierIsImplicitType(Token);
                     }
                     else
                     {
@@ -634,6 +647,20 @@ GetToken(char * c, char * str)
             return Token;
         }
 
+        else if (*c == '.')
+        {
+            AppendByte(Token, '0');
+            AppendByte(Token, '.');
+            *c = sgetc(str);
+            while (IsDecimal(*c))
+            {
+                AppendByte(Token, *c);
+                *c = sgetc(str);
+            }
+            Token->Type = FLOAT_LITERAL;
+            Token->VariableType = (VARIABLE_TYPE *)VARIABLE_TYPE_DOUBLE;
+            return Token;
+        }
         else if (IsHex(*c))
         {
             do
@@ -747,12 +774,34 @@ GetToken(char * c, char * str)
     default:
         if (*c >= '0' && *c <= '9')
         {
+            BOOLEAN HasOnlyDecimalDigits = TRUE;
             do
             {
                 if (*c != '`')
+                {
                     AppendByte(Token, *c);
+                    if (!IsDecimal(*c))
+                    {
+                        HasOnlyDecimalDigits = FALSE;
+                    }
+                }
                 *c = sgetc(str);
             } while (IsHex(*c) || *c == '`');
+
+            if (*c == '.' && HasOnlyDecimalDigits)
+            {
+                AppendByte(Token, '.');
+                *c = sgetc(str);
+                while (IsDecimal(*c))
+                {
+                    AppendByte(Token, *c);
+                    *c = sgetc(str);
+                }
+                Token->Type = FLOAT_LITERAL;
+                Token->VariableType = (VARIABLE_TYPE *)VARIABLE_TYPE_DOUBLE;
+                return Token;
+            }
+
             Token->Type = HEX;
             return Token;
         }
@@ -799,6 +848,10 @@ GetToken(char * c, char * str)
                 {
                     Token->Type = SCRIPT_VARIABLE_TYPE;
                 }
+                else if ((Token->VariableType = FindTypedefType(Token->Value)) != NULL)
+                {
+                    Token->Type = SCRIPT_VARIABLE_TYPE;
+                }
                 else
                 {
                     BOOLEAN WasFound = FALSE;
@@ -838,6 +891,7 @@ GetToken(char * c, char * str)
                             {
                                 Token->Type         = LOCAL_ID;
                                 Token->VariableType = GetLocalIdentifierVariableType(Token);
+                                Token->IsImplicitType = GetLocalIdentifierIsImplicitType(Token);
                             }
                             else
                             {
@@ -859,6 +913,10 @@ GetToken(char * c, char * str)
                     Token->Type = REGISTER;
                 }
                 else if (IsVariableType(Token->Value))
+                {
+                    Token->Type = SCRIPT_VARIABLE_TYPE;
+                }
+                else if ((Token->VariableType = FindTypedefType(Token->Value)) != NULL)
                 {
                     Token->Type = SCRIPT_VARIABLE_TYPE;
                 }
@@ -901,6 +959,7 @@ GetToken(char * c, char * str)
                             {
                                 Token->Type         = LOCAL_ID;
                                 Token->VariableType = GetLocalIdentifierVariableType(Token);
+                                Token->IsImplicitType = GetLocalIdentifierIsImplicitType(Token);
                             }
                             else
                             {
@@ -934,6 +993,10 @@ GetToken(char * c, char * str)
                 Token->Type = REGISTER;
             }
             else if (IsVariableType(Token->Value))
+            {
+                Token->Type = SCRIPT_VARIABLE_TYPE;
+            }
+            else if ((Token->VariableType = FindTypedefType(Token->Value)) != NULL)
             {
                 Token->Type = SCRIPT_VARIABLE_TYPE;
             }
@@ -976,6 +1039,7 @@ GetToken(char * c, char * str)
                         {
                             Token->Type         = LOCAL_ID;
                             Token->VariableType = GetLocalIdentifierVariableType(Token);
+                            Token->IsImplicitType = GetLocalIdentifierIsImplicitType(Token);
                         }
                         else
                         {
@@ -1072,6 +1136,7 @@ Scan(char * str, char * c)
             Token->Type == FUNCTION_PARAMETER_ID || Token->Type == REGISTER ||
             Token->Type == PSEUDO_REGISTER || Token->Type == HEX ||
             Token->Type == DECIMAL || Token->Type == OCTAL || Token->Type == BINARY ||
+            Token->Type == FLOAT_LITERAL ||
             (Token->Type == SPECIAL_TOKEN &&
              (!strcmp(Token->Value, ")") || !strcmp(Token->Value, "]")));
         return Token;

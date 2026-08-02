@@ -118,7 +118,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
     //
     // Zero the buffer
     //
-    ZeroMemory(FinalBuffer, FinalSize);
+    PlatformZeroMemory(FinalBuffer, FinalSize);
 
     //
     // Copy the structure on top of the allocated buffer
@@ -143,7 +143,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
     }
     else
     {
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,              // Handle to device
             IOCTL_DEBUGGER_EDIT_MEMORY,  // IO Control Code (IOCTL)
             FinalBuffer,                 // Input Buffer to driver.
@@ -156,7 +156,7 @@ WriteMemoryContent(UINT64                         AddressToEdit,
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             free(FinalBuffer);
             return FALSE;
         }
@@ -229,7 +229,7 @@ HyperDbgWriteMemory(PVOID                     DestinationAddress,
     //
     // Zero the buffer
     //
-    ZeroMemory(TargetBuffer, FinalSize);
+    PlatformZeroMemory(TargetBuffer, FinalSize);
 
     //
     // Copy requested memory in 64bit chunks
@@ -490,7 +490,7 @@ CommandEditMemory(vector<CommandToken> CommandTokens, string Command)
     //
     if (ProcId == 0)
     {
-        ProcId = GetCurrentProcessId();
+        ProcId = PlatformGetCurrentProcessId();
     }
 
     //
@@ -535,7 +535,7 @@ CommandEditMemory(vector<CommandToken> CommandTokens, string Command)
     //
     // Zero the buffer
     //
-    ZeroMemory(FinalBuffer, FinalSize);
+    PlatformZeroMemory(FinalBuffer, FinalSize);
 
     //
     // Put the values in 64 bit structures

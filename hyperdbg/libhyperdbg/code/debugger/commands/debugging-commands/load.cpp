@@ -87,7 +87,7 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
         // process (HyperDbg's process) as the base for user-mode
         // symbols
         //
-        SymbolLocalReload(GetCurrentProcessId());
+        SymbolLocalReload(PlatformGetCurrentProcessId());
     }
     else if (CompareLowerCaseStrings(CommandTokens.at(1), "vmm") ||
              CompareLowerCaseStrings(CommandTokens.at(1), "vm"))
@@ -120,7 +120,7 @@ CommandLoad(vector<CommandToken> CommandTokens, string Command)
         // process (HyperDbg's process) as the base for user-mode
         // symbols
         //
-        SymbolLocalReload(GetCurrentProcessId());
+        SymbolLocalReload(PlatformGetCurrentProcessId());
     }
     else if (CompareLowerCaseStrings(CommandTokens.at(1), "trace") ||
              CompareLowerCaseStrings(CommandTokens.at(1), "hypertrace"))

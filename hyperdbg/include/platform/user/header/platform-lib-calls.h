@@ -1,6 +1,6 @@
 /**
  * @file platform-lib-calls.h
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode Cross platform APIs for platofrm dependend library calls
  * @details
  * @version 0.19
@@ -49,6 +49,12 @@ INT
 PlatformSprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...);
 
 //
+// SNPRINTF
+//
+INT
+PlatformSnprintf(char * Buffer, SIZE_T BufferSize, const char * Format, ...);
+
+//
 // BOUNDED STRING LENGTH
 //
 SIZE_T
@@ -65,6 +71,27 @@ INT
 PlatformStrCpy(char * Dest, SIZE_T DestSize, const char * Src);
 
 //
+// BOUNDED COUNTED STRING COPY
+//
+// Mirrors strncpy_s: copies at most Count characters of Src into Dest (of
+// DestSize bytes) and always null-terminates. Passing _TRUNCATE as Count means
+// "copy as much as fits", returning STRUNCATE if it had to truncate. Otherwise
+// returns 0 on success, non-zero if the arguments are invalid or Count does not
+// fit (in which case Dest is left as an empty string).
+//
+INT
+PlatformStrNCpy(char * Dest, SIZE_T DestSize, const char * Src, SIZE_T Count);
+
+//
+// CASE-INSENSITIVE STRING COMPARE
+//
+// Mirrors _stricmp: returns 0 when the strings are equal ignoring case, and a
+// negative/positive value otherwise. Linux uses strcasecmp (same semantics).
+//
+INT
+PlatformStrCaseCmp(const char * Str1, const char * Str2);
+
+//
 // SLEEP (milliseconds)
 //
 VOID
@@ -74,7 +101,7 @@ PlatformSleep(DWORD Milliseconds);
 // DEBUG BREAK (raise a breakpoint trap in the calling process)
 //
 VOID
-PlatformDebugBreak(VOID);
+    PlatformDebugBreak(VOID);
 
 //
 // HIGH-RESOLUTION PERFORMANCE COUNTER
@@ -115,6 +142,9 @@ typedef DWORD(WINAPI * PLATFORM_THREAD_ROUTINE)(PVOID Param);
 HANDLE
 PlatformCreateThread(PLATFORM_THREAD_ROUTINE Routine, PVOID Param);
 
+BOOLEAN
+PlatformTerminateThread(HANDLE Thread, DWORD ExitCode);
+
 //
 // LAST OS ERROR
 //
@@ -144,6 +174,16 @@ PlatformWriteConsole(const VOID * Buffer, DWORD NumberOfBytes);
 //
 HANDLE
 PlatformOpenFileForWriting(const WCHAR * Path);
+
+//
+// Narrow (char*) variant with OPEN_ALWAYS semantics (open existing, else
+// create; no truncate), as opposed to the wide PlatformOpenFileForWriting above
+// which truncates (CREATE_ALWAYS). Used by the event-forwarding file sink, whose
+// path is already a narrow std::string, so it sidesteps the wide-char issue and
+// works on Linux.
+//
+HANDLE
+PlatformOpenFileForWritingNarrow(const CHAR * Path);
 
 BOOLEAN
 PlatformWriteFile(HANDLE FileHandle, const VOID * Buffer, DWORD NumberOfBytes);
@@ -176,6 +216,18 @@ PlatformGetCurrentThreadId(VOID);
 UINT32
 PlatformGetCurrentProcessorNumber(VOID);
 
+//
+// Number of logical processors currently online. Windows uses the classic
+// GetSystemInfo count; Linux uses sysconf(_SC_NPROCESSORS_ONLN). Returns 0 if
+// the count cannot be determined.
+//
+// NOTE: rdmsr.cpp keeps its own NUMA-aware GetLogicalProcessorInformationEx
+// chain on Windows and only falls back to this wrapper on Linux, so the
+// Windows core count there is unchanged.
+//
+SIZE_T
+PlatformGetActiveProcessorCount(VOID);
+
 UINT32
 PlatformGetCurrentProcessId(VOID);
 
@@ -204,3 +256,20 @@ PlatformResumeThread(HANDLE Thread);
 
 BOOL
 PlatformGetExitCodeProcess(HANDLE Process, LPDWORD ExitCode);
+
+//
+// DYNAMIC LIBRARY LOADING
+//
+// Thin wrappers over LoadLibrary/GetProcAddress/FreeLibrary, used by the
+// event-forwarding "module" sink (loads a plugin exporting
+// hyperdbg_event_forwarding). Windows = the Win32 calls; Linux = dlopen/dlsym/
+// dlclose (exact 1:1 semantic map).
+//
+HMODULE
+PlatformLoadLibrary(const CHAR * ModulePath);
+
+PVOID
+PlatformGetProcAddress(HMODULE Module, const CHAR * ProcName);
+
+BOOL
+PlatformFreeLibrary(HMODULE Module);

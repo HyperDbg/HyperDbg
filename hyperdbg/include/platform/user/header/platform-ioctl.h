@@ -1,6 +1,6 @@
 /**
  * @file platform-ioctl.h
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode cross-platform interface for the local kernel-driver IOCTL transport
  * @details Distinct from the serial transport (platform-serial), which talks to a remote
  *          debuggee. This interface is the LOCAL control channel: the userspace library

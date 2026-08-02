@@ -48,7 +48,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
 {
     BOOL                                        Status;
     ULONG                                       ReturnedLength;
-    DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket = {0};
+    DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET PcidevinfoPacket = {};
     UINT32                                      TargetBus        = 0;
     UINT32                                      TargetDevice     = 0;
     UINT32                                      TargetFunction   = 0;
@@ -128,7 +128,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                                     // Handle to device
             IOCTL_PCIDEVINFO_ENUM,                              // IO Control Code (IOCTL)
             &PcidevinfoPacket,                                  // Input Buffer to driver.
@@ -142,7 +142,7 @@ CommandPcicam(vector<CommandToken> CommandTokens, string Command)
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             return;
         }
 

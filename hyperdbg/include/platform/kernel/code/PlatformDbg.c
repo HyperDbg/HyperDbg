@@ -33,9 +33,10 @@ PlatformDbgPrint(const CHAR * Format, ...)
     va_end(ArgList);
 
 #elif defined(__linux__)
-
-#    error "Not yet implemented"
-
+    va_list ArgList;
+    va_start(ArgList, Format);
+    vprintk(Format, ArgList);
+    va_end(ArgList);
 #else
 
 #    error "Unsupported platform"

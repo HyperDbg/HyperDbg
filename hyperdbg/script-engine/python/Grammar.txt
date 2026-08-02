@@ -47,7 +47,7 @@
 
 .AssignmentOperator->add_assignment sub_assignment mul_assignment div_assignment mod_assignment asl_assignment asr_assignment and_assignment xor_assignment or_assignment
 
-.SemantiRules->jmp jz jnz mov start_of_do_while start_of_do_while_commands end_of_do_while start_of_for for_inc_dec start_of_for_ommands end_of_if ignore_lvalue push pop call ret struct_forward_declaration struct_definition_begin struct_definition_end struct_variable_declaration struct_member_declaration typedef_declaration struct_pointer struct_array_dimension struct_declarator_complete typed_load typed_store aggregate_copy aggregate_zero struct_initializer_begin struct_initializer_end struct_pointer_cast member_address member_read member_dot_lvalue member_arrow_lvalue member_dot_read member_arrow_read
+.SemantiRules->jmp jz jnz mov start_of_do_while start_of_do_while_commands end_of_do_while start_of_for for_inc_dec start_of_for_ommands end_of_if ignore_lvalue push pop call ret struct_forward_declaration struct_definition_begin struct_definition_end struct_variable_declaration struct_member_declaration typedef_declaration struct_pointer struct_array_dimension struct_declarator_complete typed_load typed_store aggregate_copy aggregate_zero struct_initializer_begin struct_initializer_end struct_pointer_cast member_address member_read member_dot_lvalue member_arrow_lvalue member_dot_read member_arrow_read mov_float neg_float add_float sub_float mul_float div_float gt_float lt_float egt_float elt_float equal_float neq_float convert_float cast_scalar type_name_begin sizeof_begin sizeof_type sizeof_expression logical_not_typed logical_or_begin logical_or_end logical_and_begin logical_and_end
 
 .Registers->rax eax ax ah al rcx ecx cx ch cl rdx edx dx dh dl rbx ebx bx bh bl rsp esp sp spl rbp ebp bp bpl rsi esi si sil rdi edi di dil r8 r8d r8w r8h r8l r9 r9d r9w r9h r9l r10 r10d r10w r10h r10l r11 r11d r11w r11h r11l r12 r12d r12w r12h r12l r13 r13d r13w r13h r13l r14 r14d r14w r14h r14l r15 r15d r15w r15h r15l ds es fs gs cs ss rflags eflags flags cf pf af zf sf tf if df of iopl nt rf vm ac vif vip id rip eip ip idtr ldtr gdtr tr cr0 cr2 cr3 cr4 cr8 dr0 dr1 dr2 dr3 dr6 dr7
 
@@ -188,9 +188,11 @@ STRUCT_ARRAY_DIMS->[ @PUSH CONST_NUMBER @STRUCT_ARRAY_DIMENSION ] STRUCT_ARRAY_D
 STRUCT_ARRAY_DIMS->eps
 
 
-# Typedef declarations are accepted, but typedef-name lookup is implemented in
-# a later type-system stage.  Until then an alias cannot be used as a type.
-TYPEDEF_DECLARATION->typedef TYPEDEF_BASE_TYPE STRUCT_POINTERS @PUSH _local_id ; @TYPEDEF_DECLARATION
+# Register the alias before consuming ';'.  The LL(1) driver scans one token of
+# lookahead after every terminal, so placing the semantic action after ';'
+# would classify the first token in the next declaration before the typedef
+# exists in the type context.
+TYPEDEF_DECLARATION->typedef TYPEDEF_BASE_TYPE STRUCT_POINTERS @PUSH _local_id @TYPEDEF_DECLARATION ;
 
 TYPEDEF_BASE_TYPE->STRUCT_SCALAR_TYPE
 TYPEDEF_BASE_TYPE->struct @PUSH _local_id
@@ -337,7 +339,34 @@ E12->.OneOpFunc4 ( WstringNumber @.OneOpFunc4 )
 E12->.TwoOpFunc4 ( WstringNumber , WstringNumber @.TwoOpFunc4 )
 E12->.ThreeOpFunc4 ( WstringNumber , WstringNumber , EXPRESSION @.ThreeOpFunc4 )
 
-E12->( EXPRESSION )
+E12->( PAREN_EXPRESSION
+
+PAREN_EXPRESSION->@TYPE_NAME_BEGIN VARIABLE_TYPE1 CAST_TYPE_REST ) E12 @CAST_SCALAR
+PAREN_EXPRESSION->@TYPE_NAME_BEGIN struct @PUSH _local_id CAST_POINTERS ) E12 @CAST_SCALAR
+PAREN_EXPRESSION->EXPRESSION )
+
+CAST_TYPE_REST->VARIABLE_TYPE1 CAST_TYPE_REST
+CAST_TYPE_REST->* @DECLARE_POINTER_TYPE CAST_POINTERS
+CAST_TYPE_REST->eps
+CAST_POINTERS->* @DECLARE_POINTER_TYPE CAST_POINTERS
+CAST_POINTERS->eps
+
+E12->sizeof SIZEOF_OPERAND
+SIZEOF_OPERAND->( SIZEOF_PAREN
+SIZEOF_OPERAND->@SIZEOF_BEGIN SIZEOF_UNPAREN @SIZEOF_EXPRESSION
+SIZEOF_PAREN->@TYPE_NAME_BEGIN VARIABLE_TYPE1 CAST_TYPE_REST ) @SIZEOF_TYPE
+SIZEOF_PAREN->@TYPE_NAME_BEGIN struct @PUSH _local_id CAST_POINTERS ) @SIZEOF_TYPE
+SIZEOF_PAREN->@SIZEOF_BEGIN EXPRESSION ) @SIZEOF_EXPRESSION
+
+SIZEOF_UNPAREN->L_VALUE MEMBER_READ_SUFFIX ARRAY_DIMS_READ_OPT
+SIZEOF_UNPAREN->CONST_NUMBER
+SIZEOF_UNPAREN->@PUSH _pseudo_register
+SIZEOF_UNPAREN->- E12 @NEG
+SIZEOF_UNPAREN->+ E12
+SIZEOF_UNPAREN->~ E12 @NOT
+SIZEOF_UNPAREN->! E12 @LOGICAL_NOT_TYPED
+SIZEOF_UNPAREN->* E12 @POI
+SIZEOF_UNPAREN->& E12 @REFERENCE
 
 E12->L_VALUE MEMBER_READ_SUFFIX ARRAY_DIMS_READ_OPT
 
@@ -363,6 +392,7 @@ CONST_NUMBER->@PUSH _hex
 CONST_NUMBER->@PUSH _decimal
 CONST_NUMBER->@PUSH _octal
 CONST_NUMBER->@PUSH _binary
+CONST_NUMBER->@PUSH _float
 
 E12->CONST_NUMBER
 
@@ -371,6 +401,7 @@ E12->@PUSH _pseudo_register
 E12->- E12 @NEG
 E12->+ E12
 E12->~ E12 @NOT
+E12->! E12 @LOGICAL_NOT_TYPED
 E12->* E12 @POI
 E12->& E12 @REFERENCE
 

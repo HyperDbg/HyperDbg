@@ -12,6 +12,16 @@
 #pragma once
 
 //
+// Required (before any libc header) for the GNU locale-aware conversion
+// functions (strtof_l/strtod_l) used by the floating-point literal parser
+//
+#ifdef __linux__
+#    ifndef _GNU_SOURCE
+#        define _GNU_SOURCE
+#    endif
+#endif
+
+//
 // Scope definitions
 //
 #define HYPERDBG_SCRIPT_ENGINE

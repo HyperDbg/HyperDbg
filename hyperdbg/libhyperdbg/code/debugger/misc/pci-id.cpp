@@ -84,7 +84,7 @@ ReadLine(CHAR * DestBuffer, UINT64 CharLimit, CHAR ** SrcBuffer)
             LineLength = (SIZE_T)(CharLimit - 1);
         }
 
-        strncpy_s(DestBuffer, (rsize_t)CharLimit, *SrcBuffer, LineLength);
+        PlatformStrNCpy(DestBuffer, (SIZE_T)CharLimit, *SrcBuffer, LineLength);
         *SrcBuffer += (Line - *SrcBuffer + 1);
         return *SrcBuffer;
     }
@@ -195,7 +195,7 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
                         FreeVendor(MatchedVendor);
                         return NULL;
                     }
-                    strncpy_s(MatchedVendor->VendorName, sizeof(MatchedVendor->VendorName), TrimWhitespace(VendorNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
+                    PlatformStrNCpy(MatchedVendor->VendorName, sizeof(MatchedVendor->VendorName), TrimWhitespace(VendorNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
                     FoundVendorId = TRUE;
                 }
             }
@@ -227,7 +227,7 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
                     return NULL;
                 }
 
-                strncpy_s(NewDevice->DeviceName, sizeof(NewDevice->DeviceName), TrimWhitespace(DeviceNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
+                PlatformStrNCpy(NewDevice->DeviceName, sizeof(NewDevice->DeviceName), TrimWhitespace(DeviceNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
                 NewDevice->SubDevices = NULL;
                 NewDevice->Next       = NULL;
 
@@ -278,7 +278,7 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
                     return NULL;
                 }
 
-                strncpy_s(NewSubDevice->SubSystemName, sizeof(NewSubDevice->SubSystemName), TrimWhitespace(SubsystemNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
+                PlatformStrNCpy(NewSubDevice->SubSystemName, sizeof(NewSubDevice->SubSystemName), TrimWhitespace(SubsystemNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
                 NewSubDevice->Next = NULL;
 
                 if (LastSubDevice)
@@ -362,6 +362,7 @@ FreePciIdDatabase()
 Vendor *
 GetVendorById(UINT16 VendorId)
 {
+#ifdef _WIN32
     CHAR    VendorIdAsStr[5];
     CHAR    ExecutablePath[MAX_PATH];
     HMODULE hModule = GetModuleHandle(NULL);
@@ -405,6 +406,17 @@ GetVendorById(UINT16 VendorId)
     memcpy(ExecutableName, PCI_ID_DATABASE_PATH, sizeof(PCI_ID_DATABASE_PATH));
 
     return GetVendorByIdStr(ExecutablePath, ToLower(VendorIdAsStr));
+#else
+    //
+    // TODO(Linux): resolve the PCI ID database next to the executable via
+    // readlink("/proc/self/exe") once the path separator and
+    // PCI_ID_DATABASE_PATH ("constants\\pci.ids") are made portable. Until
+    // then no vendor/device names are available on Linux.
+    //
+    UNREFERENCED_PARAMETER(VendorId);
+
+    return NULL;
+#endif
 }
 
 /**

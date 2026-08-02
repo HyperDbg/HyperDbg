@@ -1164,7 +1164,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
             SearchMemRequest->Address = PhysicalAddressToVirtualAddressByProcessId((PVOID)StartAddress,
                                                                                    SearchMemRequest->ProcessId);
             EndAddress                = PhysicalAddressToVirtualAddressByProcessId((PVOID)EndAddress,
-                                                                    SearchMemRequest->ProcessId);
+                                                                                   SearchMemRequest->ProcessId);
         }
 
         //
@@ -1308,6 +1308,223 @@ DebuggerCommandFlush(PDEBUGGER_FLUSH_LOGGING_BUFFERS DebuggerFlushBuffersRequest
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxRoot    = LogMarkAllAsRead(TRUE);
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxNonRoot = LogMarkAllAsRead(FALSE);
     DebuggerFlushBuffersRequest->KernelStatus                               = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Handle CPUID request in vmx-root mode
+ *
+ * @param DebuggerCpuidRequest Request with CPUID function member and output
+ * @return NTSTATUS
+ */
+NTSTATUS
+DebuggerCommandCpuid(PDEBUGGER_CPUID_REQUEST_RESPONSE DebuggerCpuidRequest)
+{
+    BOOLEAN RunCpuid      = TRUE;
+    UINT32  CpuidRegs[4]  = {0};
+    UINT32  FunctionId    = DebuggerCpuidRequest->FunctionId;
+    UINT32  SubFunctionId = DebuggerCpuidRequest->SubFunctionId;
+    UINT32  CacheIndex;
+
+    //
+    // Zero out memory buffer
+    //
+    RtlZeroMemory(DebuggerCpuidRequest, SIZEOF_DEBUGGER_CPUID_REQUEST_RESPONSE);
+
+    //
+    // receive maximum subleaves (for special ones, e.g 14, B,...), and do some other things (e.g brand string,...)
+    //
+    switch (FunctionId)
+    {
+    //
+    // EAX = 4h
+    //
+    case CPUID_CACHE_PARAMETERS:
+        for (CacheIndex = 0;; CacheIndex++)
+        {
+            CommonCpuidInstruction(FunctionId, CacheIndex, (INT32 *)CpuidRegs);
+            if (CPUID_EAX_CACHE_TYPE_FIELD(CpuidRegs[0]) == 0)
+            {
+                DebuggerCpuidRequest->Leaf4MaxSubLeaf = (CacheIndex > 0) ? (CacheIndex - 1) : 0;
+                break;
+            }
+        }
+
+        break;
+
+    //
+    // EAX = 0Bh
+    //
+    case CPUID_EXTENDED_TOPOLOGY:
+        //
+        // Check if supported or not
+        // in order to determine maximum subleaf, we have to check whether this leaf
+        // is supported by the current processor or not
+        //
+        CommonCpuidInstruction(FunctionId, 0, (INT32 *)CpuidRegs);
+        if (CPUID_EBX_NUMBER_OF_LOGICAL_PROCESSORS_AT_THIS_LEVEL_TYPE(CpuidRegs[1]) == 0)
+        {
+            //
+            // not supported
+            //
+            DebuggerCpuidRequest->LeafBSupported = FALSE;
+            RunCpuid                             = FALSE;
+
+            break;
+        }
+
+        DebuggerCpuidRequest->LeafBSupported = TRUE;
+
+        //
+        // iteration for determining max subleaf supported by this leaf
+        //
+        for (CacheIndex = 0;; CacheIndex++)
+        {
+            CommonCpuidInstruction(FunctionId, CacheIndex, (INT32 *)CpuidRegs);
+            if (CPUID_ECX_LEVEL_TYPE(CpuidRegs[2]) == 0)
+            {
+                //
+                // check if CacheIndex is 0, then there are no valid sub-leaves
+                //
+                DebuggerCpuidRequest->LeafBMaxSubleaf = (CacheIndex > 0) ? (CacheIndex - 1) : 0;
+                break;
+            }
+        }
+
+        break;
+
+    //
+    // EAX = 0Dh
+    //
+    case CPUID_EXTENDED_STATE_INFORMATION:
+        //
+        // Get XCR0 bits
+        //
+        CommonCpuidInstruction(FunctionId, 0, (INT32 *)CpuidRegs);
+        DebuggerCpuidRequest->XCR0Vector = ((UINT64)CpuidRegs[3] << 32) | CpuidRegs[0];
+
+        //
+        // Get IA32_XSS bits
+        //
+        CommonCpuidInstruction(FunctionId, 1, (INT32 *)CpuidRegs);
+        DebuggerCpuidRequest->IA32_XSS_Vector = ((UINT64)CpuidRegs[3] << 32) | CpuidRegs[2];
+
+        break;
+
+    //
+    // EAX = 12h
+    //
+    case CPUID_INTEL_SGX:
+        //
+        // we need to check that if SGX is supported or not
+        //
+        CommonCpuidInstruction(7, 0, (INT32 *)CpuidRegs);
+        DebuggerCpuidRequest->Leaf12Supported = CPUID_EBX_SGX(CpuidRegs[1]);
+
+        if (!CPUID_EBX_SGX(CpuidRegs[1]))
+        {
+            //
+            // SGX not supported
+            //
+            RunCpuid = FALSE;
+            break;
+        }
+
+        //
+        // find max subleaf
+        // subleaves 0 and 1 are always valid if SGX is supported, so we start iteration from 2
+        //
+        for (CacheIndex = 2;; CacheIndex++)
+        {
+            CommonCpuidInstruction(FunctionId, CacheIndex, (INT32 *)CpuidRegs);
+
+            //
+            // type 0 means invalid - stop enumeration
+            //
+            if (CPUID_EAX_SUB_LEAF_TYPE(CpuidRegs[0]) == 0)
+            {
+                DebuggerCpuidRequest->Leaf12MaxSubLeaf = (CacheIndex > 0) ? (CacheIndex - 1) : 0;
+                break;
+            }
+
+            //
+            // Safety limit - shouldn't need more than 64 EPC sections
+            //
+            if (CacheIndex > 64)
+            {
+                DebuggerCpuidRequest->Leaf12MaxSubLeaf = CacheIndex;
+                break;
+            }
+        }
+
+        break;
+
+    //
+    // Leaves with same method to receive max subleaf: 7h, 14h, 18h (respectively)
+    //
+    case CPUID_STRUCTURED_EXTENDED_FEATURE_FLAGS:
+    case CPUID_INTEL_PROCESSOR_TRACE_INFORMATION:
+    case CPUID_DETERMINISTIC_ADDRESS_TRANSLATION_PARAMETERS:
+        CommonCpuidInstruction(FunctionId, 0, (INT32 *)CpuidRegs);
+
+        //
+        // EAX = 7h
+        //
+        if (FunctionId == CPUID_STRUCTURED_EXTENDED_FEATURE_FLAGS)
+        {
+            DebuggerCpuidRequest->LeafEaxMaxSubleaf = CPUID_EAX_NUMBER_OF_SUB_LEAVES(CpuidRegs[0]);
+            break;
+        }
+
+        //
+        // EAX = 14h or 18h -- not 7h
+        //
+        DebuggerCpuidRequest->LeafEaxMaxSubleaf = CPUID_EAX_MAX_SUB_LEAF(CpuidRegs[0]);
+
+        break;
+
+    //
+    // 0x80000002 - 0x80000004 : brand string
+    //
+    case CPUID_BRAND_STRING1:
+    case CPUID_BRAND_STRING2:
+    case CPUID_BRAND_STRING3:
+        for (UINT32 i = 0; i < 3; i++)
+        {
+            CommonCpuidInstruction(0x80000002 + i, 0, (INT32 *)CpuidRegs);
+            memcpy(DebuggerCpuidRequest->BrandString + (i * 16), CpuidRegs, 16);
+        }
+        DebuggerCpuidRequest->BrandString[48] = '\0';
+
+        //
+        // because we already EXCLUSIVELY called CPUID for these leaves, we are not going to call it again,
+        // as a result the RunCpuid flag is FALSE
+        //
+        RunCpuid = FALSE;
+        break;
+    }
+
+    //
+    // Call CPUID function
+    //
+    if (RunCpuid)
+    {
+        CommonCpuidInstruction(FunctionId, SubFunctionId, (INT32 *)CpuidRegs);
+        DebuggerCpuidRequest->EAX = CpuidRegs[0];
+        DebuggerCpuidRequest->EBX = CpuidRegs[1];
+        DebuggerCpuidRequest->ECX = CpuidRegs[2];
+        DebuggerCpuidRequest->EDX = CpuidRegs[3];
+    }
+
+    //
+    // Ensure the response contains the correct FunctionId and SubFunctionId
+    // (they should already be set, but this makes it explicit)
+    //
+    DebuggerCpuidRequest->FunctionId    = FunctionId;
+    DebuggerCpuidRequest->SubFunctionId = SubFunctionId;
+
+    DebuggerCpuidRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }

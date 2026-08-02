@@ -64,6 +64,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT                0x1f
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT          0x20
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT      0x21
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT                   0x22
 
 //////////////////////////////////////////////////
 //               Event Details                  //
@@ -219,6 +220,14 @@ CommandEventsClearAllEventsAndResetTags();
 
 VOID
 CommandFlushRequestFlush();
+
+VOID
+CommandCpuidRequestCpuid(UINT32 FunctionId, UINT32 SubFunctionId);
+
+VOID
+CommandShowUserCpuidMessage(UINT32                           FunctionId,
+                            UINT32                           SubFunctionId,
+                            PDEBUGGER_CPUID_REQUEST_RESPONSE CpuidRequest);
 
 UINT64
 GetCommandAttributes(const string & FirstCommand);

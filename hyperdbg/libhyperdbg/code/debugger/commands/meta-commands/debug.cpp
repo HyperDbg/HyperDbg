@@ -58,22 +58,22 @@ CommandDebugHelp()
 BOOLEAN
 CommandDebugCheckComPort(const CHAR * ComPort, UINT32 * Port)
 {
-    if (_stricmp(ComPort, "com1") == 0)
+    if (PlatformStrCaseCmp(ComPort, "com1") == 0)
     {
         *Port = COM1_PORT;
         return TRUE;
     }
-    else if (_stricmp(ComPort, "com2") == 0)
+    else if (PlatformStrCaseCmp(ComPort, "com2") == 0)
     {
         *Port = COM2_PORT;
         return TRUE;
     }
-    else if (_stricmp(ComPort, "com3") == 0)
+    else if (PlatformStrCaseCmp(ComPort, "com3") == 0)
     {
         *Port = COM3_PORT;
         return TRUE;
     }
-    else if (_stricmp(ComPort, "com4") == 0)
+    else if (PlatformStrCaseCmp(ComPort, "com4") == 0)
     {
         *Port = COM4_PORT;
         return TRUE;

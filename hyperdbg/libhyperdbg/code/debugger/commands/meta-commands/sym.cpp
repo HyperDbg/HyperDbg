@@ -179,7 +179,7 @@ CommandSym(vector<CommandToken> CommandTokens, string Command)
                 }
                 else
                 {
-                    UserProcessId = GetCurrentProcessId();
+                    UserProcessId = PlatformGetCurrentProcessId();
                 }
             }
 

@@ -239,6 +239,20 @@ BOOLEAN g_IsRunningInstruction32Bit = FALSE;
 HANDLE g_SerialListeningThreadHandle = NULL;
 
 /**
+ * Set when the debuggee-side serial receiver (packets coming from the debugger)
+ * desyncs, so the warning is shown once per episode (cleared on the next good
+ * frame) instead of on every overflow while the stream stays desynced.
+ */
+BOOLEAN g_KdReceiveFromDebuggerDesyncReported = FALSE;
+
+/**
+ * Set when the debuggee-side listening loop desyncs, so the warning is shown
+ * once per episode (cleared on the next good frame) instead of on every
+ * overflow while the stream stays desynced.
+ */
+BOOLEAN g_ListeningDebuggeeDesyncReported = FALSE;
+
+/**
  * @brief In debugger (not debuggee), we save the handle
  * of the user-mode listening thread for remote system here
  *

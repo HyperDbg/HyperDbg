@@ -56,6 +56,7 @@ NewUnknownToken()
     Token->VariableMemoryIdx = 0;
     Token->AddressSpace      = 0;
     Token->IsAddress         = FALSE;
+    Token->IsImplicitType    = FALSE;
 
     return Token;
 }
@@ -99,6 +100,7 @@ NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
     Token->VariableMemoryIdx = 0;
     Token->AddressSpace      = 0;
     Token->IsAddress         = FALSE;
+    Token->IsImplicitType    = FALSE;
 
     if (Token->Value == NULL)
     {
@@ -386,6 +388,7 @@ CopyToken(PSCRIPT_ENGINE_TOKEN Token)
     TokenCopy->VariableMemoryIdx = Token->VariableMemoryIdx;
     TokenCopy->AddressSpace      = Token->AddressSpace;
     TokenCopy->IsAddress         = Token->IsAddress;
+    TokenCopy->IsImplicitType    = Token->IsImplicitType;
 
     if (TokenCopy->Value == NULL)
     {
@@ -1216,6 +1219,11 @@ GetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
             if (!strcmp("_hex", TerminalMap[i]))
                 return i;
         }
+        else if (Token->Type == FLOAT_LITERAL)
+        {
+            if (!strcmp("_float", TerminalMap[i]))
+                return i;
+        }
         else if (Token->Type == GLOBAL_ID || Token->Type == GLOBAL_UNRESOLVED_ID)
         {
             if (!strcmp("_global_id", TerminalMap[i]))
@@ -1342,6 +1350,11 @@ LalrGetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
             if (!strcmp("_hex", LalrTerminalMap[i]))
                 return i;
         }
+        else if (Token->Type == FLOAT_LITERAL)
+        {
+            if (!strcmp("_float", LalrTerminalMap[i]))
+                return i;
+        }
         else if (Token->Type == GLOBAL_ID || Token->Type == GLOBAL_UNRESOLVED_ID)
         {
             if (!strcmp("_global_id", LalrTerminalMap[i]))
@@ -1366,6 +1379,13 @@ LalrGetTerminalId(PSCRIPT_ENGINE_TOKEN Token)
         else if (Token->Type == FUNCTION_PARAMETER_ID)
         {
             if (!strcmp("_function_parameter_id", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == SCRIPT_VARIABLE_TYPE)
+        {
+            if (!strcmp("_script_variable_type", LalrTerminalMap[i]))
             {
                 return i;
             }

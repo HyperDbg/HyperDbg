@@ -158,7 +158,7 @@ CommandWrmsr(vector<CommandToken> CommandTokens, string Command)
     MsrWriteRequest.CoreNumber = CoreNumer;
     MsrWriteRequest.Value      = Value;
 
-    Status = DeviceIoControl(
+    Status = PlatformDeviceIoControl(
         g_DeviceHandle,                        // Handle to device
         IOCTL_DEBUGGER_READ_OR_WRITE_MSR,      // IO Control Code (IOCTL)
         &MsrWriteRequest,                      // Input Buffer to driver.
@@ -172,7 +172,7 @@ CommandWrmsr(vector<CommandToken> CommandTokens, string Command)
     if (!Status)
     {
         ShowMessages("ioctl failed with code (%x), either msr index or core id is invalid\n",
-                     GetLastError());
+                     PlatformGetLastError());
         return;
     }
 

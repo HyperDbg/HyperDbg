@@ -346,6 +346,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                         string      Expr)
 {
     SCRIPT_ENGINE_GENERAL_REGISTERS ScriptGeneralRegisters = {0};
+    g_CurrentExprEvalResultHasError = FALSE;
 
     //
     // Allocate global variables holder
@@ -477,6 +478,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     else
     {
         ShowMessages("%s\n", CodeBuffer->Message);
+        g_CurrentExprEvalResultHasError = TRUE;
     }
 
     RemoveSymbolBuffer(CodeBuffer);

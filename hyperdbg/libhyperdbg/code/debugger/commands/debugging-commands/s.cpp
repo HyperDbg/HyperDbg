@@ -76,13 +76,13 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
     // Also it's better to Zero the memory; however it's not necessary
     // as we zero the buffer in the search routines
     //
-    ZeroMemory(ResultsBuffer, MaximumSearchResults * sizeof(UINT64));
+    PlatformZeroMemory(ResultsBuffer, MaximumSearchResults * sizeof(UINT64));
 
     //
     // Fire the IOCTL
     //
     Status =
-        DeviceIoControl(g_DeviceHandle,               // Handle to device
+        PlatformDeviceIoControl(g_DeviceHandle,               // Handle to device
                         IOCTL_DEBUGGER_SEARCH_MEMORY, // IO Control Code (IOCTL)
                         BufferToSendAsIoctl,          // Input Buffer to driver.
                         BufferToSendAsIoctlSize,      // Input buffer length
@@ -95,7 +95,7 @@ CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoct
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
 
         free(ResultsBuffer);
         return;
@@ -394,7 +394,7 @@ CommandSearchMemory(vector<CommandToken> CommandTokens, string Command)
 
     if (ProcId == 0)
     {
-        ProcId = GetCurrentProcessId();
+        ProcId = PlatformGetCurrentProcessId();
     }
 
     //
@@ -473,7 +473,7 @@ CommandSearchMemory(vector<CommandToken> CommandTokens, string Command)
     //
     // Zero the buffer
     //
-    ZeroMemory(FinalBuffer, FinalSize);
+    PlatformZeroMemory(FinalBuffer, FinalSize);
 
     //
     // Copy the structure on top of the allocated buffer

@@ -131,6 +131,9 @@ hyperdbg_u_set_text_message_callback_using_shared_buffer(PVOID handler);
 IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_unset_text_message_callback();
 
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_test_script_engine(CHAR * expression);
+
 IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_script_read_file_and_execute_commandline(INT argc, CHAR * argv[]);
 
@@ -325,6 +328,13 @@ hyperdbg_u_pt_operation(HYPERTRACE_PT_OPERATION_PACKETS * PtRequest);
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_pt_mmap(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest);
+
+//
+// CPUID related command
+// Exported functionality of the 'ucpuid', and 'cpuid' commands
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_request_cpuid(UINT32 FunctionId, UINT32 SubFunctionId);
 
 //
 // Transparent mode related command

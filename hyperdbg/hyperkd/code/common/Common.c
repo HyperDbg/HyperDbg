@@ -268,3 +268,17 @@ CommonValidateCoreNumber(UINT32 CoreNumber)
         return TRUE;
     }
 }
+
+/**
+ * @brief Get cpuid results
+ *
+ * @param Func
+ * @param SubFunc
+ * @param CpuInfo
+ * @return VOID
+ */
+VOID
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, INT * CpuInfo)
+{
+    CpuCpuIdEx(CpuInfo, Func, SubFunc);
+}

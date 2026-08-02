@@ -172,6 +172,9 @@ VOID
 CommandFlushHelp();
 
 VOID
+CommandUserCpuidHelp();
+
+VOID
 CommandPauseHelp();
 
 VOID

@@ -18,19 +18,20 @@ extern HANDLE g_SerialListeningThreadHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern HANDLE g_DebuggeeStopCommandEventHandle;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-                                        g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
-extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
-extern BOOLEAN                          g_IsConnectedToHyperDbgLocally;
+               g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
+extern BYTE    g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
+extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 #ifdef _WIN32
-extern OVERLAPPED                       g_OverlappedIoStructureForReadDebugger;
-extern OVERLAPPED                       g_OverlappedIoStructureForWriteDebugger;
-extern OVERLAPPED                       g_OverlappedIoStructureForReadDebuggee;
+extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
+extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
+extern OVERLAPPED g_OverlappedIoStructureForReadDebuggee;
 #endif // _WIN32
 extern DEBUGGER_EVENT_AND_ACTION_RESULT g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_RESULT
                g_DebuggeeResultOfAddingActionsToEvent;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN g_KdReceiveFromDebuggerDesyncReported;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsKdModuleLoaded;
@@ -331,6 +332,38 @@ KdSendFlushPacketToDebuggee()
     // Wait until the result of flushing received
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT);
+
+    return TRUE;
+}
+
+/**
+ * @brief Send a CPUID request to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendUserCpuidPacketToDebuggee(UINT32 FunctionId, UINT32 SubFunctionId)
+{
+    DEBUGGER_CPUID_REQUEST_RESPONSE CpuidPacket = {0};
+    CpuidPacket.FunctionId                      = FunctionId;
+    CpuidPacket.SubFunctionId                   = SubFunctionId;
+
+    //
+    // Send 'ucpuid' command as CPUID packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_USER_CPUID_REQUEST,
+            (CHAR *)&CpuidPacket,
+            sizeof(DEBUGGER_CPUID_REQUEST_RESPONSE)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of CPUID received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT);
 
     return TRUE;
 }
@@ -699,7 +732,7 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
            EventBufferLength);
 
     PlatformZeroMemory(&g_DebuggeeResultOfRegisteringEvent,
-                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
+                       sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
     //
     // Send register event packet
@@ -766,7 +799,7 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
            GeneralActionLength);
 
     PlatformZeroMemory(&g_DebuggeeResultOfAddingActionsToEvent,
-                  sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
+                       sizeof(DEBUGGER_EVENT_AND_ACTION_RESULT));
 
     //
     // Send add action to event packet
@@ -1558,6 +1591,245 @@ KdGetWindowVersion(CHAR * BufferToSave)
 #endif // _WIN32
 }
 
+//
+// Set when the debugger-side serial receiver desyncs, so the warning is shown
+// once per episode (cleared on the next good frame) instead of on every
+// overflow while the stream stays desynced.
+//
+static BOOLEAN g_KdSerialReceiverDesyncReported = FALSE;
+
+/**
+ * @brief Read a single byte from the debuggee over the serial link
+ *
+ * @details Encapsulates the platform-specific single-byte read used by the
+ * debugger-side receiver so the framing loop and the resync path share one
+ * implementation.
+ *
+ * @param ReadData receives the byte that was read
+ * @param NoBytesRead receives the number of bytes actually read
+ *
+ * @return BOOLEAN TRUE on a successful read, FALSE on a hard read error
+ */
+static BOOLEAN
+KdReadByteFromDebuggeeSerial(CHAR * ReadData, DWORD * NoBytesRead)
+{
+#ifdef _WIN32
+    //
+    // Try to read one byte in overlapped I/O (in debugger)
+    //
+    if (!ReadFile(g_SerialRemoteComPortHandle, ReadData, sizeof(CHAR), NULL, &g_OverlappedIoStructureForReadDebugger))
+    {
+        DWORD e = GetLastError();
+
+        if (e != ERROR_IO_PENDING)
+        {
+            return FALSE;
+        }
+    }
+
+    //
+    // Wait till one packet becomes available
+    //
+    WaitForSingleObject(g_OverlappedIoStructureForReadDebugger.hEvent,
+                        INFINITE);
+
+    //
+    // Get the result
+    //
+    GetOverlappedResult(g_SerialRemoteComPortHandle,
+                        &g_OverlappedIoStructureForReadDebugger,
+                        NoBytesRead,
+                        FALSE);
+
+    //
+    // Reset event for next try
+    //
+    ResetEvent(g_OverlappedIoStructureForReadDebugger.hEvent);
+
+    return TRUE;
+#else
+    //
+    // Linux: read one byte through the cross-platform serial transport
+    //
+    return PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                  ReadData,
+                                  NoBytesRead,
+                                  PLATFORM_SERIAL_IO_DEBUGGER);
+#endif // _WIN32
+}
+
+/**
+ * @brief Read a single byte from the debugger over the serial link
+ *
+ * @details Debuggee-side counterpart of KdReadByteFromDebuggeeSerial(); reads
+ * through the read-from-debugger overlapped structure so the framing loop and
+ * the resync path share one implementation.
+ *
+ * @param ReadData receives the byte that was read
+ * @param NoBytesRead receives the number of bytes actually read
+ *
+ * @return BOOLEAN TRUE on a successful read, FALSE on a hard read error
+ */
+static BOOLEAN
+KdReadByteFromDebuggerSerial(CHAR * ReadData, DWORD * NoBytesRead)
+{
+#ifdef _WIN32
+    //
+    // Try to read one byte in overlapped I/O (in debuggee)
+    //
+    if (!ReadFile(g_SerialRemoteComPortHandle, ReadData, sizeof(CHAR), NULL, &g_OverlappedIoStructureForReadDebuggee))
+    {
+        DWORD e = GetLastError();
+
+        if (e != ERROR_IO_PENDING)
+        {
+            return FALSE;
+        }
+    }
+
+    //
+    // Wait till one packet becomes available
+    //
+    WaitForSingleObject(g_OverlappedIoStructureForReadDebuggee.hEvent,
+                        INFINITE);
+
+    //
+    // Get the result
+    //
+    GetOverlappedResult(g_SerialRemoteComPortHandle,
+                        &g_OverlappedIoStructureForReadDebuggee,
+                        NoBytesRead,
+                        FALSE);
+
+    //
+    // Reset event for next try
+    //
+    ResetEvent(g_OverlappedIoStructureForReadDebuggee.hEvent);
+
+    return TRUE;
+#else
+    //
+    // Linux: read one byte through the cross-platform serial transport
+    // (the 5s read timeout is applied inside the platform layer)
+    //
+    return PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                  ReadData,
+                                  NoBytesRead,
+                                  PLATFORM_SERIAL_IO_DEBUGGEE);
+#endif // _WIN32
+}
+
+/**
+ * @brief Discard bytes until the next end-of-buffer marker, re-aligning the
+ * debugger-side serial receiver to a frame boundary after a desync
+ *
+ * @details Mirrors SerialConnectionResyncToNextFrame() on the debuggee side
+ * Bounded by SERIAL_RESYNC_MAX_BYTES so a dead or garbage link cannot spin
+ * forever
+ *
+ * @param IsDebuggee
+ *
+ * @return BOOLEAN TRUE if a marker was found (stream re-aligned), FALSE if too
+ * many bytes arrived without one (treat the link as dead)
+ */
+BOOLEAN
+KdResyncStreamToNextFrame(DEBUGGER_PACKET_RESYNC_ENUM ReSyncType)
+{
+    BOOL   Status;
+    BYTE   Window[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {NULL_ZERO, NULL_ZERO, NULL_ZERO, NULL_ZERO};
+    UINT32 Discarded                                = 0;
+
+    while (Discarded < SERIAL_RESYNC_MAX_BYTES)
+    {
+        CHAR  ReadData    = NULL_ZERO;
+        DWORD NoBytesRead = 0;
+
+        if (ReSyncType == DEBUGGER_PACKET_RESYNC_DEBUGGEE)
+        {
+            //
+            // It is for the debuggee
+            //
+            if (!KdReadByteFromDebuggeeSerial(&ReadData, &NoBytesRead))
+            {
+                return FALSE;
+            }
+        }
+        else if (ReSyncType == DEBUGGER_PACKET_RESYNC_DEBUGGER)
+        {
+            //
+            // It is for the debugger
+            //
+            if (!KdReadByteFromDebuggerSerial(&ReadData, &NoBytesRead))
+            {
+                return FALSE;
+            }
+        }
+        else if (ReSyncType == DEBUGGER_PACKET_RESYNC_LISTENING)
+        {
+#ifdef _WIN32
+            Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
+#else
+            //
+            // Linux: read one byte through the cross-platform serial transport
+            //
+            Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                            &ReadData,
+                                            &NoBytesRead,
+                                            PLATFORM_SERIAL_IO_DEBUGGEE);
+#endif // _WIN32
+
+            if (!Status)
+            {
+                return FALSE;
+            }
+        }
+        else
+        {
+            ShowMessages("err, invalid resync type\n");
+            return FALSE;
+        }
+
+        if (NoBytesRead == 0)
+        {
+            if (ReSyncType == DEBUGGER_PACKET_RESYNC_DEBUGGEE || ReSyncType == DEBUGGER_PACKET_RESYNC_LISTENING)
+            {
+                //
+                // For the debuggee and listening
+                //
+                continue;
+            }
+            else if (DEBUGGER_PACKET_RESYNC_DEBUGGER)
+            {
+                //
+                // For the debugger
+                //
+
+                //
+                // The read timed out with no data: the link is idle, so stop
+                // discarding and let the caller fall back to its idle handling.
+                //
+                return FALSE;
+            }
+        }
+
+        Window[0] = Window[1];
+        Window[1] = Window[2];
+        Window[2] = Window[3];
+        Window[3] = (BYTE)ReadData;
+        Discarded++;
+
+        if (Window[0] == SERIAL_END_OF_BUFFER_CHAR_1 &&
+            Window[1] == SERIAL_END_OF_BUFFER_CHAR_2 &&
+            Window[2] == SERIAL_END_OF_BUFFER_CHAR_3 &&
+            Window[3] == SERIAL_END_OF_BUFFER_CHAR_4)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 /**
  * @brief Receive packet from the debuggee
  *
@@ -1579,54 +1851,10 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
     //
     do
     {
-#ifdef _WIN32
-        //
-        // It's in the debugger
-        //
-
-        //
-        // Try to read one byte in overlapped I/O (in debugger)
-        //
-        if (!ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), NULL, &g_OverlappedIoStructureForReadDebugger))
-        {
-            DWORD e = GetLastError();
-
-            if (e != ERROR_IO_PENDING)
-            {
-                return FALSE;
-            }
-        }
-
-        //
-        // Wait till one packet becomes available
-        //
-        WaitForSingleObject(g_OverlappedIoStructureForReadDebugger.hEvent,
-                            INFINITE);
-
-        //
-        // Get the result
-        //
-        GetOverlappedResult(g_SerialRemoteComPortHandle,
-                            &g_OverlappedIoStructureForReadDebugger,
-                            &NoBytesRead,
-                            FALSE);
-
-        //
-        // Reset event for next try
-        //
-        ResetEvent(g_OverlappedIoStructureForReadDebugger.hEvent);
-#else
-        //
-        // Linux: read one byte through the cross-platform serial transport
-        //
-        if (!PlatformSerialReadByte(g_SerialRemoteComPortHandle,
-                                    &ReadData,
-                                    &NoBytesRead,
-                                    PLATFORM_SERIAL_IO_DEBUGGER))
+        if (!KdReadByteFromDebuggeeSerial(&ReadData, &NoBytesRead))
         {
             return FALSE;
         }
-#endif
 
         //
         // We already now that the maximum packet size is MaxSerialPacketSize
@@ -1635,11 +1863,30 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
         if (!(MaxSerialPacketSize > Loop))
         {
             //
-            // Invalid buffer
+            // Overflowed without an end-of-buffer marker: the stream is
+            // desynced (the debuggee most likely dropped the link mid-frame
+            // without sending a close packet). Returning FALSE here sends the
+            // caller straight back into the same desynced stream, which
+            // overflows again at once and floods the output. Show the warning
+            // once per episode and resync to the next frame boundary instead.
             //
-            ShowMessages("err, a buffer received in which exceeds the "
-                         "buffer limitation\n");
-            return FALSE;
+            if (!g_KdSerialReceiverDesyncReported)
+            {
+                ShowMessages("err, serial stream desynced (a buffer exceeded the "
+                             "buffer limitation with no end marker); resyncing\n");
+                g_KdSerialReceiverDesyncReported = TRUE;
+            }
+
+            if (!KdResyncStreamToNextFrame(DEBUGGER_PACKET_RESYNC_DEBUGGEE))
+            {
+                //
+                // Too many bytes without a marker: treat the link as dead.
+                //
+                return FALSE;
+            }
+
+            Loop = 0;
+            continue;
         }
 
         BufferToSave[Loop] = ReadData;
@@ -1652,6 +1899,11 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
         Loop++;
 
     } while (NoBytesRead > 0);
+
+    //
+    // A full frame arrived, so the stream is back in sync.
+    //
+    g_KdSerialReceiverDesyncReported = FALSE;
 
     //
     // Set the length
@@ -1701,55 +1953,10 @@ KdReceivePacketFromDebugger(CHAR *   BufferToSave,
     //
     do
     {
-#ifdef _WIN32
-        //
-        // It's in the debuggee
-        //
-
-        //
-        // Try to read one byte in overlapped I/O (in debugger)
-        //
-        if (!ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), NULL, &g_OverlappedIoStructureForReadDebuggee))
-        {
-            DWORD e = GetLastError();
-
-            if (e != ERROR_IO_PENDING)
-            {
-                return FALSE;
-            }
-        }
-
-        //
-        // Wait till one packet becomes available
-        //
-        WaitForSingleObject(g_OverlappedIoStructureForReadDebuggee.hEvent,
-                            INFINITE);
-
-        //
-        // Get the result
-        //
-        GetOverlappedResult(g_SerialRemoteComPortHandle,
-                            &g_OverlappedIoStructureForReadDebuggee,
-                            &NoBytesRead,
-                            FALSE);
-
-        //
-        // Reset event for next try
-        //
-        ResetEvent(g_OverlappedIoStructureForReadDebuggee.hEvent);
-#else
-        //
-        // Linux: read one byte through the cross-platform serial transport
-        // (the 5s read timeout is applied inside the platform layer)
-        //
-        if (!PlatformSerialReadByte(g_SerialRemoteComPortHandle,
-                                    &ReadData,
-                                    &NoBytesRead,
-                                    PLATFORM_SERIAL_IO_DEBUGGEE))
+        if (!KdReadByteFromDebuggerSerial(&ReadData, &NoBytesRead))
         {
             return FALSE;
         }
-#endif
 
         //
         // We already now that the maximum packet size is MaxSerialPacketSize
@@ -1758,11 +1965,31 @@ KdReceivePacketFromDebugger(CHAR *   BufferToSave,
         if (!(MaxSerialPacketSize > Loop))
         {
             //
-            // Invalid buffer
+            // Overflowed without an end-of-buffer marker: the stream is
+            // desynced (the debugger most likely dropped the link mid-frame
+            // without sending a close packet). Returning FALSE here sends the
+            // caller straight back into the same desynced stream, which
+            // overflows again at once and floods the output. Show the warning
+            // once per episode and resync to the next frame boundary instead.
             //
-            ShowMessages("err, a buffer received in which exceeds the "
-                         "buffer limitation\n");
-            return FALSE;
+            if (!g_KdReceiveFromDebuggerDesyncReported)
+            {
+                ShowMessages("err, serial stream desynced (a buffer exceeded the "
+                             "buffer limitation with no end marker); resyncing\n");
+                g_KdReceiveFromDebuggerDesyncReported = TRUE;
+            }
+
+            if (!KdResyncStreamToNextFrame(DEBUGGER_PACKET_RESYNC_DEBUGGER))
+            {
+                //
+                // The link went idle or stayed garbage past the bound: treat it
+                // as dead so the caller can fall back to its idle handling.
+                //
+                return FALSE;
+            }
+
+            Loop = 0;
+            continue;
         }
 
         BufferToSave[Loop] = ReadData;
@@ -1775,6 +2002,11 @@ KdReceivePacketFromDebugger(CHAR *   BufferToSave,
         Loop++;
 
     } while (NoBytesRead > 0);
+
+    //
+    // A full frame arrived, so the stream is back in sync.
+    //
+    g_KdReceiveFromDebuggerDesyncReported = FALSE;
 
     //
     // Set the length
@@ -2495,7 +2727,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
                              BOOLEAN      IsNamedPipe,
                              BOOLEAN      PauseAfterConnection)
 {
-    HANDLE                     Comm; /* Handle to the Serial port */
+    HANDLE Comm; /* Handle to the Serial port */
 #ifdef _WIN32
     BOOL         Status;             /* Status */
     DCB          SerialParams = {0}; /* Initializing DCB structure */

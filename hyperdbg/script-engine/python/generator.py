@@ -14,8 +14,22 @@
  
  """
 
+import os
+import subprocess
+import sys
+
 from ll1_parser import *
 from lalr1_parser import *
+
+
+def EnsureDeterministicHashSeed():
+    """Restart the generator with stable set/dict iteration ordering."""
+    if os.environ.get("PYTHONHASHSEED") == "0":
+        return
+
+    Environment = os.environ.copy()
+    Environment["PYTHONHASHSEED"] = "0"
+    raise SystemExit(subprocess.call([sys.executable] + sys.argv, env=Environment))
 
 class Generator():
     def __init__(self): 
@@ -88,6 +102,23 @@ object ScriptConstants {
   val SYMBOL_MEM_VALID_CHECK_MASK = 1 << 31
   val INVALID = 0x80000000
   val LALR_ACCEPT = 0x7fffffff
+  val SYMBOL_VALUE_KIND_INTEGER = 0
+  val SYMBOL_VALUE_KIND_FLOAT32 = 1
+  val SYMBOL_VALUE_KIND_FLOAT64 = 2
+  val SCRIPT_SCALAR_TYPE_INVALID = 0
+  val SCRIPT_SCALAR_TYPE_BOOL = 1
+  val SCRIPT_SCALAR_TYPE_I8 = 2
+  val SCRIPT_SCALAR_TYPE_I16 = 3
+  val SCRIPT_SCALAR_TYPE_I32 = 4
+  val SCRIPT_SCALAR_TYPE_I64 = 5
+  val SCRIPT_SCALAR_TYPE_U8 = 6
+  val SCRIPT_SCALAR_TYPE_U16 = 7
+  val SCRIPT_SCALAR_TYPE_U32 = 8
+  val SCRIPT_SCALAR_TYPE_U64 = 9
+  val SCRIPT_SCALAR_TYPE_F32 = 10
+  val SCRIPT_SCALAR_TYPE_F64 = 11
+  val SCRIPT_SCALAR_TYPE_POINTER = 12
+  val SCRIPT_SCALAR_TYPE_F80 = 13
 }
 
 /**
@@ -170,8 +201,27 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_DEREFERENCE_LOCAL_ID_TYPE 20
 #define SYMBOL_DEREFERENCE_TEMP_TYPE 21
 
+#define SYMBOL_VALUE_KIND_INTEGER 0
+#define SYMBOL_VALUE_KIND_FLOAT32 1
+#define SYMBOL_VALUE_KIND_FLOAT64 2
+
 #define SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL 1
 #define SCRIPT_ENGINE_ADDRESS_SPACE_REMOTE 2
+
+#define SCRIPT_SCALAR_TYPE_INVALID 0
+#define SCRIPT_SCALAR_TYPE_BOOL 1
+#define SCRIPT_SCALAR_TYPE_I8 2
+#define SCRIPT_SCALAR_TYPE_I16 3
+#define SCRIPT_SCALAR_TYPE_I32 4
+#define SCRIPT_SCALAR_TYPE_I64 5
+#define SCRIPT_SCALAR_TYPE_U8 6
+#define SCRIPT_SCALAR_TYPE_U16 7
+#define SCRIPT_SCALAR_TYPE_U32 8
+#define SCRIPT_SCALAR_TYPE_U64 9
+#define SCRIPT_SCALAR_TYPE_F32 10
+#define SCRIPT_SCALAR_TYPE_F64 11
+#define SCRIPT_SCALAR_TYPE_POINTER 12
+#define SCRIPT_SCALAR_TYPE_F80 13
 
 static const char *const SymbolTypeNames[] = {
 "SYMBOL_UNDEFINED",
@@ -212,7 +262,8 @@ static const char *const SymbolTypeNames[] = {
         
 
 if __name__ == "__main__": 
-   
+    EnsureDeterministicHashSeed()
+
     gen = Generator()
     gen.Run()
 

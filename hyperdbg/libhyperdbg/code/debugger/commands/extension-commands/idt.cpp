@@ -69,7 +69,7 @@ HyperDbgGetIdtEntry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * IdtPacket)
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                                    // Handle to device
             IOCTL_QUERY_IDT_ENTRY,                             // IO Control Code (IOCTL)
             IdtPacket,                                         // Input Buffer to driver.
@@ -82,7 +82,7 @@ HyperDbgGetIdtEntry(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS * IdtPacket)
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
 
             return FALSE;
         }
@@ -164,7 +164,7 @@ CommandIdt(vector<CommandToken> CommandTokens, string Command)
         ShowMessages("err, allocating buffer for receiving IDT entries");
     }
 
-    RtlZeroMemory(IdtPacket, sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS));
+    PlatformZeroMemory(IdtPacket, sizeof(INTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS));
 
     //
     // Get the IDT buffer

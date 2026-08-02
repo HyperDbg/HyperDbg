@@ -21,6 +21,8 @@
 int
 main(int argc, char * argv[])
 {
+    BOOLEAN TestResult = FALSE;
+
     if (argc != 2)
     {
         printf("you should not test functionalities directly, instead use 'test all' "
@@ -37,6 +39,7 @@ main(int argc, char * argv[])
         if (TestCommandParser())
         {
             printf("\n[*] The main command parser test cases passed successfully\n");
+            TestResult = TRUE;
         }
         else
         {
@@ -52,6 +55,7 @@ main(int argc, char * argv[])
         if (TestPeParser())
         {
             printf("\n[*] The PE parser test cases passed successfully\n");
+            TestResult = TRUE;
         }
         else
         {
@@ -67,6 +71,7 @@ main(int argc, char * argv[])
         if (TestSemanticScripts())
         {
             printf("\n[*] The script semantic test cases passed successfully\n");
+            TestResult = TRUE;
         }
         else
         {
@@ -82,6 +87,7 @@ main(int argc, char * argv[])
         if (TestCodeViewRsdsParser())
         {
             printf("\n[*] The CodeView RSDS parser test cases passed successfully\n");
+            TestResult = TRUE;
         }
         else
         {
@@ -96,20 +102,42 @@ main(int argc, char * argv[])
         if (HwdbgTestCreateTestCases())
         {
             printf("\n[*] The hwdbg test cases passed successfully\n");
+            TestResult = TRUE;
         }
         else
         {
             printf("\n[x] The hwdbg test cases failed\n");
         }
     }
+    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_SCRIPT_FLOATING_POINT))
+    {
+        if (TestScriptEngineFloatingPoint())
+        {
+            printf("\n[*] The script floating-point test cases passed successfully\n");
+            TestResult = TRUE;
+        }
+        else
+        {
+            printf("\n[x] The script floating-point test cases failed\n");
+        }
+    }
+    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_SCRIPT_VARIABLE_TYPES))
+    {
+        if (TestScriptEngineVariableTypes())
+        {
+            printf("\n[*] The script variable-type test cases passed successfully\n");
+            TestResult = TRUE;
+        }
+        else
+        {
+            printf("\n[x] The script variable-type test cases failed\n");
+        }
+    }
     else
     {
         printf("unknown test case\n");
+        return 1;
     }
 
-    printf("\npress any key to exit...");
-
-    _getch();
-
-    return 0;
+    return TestResult ? 0 : 1;
 }

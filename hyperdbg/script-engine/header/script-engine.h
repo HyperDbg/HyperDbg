@@ -90,6 +90,9 @@ SetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, VARIABLE_TYPE * Vari
 VARIABLE_TYPE *
 GetGlobalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token);
 
+BOOLEAN
+GetGlobalIdentifierIsImplicitType(PSCRIPT_ENGINE_TOKEN Token);
+
 unsigned long long
 NewLocalIdentifier(PSCRIPT_ENGINE_TOKEN PTOKEN, unsigned int VariableSize);
 
@@ -101,6 +104,9 @@ SetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token, VARIABLE_TYPE * Varia
 
 VARIABLE_TYPE *
 GetLocalIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token);
+
+BOOLEAN
+GetLocalIdentifierIsImplicitType(PSCRIPT_ENGINE_TOKEN Token);
 
 int
 NewFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token);

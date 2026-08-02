@@ -1420,6 +1420,9 @@ InitializeCommandsDictionary()
 
     g_CommandsList["flush"] = {&CommandFlush, &CommandFlushHelp, DEBUGGER_COMMAND_FLUSH_ATTRIBUTES};
 
+    g_CommandsList["ucpuid"] = {&CommandUserCpuid, &CommandUserCpuidHelp, DEBUGGER_COMMAND_USER_CPUID_ATTRIBUTES};
+    g_CommandsList["cpuid"]  = {&CommandUserCpuid, &CommandUserCpuidHelp, DEBUGGER_COMMAND_USER_CPUID_ATTRIBUTES};
+
     g_CommandsList["pause"]  = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
     g_CommandsList[".pause"] = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
 

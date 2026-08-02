@@ -44,11 +44,22 @@
 #    define _Out_writes_bytes_(x)
 #    define _Inout_updates_bytes_all_(x)
 
+// The following libc headers exist only in user space; a Linux KERNEL build
+// (HYPERDBG_KERNEL_MODE) has no libc, so they are guarded out there. User-mode
+// Linux is unaffected — HYPERDBG_KERNEL_MODE is never defined in that path.
+#    ifndef HYPERDBG_KERNEL_MODE
+
 // wchar_t is a C++ built-in but needs this header in C
-#    include <wchar.h>
+#        include <wchar.h>
 
 // POSIX sleep primitives (usleep) backing the Win32 Sleep() shim below
-#    include <unistd.h>
+#        include <unistd.h>
+
+// DECIMAL_DIG and the FLT/DBL limits (ISO C99 <float.h>); MSVC exposes these
+// transitively through its CRT/pch, glibc needs the explicit include
+#        include <float.h>
+
+#    endif // !HYPERDBG_KERNEL_MODE
 
 // Windows string/char types
 typedef char         TCHAR;
@@ -59,6 +70,19 @@ typedef char *       LPSTR;
 typedef const char * PCSTR;
 typedef char *       PSTR;
 typedef short *      PWCHAR;
+
+// Windows generic type aliases (winnt.h): CONST is the const qualifier keyword,
+// FLOAT is a plain float. Kept so shared source using the Win32 spellings
+// compiles unchanged.
+#    define CONST const
+typedef float FLOAT;
+
+// MSVC secure-CRT truncation sentinel and status code (crtdefs.h / errno.h).
+// _TRUNCATE passed as the count to strncpy_s and friends means "copy as much as
+// fits and always null-terminate"; STRUNCATE is what they return when that
+// truncation actually happened. Kept at their canonical MSVC values.
+#    define _TRUNCATE ((SIZE_T)-1)
+#    define STRUNCATE 80
 
 // Windows socket type (Linux sockets are plain int)
 typedef int SOCKET;
@@ -105,5 +129,25 @@ typedef void * HMODULE;
 //
 #    define ERROR_ACCESS_DENIED 5
 #    define ERROR_GEN_FAILURE   31
+
+// Win32 serial baud-rate constants (winbase.h CBR_*), kept at their Windows
+// values so the shared serial-config / baud-rate-validation code compiles
+// unchanged. Each constant equals its baud rate; actual Linux serial I/O is
+// handled by the platform-serial layer (termios impl still TODO).
+#    define CBR_110    110
+#    define CBR_300    300
+#    define CBR_600    600
+#    define CBR_1200   1200
+#    define CBR_2400   2400
+#    define CBR_4800   4800
+#    define CBR_9600   9600
+#    define CBR_14400  14400
+#    define CBR_19200  19200
+#    define CBR_38400  38400
+#    define CBR_56000  56000
+#    define CBR_57600  57600
+#    define CBR_115200 115200
+#    define CBR_128000 128000
+#    define CBR_256000 256000
 
 #endif // HYPERDBG_ENV_LINUX

@@ -389,6 +389,13 @@
 #define IOCTL_PERFORM_SMI_OPERATION \
     CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x26, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+/**
+ * @brief ioctl, to request CPUID information in vmx-root mode
+ *
+ */
+#define IOCTL_DEBUGGER_CPUID \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x27, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
 //////////////////////////////////////////////////
 //               HyperTrace IOCTLs              //
 //////////////////////////////////////////////////

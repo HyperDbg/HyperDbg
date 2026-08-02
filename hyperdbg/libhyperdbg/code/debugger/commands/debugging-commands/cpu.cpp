@@ -145,7 +145,7 @@ private:
 
             for (int i = 0; i <= nIds_; ++i)
             {
-                CpuIdEx(cpui.data(), i, 0);
+                CpuCpuIdEx(cpui.data(), i, 0);
                 data_.push_back(cpui);
             }
 
@@ -197,7 +197,7 @@ private:
 
             for (int i = 0x80000000; i <= nExIds_; ++i)
             {
-                CpuIdEx(cpui.data(), i, 0);
+                CpuCpuIdEx(cpui.data(), i, 0);
                 extdata_.push_back(cpui);
             }
 

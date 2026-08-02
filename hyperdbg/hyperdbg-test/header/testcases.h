@@ -26,3 +26,9 @@ TestCodeViewRsdsParser();
 
 BOOLEAN
 TestSemanticScripts();
+
+BOOLEAN
+TestScriptEngineFloatingPoint();
+
+BOOLEAN
+TestScriptEngineVariableTypes();

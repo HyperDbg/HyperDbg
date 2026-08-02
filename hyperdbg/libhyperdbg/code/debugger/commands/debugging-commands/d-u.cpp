@@ -273,7 +273,7 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
         //
         // Default process we read from current process
         //
-        Pid = GetCurrentProcessId();
+        Pid = PlatformGetCurrentProcessId();
     }
 
     if (CompareLowerCaseStrings(CommandTokens.at(0), "db"))

@@ -63,7 +63,7 @@ CommandFlushRequestFlush()
         // want to pass some other arguments to the kernel in
         // the future
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                        // Handle to device
             IOCTL_DEBUGGER_FLUSH_LOGGING_BUFFERS,  // IO Control Code (IOCTL)
             &FlushRequest,                         // Input Buffer to driver.
@@ -77,7 +77,7 @@ CommandFlushRequestFlush()
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             return;
         }
 
