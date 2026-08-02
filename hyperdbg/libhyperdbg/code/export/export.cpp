@@ -291,6 +291,26 @@ hyperdbg_u_unset_text_message_callback()
 }
 
 /**
+ * @brief Execute a script with the deterministic local evaluator used by tests.
+ *
+ * @param expression Script body without the leading '?' command token
+ * @return BOOLEAN TRUE when parsing and evaluation complete without error
+ */
+BOOLEAN
+hyperdbg_u_test_script_engine(CHAR * expression)
+{
+    extern BOOLEAN g_CurrentExprEvalResultHasError;
+
+    if (!expression)
+    {
+        return FALSE;
+    }
+
+    ScriptEngineWrapperTestParser(expression);
+    return !g_CurrentExprEvalResultHasError;
+}
+
+/**
  * @brief Parsing the command line options for scripts
  * @param argc
  * @param argv
@@ -1004,4 +1024,24 @@ BOOLEAN
 hyperdbg_u_pt_mmap(HYPERTRACE_PT_MMAP_PACKETS * MmapRequest)
 {
     return HyperDbgPtMmapSendRequest(MmapRequest);
+}
+
+/**
+ * @brief Get CPUID information from the target system
+ *
+ * @param FunctionId The CPUID leaf (EAX value)
+ * @param SubFunctionId The CPUID sub-leaf (ECX value)
+ *
+ * @return BOOLEAN TRUE if successful, FALSE otherwise
+ */
+BOOLEAN
+hyperdbg_u_request_cpuid(UINT32 FunctionId, UINT32 SubFunctionId)
+{
+    //
+    // Call the existing CPUID command handler
+    // This handles both local and remote modes automatically
+    //
+    CommandCpuidRequestCpuid(FunctionId, SubFunctionId);
+
+    return TRUE;
 }

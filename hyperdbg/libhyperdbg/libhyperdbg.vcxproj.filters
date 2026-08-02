@@ -179,6 +179,9 @@
     <ClInclude Include="..\include\platform\user\header\platform-signal.h">
       <Filter>header\platform</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\platform-socket.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\platform\general\header\nt-list.h">
       <Filter>header\platform</Filter>
     </ClInclude>
@@ -721,6 +724,9 @@
     <ClCompile Include="..\include\platform\user\code\platform-signal.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\user\code\platform-socket.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
     <ClCompile Include="code\app\messaging.cpp">
       <Filter>code\app</Filter>
     </ClCompile>
@@ -736,9 +742,12 @@
     <ClCompile Include="code\debugger\misc\pt-helper.cpp">
       <Filter>code\debugger\misc</Filter>
     </ClCompile>
+    <ClCompile Include="ucpuid.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="code\assembly\asm-vmx-checks.asm">
+    <MASM Include="code\assembly\asm-vmx-checks-masm-windows.asm">
       <Filter>code\assembly</Filter>
     </MASM>
   </ItemGroup>

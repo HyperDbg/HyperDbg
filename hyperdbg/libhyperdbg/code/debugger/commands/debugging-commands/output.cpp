@@ -276,7 +276,7 @@ CommandOutput(vector<CommandToken> CommandTokens, string Command)
             return;
         }
 
-        RtlZeroMemory(EventForwardingObject, sizeof(DEBUGGER_EVENT_FORWARDING));
+        PlatformZeroMemory(EventForwardingObject, sizeof(DEBUGGER_EVENT_FORWARDING));
 
         //
         // Set the state
@@ -318,8 +318,9 @@ CommandOutput(vector<CommandToken> CommandTokens, string Command)
         //
         // Move the name of the output source to the buffer
         //
-        strcpy_s(EventForwardingObject->Name,
-                 GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
+        PlatformStrCpy(EventForwardingObject->Name,
+                       sizeof(EventForwardingObject->Name),
+                       GetCaseSensitiveStringFromCommandToken(CommandTokens.at(2)).c_str());
 
         //
         // Check if list is initialized or not

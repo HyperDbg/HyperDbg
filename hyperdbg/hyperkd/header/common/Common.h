@@ -101,3 +101,6 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);
 
 BOOLEAN
 CommonValidateCoreNumber(UINT32 CoreNumber);
+
+VOID
+CommonCpuidInstruction(UINT32 Func, UINT32 SubFunc, INT * CpuInfo);

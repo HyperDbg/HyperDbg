@@ -168,14 +168,14 @@ CommandPa2va(vector<CommandToken> CommandTokens, string Command)
 
         if (Pid == 0)
         {
-            Pid                      = GetCurrentProcessId();
+            Pid                      = PlatformGetCurrentProcessId();
             AddressDetails.ProcessId = Pid;
         }
 
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                           // Handle to device
             IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS,  // IO Control Code (IOCTL)
             &AddressDetails,                          // Input Buffer to driver.
@@ -189,7 +189,7 @@ CommandPa2va(vector<CommandToken> CommandTokens, string Command)
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             return;
         }
 

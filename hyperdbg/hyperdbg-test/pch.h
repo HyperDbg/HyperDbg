@@ -29,6 +29,11 @@ using namespace std;
 #include <string>
 #include <conio.h>
 #include <vector>
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <set>
 #include <regex>
 #include <sstream>
 #include <iomanip>
@@ -65,3 +70,4 @@ using namespace std;
 // import libhyperdbg
 //
 #include "SDK/imports/user/HyperDbgLibImports.h"
+#include "SDK/imports/user/HyperDbgScriptImports.h"

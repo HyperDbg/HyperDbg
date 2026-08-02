@@ -32,8 +32,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
                                                 SOCKET * ClientSocketArg,
                                                 SOCKET * ListenSocketArg)
 {
-    WSADATA wsaData;
-    INT     IResult;
+    INT IResult;
 
     SOCKET ListenSocket = INVALID_SOCKET;
     SOCKET ClientSocket = INVALID_SOCKET;
@@ -44,14 +43,14 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     //
     // Initialize Winsock
     //
-    IResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    IResult = PlatformSocketInitialize();
     if (IResult != 0)
     {
         ShowMessages("err, WSAStartup failed (%x)\n", IResult);
         return 1;
     }
 
-    ZeroMemory(&hints, sizeof(hints));
+    PlatformZeroMemory(&hints, sizeof(hints));
     hints.ai_family   = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
@@ -64,7 +63,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     if (IResult != 0)
     {
         ShowMessages("err, getaddrinfo failed (%x)\n", IResult);
-        WSACleanup();
+        PlatformSocketCleanup();
         return 1;
     }
 
@@ -75,9 +74,9 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
         socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if (ListenSocket == INVALID_SOCKET)
     {
-        ShowMessages("socket failed with error: %ld\n", WSAGetLastError());
+        ShowMessages("socket failed with error: %ld\n", PlatformGetSocketError());
         freeaddrinfo(result);
-        WSACleanup();
+        PlatformSocketCleanup();
         return 1;
     }
 
@@ -87,10 +86,10 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     IResult = ::bind(ListenSocket, result->ai_addr, (INT)result->ai_addrlen);
     if (IResult == SOCKET_ERROR)
     {
-        ShowMessages("err, bind failed (%x)\n", WSAGetLastError());
+        ShowMessages("err, bind failed (%x)\n", PlatformGetSocketError());
         freeaddrinfo(result);
-        closesocket(ListenSocket);
-        WSACleanup();
+        PlatformCloseSocket(ListenSocket);
+        PlatformSocketCleanup();
         return 1;
     }
 
@@ -99,25 +98,25 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     IResult = listen(ListenSocket, SOMAXCONN);
     if (IResult == SOCKET_ERROR)
     {
-        ShowMessages("err, listen failed (%x)\n", WSAGetLastError());
-        closesocket(ListenSocket);
-        WSACleanup();
+        ShowMessages("err, listen failed (%x)\n", PlatformGetSocketError());
+        PlatformCloseSocket(ListenSocket);
+        PlatformSocketCleanup();
         return 1;
     }
 
     //
     // Accept a client socket
     //
-    sockaddr_in name    = {0};
-    INT         AddrLen = sizeof(name);
+    sockaddr_in      name    = {0};
+    PLATFORM_SOCKLEN AddrLen = sizeof(name);
 
     ClientSocket = accept(ListenSocket, (struct sockaddr *)&name, &AddrLen);
 
     if (ClientSocket == INVALID_SOCKET)
     {
-        ShowMessages("err, accept failed (%x)\n", WSAGetLastError());
-        closesocket(ListenSocket);
-        WSACleanup();
+        ShowMessages("err, accept failed (%x)\n", PlatformGetSocketError());
+        PlatformCloseSocket(ListenSocket);
+        PlatformSocketCleanup();
         return 1;
     }
 
@@ -166,9 +165,9 @@ CommunicationServerReceiveMessage(SOCKET ClientSocket, CHAR * recvbuf, INT recvb
     }
     else
     {
-        ShowMessages("err, recv failed (%x)\n", WSAGetLastError());
-        closesocket(ClientSocket);
-        WSACleanup();
+        ShowMessages("err, recv failed (%x)\n", PlatformGetSocketError());
+        PlatformCloseSocket(ClientSocket);
+        PlatformSocketCleanup();
 
         return 1;
     }
@@ -196,9 +195,9 @@ CommunicationServerSendMessage(SOCKET ClientSocket, const CHAR * sendbuf, INT le
     if (ISendResult == SOCKET_ERROR)
     {
         /*
-    ShowMessages("err, send failed (%x)\n", WSAGetLastError());
-    closesocket(ClientSocket);
-    WSACleanup();
+    ShowMessages("err, send failed (%x)\n", PlatformGetSocketError());
+    PlatformCloseSocket(ClientSocket);
+    PlatformSocketCleanup();
         */
         return 1;
     }
@@ -221,12 +220,12 @@ CommunicationServerShutdownAndCleanupConnection(SOCKET ClientSocket,
     //
     // No longer need server socket
     //
-    closesocket(ListenSocket);
+    PlatformCloseSocket(ListenSocket);
 
     //
     // shutdown the connection since we're done
     //
-    IResult = shutdown(ClientSocket, SD_SEND);
+    IResult = PlatformShutdownSocketSend(ClientSocket);
     if (IResult == SOCKET_ERROR)
     {
         //
@@ -235,19 +234,19 @@ CommunicationServerShutdownAndCleanupConnection(SOCKET ClientSocket,
         //
 
         /*
-    ShowMessages("err, shutdown failed (%x)\n", WSAGetLastError());
+    ShowMessages("err, shutdown failed (%x)\n", PlatformGetSocketError());
     */
 
-        closesocket(ClientSocket);
-        WSACleanup();
+        PlatformCloseSocket(ClientSocket);
+        PlatformSocketCleanup();
         return 1;
     }
 
     //
     // cleanup
     //
-    closesocket(ClientSocket);
-    WSACleanup();
+    PlatformCloseSocket(ClientSocket);
+    PlatformSocketCleanup();
 
     return 0;
 }

@@ -85,9 +85,9 @@ CommandDisconnect(vector<CommandToken> CommandTokens, string Command)
         // We should kill the thread that was listening for the
         // remote commands and close the connection
         //
-        TerminateThread(g_RemoteDebuggeeListeningThread, 0);
-        CloseHandle(g_RemoteDebuggeeListeningThread);
-        CloseHandle(g_EndOfMessageReceivedEvent);
+        PlatformTerminateThread(g_RemoteDebuggeeListeningThread, 0);
+        PlatformCloseHandle(g_RemoteDebuggeeListeningThread);
+        PlatformCloseHandle(g_EndOfMessageReceivedEvent);
         g_EndOfMessageReceivedEvent = NULL;
 
         RemoteConnectionCloseTheConnectionWithDebuggee();

@@ -1,6 +1,6 @@
 /**
  * @file platform-ioctl.c
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief User mode cross-platform implementation of the local kernel-driver IOCTL transport
  * @details See platform-ioctl.h. The Windows branch forwards directly to Win32
  *          DeviceIoControl / CreateFileA. The Linux branch is currently stubbed and is

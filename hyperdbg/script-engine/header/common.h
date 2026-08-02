@@ -61,7 +61,8 @@ typedef enum _SCRIPT_ENGINE_TOKEN_TYPE
     FUNCTION_PARAMETER_ID,
     SCRIPT_VARIABLE_TYPE,
     DEFERENCE_TEMP,
-    UNKNOWN
+    UNKNOWN,
+    FLOAT_LITERAL
 } SCRIPT_ENGINE_TOKEN_TYPE;
 
 /**
@@ -77,6 +78,7 @@ typedef struct _SCRIPT_ENGINE_TOKEN
     unsigned long long       VariableMemoryIdx;
     unsigned int             AddressSpace;
     BOOLEAN                  IsAddress;
+    BOOLEAN                  IsImplicitType;
 } SCRIPT_ENGINE_TOKEN, *PSCRIPT_ENGINE_TOKEN;
 
 /**

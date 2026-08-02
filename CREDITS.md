@@ -29,3 +29,4 @@ Just so you know – the attributions listed on this credits page are acknowledg
 - unrustled.jimmies for helping us debug and fix issues, and his contributions in HyperDbg
 - Hari Mishal ([@harimishal1](https://github.com/harimishal1)) for his works on the hypertrace project for supporting Last Branch Record (LBR)
 - Masoud Rahimi Jafari ([@masoudrahimi01](https://github.com/masoudrahimi01)) for his works on the hypertrace project for supporting Intel Processor Trace (PT)
+- Abolfazl Hassani ([@FallinBinary](https://github.com/FallinBinary)) for his contributions in HyperDbg

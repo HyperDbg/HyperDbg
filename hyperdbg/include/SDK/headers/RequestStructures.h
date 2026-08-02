@@ -1737,3 +1737,38 @@ static_assert(sizeof(DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET) < PacketChunkS
               "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET");
 
 // ==============================================================================================
+
+#define SIZEOF_DEBUGGER_CPUID_REQUEST_RESPONSE \
+    sizeof(DEBUGGER_CPUID_REQUEST_RESPONSE)
+
+/**
+ * @brief Request and response for CPUID information (for ucpuid.cpp, not cpuid.cpp)
+ *
+ */
+typedef struct _DEBUGGER_CPUID_REQUEST_RESPONSE
+{
+    CHAR BrandString[49];
+
+    UINT32 EAX;
+    UINT32 EBX;
+    UINT32 ECX;
+    UINT32 EDX;
+
+    UINT32 FunctionId;
+    UINT32 SubFunctionId;
+
+    UINT32 Leaf4MaxSubLeaf;
+    UINT32 LeafBMaxSubleaf;
+    UINT32 Leaf12MaxSubLeaf;
+    UINT32 LeafEaxMaxSubleaf;
+
+    BOOLEAN LeafBSupported;
+    BOOLEAN Leaf12Supported;
+
+    UINT64 XCR0Vector;
+    UINT64 IA32_XSS_Vector;
+
+    UINT32 KernelStatus;
+} DEBUGGER_CPUID_REQUEST_RESPONSE, *PDEBUGGER_CPUID_REQUEST_RESPONSE;
+
+// ==============================================================================================

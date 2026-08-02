@@ -74,7 +74,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -99,7 +99,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)build\bin\$(Configuration)\libhyperdbg.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -113,6 +113,8 @@
     <ClCompile Include="code\tests\test-pe-parser.cpp" />
     <ClCompile Include="code\tests\test-parser.cpp" />
     <ClCompile Include="code\tests\test-semantic-scripts.cpp" />
+    <ClCompile Include="code\tests\test-script-floating-point.cpp" />
+    <ClCompile Include="code\tests\test-script-variable-types.cpp" />
     <ClCompile Include="code\tools.cpp" />
     <ClCompile Include="pch.cpp" />
   </ItemGroup>

@@ -299,7 +299,7 @@ HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN Is
     //
     // Zero the memory
     //
-    RtlZeroMemory(FinalRequestBuffer, RequestBufferSize);
+    PlatformZeroMemory(FinalRequestBuffer, RequestBufferSize);
 
     //
     // Copy the buffer on the top of the final buffer
@@ -322,7 +322,7 @@ HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN Is
     //
     // Send the request to the kernel
     //
-    Status = DeviceIoControl(
+    Status = PlatformDeviceIoControl(
         g_DeviceHandle,                                             // Handle to device
         IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER, // IO Control
         // code
@@ -337,7 +337,7 @@ HyperDbgEnableTransparentModeEx(UINT32 ProcessId, CHAR * ProcessName, BOOLEAN Is
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
         free(FinalRequestBuffer);
         return FALSE;
     }

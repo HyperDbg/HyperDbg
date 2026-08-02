@@ -1,9 +1,9 @@
 #pragma once
 #ifndef PARSE_TABLE_H
 #define PARSE_TABLE_H
-#define RULES_COUNT 330
-#define TERMINAL_COUNT 132
-#define NONETERMINAL_COUNT 85
+#define RULES_COUNT 355
+#define TERMINAL_COUNT 135
+#define NONETERMINAL_COUNT 91
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 15
 #define KEYWORD_LIST_LENGTH 121
@@ -13,7 +13,7 @@
 #define PSEUDO_REGISTER_MAP_LIST_LENGTH 16
 #define SCRIPT_VARIABLE_TYPE_LIST_LENGTH 10
 #define ASSIGNMENT_OPERATOR_LIST_LENGTH 10
-#define SEMANTIC_RULES_MAP_LIST_LENGTH 188
+#define SEMANTIC_RULES_MAP_LIST_LENGTH 211
 #define THREEOPFUNC1_LENGTH 1
 #define THREEOPFUNC2_LENGTH 3
 #define TWOOPFUNC1_LENGTH 8
@@ -60,16 +60,16 @@ extern const SYMBOL_MAP PseudoRegisterMapList[];
 extern const char* ScriptVariableTypeList[];
 
 
-#define LALR_RULES_COUNT 120
-#define LALR_TERMINAL_COUNT 88
-#define LALR_NONTERMINAL_COUNT 27
+#define LALR_RULES_COUNT 141
+#define LALR_TERMINAL_COUNT 93
+#define LALR_NONTERMINAL_COUNT 37
 #define LALR_MAX_RHS_LEN 9
-#define LALR_STATE_COUNT 337
+#define LALR_STATE_COUNT 373
 extern const struct _SCRIPT_ENGINE_TOKEN LalrLhs[RULES_COUNT];
 extern const struct _SCRIPT_ENGINE_TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int LalrRhsSize[RULES_COUNT];
-extern const char* LalrNoneTerminalMap[NONETERMINAL_COUNT];
-extern const char* LalrTerminalMap[TERMINAL_COUNT];
+extern const char* LalrNoneTerminalMap[LALR_NONTERMINAL_COUNT];
+extern const char* LalrTerminalMap[LALR_TERMINAL_COUNT];
 extern const int LalrGotoTable[LALR_STATE_COUNT][LALR_NONTERMINAL_COUNT];
 extern const int LalrActionTable[LALR_STATE_COUNT][LALR_TERMINAL_COUNT];
 extern const struct _SCRIPT_ENGINE_TOKEN LalrSemanticRules[RULES_COUNT];

@@ -46,18 +46,11 @@ ReadIrpBasedBuffer()
     // a pending IOCTL while the main debugger handle continues sending other
     // synchronous IOCTLs.
     //
-    Handle = CreateFileA(
-        "\\\\.\\HyperDbgDebuggerDevice",
-        GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE,
-        NULL, /// lpSecurityAttirbutes
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        NULL); /// lpTemplateFile
+    Handle = PlatformOpenDevice("\\\\.\\HyperDbgDebuggerDevice");
 
     if (Handle == INVALID_HANDLE_VALUE)
     {
-        ErrorNum = GetLastError();
+        ErrorNum = PlatformGetLastError();
 
         if (ErrorNum == ERROR_ACCESS_DENIED)
         {
@@ -92,9 +85,9 @@ ReadIrpBasedBuffer()
             //
             // Clear the buffer
             //
-            ZeroMemory(OutputBuffer, UsermodeBufferSize);
+            PlatformZeroMemory(OutputBuffer, UsermodeBufferSize);
 
-            Status = DeviceIoControl(
+            Status = PlatformDeviceIoControl(
                 Handle,                    // Handle to device
                 IOCTL_REGISTER_EVENT,      // IO Control Code (IOCTL)
                 &RegisterEvent,            // Input Buffer to driver.
@@ -253,7 +246,7 @@ ReadIrpBasedBuffer()
                 //
                 // Indicate that driver (Hypervisor) is loaded successfully
                 //
-                SetEvent(g_IsDriverLoadedSuccessfully);
+                PlatformSetEvent(g_IsDriverLoadedSuccessfully);
 
                 break;
 
@@ -321,9 +314,9 @@ ReadIrpBasedBuffer()
     //
     // close handle
     //
-    if (!CloseHandle(Handle))
+    if (!PlatformCloseHandle(Handle))
     {
-        ShowMessages("err, closing handle 0x%x\n", GetLastError());
+        ShowMessages("err, closing handle 0x%x\n", PlatformGetLastError());
     }
 }
 

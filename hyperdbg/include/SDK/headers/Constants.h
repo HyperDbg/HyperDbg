@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 22
+#define VERSION_MINOR 23
 #define VERSION_PATCH 0
 
 #define BETA_VERSION FALSE
@@ -435,6 +435,13 @@ const UCHAR BuildSignature[] = {
 #define SERIAL_END_OF_BUFFER_CHAR_2 0x80
 #define SERIAL_END_OF_BUFFER_CHAR_3 0xEE
 #define SERIAL_END_OF_BUFFER_CHAR_4 0xFF
+
+/**
+ * @brief maximum number of bytes to discard while resyncing the serial stream
+ * to the next end of buffer marker after a framing overflow (bounded so that a
+ * dead link cannot spin forever)
+ */
+#define SERIAL_RESYNC_MAX_BYTES (MaxSerialPacketSize * 4)
 
 /**
  * @brief count of characters for tcp end of buffer

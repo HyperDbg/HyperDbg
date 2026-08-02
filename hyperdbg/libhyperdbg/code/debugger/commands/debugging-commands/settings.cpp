@@ -59,6 +59,7 @@ CommandSettingsHelp()
 BOOLEAN
 CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & OptionValue)
 {
+#ifdef _WIN32
     inipp::Ini<char> Ini;
     WCHAR            ConfigPath[MAX_PATH] = {0};
     std::string      OptionValueFromFile;
@@ -101,6 +102,17 @@ CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & Opti
     {
         return FALSE;
     }
+#else
+    //
+    // TODO(Linux): the config file is addressed by a wide-char (WCHAR) path and
+    // read through std::ifstream, which libstdc++ cannot construct from a 2-byte
+    // WCHAR buffer. GetConfigFilePath() already empties the path on Linux, so this
+    // always fails. Blocked on the wide-char (2-byte WCHAR) work.
+    //
+    UNREFERENCED_PARAMETER(OptionName);
+    UNREFERENCED_PARAMETER(OptionValue);
+    return FALSE;
+#endif
 }
 
 /**
@@ -114,6 +126,7 @@ CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & Opti
 VOID
 CommandSettingsSetValueFromConfigFile(std::string OptionName, std::string OptionValue)
 {
+#ifdef _WIN32
     inipp::Ini<char> Ini;
     WCHAR            ConfigPath[MAX_PATH] = {0};
 
@@ -150,6 +163,16 @@ CommandSettingsSetValueFromConfigFile(std::string OptionName, std::string Option
     Ini.generate(Os);
 
     Os.close();
+#else
+    //
+    // TODO(Linux): the config file is addressed by a wide-char (WCHAR) path and
+    // written through std::ofstream, which libstdc++ cannot construct from a
+    // 2-byte WCHAR buffer. GetConfigFilePath() already empties the path on Linux,
+    // so nothing can be persisted. Blocked on the wide-char (2-byte WCHAR) work.
+    //
+    UNREFERENCED_PARAMETER(OptionName);
+    UNREFERENCED_PARAMETER(OptionValue);
+#endif
 }
 
 /**

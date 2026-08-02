@@ -56,6 +56,9 @@
     <ClCompile Include="code\tests\test-semantic-scripts.cpp">
       <Filter>code\tests</Filter>
     </ClCompile>
+    <ClCompile Include="code\tests\test-script-floating-point.cpp">
+      <Filter>code\tests</Filter>
+    </ClCompile>
     <ClCompile Include="code\hardware\hwdbg-tests.cpp">
       <Filter>code\hardware</Filter>
     </ClCompile>

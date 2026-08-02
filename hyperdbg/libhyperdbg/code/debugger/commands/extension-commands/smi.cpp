@@ -69,7 +69,7 @@ CommandSmiSendRequest(SMI_OPERATION_PACKETS * SmiOperationRequest)
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,               // Handle to device
             IOCTL_PERFORM_SMI_OPERATION,  // IO Control Code (IOCTL)
             SmiOperationRequest,          // Input Buffer to driver.
@@ -82,7 +82,7 @@ CommandSmiSendRequest(SMI_OPERATION_PACKETS * SmiOperationRequest)
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
 
             return FALSE;
         }
@@ -122,7 +122,7 @@ HyperDbgPerformSmiOperation(SMI_OPERATION_PACKETS * SmiOperation)
 VOID
 CommandSmi(vector<CommandToken> CommandTokens, string Command)
 {
-    SMI_OPERATION_PACKETS SmiOperationRequest = {0};
+    SMI_OPERATION_PACKETS SmiOperationRequest = {};
 
     if (CommandTokens.size() != 2)
     {

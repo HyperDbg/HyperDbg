@@ -48,7 +48,7 @@ HyperDbgLbrdumpSendRequest(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                     // Handle to device
             IOCTL_PERFORM_HYPERTRACE_LBR_DUMP,  // IO Control Code (IOCTL)
             LbrdumpRequest,                     // Input Buffer to driver.
@@ -61,7 +61,7 @@ HyperDbgLbrdumpSendRequest(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
 
             return FALSE;
         }
@@ -239,7 +239,7 @@ CommandLbrdumpPrint(HYPERTRACE_LBR_DUMP_PACKETS * LbrdumpRequest)
 VOID
 CommandLbrdump(vector<CommandToken> CommandTokens, string Command)
 {
-    HYPERTRACE_LBR_DUMP_PACKETS LbrdumpRequest          = {0};
+    HYPERTRACE_LBR_DUMP_PACKETS LbrdumpRequest          = {};
     UINT32                      CoreId                  = 0;
     BOOLEAN                     ContinueDumpingAllCores = TRUE;
 

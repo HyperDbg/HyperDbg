@@ -1,6 +1,6 @@
 /**
  * @file install-linux.cpp
- * @author Max Raulea (max.raulea@gmail.com)
+ * @author Max Raulea (max.raulea@hyperdbg.org)
  * @brief Linux stub implementations of the driver-loader (install.cpp)
  * @details The Windows implementation (install.cpp) loads/unloads the HyperDbg
  *          kernel-mode driver (the .sys file that contains the actual debugging

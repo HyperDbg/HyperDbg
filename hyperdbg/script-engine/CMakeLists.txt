@@ -3,19 +3,41 @@ set(SourceFiles
     "../include/platform/general/header/Environment.h"
     "header/common.h"
     "header/globals.h"
+    "header/hardware.h"
     "header/parse-table.h"
     "header/scanner.h"
     "header/script-engine.h"
     "header/type.h"
     "header/pch.h"
+    "../include/platform/user/code/platform-lib-calls.c"
     "code/common.c"
     "code/globals.c"
+    "code/hardware.c"
     "code/parse-table.c"
     "code/scanner.c"
     "code/script-engine.c"
+    "code/script_include.c"
     "code/type.c"
     "code/pch.c"
 )
+
+if(UNIX)
+    #
+    # The symbol-parser (Sym*) exports live in the Windows-only symbol-parser/
+    # subproject (DbgHelp + DIA-SDK pdbex). script-engine.c calls them directly,
+    # so provide Linux stubs here to satisfy the link until a real backend lands.
+    #
+    list(APPEND SourceFiles "code/symbol-stub-linux.c")
+
+    #
+    # script_include.c resolves script #include paths via Win32 (GetModuleFileNameA
+    # / GetFileAttributesA). Swap it for an empty Linux stub until a real resolver
+    # (readlink + stat) is implemented.
+    #
+    list(REMOVE_ITEM SourceFiles "code/script_include.c")
+    list(APPEND SourceFiles "code/script_include-linux.c")
+endif()
+
 include_directories(
     "header"
     "../include"

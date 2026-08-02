@@ -211,14 +211,14 @@ CommandPte(vector<CommandToken> CommandTokens, string Command)
 
         if (Pid == 0)
         {
-            Pid                      = GetCurrentProcessId();
+            Pid                      = PlatformGetCurrentProcessId();
             AddressDetails.ProcessId = Pid;
         }
 
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                                  // Handle to device
             IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS,  // IO Control Code (IOCTL)
             &AddressDetails,                                 // Input Buffer to driver.
@@ -232,7 +232,7 @@ CommandPte(vector<CommandToken> CommandTokens, string Command)
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             return;
         }
 

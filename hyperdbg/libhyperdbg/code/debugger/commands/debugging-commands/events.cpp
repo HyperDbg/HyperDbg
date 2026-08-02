@@ -712,7 +712,7 @@ CommandEventsModifyAndQueryEvents(UINT64                      Tag,
         // Send the request to the kernel
         //
         Status =
-            DeviceIoControl(g_DeviceHandle,                // Handle to device
+            PlatformDeviceIoControl(g_DeviceHandle,                // Handle to device
                             IOCTL_DEBUGGER_MODIFY_EVENTS,  // IO Control Code (IOCTL)
                             &ModifyEventRequest,           // Input Buffer to driver.
                             SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
@@ -725,7 +725,7 @@ CommandEventsModifyAndQueryEvents(UINT64                      Tag,
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
             return FALSE;
         }
 

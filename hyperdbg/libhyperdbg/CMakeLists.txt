@@ -12,10 +12,15 @@ set(SourceFiles
     "header/globals/globals.h"
     "header/debugger/commands/help.h"
     "header/hwdbg/hwdbg-interpreter.h"
+    "header/hwdbg/hwdbg-scripts.h"
     "header/debugger/misc/inipp.h"
     "header/debugger/driver-loader/install.h"
     "header/debugger/kernel-level/kd.h"
     "header/app/libhyperdbg.h"
+    "header/app/messaging.h"
+    "header/app/packets.h"
+    "header/debugger/core/steppings.h"
+    "header/debugger/misc/pci-id.h"
     "header/common/list.h"
     "header/debugger/communication/namedpipe.h"
     "header/objects/objects.h"
@@ -32,6 +37,7 @@ set(SourceFiles
     "../include/platform/user/code/platform-serial.c"
     "../include/platform/user/code/platform-ioctl.c"
     "../include/platform/user/code/platform-signal.c"
+    "../include/platform/user/code/platform-socket.c"
     "../include/platform/user/code/windows-only/windows-privilege.c"
     "../script-eval/code/Functions.c"
     "../script-eval/code/Keywords.c"
@@ -40,17 +46,30 @@ set(SourceFiles
     "../script-eval/code/ScriptEngineEval.c"
     "code/common/spinlock.cpp"
     "code/debugger/commands/debugging-commands/a.cpp"
+    "code/debugger/commands/debugging-commands/continue.cpp"
+    "code/debugger/commands/debugging-commands/gg.cpp"
     "code/debugger/commands/debugging-commands/core.cpp"
     "code/debugger/commands/debugging-commands/dt-struct.cpp"
     "code/debugger/commands/debugging-commands/gu.cpp"
     "code/debugger/commands/debugging-commands/k.cpp"
     "code/debugger/commands/debugging-commands/preactivate.cpp"
     "code/debugger/commands/debugging-commands/prealloc.cpp"
+    "code/debugger/commands/extension-commands/apic.cpp"
     "code/debugger/commands/extension-commands/crwrite.cpp"
+    "code/debugger/commands/extension-commands/idt.cpp"
+    "code/debugger/commands/extension-commands/ioapic.cpp"
+    "code/debugger/commands/extension-commands/lbr.cpp"
+    "code/debugger/commands/extension-commands/lbrdump.cpp"
+    "code/debugger/commands/extension-commands/pcicam.cpp"
+    "code/debugger/commands/extension-commands/pcitree.cpp"
+    "code/debugger/commands/extension-commands/pt.cpp"
+    "code/debugger/commands/extension-commands/smi.cpp"
+    "code/debugger/commands/extension-commands/xsetbv.cpp"
     "code/debugger/commands/extension-commands/rev.cpp"
     "code/debugger/commands/extension-commands/trace.cpp"
     "code/debugger/commands/extension-commands/track.cpp"
     "code/debugger/commands/extension-commands/mode.cpp"
+    "code/debugger/commands/hwdbg-commands/hw.cpp"
     "code/debugger/commands/hwdbg-commands/hw_clk.cpp"
     "code/debugger/commands/meta-commands/dump.cpp"
     "code/debugger/commands/meta-commands/kill.cpp"
@@ -77,11 +96,16 @@ set(SourceFiles
     "code/debugger/user-level/user-listening.cpp"
     "code/export/export.cpp"
     "code/hwdbg/hwdbg-interpreter.cpp"
+    "code/hwdbg/hwdbg-scripts.cpp"
     "code/objects/objects.cpp"
     "code/rev/rev-ctrl.cpp"
     "pch.cpp"
     "code/app/dllmain.cpp"
     "code/app/libhyperdbg.cpp"
+    "code/app/messaging.cpp"
+    "code/app/packets.cpp"
+    "code/debugger/core/steppings.cpp"
+    "code/debugger/misc/pci-id.cpp"
     "code/common/common.cpp"
     "code/debugger/commands/debugging-commands/bc.cpp"
     "code/debugger/commands/debugging-commands/bd.cpp"
@@ -114,6 +138,7 @@ set(SourceFiles
     "code/debugger/commands/debugging-commands/wrmsr.cpp"
     "code/debugger/commands/debugging-commands/x.cpp"
     "code/debugger/commands/extension-commands/cpuid.cpp"
+    "ucpuid.cpp"
     "code/debugger/commands/extension-commands/dr.cpp"
     "code/debugger/commands/extension-commands/epthook.cpp"
     "code/debugger/commands/extension-commands/epthook2.cpp"
@@ -159,7 +184,7 @@ set(SourceFiles
     "code/debugger/tests/tests.cpp"
     "code/debugger/transparency/gaussian-rng.cpp"
     "code/debugger/transparency/transparency.cpp"
-    "code/assembly/asm-vmx-checks.asm"
+    "code/assembly/asm-vmx-checks-masm-windows.asm"
 )
 include_directories(
     "../dependencies/phnt"
@@ -177,6 +202,7 @@ set_source_files_properties(
     "../include/platform/user/code/platform-serial.c"
     "../include/platform/user/code/platform-ioctl.c"
     "../include/platform/user/code/platform-signal.c"
+    "../include/platform/user/code/platform-socket.c"
     "../include/platform/user/code/windows-only/windows-privilege.c"
     "../script-eval/code/Functions.c"
     "../script-eval/code/Keywords.c"
@@ -193,6 +219,36 @@ if(UNIX)
     list(APPEND SourceFiles "code/debugger/user-level/pe-parser-linux.cpp")
     list(REMOVE_ITEM SourceFiles "code/debugger/driver-loader/install.cpp")
     list(APPEND SourceFiles "code/debugger/driver-loader/install-linux.cpp")
+    list(REMOVE_ITEM SourceFiles "code/debugger/communication/namedpipe.cpp")
+    list(APPEND SourceFiles "code/debugger/communication/namedpipe-linux.cpp")
+
+    #
+    # pt.cpp (Intel PT command) is an un-ported Windows process-control TU
+    # (OpenProcess/CreateToolhelp32Snapshot/CreateThread/WaitForMultipleObjects).
+    # Keep it out of the Linux build until the process-control port lands and
+    # swap in the stub that provides its 4 externally visible functions.
+    #
+    list(REMOVE_ITEM SourceFiles "code/debugger/commands/extension-commands/pt.cpp")
+    list(APPEND SourceFiles "code/debugger/commands/extension-commands/pt-linux.cpp")
+
+    #
+    # The MASM (.asm) implementation only builds with the Microsoft assembler,
+    # so swap it for the GAS (AT&T syntax) port and enable the ASM language so
+    # CMake assembles the .s file with the system assembler.
+    #
+    list(REMOVE_ITEM SourceFiles "code/assembly/asm-vmx-checks-masm-windows.asm")
+    list(APPEND SourceFiles "code/assembly/asm-vmx-checks-gas-unix.s")
+    enable_language(ASM)
 endif()
 
 add_library(libhyperdbg SHARED ${SourceFiles})
+
+if(UNIX)
+    #
+    # Enable the Intel TSX/RTM intrinsics (_xbegin/_xend/_XBEGIN_STARTED) used by
+    # CheckAddressValidityUsingTsx() in common.cpp. GCC gates these behind -mrtm.
+    # Harmless when unused: no RTM instructions are emitted unless the intrinsics
+    # are actually called.
+    #
+    target_compile_options(libhyperdbg PRIVATE -mrtm)
+endif()

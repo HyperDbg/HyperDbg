@@ -57,7 +57,7 @@ HyperDbgDisableTransparentMode()
     //
     // Send the request to the kernel
     //
-    Status = DeviceIoControl(
+    Status = PlatformDeviceIoControl(
         g_DeviceHandle,                                             // Handle to device
         IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER, // IO Control
                                                                     // code
@@ -72,7 +72,7 @@ HyperDbgDisableTransparentMode()
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
         return FALSE;
     }
 

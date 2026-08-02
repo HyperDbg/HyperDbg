@@ -410,6 +410,7 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
     PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
+    PDEBUGGER_CPUID_REQUEST_RESPONSE                        DebuggerCpuidRequest;
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
     PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
@@ -832,6 +833,34 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
         // Adjust the status and output size
         //
         DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_DEBUGGER_CPUID:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGER_CPUID_REQUEST_RESPONSE,
+                                                (PVOID *)&DebuggerCpuidRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Perform CPUID request
+        //
+        DebuggerCommandCpuid(DebuggerCpuidRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_CPUID_REQUEST_RESPONSE, DoNotChangeInformation, Irp, &Status);
 
         break;
 

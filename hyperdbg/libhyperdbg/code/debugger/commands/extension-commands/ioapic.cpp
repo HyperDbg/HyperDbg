@@ -214,7 +214,7 @@ CommandIoapic(vector<CommandToken> CommandTokens, string Command)
         ShowMessages("err, allocating buffer for receiving I/O APIC");
     }
 
-    RtlZeroMemory(IoApicPackets, sizeof(IO_APIC_ENTRY_PACKETS));
+    PlatformZeroMemory(IoApicPackets, sizeof(IO_APIC_ENTRY_PACKETS));
 
     //
     // Get the I/O APIC buffer

@@ -61,7 +61,7 @@ CommandTestPerformKernelTestsIoctl()
     // want to pass some other arguments to the kernel in
     // the future
     //
-    Status = DeviceIoControl(
+    Status = PlatformDeviceIoControl(
         g_DeviceHandle,                       // Handle to device
         IOCTL_PERFORM_KERNEL_SIDE_TESTS,      // IO Control Code (IOCTL)
         &KernelTestRequest,                   // Input Buffer to driver.
@@ -75,7 +75,7 @@ CommandTestPerformKernelTestsIoctl()
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
         return FALSE;
     }
 
@@ -131,6 +131,18 @@ CommandTestAllFunctionalities()
     if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_CODEVIEW_RSDS_PARSER))
     {
         ShowMessages("err, start HyperDbg test process for testing the CodeView RSDS parser\n");
+        return;
+    }
+
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_SCRIPT_FLOATING_POINT))
+    {
+        ShowMessages("err, start HyperDbg test process for testing floating-point scripts\n");
+        return;
+    }
+
+    if (!OpenHyperDbgTestProcess(&ThreadHandle, &ProcessHandle, (CHAR *)TEST_CASE_PARAMETER_FOR_SCRIPT_VARIABLE_TYPES))
+    {
+        ShowMessages("err, start HyperDbg test process for testing variable-type scripts\n");
         return;
     }
 
@@ -192,7 +204,7 @@ CommandTestPerformTest()
         return FALSE;
     }
 
-    RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    PlatformZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     //
     // Create tests process to create a thread for us
@@ -233,7 +245,7 @@ SendCommandAndWaitForResponse:
         return FALSE;
     }
 
-    RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    PlatformZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
     ReadBytes =
         NamedPipeServerReadClientMessage(PipeHandle, (CHAR *)Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 

@@ -13,6 +13,7 @@
 
 #if defined(__linux__)
 #    include "../../../../include/SDK/HyperDbgSdk.h"
+#    include <linux/cpumask.h>
 #endif // defined(__linux__)
 
 //////////////////////////////////////////////////

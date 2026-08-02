@@ -174,6 +174,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "platform/user/header/platform-signal.h"
 
 //
+// Platform socket transport (cross-platform TCP remote-debugging I/O)
+//
+#include "platform/user/header/platform-socket.h"
+
+//
 // NT-style intrusive linked-list helpers + CONTAINING_RECORD (self-guards to
 // non-Windows; Windows gets these from <windows.h> / the native-SDK shim)
 //

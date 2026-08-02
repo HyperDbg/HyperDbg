@@ -69,7 +69,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
         return FALSE;
     }
 
-    RtlZeroMemory(ApicRequest, RequestSize);
+    PlatformZeroMemory(ApicRequest, RequestSize);
 
     //
     // Set the APIC type to local apic
@@ -90,7 +90,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
         else
         {
             *IsUsingX2APIC = ApicRequest->IsUsingX2APIC;
-            RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
+            PlatformCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
 
             free(ApicRequest);
             return TRUE;
@@ -103,7 +103,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                // Handle to device
             IOCTL_PERFORM_ACTIONS_ON_APIC, // IO Control Code (IOCTL)
             ApicRequest,                   // Input Buffer to driver.
@@ -116,7 +116,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
 
             free(ApicRequest);
             return FALSE;
@@ -139,7 +139,7 @@ CommandApicSendRequest(DEBUGGER_APIC_REQUEST_TYPE ApicType,
             // Fill the request buffer
             //
             *IsUsingX2APIC = ApicRequest->IsUsingX2APIC;
-            RtlCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
+            PlatformCopyMemory(ApicBuffer, (PVOID)(((CHAR *)ApicRequest) + sizeof(DEBUGGER_APIC_REQUEST)), ExpectedRequestSize);
 
             free(ApicRequest);
             return TRUE;

@@ -72,7 +72,7 @@ CommandBpPerformApplyingBreakpointOnUserDebugger(DEBUGGEE_BP_PACKET * BpPacket)
         //
         // Send IOCTL
         //
-        Status = DeviceIoControl(
+        Status = PlatformDeviceIoControl(
             g_DeviceHandle,                     // Handle to device
             IOCTL_SET_BREAKPOINT_USER_DEBUGGER, // IO Control Code (IOCTL)
             BpPacket,                           // Input Buffer to driver.
@@ -85,7 +85,7 @@ CommandBpPerformApplyingBreakpointOnUserDebugger(DEBUGGEE_BP_PACKET * BpPacket)
 
         if (!Status)
         {
-            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
 
             return FALSE;
         }

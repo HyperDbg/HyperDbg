@@ -33,6 +33,7 @@ CommandRdmsrHelp()
     ShowMessages("\t\te.g : rdmsr c0000082 core 2\n");
 }
 
+#ifdef _WIN32
 /// defines the GetLogicalProcessorInformationEx function
 typedef BOOL(WINAPI * glpie_t)(
     LOGICAL_PROCESSOR_RELATIONSHIP,
@@ -76,7 +77,7 @@ GetWindowsNumaNumberOfCores()
     }
 
     GetLogicalProcessorInformationEx(RelationAll, NULL, &Length);
-    if (Length < 1 || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    if (Length < 1 || PlatformGetLastError() != ERROR_INSUFFICIENT_BUFFER)
     {
         return 0;
     }
@@ -107,6 +108,7 @@ GetWindowsNumaNumberOfCores()
     free(Buffer);
     return NumCores;
 }
+#endif // _WIN32
 
 /**
  * @brief rdmsr command handler
@@ -197,17 +199,21 @@ CommandRdmsr(vector<CommandToken> CommandTokens, string Command)
     //
     // Find logical cores count
     //
+#ifdef _WIN32
     SIZE_T NumCores = GetWindowsNumaNumberOfCores();
     NumCPU          = NumCores > 0 ? NumCores : GetWindowsCompatibleNumberOfCores();
+#else
+    NumCPU = PlatformGetActiveProcessorCount();
+#endif
 
     //
     // allocate buffer for transferring messages
     //
     UINT64 * OutputBuffer = (UINT64 *)malloc(sizeof(UINT64) * NumCPU);
 
-    ZeroMemory(OutputBuffer, sizeof(UINT64) * NumCPU);
+    PlatformZeroMemory(OutputBuffer, sizeof(UINT64) * NumCPU);
 
-    Status = DeviceIoControl(
+    Status = PlatformDeviceIoControl(
         g_DeviceHandle,                        // Handle to device
         IOCTL_DEBUGGER_READ_OR_WRITE_MSR,      // IO Control Code (IOCTL)
         &MsrReadRequest,                       // Input Buffer to driver.
@@ -221,7 +227,7 @@ CommandRdmsr(vector<CommandToken> CommandTokens, string Command)
     if (!Status)
     {
         ShowMessages("ioctl failed with code (%x), either msr index or core id is invalid\n",
-                     GetLastError());
+                     PlatformGetLastError());
         free(OutputBuffer);
         return;
     }

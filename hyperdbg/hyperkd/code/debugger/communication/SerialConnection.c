@@ -88,6 +88,46 @@ SerialConnectionCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffe
 }
 
 /**
+ * @brief Discard bytes until the next end of buffer marker to re-align the
+ * stream to a frame boundary after a desync
+ *
+ * @return BOOLEAN TRUE if a marker was found (stream re-aligned), FALSE if too
+ * many bytes arrived without one (treat the link as dead)
+ */
+BOOLEAN
+SerialConnectionResyncToNextFrame()
+{
+    BYTE   Window[4] = {NULL_ZERO, NULL_ZERO, NULL_ZERO, NULL_ZERO};
+    UINT32 Discarded = 0;
+
+    while (Discarded < SERIAL_RESYNC_MAX_BYTES)
+    {
+        UCHAR RecvChar = NULL_ZERO;
+
+        if (!KdHyperDbgRecvByte(&RecvChar))
+        {
+            continue;
+        }
+
+        Window[0] = Window[1];
+        Window[1] = Window[2];
+        Window[2] = Window[3];
+        Window[3] = RecvChar;
+        Discarded++;
+
+        if (Window[0] == SERIAL_END_OF_BUFFER_CHAR_1 &&
+            Window[1] == SERIAL_END_OF_BUFFER_CHAR_2 &&
+            Window[2] == SERIAL_END_OF_BUFFER_CHAR_3 &&
+            Window[3] == SERIAL_END_OF_BUFFER_CHAR_4)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+/**
  * @brief Receive packet from the debugger
  *
  * @param BufferToSave
@@ -120,10 +160,33 @@ SerialConnectionRecvBuffer(CHAR *   BufferToSave,
         if (!(MaxSerialPacketSize > Loop))
         {
             //
-            // Invalid buffer (size of buffer exceeds the limitation)
+            // Overflowed without an end of buffer marker, so the stream is
+            // desynced (the debugger most likely dropped the link mid-frame
+            // without sending the close packet). Returning FALSE here sends the
+            // caller straight back into the same desynced stream, which
+            // overflows again at once and floods the log. Log once per episode
+            // and resync to the next frame boundary instead.
             //
-            LogError("Err, a buffer received in debuggee which exceeds the buffer limitation");
-            return FALSE;
+            if (!g_SerialConnectionDesyncReported)
+            {
+                LogWarning("Warning, serial stream desynced (exceeded the buffer "
+                           "limitation with no end marker); resyncing to the next frame");
+                g_SerialConnectionDesyncReported = TRUE;
+            }
+
+            if (!SerialConnectionResyncToNextFrame())
+            {
+                //
+                // Too many bytes without a marker, treat the link as dead
+                //
+                return FALSE;
+            }
+
+            //
+            // Re-aligned to a frame boundary, start a fresh frame
+            //
+            Loop = 0;
+            continue;
         }
 
         BufferToSave[Loop] = RecvChar;
@@ -135,6 +198,11 @@ SerialConnectionRecvBuffer(CHAR *   BufferToSave,
 
         Loop++;
     }
+
+    //
+    // A full frame arrived, so the stream is back in sync
+    //
+    g_SerialConnectionDesyncReported = FALSE;
 
     //
     // Set the length
@@ -363,6 +431,11 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
         DebuggeeRequest->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT;
         return STATUS_UNSUCCESSFUL;
     }
+
+    //
+    // Not in the desync state (reset desync flag)
+    //
+    g_SerialConnectionDesyncReported = FALSE;
 
     //
     // Prepare the structures needed for connecting remote port

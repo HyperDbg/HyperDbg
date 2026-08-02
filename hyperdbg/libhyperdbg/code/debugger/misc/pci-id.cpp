@@ -73,7 +73,18 @@ ReadLine(CHAR * DestBuffer, UINT64 CharLimit, CHAR ** SrcBuffer)
     }
     else
     {
-        strncpy_s(DestBuffer, CharLimit, *SrcBuffer, (Line - *SrcBuffer));
+        //
+        // The copy length is clamped to the destination, otherwise a line longer than
+        // CharLimit makes strncpy_s() invoke the invalid parameter handler
+        //
+        SIZE_T LineLength = (SIZE_T)(Line - *SrcBuffer);
+
+        if (LineLength > CharLimit - 1)
+        {
+            LineLength = (SIZE_T)(CharLimit - 1);
+        }
+
+        PlatformStrNCpy(DestBuffer, (SIZE_T)CharLimit, *SrcBuffer, LineLength);
         *SrcBuffer += (Line - *SrcBuffer + 1);
         return *SrcBuffer;
     }
@@ -103,22 +114,40 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
 
         if (f == NULL)
         {
-            ShowMessages("Error: Cannot open file '%s': error %d\n", Filename, errno);
+            ShowMessages("err, cannot open file '%s' (error 0x%x)\n", Filename, errno);
             return NULL;
         }
 
         fseek(f, 0, SEEK_END);
-        Length = ftell(f);
 
-        PciIdDatabaseBuffer = (CHAR *)malloc(Length);
+        LONG FileSize = ftell(f);
+
+        if (FileSize < 0)
+        {
+            ShowMessages("err, cannot determine the size of file '%s' (error: 0x%x)\n", Filename, errno);
+            fclose(f);
+            return NULL;
+        }
+
+        Length = (SIZE_T)FileSize;
+
+        //
+        // One extra byte is allocated for the null terminator, as the buffer is later
+        // walked with strchr() by ReadLine() and would otherwise be read past its end
+        //
+        PciIdDatabaseBuffer = (CHAR *)malloc(Length + 1);
         if (!PciIdDatabaseBuffer)
         {
+            fclose(f);
             return NULL;
         }
 
         fseek(f, 0, SEEK_SET);
-        fread(PciIdDatabaseBuffer, 1, Length, f);
+
+        SIZE_T BytesRead = fread(PciIdDatabaseBuffer, 1, Length, f);
         fclose(f);
+
+        PciIdDatabaseBuffer[BytesRead] = '\0';
     }
 
     PciIdDbBufPtr = PciIdDatabaseBuffer;
@@ -142,9 +171,19 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
             snprintf(FormatStr, sizeof(FormatStr), "%%4s %%%d[^\n]", PCI_NAME_STR_LENGTH); // FormatStr = "%4s %PCI_NAME_STR_LENGTH[^\n]"
             if (sscanf(Line, FormatStr, VendorBuf, VendorNameBuf) == 2)
             {
-                if (strncmp(VendorBuf, VendorId, sizeof(VendorId)) == 0)
+                //
+                // VendorId is a pointer, so sizeof() on it yielded the pointer size
+                // rather than the length of a PCI vendor id
+                //
+                if (strncmp(VendorBuf, VendorId, PCI_ID_AS_STR_LENGTH) == 0)
                 {
-                    MatchedVendor = (Vendor *)malloc(sizeof(Vendor));
+                    //
+                    // calloc() so that the Devices list head starts out empty: it is
+                    // only assigned once a device line is parsed, and FreeVendor()
+                    // would otherwise walk an uninitialized pointer for a vendor that
+                    // has no devices listed
+                    //
+                    MatchedVendor = (Vendor *)calloc(1, sizeof(Vendor));
                     if (!MatchedVendor)
                     {
                         return NULL;
@@ -153,9 +192,10 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
                     INT Result = sscanf(VendorBuf, "%hx", &(MatchedVendor->VendorId));
                     if (Result != 1)
                     {
+                        FreeVendor(MatchedVendor);
                         return NULL;
                     }
-                    strncpy_s(MatchedVendor->VendorName, sizeof(MatchedVendor->VendorName), TrimWhitespace(VendorNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
+                    PlatformStrNCpy(MatchedVendor->VendorName, sizeof(MatchedVendor->VendorName), TrimWhitespace(VendorNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
                     FoundVendorId = TRUE;
                 }
             }
@@ -178,11 +218,16 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
                 int Result = sscanf(DeviceBuf, "%hx", &(NewDevice->DeviceId));
                 if (Result != 1)
                 {
+                    //
+                    // NewDevice is not linked into the vendor's list yet, so it has to
+                    // be released separately from FreeVendor()
+                    //
+                    free(NewDevice);
                     FreeVendor(MatchedVendor);
                     return NULL;
                 }
 
-                strncpy_s(NewDevice->DeviceName, sizeof(NewDevice->DeviceName), TrimWhitespace(DeviceNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
+                PlatformStrNCpy(NewDevice->DeviceName, sizeof(NewDevice->DeviceName), TrimWhitespace(DeviceNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
                 NewDevice->SubDevices = NULL;
                 NewDevice->Next       = NULL;
 
@@ -216,6 +261,11 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
                 int Result = sscanf(SubVendorBuf, "%hx", &NewSubDevice->SubVendorId);
                 if (Result != 1)
                 {
+                    //
+                    // NewSubDevice is not linked into the device's list yet, so it has
+                    // to be released separately from FreeVendor()
+                    //
+                    free(NewSubDevice);
                     FreeVendor(MatchedVendor);
                     return NULL;
                 }
@@ -223,11 +273,12 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
                 Result = sscanf(SubDeviceBuf, "%hx", &NewSubDevice->SubDeviceId);
                 if (Result != 1)
                 {
+                    free(NewSubDevice);
                     FreeVendor(MatchedVendor);
                     return NULL;
                 }
 
-                strncpy_s(NewSubDevice->SubSystemName, sizeof(NewSubDevice->SubSystemName), TrimWhitespace(SubsystemNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
+                PlatformStrNCpy(NewSubDevice->SubSystemName, sizeof(NewSubDevice->SubSystemName), TrimWhitespace(SubsystemNameBuf, PCI_NAME_STR_LENGTH), _TRUNCATE);
                 NewSubDevice->Next = NULL;
 
                 if (LastSubDevice)
@@ -278,6 +329,13 @@ FreeVendor(Vendor * VendorToFree)
         free(CurrentDevice);
         CurrentDevice = NextDevice;
     }
+
+    //
+    // The Vendor itself is allocated by GetVendorByIdStr() and was previously never
+    // released, leaking one Vendor per call for every PCI device that got enumerated
+    //
+    VendorToFree->Devices = NULL;
+    free(VendorToFree);
 }
 
 /**
@@ -304,12 +362,23 @@ FreePciIdDatabase()
 Vendor *
 GetVendorById(UINT16 VendorId)
 {
+#ifdef _WIN32
     CHAR    VendorIdAsStr[5];
     CHAR    ExecutablePath[MAX_PATH];
     HMODULE hModule = GetModuleHandle(NULL);
 
     snprintf(VendorIdAsStr, sizeof(VendorIdAsStr), "%04X", VendorId);
-    GetModuleFileName(hModule, ExecutablePath, sizeof(ExecutablePath));
+
+    DWORD PathLength = GetModuleFileName(hModule, ExecutablePath, sizeof(ExecutablePath));
+
+    //
+    // A zero length means the call failed; a length equal to the buffer size means the
+    // path was truncated and, on older Windows versions, left without a null terminator
+    //
+    if (PathLength == 0 || PathLength >= sizeof(ExecutablePath))
+    {
+        return NULL;
+    }
 
     // Extract executable name
     CHAR * ExecutableName = strrchr(ExecutablePath, '\\');
@@ -323,9 +392,31 @@ GetVendorById(UINT16 VendorId)
     }
 
     // Swap executable name for PCI_ID_DATABASE_PATH
-    strncpy(ExecutableName, PCI_ID_DATABASE_PATH, sizeof(PCI_ID_DATABASE_PATH));
+    //
+    // The database path can be longer than the executable name it replaces, so the
+    // room left in ExecutablePath is checked before overwriting the tail
+    //
+    SIZE_T RemainingSpace = sizeof(ExecutablePath) - (SIZE_T)(ExecutableName - ExecutablePath);
+
+    if (RemainingSpace < sizeof(PCI_ID_DATABASE_PATH))
+    {
+        return NULL;
+    }
+
+    memcpy(ExecutableName, PCI_ID_DATABASE_PATH, sizeof(PCI_ID_DATABASE_PATH));
 
     return GetVendorByIdStr(ExecutablePath, ToLower(VendorIdAsStr));
+#else
+    //
+    // TODO(Linux): resolve the PCI ID database next to the executable via
+    // readlink("/proc/self/exe") once the path separator and
+    // PCI_ID_DATABASE_PATH ("constants\\pci.ids") are made portable. Until
+    // then no vendor/device names are available on Linux.
+    //
+    UNREFERENCED_PARAMETER(VendorId);
+
+    return NULL;
+#endif
 }
 
 /**

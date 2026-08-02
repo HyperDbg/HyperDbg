@@ -412,7 +412,7 @@ HwdbgScriptSendScriptPacket(HWDBG_INSTANCE_INFORMATION * InstanceInfo,
         return FALSE;
     }
 
-    RtlZeroMemory(FinalBuffer, BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
+    PlatformZeroMemory(FinalBuffer, BufferLength + sizeof(HWDBG_SCRIPT_BUFFER));
 
     //
     // Copy the packet into the FinalBuffer

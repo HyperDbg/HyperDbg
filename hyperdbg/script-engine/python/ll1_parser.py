@@ -48,7 +48,7 @@ class LL1Parser:
         self.MAXIMUM_RHS_LEN = 0
 
 
-        self.SPECIAL_TOKENS = ['%', '+', '~', '++', '-', '--', '->', '.', "*", "/", "=", "==", "!=", ",", ";", "(", ")", "{", "}", "|", "||", ">>", ">=", "<<", "<=", "&", "&&", "^",
+        self.SPECIAL_TOKENS = ['%', '+', '~', '!', '++', '-', '--', '->', '.', "*", "/", "=", "==", "!=", ",", ";", "(", ")", "{", "}", "|", "||", ">>", ">=", "<<", "<=", "&", "&&", "^",
                               "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=" , "[", "]"]
 
         # INVALID rule indicator
@@ -430,9 +430,9 @@ class LL1Parser:
 
         self.TerminalSet.add("$")
         
-        self.NonTerminalList = list(self.NonTerminalSet)
+        self.NonTerminalList = sorted(self.NonTerminalSet)
         
-        self.TerminalList = list(self.TerminalSet)
+        self.TerminalList = sorted(self.TerminalSet)
 
         
     def WriteSemanticMaps(self):
@@ -447,14 +447,29 @@ class LL1Parser:
             "aggregate_copy", "aggregate_zero"
             , "struct_initializer_begin", "struct_initializer_end",
             "struct_pointer_cast", "member_address", "member_read",
-            "member_dot_lvalue", "member_arrow_lvalue", "member_dot_read", "member_arrow_read"
+            "member_dot_lvalue", "member_arrow_lvalue", "member_dot_read", "member_arrow_read",
+            "mov_float", "neg_float", "add_float", "sub_float", "mul_float", "div_float",
+            "gt_float", "lt_float", "egt_float", "elt_float", "equal_float", "neq_float",
+            "convert_float"
         }
         aggregate_keywords = {"struct", "typedef"}
-        legacy_semantics = [x for x in self.SemantiRulesList if x not in aggregate_semantics]
+        append_only_semantics = [
+            "cast_scalar",
+            "add_typed", "sub_typed", "mul_typed", "div_typed", "mod_typed",
+            "bitwise_and_typed", "bitwise_or_typed", "bitwise_xor_typed",
+            "shift_left_typed", "shift_right_typed",
+            "gt_typed", "lt_typed", "egt_typed", "elt_typed", "equal_typed", "neq_typed",
+            "neg_typed", "bitwise_not_typed", "logical_not_typed", "pointer_diff"
+        ]
+        compiler_only_semantics = {
+            "type_name_begin", "sizeof_begin", "sizeof_type", "sizeof_expression",
+            "logical_or_begin", "logical_or_end", "logical_and_begin", "logical_and_end"
+        }
+        legacy_semantics = [x for x in self.SemantiRulesList if x not in aggregate_semantics and x not in append_only_semantics and x not in compiler_only_semantics]
         new_semantics = [x for x in self.SemantiRulesList if x in aggregate_semantics]
         legacy_keywords = [x for x in self.keywordList if x not in aggregate_keywords]
         new_keywords = [x for x in self.keywordList if x in aggregate_keywords]
-        numbered_semantics = legacy_semantics + legacy_keywords + new_semantics + new_keywords
+        numbered_semantics = legacy_semantics + legacy_keywords + new_semantics + new_keywords + append_only_semantics
         
         self.CommonHeaderFileScala.write("object ScriptEvalFunc {\n  object ScriptOperators extends ChiselEnum {\n    val ")
         
@@ -503,7 +518,10 @@ class LL1Parser:
             self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
 
         for X in self.SemantiRulesList:
-            self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
+            if X in compiler_only_semantics:
+                self.SourceFile.write("{\"@" + X.upper() + "\", FUNC_UNDEFINED},\n")
+            else:
+                self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
 
         for X in self.keywordList:
                 self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
@@ -701,6 +719,8 @@ class LL1Parser:
 
         elif Var in self.SPECIAL_TOKENS:
             return "SPECIAL_TOKEN"
+        elif Var == "_float":
+            return "FLOAT_LITERAL"
         elif Var[0] == "_":
             return Var[1:].upper()
         else:
@@ -867,8 +887,9 @@ class LL1Parser:
                         self.ParseTable[i][j] = RuleId
 
                     else:
-
-                        print("Error! Input grammar is not LL1.")
+                        print("Error! Input grammar is not LL1: " + Lhs +
+                              " on " + Terminal + " conflicts between rules " +
+                              str(self.ParseTable[i][j]) + " and " + str(RuleId) + ".")
                         exit()
 
                 j += 1
