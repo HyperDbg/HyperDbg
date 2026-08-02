@@ -14,6 +14,8 @@
 #ifdef __linux__
 #    include <sys/stat.h>  // struct stat / stat() for IsFileExistA
 #    include <immintrin.h> // Intel TSX RTM intrinsics (_xbegin/_xend); requires -mrtm
+#    include <dirent.h>    // opendir()/readdir() for ListDirectory
+#    include <fnmatch.h>   // fnmatch() for the wildcard filter of ListDirectory
 #endif
 
 //
@@ -154,7 +156,7 @@ IsNumber(const string & str)
     // that does not match any of the characters specified in its arguments
     //
     return !str.empty() &&
-           (str.find_first_not_of("[0123456789]") == std::string::npos);
+           (str.find_first_not_of("0123456789") == std::string::npos);
 }
 
 /**
@@ -172,7 +174,11 @@ IsHexNotation(const string & s)
     {
         IsAnyThing = TRUE;
 
-        if (!isxdigit(CptrChar))
+        //
+        // The cast is needed as passing a negative 'char' to the <ctype.h>
+        // functions is undefined behavior
+        //
+        if (!isxdigit((UCHAR)CptrChar))
         {
             return FALSE;
         }
@@ -199,7 +205,11 @@ IsDecimalNotation(const string & s)
     {
         IsAnyThing = TRUE;
 
-        if (!isdigit(CptrChar))
+        //
+        // The cast is needed as passing a negative 'char' to the <ctype.h>
+        // functions is undefined behavior
+        //
+        if (!isdigit((UCHAR)CptrChar))
         {
             return FALSE;
         }
@@ -607,7 +617,12 @@ ValidateIP(const string & ip)
         // verify that string is number or not and the numbers
         // are in the valid range
         //
-        if (!IsNumber(str) || stoi(str) > 255 || stoi(str) < 0)
+        // 'IsNumber' guarantees a non-empty, digits-only string, so 'strtoul'
+        // cannot fail here; it saturates to ULONG_MAX on overflow, which the
+        // range check below rejects. 'std::stoi' is deliberately avoided as it
+        // throws on both non-numeric and out-of-range input
+        //
+        if (!IsNumber(str) || strtoul(str.c_str(), NULL, 10) > 255)
             return FALSE;
     }
 
@@ -699,7 +714,7 @@ SetPrivilege(HANDLE  Token,          // access token handle
 static inline VOID
 ltrim(std::string & s)
 {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](CHAR ch) { return !std::isspace((UCHAR)ch); }));
 }
 
 /**
@@ -710,7 +725,7 @@ ltrim(std::string & s)
 static inline VOID
 rtrim(std::string & s)
 {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); })
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](CHAR ch) { return !std::isspace((UCHAR)ch); })
                 .base(),
             s.end());
 }
@@ -860,22 +875,52 @@ ListDirectory(const std::string & Directory, const std::string & Extension)
     if (Find == INVALID_HANDLE_VALUE)
         throw std::runtime_error("invalid handle value! please check your path...");
 
-    while (FindNextFileA(Find, &FindData) != 0)
+    //
+    // 'FindFirstFileA' already returned the first match in 'FindData', so it
+    // has to be consumed before asking for the next one; otherwise the first
+    // file of the directory is silently dropped from the list
+    //
+    do
     {
         DirList.push_back(Directory + "\\" + std::string(FindData.cFileName));
-    }
+    } while (FindNextFileA(Find, &FindData) != 0);
 
     FindClose(Find);
 
     return DirList;
 #else
+    DIR *                    DirectoryHandle;
+    struct dirent *          DirectoryEntry;
+    std::vector<std::string> DirList;
+
+    DirectoryHandle = opendir(Directory.c_str());
+
+    if (DirectoryHandle == NULL)
+        throw std::runtime_error("invalid handle value! please check your path...");
+
+    while ((DirectoryEntry = readdir(DirectoryHandle)) != NULL)
+    {
+        //
+        // 'FindFirstFileA' applies the wildcard pattern to the file name, so
+        // the same is done here with 'fnmatch'. No flag is passed, which keeps
+        // a leading '.' unremarkable and lets "." and ".." match a bare "*",
+        // exactly like the Win32 walk does
+        //
+        if (fnmatch(Extension.c_str(), DirectoryEntry->d_name, 0) != 0)
+            continue;
+
+        DirList.push_back(Directory + "/" + std::string(DirectoryEntry->d_name));
+    }
+
+    closedir(DirectoryHandle);
+
     //
-    // TODO(Linux): reimplement with opendir/readdir + fnmatch(Extension) over
-    // Directory. Only caller today is the script-engine test harness (eval.cpp).
+    // 'readdir' hands the entries back in whatever order the file system stores
+    // them, so the list is sorted to keep the result reproducible across runs
     //
-    UNREFERENCED_PARAMETER(Directory);
-    UNREFERENCED_PARAMETER(Extension);
-    return std::vector<std::string>();
+    std::sort(DirList.begin(), DirList.end());
+
+    return DirList;
 #endif
 }
 
@@ -1062,7 +1107,7 @@ CheckAddressCanonicality(UINT64 VAddr, PBOOLEAN IsKernelAddress)
     //
     // Set whether it's a kernel address or not
     //
-    if (MinVirtualAddressHighHalf < Addr)
+    if (MinVirtualAddressHighHalf <= Addr)
     {
         *IsKernelAddress = TRUE;
     }

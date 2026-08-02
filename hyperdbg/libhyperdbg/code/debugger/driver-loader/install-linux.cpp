@@ -1,7 +1,7 @@
 /**
  * @file install-linux.cpp
  * @author Max Raulea (max.raulea@hyperdbg.org)
- * @brief Linux stub implementations of the driver-loader (install.cpp)
+ * @brief Linux implementations of the driver-loader (install.cpp)
  * @details The Windows implementation (install.cpp) loads/unloads the HyperDbg
  *          kernel-mode driver (the .sys file that contains the actual debugging
  *          engine) through the Windows Service Control Manager (SCM):
@@ -20,24 +20,20 @@
  *          four SC_HANDLE helpers are guarded out of install.h on Linux and are
  *          never referenced there.
  *
- *          TODO(Linux) to make these real once a Linux kernel component lands:
+ *          SetupPathForFileName is a generic "find a file beside my binary"
+ *          helper rather than a driver-loading one (it is also used for the
+ *          hwdbg test/script files and the PCI ID database), so it is
+ *          implemented for real here: readlink("/proc/self/exe") is the
+ *          GetModuleFileName counterpart, and the rest of the Windows logic
+ *          (strip the program name, append the requested file, optionally check
+ *          that it exists) maps over unchanged.
+ *
+ *          TODO(Linux) to make the rest real once a Linux kernel component lands:
  *          - ManageDriver: load/unload the future HyperDbg Linux kernel module.
  *            The natural backend is insmod/rmmod semantics via the finit_module(2)
  *            / delete_module(2) syscalls (or libkmod), taking the .ko path built
  *            by SetupPathForFileName. DRIVER_FUNC_INSTALL/START -> load,
  *            DRIVER_FUNC_STOP/REMOVE -> unload. Requires CAP_SYS_MODULE (root).
- *          - SetupPathForFileName: build the absolute path of a file that sits
- *            next to the running executable. The Windows version uses
- *            GetModuleFileName + strip-after-last-'\\' + append '\\'+FileName +
- *            optional existence check. The Linux equivalent is:
- *              readlink("/proc/self/exe", ...)  (the kernel-provided symlink to
- *              the current process's own binary, i.e. the GetModuleFileName
- *              counterpart), then strrchr(..., '/') to strip the program name,
- *              append '/' + FileName, and (if CheckFileExists) verify with
- *              access(path, F_OK). Mind BufferLength bounds on every write.
- *            This is a generic "find a file beside my binary" helper (also used
- *            for the hwdbg test/script files, not just the driver), so it is the
- *            one that is actually worth implementing for real later.
  *
  * @version 0.1
  * @date 2026-07-18
@@ -48,6 +44,9 @@
 #include "pch.h"
 
 #ifdef __linux__
+
+#    include <unistd.h> // readlink()/access() for SetupPathForFileName
+#    include <errno.h>  // errno/strerror() for the readlink() failure message
 
 /**
  * @brief Install / start / stop / remove the HyperDbg kernel driver.
@@ -74,14 +73,15 @@ ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName, _In_ UINT16 Func
 /**
  * @brief Build the absolute path of a file located next to the running binary.
  *
- * @param FileName the file to locate (e.g. the driver or a test/script file)
+ * @param FileName the file to locate (e.g. the driver or a test/script file).
+ *        Windows-style '\\' separators are accepted and normalized
  * @param FileLocation out buffer receiving the full path
- * @param BufferLength size of FileLocation in bytes
+ * @param BufferLength size of FileLocation in bytes. The executable's own path
+ *        is read into the same buffer first, so it has to fit as well
  * @param CheckFileExists whether to verify the resulting path exists
  *
- * @return BOOLEAN FALSE — not implemented on Linux yet. The real version should
- *         use readlink("/proc/self/exe") + strip + append + access(); see the
- *         file header TODO(Linux).
+ * @return BOOLEAN whether the path could be built (and, when asked for, whether
+ *         the resulting file exists)
  */
 BOOLEAN
 SetupPathForFileName(const CHAR *                                  FileName,
@@ -89,13 +89,98 @@ SetupPathForFileName(const CHAR *                                  FileName,
                      ULONG                                         BufferLength,
                      BOOLEAN                                       CheckFileExists)
 {
-    UNREFERENCED_PARAMETER(FileName);
-    UNREFERENCED_PARAMETER(FileLocation);
-    UNREFERENCED_PARAMETER(BufferLength);
-    UNREFERENCED_PARAMETER(CheckFileExists);
+    ssize_t PathLength;
+    CHAR *  ProgramName;
+    SIZE_T  DirectoryLength;
+    SIZE_T  FileNameLength;
 
-    ShowMessages("err, SetupPathForFileName is not supported on Linux yet\n");
-    return FALSE;
+    if (FileName == NULL || FileLocation == NULL || BufferLength == 0)
+    {
+        return FALSE;
+    }
+
+    //
+    // "/proc/self/exe" is the kernel-provided symlink to the binary of the
+    // running process, which makes it the counterpart of the
+    // GetModuleFileName(GetModuleHandle(NULL), ...) used on Windows.
+    // readlink() never writes a null terminator, so the last byte of the
+    // buffer is reserved for it
+    //
+    PathLength = readlink("/proc/self/exe", FileLocation, BufferLength - 1);
+
+    if (PathLength < 0)
+    {
+        ShowMessages("err, unable to resolve the path of the current executable (%s)\n",
+                     strerror(errno));
+
+        return FALSE;
+    }
+
+    //
+    // readlink() truncates silently, so a result that fills the buffer means
+    // the path is (possibly) incomplete and would point at the wrong file
+    //
+    if ((ULONG)PathLength >= BufferLength - 1)
+    {
+        ShowMessages("err, the path of the current executable does not fit in the buffer\n");
+
+        return FALSE;
+    }
+
+    FileLocation[PathLength] = '\0';
+
+    //
+    // Remove the program name and keep the directory that contains it; this is
+    // the '/' counterpart of the strrchr(FileLocation, '\\') in install.cpp
+    //
+    ProgramName = strrchr(FileLocation, '/');
+
+    if (ProgramName == NULL)
+    {
+        ShowMessages("err, unable to resolve the directory of the current executable\n");
+
+        return FALSE;
+    }
+
+    DirectoryLength = (SIZE_T)(ProgramName - FileLocation);
+
+    //
+    // The directory, the separator, the file name and the null terminator all
+    // have to fit; this is what the StringCbCat() calls check on Windows
+    //
+    FileNameLength = strlen(FileName);
+
+    if (DirectoryLength + FileNameLength + 2 > BufferLength)
+    {
+        ShowMessages("err, the path of the target file does not fit in the buffer\n");
+
+        return FALSE;
+    }
+
+    FileLocation[DirectoryLength] = '/';
+    memcpy(FileLocation + DirectoryLength + 1, FileName, FileNameLength + 1);
+
+    //
+    // The file names come from shared headers and are spelled the Windows way
+    // (e.g. "constants\\pci.ids"), so the separators of the appended part are
+    // normalized; otherwise the backslashes would end up inside a file name
+    //
+    for (SIZE_T i = DirectoryLength + 1; i <= DirectoryLength + FileNameLength; i++)
+    {
+        if (FileLocation[i] == '\\')
+        {
+            FileLocation[i] = '/';
+        }
+    }
+
+    if (CheckFileExists && access(FileLocation, F_OK) != 0)
+    {
+        ShowMessages("err, target file is not loaded\n");
+
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 #endif // __linux__
