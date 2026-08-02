@@ -214,6 +214,13 @@ BOOLEAN g_IsWaitingForUserModeProcessEntryToBeCalled;
 BOOLEAN g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer;
 
 /**
+ * Set when the serial stream desyncs so the warning is logged once per episode
+ * (cleared on the next good frame) instead of on every overflow
+ *
+ */
+BOOLEAN g_SerialConnectionDesyncReported;
+
+/**
  * @brief Global test flag (for testing purposes)
  *
  */

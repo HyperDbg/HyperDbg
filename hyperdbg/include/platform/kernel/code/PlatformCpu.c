@@ -29,8 +29,8 @@ PlatformCpuGetActiveProcessorCount(VOID)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
-
+    return num_online_cpus();
+	
 #else
 
 #    error "Unsupported platform"
@@ -52,7 +52,7 @@ PlatformCpuGetCurrentProcessorNumber(VOID)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    return raw_smp_processor_id();
 
 #else
 
