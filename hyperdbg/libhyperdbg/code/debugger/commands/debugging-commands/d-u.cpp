@@ -18,6 +18,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 #define DW_DEFAULT_LENGTH 0x80
+#define DA_DEFAULT_LENGTH 0x50
 
 /**
  * @brief Formats and prints a buffer as word (2-byte) values, 8 per line,
@@ -54,6 +55,45 @@ ShowMemoryCommandDwLocal(UCHAR * Buffer, UINT32 Size, UINT64 Address, UINT32 Ret
 }
 
 /**
+ * @brief Formats and prints a buffer as a printable ASCII string, replacing
+ *        non-printable bytes with '.' and stopping at a null terminator,
+ *        WinDbg 'da' style
+ *
+ * @param Buffer
+ * @param Size
+ * @param Address
+ * @param ReturnedLength
+ *
+ * @return VOID
+ */
+static VOID
+ShowMemoryCommandDaLocal(UCHAR * Buffer, UINT32 Size, UINT64 Address, UINT32 ReturnedLength)
+{
+    ShowMessages("%016llx  \"", Address);
+
+    for (UINT32 i = 0; i < ReturnedLength; i++)
+    {
+        UCHAR Ch = Buffer[i];
+
+        if (Ch == '\0')
+        {
+            break;
+        }
+
+        if (Ch >= 0x20 && Ch <= 0x7e)
+        {
+            ShowMessages("%c", Ch);
+        }
+        else
+        {
+            ShowMessages(".");
+        }
+    }
+
+    ShowMessages("\"\n");
+}
+
+/**
  * @brief help of u* d* !u* !d* commands
  *
  * @return VOID
@@ -61,13 +101,14 @@ ShowMemoryCommandDwLocal(UCHAR * Buffer, UINT32 Size, UINT64 Address, UINT32 Ret
 VOID
 CommandReadMemoryAndDisassemblerHelp()
 {
-    ShowMessages("db dc dd dq dl dw !db !dc !dd !dq !dl !dw & u u64 !u !u64 u2 u32 !u2 !u32 : reads the  "
+    ShowMessages("db dc dd dq dl dw da !db !dc !dd !dq !dl !dw !da & u u64 !u !u64 u2 u32 !u2 !u32 : reads the  "
                  "memory in different shapes (hex), disassembles, or walks linked lists\n");
     ShowMessages("db  Byte and ASCII characters\n");
     ShowMessages("dc  Double-word values (4 bytes) and ASCII characters\n");
     ShowMessages("dd  Double-word values (4 bytes)\n");
     ShowMessages("dq  Quad-word values (8 bytes). \n");
     ShowMessages("dw  Word values (2 bytes)\n");
+    ShowMessages("da  Printable ASCII characters (null-terminated string)\n");
     ShowMessages("u u64 Disassembler at the target address (x64) \n");
     ShowMessages("u2 u32  Disassembler at the target address (x86) \n");
     ShowMessages("dl  Walks a linked list starting at an address and shows each node\n");
@@ -80,6 +121,7 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("syntax : \tdd [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tdq [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tdw [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tda [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tu [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tu64 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tu2 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
@@ -96,6 +138,9 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("\t\te.g : !dq @rax+77\n");
     ShowMessages("\t\te.g : dw nt!Kd_DEFAULT_Mask\n");
     ShowMessages("\t\te.g : dw @rax l 20\n");
+    ShowMessages("\t\te.g : da @rax\n");
+    ShowMessages("\t\te.g : da fffff8077356f010 l 100\n");
+    ShowMessages("\t\te.g : !da 100000\n");
     ShowMessages("\t\te.g : u32 @eip\n");
     ShowMessages("\t\te.g : u nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : u nt!ExAllocatePoolWithTag+30\n");
@@ -128,6 +173,7 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
     BOOLEAN IsNextOffset    = FALSE;
     BOOLEAN IsDlCommand     = FALSE;
     BOOLEAN IsDwCommand     = FALSE;
+    BOOLEAN IsDaCommand     = FALSE;
 
     string FirstCommand = GetCaseSensitiveStringFromCommandToken(CommandTokens.front());
 
@@ -160,6 +206,8 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
                              CompareLowerCaseStrings(CommandTokens.at(0), "!dl");
             IsDwCommand    = CompareLowerCaseStrings(CommandTokens.at(0), "dw") |
                              CompareLowerCaseStrings(CommandTokens.at(0), "!dw");
+            IsDaCommand    = CompareLowerCaseStrings(CommandTokens.at(0), "da") |
+                             CompareLowerCaseStrings(CommandTokens.at(0), "!da");
 
             continue;
         }
@@ -283,6 +331,10 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
         else if (IsDwCommand)
         {
             Length = DW_DEFAULT_LENGTH;
+        }
+        else if (IsDaCommand)
+        {
+            Length = DA_DEFAULT_LENGTH;
         }
         else
         {
@@ -453,7 +505,7 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
     }
 
     //
-    // Word dump (dw) — self-contained: read raw bytes, format locally
+    // Word dump (dw / !dw) — self-contained: read raw bytes, format locally
     //
     else if (IsDwCommand)
     {
@@ -463,7 +515,7 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
         BOOLEAN                           Status;
 
         Status = HyperDbgReadMemory(TargetAddress,
-                                    DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                    CompareLowerCaseStrings(CommandTokens.at(0), "dw") ? DEBUGGER_READ_VIRTUAL_ADDRESS : DEBUGGER_READ_PHYSICAL_ADDRESS,
                                     READ_FROM_KERNEL,
                                     Pid,
                                     Length,
@@ -479,6 +531,38 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
         else
         {
             ShowMemoryCommandDwLocal(Buffer, Length, TargetAddress, ReturnedLength);
+        }
+
+        std::free(Buffer);
+    }
+
+    //
+    // ASCII string dump (da / !da) — self-contained: read raw bytes, format locally
+    //
+    else if (IsDaCommand)
+    {
+        UCHAR *                           Buffer         = (UCHAR *)malloc(Length);
+        UINT32                            ReturnedLength = 0;
+        DEBUGGER_READ_MEMORY_ADDRESS_MODE AddressMode;
+        BOOLEAN                           Status;
+
+        Status = HyperDbgReadMemory(TargetAddress,
+                                    CompareLowerCaseStrings(CommandTokens.at(0), "da") ? DEBUGGER_READ_VIRTUAL_ADDRESS : DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                    READ_FROM_KERNEL,
+                                    Pid,
+                                    Length,
+                                    FALSE,
+                                    &AddressMode,
+                                    (BYTE *)Buffer,
+                                    &ReturnedLength);
+
+        if (!Status || ReturnedLength == 0)
+        {
+            ShowMessages("err, invalid address\n");
+        }
+        else
+        {
+            ShowMemoryCommandDaLocal(Buffer, Length, TargetAddress, ReturnedLength);
         }
 
         std::free(Buffer);
