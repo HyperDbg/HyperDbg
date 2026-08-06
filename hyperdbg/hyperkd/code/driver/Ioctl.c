@@ -411,6 +411,8 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_CPUID_REQUEST_RESPONSE                        DebuggerCpuidRequest;
+    PDEBUGGER_USER_IN_REQUEST_RESPONSE                      DebuggerUserInRequest;
+    PDEBUGGER_USER_OUT_REQUEST_RESPONSE                     DebuggerUserOutRequest;
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
     PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
@@ -861,6 +863,62 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
         // Adjust the status and output size
         //
         DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_CPUID_REQUEST_RESPONSE, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_DEBUGGER_USER_IN:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGER_USER_IN_REQUEST_RESPONSE,
+                                                (PVOID *)&DebuggerUserInRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Perform IN instruction
+        //
+        DebuggerCommandUserIn(DebuggerUserInRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_USER_IN_REQUEST_RESPONSE, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_DEBUGGER_USER_OUT:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGER_USER_OUT_REQUEST_RESPONSE,
+                                                (PVOID *)&DebuggerUserOutRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Perform OUT instruction
+        //
+        DebuggerCommandUserOut(DebuggerUserOutRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_USER_OUT_REQUEST_RESPONSE, DoNotChangeInformation, Irp, &Status);
 
         break;
 

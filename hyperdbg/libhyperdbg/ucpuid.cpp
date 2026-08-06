@@ -43,6 +43,10 @@ CommandUserCpuidHelp()
 /**
  * @brief ucpuid command show messages
  *
+ * @param FunctionId
+ * @param SubFunctionId
+ * @param CpuidRequest
+ * 
  * @return VOID
  */
 VOID
@@ -2065,6 +2069,9 @@ CommandShowUserCpuidMessage(UINT32                           FunctionId,
 /**
  * @brief ucpuid command handler
  *
+ * @param FunctionId
+ * @param SubFunctionId
+ * 
  * @return VOID
  */
 VOID

@@ -1423,6 +1423,9 @@ InitializeCommandsDictionary()
     g_CommandsList["ucpuid"] = {&CommandUserCpuid, &CommandUserCpuidHelp, DEBUGGER_COMMAND_USER_CPUID_ATTRIBUTES};
     g_CommandsList["cpuid"]  = {&CommandUserCpuid, &CommandUserCpuidHelp, DEBUGGER_COMMAND_USER_CPUID_ATTRIBUTES};
 
+    g_CommandsList["uin"]  = {&CommandUserIn, &CommandUserInHelp, DEBUGGER_COMMAND_USER_IN_ATTRIBUTES};
+    g_CommandsList["uout"] = {&CommandUserOut, &CommandUserOutHelp, DEBUGGER_COMMAND_USER_OUT_ATTRIBUTES};
+
     g_CommandsList["pause"]  = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
     g_CommandsList[".pause"] = {&CommandPause, &CommandPauseHelp, DEBUGGER_COMMAND_PAUSE_ATTRIBUTES};
 
