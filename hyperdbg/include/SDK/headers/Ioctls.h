@@ -396,6 +396,20 @@
 #define IOCTL_DEBUGGER_CPUID \
     CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x27, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+/**
+ * @brief ioctl, to perform IN instruction
+ *
+ */
+#define IOCTL_DEBUGGER_USER_IN \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x28, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to perform OUT instruction
+ *
+ */
+#define IOCTL_DEBUGGER_USER_OUT \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x29, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
 //////////////////////////////////////////////////
 //               HyperTrace IOCTLs              //
 //////////////////////////////////////////////////

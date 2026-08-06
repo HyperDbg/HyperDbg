@@ -117,6 +117,12 @@ BOOLEAN
 KdSendUserCpuidPacketToDebuggee(UINT32 FunctionId, UINT32 SubFunctionId);
 
 BOOLEAN
+KdSendUserInPacketToDebuggee(DEBUGGER_USER_IN_REQUEST_RESPONSE InRequest);
+
+BOOLEAN
+KdSendUserOutPacketToDebuggee(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest);
+
+BOOLEAN
 KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
                                 UINT32                            Size,
                                 DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
