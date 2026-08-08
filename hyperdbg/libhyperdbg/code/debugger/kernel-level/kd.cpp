@@ -339,6 +339,9 @@ KdSendFlushPacketToDebuggee()
 /**
  * @brief Send a CPUID request to the debuggee
  *
+ * @param FunctionId
+ * @param SubFunctionId
+ * 
  * @return BOOLEAN
  */
 BOOLEAN
@@ -364,6 +367,66 @@ KdSendUserCpuidPacketToDebuggee(UINT32 FunctionId, UINT32 SubFunctionId)
     // Wait until the result of CPUID received
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT);
+
+    return TRUE;
+}
+
+/**
+ * @brief Send IN instruction to the debuggee
+ *
+ * @param InRequest
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendUserInPacketToDebuggee(DEBUGGER_USER_IN_REQUEST_RESPONSE InRequest)
+{
+    //
+    // Send 'uin' command as packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_USER_IN_INSTRUCTION,
+            (CHAR *)&InRequest,
+            sizeof(DEBUGGER_USER_IN_REQUEST_RESPONSE)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of IN instruction received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_IN_RESULT);
+
+    return TRUE;
+}
+
+/**
+ * @brief Send OUT instruction to the debuggee
+ *
+ * @param OutRequest
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendUserOutPacketToDebuggee(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest)
+{
+    //
+    // Send 'uout' command as packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_USER_OUT_INSTRUCTION,
+            (CHAR *)&OutRequest,
+            sizeof(DEBUGGER_USER_OUT_REQUEST_RESPONSE)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of OUT instruction received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_OUT_RESULT);
 
     return TRUE;
 }

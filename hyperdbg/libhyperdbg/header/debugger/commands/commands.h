@@ -304,6 +304,12 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_USER_CPUID_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_USER_IN_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
+#define DEBUGGER_COMMAND_USER_OUT_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 #define DEBUGGER_COMMAND_UNLOAD_ATTRIBUTES NULL
 
 #define DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES \
@@ -649,6 +655,12 @@ CommandFlush(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandUserCpuid(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandUserIn(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandUserOut(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandPause(vector<CommandToken> CommandTokens, string Command);

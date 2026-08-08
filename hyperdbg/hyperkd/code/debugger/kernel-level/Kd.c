@@ -2261,6 +2261,8 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGEE_STEP_PACKET                               SteppingPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
     PDEBUGGER_CPUID_REQUEST_RESPONSE                    CpuidPacket;
+    PDEBUGGER_USER_IN_REQUEST_RESPONSE                  InPacket;
+    PDEBUGGER_USER_OUT_REQUEST_RESPONSE                 OutPacket;
     PDEBUGGER_CALLSTACK_REQUEST                         CallstackPacket;
     PDEBUGGER_SINGLE_CALLSTACK_FRAME                    CallstackFrameBuffer;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER                TestQueryPacket;
@@ -2549,6 +2551,44 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_USER_CPUID,
                                            (CHAR *)CpuidPacket,
                                            sizeof(DEBUGGER_CPUID_REQUEST_RESPONSE));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_USER_IN_INSTRUCTION:
+
+                InPacket = (DEBUGGER_USER_IN_REQUEST_RESPONSE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Receieve IN instruction result
+                //
+                DebuggerCommandUserIn(InPacket);
+
+                //
+                // Send the result of IN instruction back to the debugger
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_USER_IN_INSTRUCTION,
+                                           (CHAR *)InPacket,
+                                           sizeof(DEBUGGER_USER_IN_REQUEST_RESPONSE));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_USER_OUT_INSTRUCTION:
+
+                OutPacket = (DEBUGGER_USER_OUT_REQUEST_RESPONSE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Receieve OUT instruction result
+                //
+                DebuggerCommandUserOut(OutPacket);
+
+                //
+                // Send the result of OUT instruction back to the debugger
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_USER_OUT_INSTRUCTION,
+                                           (CHAR *)OutPacket,
+                                           sizeof(DEBUGGER_USER_OUT_REQUEST_RESPONSE));
 
                 break;
 

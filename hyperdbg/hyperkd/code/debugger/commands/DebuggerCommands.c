@@ -1530,6 +1530,104 @@ DebuggerCommandCpuid(PDEBUGGER_CPUID_REQUEST_RESPONSE DebuggerCpuidRequest)
 }
 
 /**
+ * @brief Handle User IN request in vmx-root mode
+ *
+ * @param DebuggerUserInRequest perform IN instruction (user specified)
+ * @return NTSTATUS
+ */
+NTSTATUS
+DebuggerCommandUserIn(PDEBUGGER_USER_IN_REQUEST_RESPONSE DebuggerUserInRequest)
+{
+    SHORT  Register = DebuggerUserInRequest->UserChosenRegister;
+    USHORT Port     = DebuggerUserInRequest->PortAddress;
+
+    //
+    // Zero out memory buffer
+    //
+    RtlZeroMemory(DebuggerUserInRequest, SIZEOF_DEBUGGER_USER_IN_REQUEST_RESPONSE);
+
+    //
+    // we're already in kernel mode, so there is no need to check for CPL and IOPL, TSS and etc.
+    //
+
+    //
+    // handle I/O instructions
+    //
+    switch (Register)
+    {
+    //
+    // store the results in the Data field
+    //
+    case AL_8_BIT_REGISTER:
+        DebuggerUserInRequest->Data = CpuIoInByte(Port);
+
+        break;
+
+    case AX_16_BIT_REGISTER:
+        DebuggerUserInRequest->Data = CpuIoInWord(Port);
+
+        break;
+
+    case EAX_32_BIT_REGISTER:
+        DebuggerUserInRequest->Data = CpuIoInDword(Port);
+
+        break;
+    }
+
+    DebuggerUserInRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Handle User OUT request in vmx-root mode
+ *
+ * @param DebuggerUserInRequest perform OUT instruction (user specified)
+ * @return NTSTATUS
+ */
+NTSTATUS
+DebuggerCommandUserOut(PDEBUGGER_USER_OUT_REQUEST_RESPONSE DebuggerUserOutRequest)
+{
+    SHORT  Register = DebuggerUserOutRequest->UserChosenRegister;
+    USHORT Port     = DebuggerUserOutRequest->PortAddress;
+    UINT32 Value    = DebuggerUserOutRequest->Value;
+
+    //
+    // Zero out memory buffer
+    //
+    RtlZeroMemory(DebuggerUserOutRequest, SIZEOF_DEBUGGER_USER_OUT_REQUEST_RESPONSE);
+
+    //
+    // we're already in kernel mode, so there is no need to check for CPL and IOPL, TSS and etc.
+    //
+
+    //
+    // handle I/O instructions
+    //
+    switch (Register)
+    {
+    case AL_8_BIT_REGISTER:
+        __outbyte(Port, (UCHAR)Value);
+
+        break;
+
+    case AX_16_BIT_REGISTER:
+        __outword(Port, (USHORT)Value);
+
+        break;
+
+    case EAX_32_BIT_REGISTER:
+        __outdword(Port, Value);
+
+        break;
+    }
+
+    DebuggerUserOutRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
  * @brief Perform the command finished signal
  *
  * @param DebuggerFinishedExecutionRequest Request to

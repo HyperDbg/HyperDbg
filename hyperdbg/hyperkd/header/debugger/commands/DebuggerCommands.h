@@ -49,6 +49,12 @@ NTSTATUS
 DebuggerCommandCpuid(PDEBUGGER_CPUID_REQUEST_RESPONSE DebuggerCpuidRequest);
 
 NTSTATUS
+DebuggerCommandUserIn(PDEBUGGER_USER_IN_REQUEST_RESPONSE DebuggerUserInRequest);
+
+NTSTATUS
+DebuggerCommandUserOut(PDEBUGGER_USER_OUT_REQUEST_RESPONSE DebuggerUserOutRequest);
+
+NTSTATUS
 DebuggerCommandSignalExecutionState(PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL DebuggerFinishedExecutionRequest);
 
 NTSTATUS

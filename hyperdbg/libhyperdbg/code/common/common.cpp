@@ -342,7 +342,7 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
 }
 
 /**
- * @brief check and convert string to a 32 bit unsigned it and also
+ * @brief check and convert string to a 32 bit unsigned int and also
  *  check for special notations like 0x etc.
  * @param TextToConvert the target string
  * @param Result result will be save to the pointer
@@ -415,6 +415,95 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
         }
 
         *Result = static_cast<UINT32>(ULL);
+        return TRUE;
+    }
+    catch (std::invalid_argument const &)
+    {
+        //
+        // Bad input: std::invalid_argument thrown
+        //
+        return FALSE;
+    }
+    catch (std::out_of_range const &)
+    {
+        //
+        // Integer overflow: std::out_of_range thrown
+        //
+        return FALSE;
+    }
+}
+
+/**
+ * @brief check and convert string to a 16 bit unsigned int and also
+ *  check for special notations like 0x etc.
+ * @param TextToConvert the target string
+ * @param Result result will be save to the pointer
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+ConvertStringToUInt16(string TextToConvert, PUINT16 Result)
+{
+    BOOLEAN IsDecimal = FALSE; // By default everything is hex
+
+    if (TextToConvert.rfind("0x", 0) == 0 || TextToConvert.rfind("0X", 0) == 0 ||
+        TextToConvert.rfind("\\x", 0) == 0 ||
+        TextToConvert.rfind("\\X", 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 2);
+    }
+    else if (TextToConvert.rfind('x', 0) == 0 ||
+             TextToConvert.rfind('X', 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 1);
+    }
+    else if (TextToConvert.rfind("0n", 0) == 0 || TextToConvert.rfind("0N", 0) == 0 ||
+             TextToConvert.rfind("\\n", 0) == 0 ||
+             TextToConvert.rfind("\\N", 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 2);
+        IsDecimal     = TRUE;
+    }
+    else if (TextToConvert.rfind('n', 0) == 0 ||
+             TextToConvert.rfind('N', 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 1);
+        IsDecimal     = TRUE;
+    }
+
+    TextToConvert.erase(remove(TextToConvert.begin(), TextToConvert.end(), '`'),
+                        TextToConvert.end());
+
+    int Base = IsDecimal ? 10 : 16;
+
+    if (IsDecimal)
+    {
+        if (!IsDecimalNotation(TextToConvert))
+        {
+            return FALSE;
+        }
+    }
+    else
+    {
+        if (!IsHexNotation(TextToConvert))
+        {
+            return FALSE;
+        }
+    }
+
+    try
+    {
+        size_t             Pos = 0;
+        unsigned long      UL  = std::stoul(TextToConvert, &Pos, Base); // use stoul (unsigned long) for 16-bit values
+        
+        //
+        // check for 16-bit overflow (0 - 65,535)
+        //
+        if (Pos != TextToConvert.size() || UL > (std::numeric_limits<UINT16>::max)())
+        {
+            return FALSE;
+        }
+
+        *Result = static_cast<UINT16>(UL);
         return TRUE;
     }
     catch (std::invalid_argument const &)
@@ -552,6 +641,28 @@ ConvertTokenToUInt32(CommandToken TargetToken, PUINT32 Result)
     // Convert the token value to 32 bit unsigned integer
     //
     return ConvertStringToUInt32(TargetTokenValue, Result);
+}
+
+/**
+ * @brief check and convert command token to a 16 bit unsigned integer
+ *
+ * @param TargetToken the target command token
+ * @param Result result will be save to the pointer
+ *
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+ConvertTokenToUInt16(CommandToken TargetToken, PUINT16 Result)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    std::string TargetTokenValue = std::get<1>(TargetToken);
+
+    //
+    // Convert the token value to 32 bit unsigned integer
+    //
+    return ConvertStringToUInt16(TargetTokenValue, Result);
 }
 
 /**
