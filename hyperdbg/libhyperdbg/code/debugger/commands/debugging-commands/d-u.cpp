@@ -17,9 +17,6 @@
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
-#define DW_DEFAULT_LENGTH 0x80
-#define DA_DEFAULT_LENGTH 0x50
-
 /**
  * @brief Formats and prints a buffer as word (2-byte) values, 8 per line,
  *        WinDbg 'dw' style
