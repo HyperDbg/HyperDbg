@@ -28,6 +28,7 @@ struct CLI_SEMANTIC_EXPECTATION
 {
     std::set<UINT32> Cases;
     std::set<std::string> Markers;
+    std::string ExpectedError;
 };
 
 struct CLI_SEMANTIC_RESULT
@@ -80,6 +81,7 @@ CommandTestParseSemanticFile(const fs::path& FilePath,
     Expectation = {};
     const std::regex CasePattern("test_case([0-9]+)[[:space:]]*=[[:space:]]*1");
     const std::regex MarkerPattern("//[[:space:]]*semantic-test-marker:[[:space:]]*([^\\r\\n]+)");
+    const std::regex ErrorPattern("//[[:space:]]*semantic-test-expect-error:[[:space:]]*([^\\r\\n]+)");
     for (std::sregex_iterator Match(Content.begin(), Content.end(), CasePattern), End; Match != End; ++Match)
         Expectation.Cases.insert((UINT32)std::stoul((*Match)[1].str()));
     for (std::sregex_iterator Match(Content.begin(), Content.end(), MarkerPattern), End; Match != End; ++Match)
@@ -88,7 +90,17 @@ CommandTestParseSemanticFile(const fs::path& FilePath,
         while (!Marker.empty() && std::isspace((unsigned char)Marker.back())) Marker.pop_back();
         if (!Marker.empty()) Expectation.Markers.insert(Marker);
     }
-    if (Expectation.Cases.empty() && Expectation.Markers.empty())
+    {
+        std::smatch Match;
+        if (std::regex_search(Content, Match, ErrorPattern))
+        {
+            Expectation.ExpectedError = Match[1].str();
+            while (!Expectation.ExpectedError.empty() &&
+                std::isspace((unsigned char)Expectation.ExpectedError.back()))
+                Expectation.ExpectedError.pop_back();
+        }
+    }
+    if (Expectation.Cases.empty() && Expectation.Markers.empty() && Expectation.ExpectedError.empty())
     {
         Error = "no enabled numbered case or semantic-test-marker";
         return FALSE;
@@ -112,6 +124,52 @@ CommandTestParseSemanticFile(const fs::path& FilePath,
     if (ExpressionStart == std::string::npos) { Error = "semantic script has no expression"; return FALSE; }
     Expression.assign(Content, ExpressionStart, std::string::npos);
     return TRUE;
+}
+
+static BOOLEAN
+CommandTestMalformedAggregatePush()
+{
+    UINT64 Stack[MAX_STACK_BUFFER_COUNT] = { 0 };
+    UINT64 Globals[1] = { 0 };
+    ACTION_BUFFER Action = { 0 };
+    GUEST_REGS GuestRegs = { 0 };
+    SYMBOL ErrorOperator = { 0 };
+
+    auto RunMalformedCase = [&](SYMBOL* Symbols, UINT32 Count, UINT64 InitialStackIndex) {
+        SYMBOL_BUFFER Buffer = { Symbols, Count, Count, NULL };
+        SCRIPT_ENGINE_GENERAL_REGISTERS Registers = { Stack, Globals, InitialStackIndex, 0, 0 };
+        UINT64 Index = 0;
+        BOOLEAN HasError = ScriptEngineExecute(&GuestRegs, &Action, &Registers, &Buffer, &Index, &ErrorOperator);
+        return HasError && Registers.StackIndx == InitialStackIndex;
+        };
+
+    SYMBOL MissingOperands[] = { {SYMBOL_SEMANTIC_RULE_TYPE, 0, FUNC_PUSH_AGGREGATE} };
+    SYMBOL InvalidAddressSpace[] = {
+        {SYMBOL_SEMANTIC_RULE_TYPE, 0, FUNC_PUSH_AGGREGATE},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, (UINT64)&Stack[0]},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, 99},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, 8} };
+    SYMBOL InvalidSize[] = {
+        {SYMBOL_SEMANTIC_RULE_TYPE, 0, FUNC_PUSH_AGGREGATE},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, (UINT64)&Stack[0]},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, 0} };
+    SYMBOL StackOverflow[] = {
+        {SYMBOL_SEMANTIC_RULE_TYPE, 0, FUNC_PUSH_AGGREGATE},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, (UINT64)&Stack[0]},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, 8} };
+    SYMBOL InvalidSourceRange[] = {
+        {SYMBOL_SEMANTIC_RULE_TYPE, 0, FUNC_PUSH_AGGREGATE},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, (UINT64)((BYTE*)&Stack[MAX_STACK_BUFFER_COUNT] - 4)},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL},
+        {SYMBOL_NUM_TYPE, SYMBOL_VALUE_KIND_INTEGER, 8} };
+
+    return RunMalformedCase(MissingOperands, ARRAYSIZE(MissingOperands), 7) &&
+        RunMalformedCase(InvalidAddressSpace, ARRAYSIZE(InvalidAddressSpace), 7) &&
+        RunMalformedCase(InvalidSize, ARRAYSIZE(InvalidSize), 7) &&
+        RunMalformedCase(StackOverflow, ARRAYSIZE(StackOverflow), MAX_STACK_BUFFER_COUNT) &&
+        RunMalformedCase(InvalidSourceRange, ARRAYSIZE(InvalidSourceRange), 7);
 }
 
 static BOOLEAN
@@ -176,6 +234,14 @@ CommandTestScriptSemantic()
         return;
     }
 
+    ShowMessages("[ RUN      ] malformed FUNC_PUSH_AGGREGATE validation\n");
+    if (!CommandTestMalformedAggregatePush())
+    {
+        ShowMessages("[  FAILED  ] malformed FUNC_PUSH_AGGREGATE validation\n");
+        return;
+    }
+    ShowMessages("[       OK ] malformed FUNC_PUSH_AGGREGATE validation (5 expectations)\n");
+
     std::vector<fs::path> Files;
     try
     {
@@ -211,7 +277,8 @@ CommandTestScriptSemantic()
         };
         if (CommandTestParseSemanticFile(File, Arguments, Expression, Expectation, Result.Diagnostic))
         {
-            Result.ExpectationCount = Expectation.Cases.size() + Expectation.Markers.size();
+            Result.ExpectationCount = Expectation.Cases.size() + Expectation.Markers.size() +
+                (Expectation.ExpectedError.empty() ? 0 : 1);
             {
                 std::lock_guard<std::mutex> Lock(g_CliSemanticOutputMutex);
                 g_CliSemanticOutput.clear();
@@ -224,7 +291,7 @@ CommandTestScriptSemantic()
                 // execute against the real debuggee registers and VMX-root
                 // facilities instead of the simulated user-mode environment.
                 ExecutionSucceeded = ScriptEngineExecuteSingleExpression(
-                    (CHAR *)Expression.c_str(), TRUE, FALSE);
+                    (CHAR*)Expression.c_str(), TRUE, FALSE);
             }
             else
             {
@@ -236,9 +303,19 @@ CommandTestScriptSemantic()
                 std::lock_guard<std::mutex> Lock(g_CliSemanticOutputMutex);
                 Result.Output = g_CliSemanticOutput;
             }
-            if (!ExecutionSucceeded)
+            if (!Expectation.ExpectedError.empty())
+            {
+                std::string LowerOutput = CommandTestLowerAscii(Result.Output);
+                std::string LowerExpected = CommandTestLowerAscii(Expectation.ExpectedError);
+                Result.Passed = !ExecutionSucceeded &&
+                    (LowerExpected == "any" || LowerOutput.find(LowerExpected) != std::string::npos);
+                if (!Result.Passed)
+                    Result.Diagnostic = ExecutionSucceeded ? "script unexpectedly succeeded" :
+                    "expected error text was not reported";
+            }
+            else if (!ExecutionSucceeded)
                 Result.Diagnostic = g_IsSerialConnectedToRemoteDebuggee ?
-                    "remote script evaluator reported an error" : "local script evaluator reported an error";
+                "remote script evaluator reported an error" : "local script evaluator reported an error";
             else if (CommandTestHasSemanticFailure(Result.Output)) Result.Diagnostic = "semantic failure output was reported";
             else Result.Passed = CommandTestHasExpectedSemanticOutput(Expectation, Result.Output, Result.Diagnostic);
         }

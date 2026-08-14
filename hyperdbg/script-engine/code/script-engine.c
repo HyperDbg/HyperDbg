@@ -42,6 +42,12 @@ static unsigned int             StructPointerDepth;
 static PVARIABLE_TYPE           CurrentStructDefinition;
 static PSCRIPT_ENGINE_TOKEN     LastStructObject;
 static PVARIABLE_TYPE           LastStructObjectType;
+static PVARIABLE_TYPE           FunctionParameterStructBaseType;
+static unsigned int             FunctionParameterDimensions[16];
+static unsigned int             FunctionParameterDimensionCount;
+static BOOLEAN                  FunctionParameterHasArray;
+static BOOLEAN                  FunctionParameterOuterDimensionSeen;
+static BOOLEAN                  FunctionParameterPointerToArray;
 
 typedef struct _SIZEOF_COMPILATION_CONTEXT
 {
@@ -66,6 +72,85 @@ static UINT32                      LogicalContextCount;
 static UINT64
 GetScriptScalarTypeId(PVARIABLE_TYPE VariableType);
 
+static VOID
+ResetFunctionParameterDeclarator(VOID)
+{
+    FunctionParameterStructBaseType    = NULL;
+    FunctionParameterDimensionCount    = 0;
+    FunctionParameterHasArray          = FALSE;
+    FunctionParameterOuterDimensionSeen = FALSE;
+    FunctionParameterPointerToArray    = FALSE;
+}
+
+static PVARIABLE_TYPE
+BuildFunctionParameterType(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack,
+                           PSCRIPT_ENGINE_ERROR_TYPE Error)
+{
+    PVARIABLE_TYPE Type;
+    unsigned int   Index;
+    unsigned int   PointerDepth = 0;
+
+    if (FunctionParameterStructBaseType)
+    {
+        Type = FunctionParameterStructBaseType;
+        for (Index = 0; Index < StructPointerDepth; Index++)
+        {
+            Type = CreatePointerType(Type);
+            if (!Type)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
+                return VARIABLE_TYPE_UNKNOWN;
+            }
+        }
+        StructPointerDepth = 0;
+    }
+    else
+    {
+        while (MatchedStack->Pointer && !strcmp(Top(MatchedStack)->Value, "@DECLARE_POINTER_TYPE"))
+        {
+            PSCRIPT_ENGINE_TOKEN PointerMarker = Pop(MatchedStack);
+            RemoveToken(&PointerMarker);
+            PointerDepth++;
+        }
+        Type = HandleType(MatchedStack);
+        while (PointerDepth--)
+        {
+            Type = CreatePointerType(Type);
+            if (!Type)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
+                return VARIABLE_TYPE_UNKNOWN;
+            }
+        }
+    }
+
+    if (!Type || Type->Kind == TY_UNKNOWN)
+        return VARIABLE_TYPE_UNKNOWN;
+
+    for (Index = FunctionParameterDimensionCount; Index > 0; Index--)
+    {
+        Type = CreateArrayType(Type, FunctionParameterDimensions[Index - 1]);
+        if (!Type)
+        {
+            *Error = SCRIPT_ENGINE_ERROR_INVALID_ARRAY_SIZE;
+            return VARIABLE_TYPE_UNKNOWN;
+        }
+    }
+
+    if (FunctionParameterHasArray || FunctionParameterPointerToArray)
+    {
+        Type = CreatePointerType(Type);
+        if (!Type)
+        {
+            *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
+            return VARIABLE_TYPE_UNKNOWN;
+        }
+        Type->PointerProvenance = POINTER_PROVENANCE_LOCAL;
+    }
+
+    return Type;
+}
+
 static PVARIABLE_TYPE
 ResolveIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
 {
@@ -85,6 +170,13 @@ ResolveIdentifierVariableType(PSCRIPT_ENGINE_TOKEN Token)
     {
         VariableType          = GetGlobalIdentifierVariableType(Token);
         Token->IsImplicitType = GetGlobalIdentifierIsImplicitType(Token);
+    }
+    else if (Token->Type == FUNCTION_PARAMETER_ID)
+    {
+        VariableType             = GetFunctionParameterVariableType(Token);
+        Token->VariableMemoryIdx = GetFunctionParameterMemoryIndex(Token);
+        Token->Len               = GetFunctionParameterSlotCount(Token);
+        Token->AddressSpace      = SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
     }
 
     if (VariableType)
@@ -253,6 +345,8 @@ EmitTypedScalarLoad(PSYMBOL_BUFFER            CodeBuffer,
     if (!ValueTemp || *Error != SCRIPT_ENGINE_ERROR_FREE)
         return NULL;
     ValueTemp->VariableType   = DeclaredType;
+    if (DeclaredType->Kind == TY_PTR)
+        ValueTemp->AddressSpace = AddressSpace;
     NeedsIntegerNormalization = IsIntegerVariableType(DeclaredType) &&
                                 GetScriptScalarTypeId(RawType) != GetScriptScalarTypeId(DeclaredType);
     if (NeedsIntegerNormalization)
@@ -362,6 +456,81 @@ EmitScalarCast(PSYMBOL_BUFFER            CodeBuffer,
     PushSymbol(CodeBuffer, Symbol);
     RemoveSymbol(&Symbol);
     return Result;
+}
+
+static BOOLEAN
+FunctionParameterTypesAreCompatible(PVARIABLE_TYPE ParameterType,
+                                    PVARIABLE_TYPE ArgumentType)
+{
+    if (!ParameterType || !ArgumentType ||
+        ParameterType->Kind != ArgumentType->Kind)
+        return FALSE;
+
+    if (ParameterType->Kind == TY_PTR)
+        return FunctionParameterTypesAreCompatible(ParameterType->Base, ArgumentType->Base);
+
+    if (ParameterType->Kind == TY_ARRAY)
+        return ParameterType->ArrayLen == ArgumentType->ArrayLen &&
+               FunctionParameterTypesAreCompatible(ParameterType->Base, ArgumentType->Base);
+
+    if (ParameterType->Kind == TY_STRUCT)
+        return ParameterType == ArgumentType;
+
+    return ParameterType->Kind == ArgumentType->Kind &&
+           ParameterType->Size == ArgumentType->Size &&
+           ParameterType->IsUnsigned == ArgumentType->IsUnsigned;
+}
+
+static PVARIABLE_TYPE
+GetAdjustedFunctionArgumentType(PSCRIPT_ENGINE_TOKEN Argument)
+{
+    PVARIABLE_TYPE ArgumentType = ResolveIdentifierVariableType(Argument);
+
+    if (!ArgumentType)
+        ArgumentType = (PVARIABLE_TYPE)Argument->VariableType;
+    if (ArgumentType && ArgumentType->Kind == TY_ARRAY && ArgumentType->Base)
+    {
+        PVARIABLE_TYPE DecayedType = CreatePointerType(ArgumentType->Base);
+        if (!DecayedType)
+            return NULL;
+        DecayedType->PointerProvenance =
+            Argument->AddressSpace == SCRIPT_ENGINE_ADDRESS_SPACE_REMOTE ?
+                POINTER_PROVENANCE_REMOTE : POINTER_PROVENANCE_LOCAL;
+        Argument->VariableType = DecayedType;
+        Argument->AddressSpace = DecayedType->PointerProvenance == POINTER_PROVENANCE_LOCAL ?
+                                     SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL : SCRIPT_ENGINE_ADDRESS_SPACE_REMOTE;
+        return DecayedType;
+    }
+    return ArgumentType;
+}
+
+static VOID
+EmitFunctionArgumentPush(PSYMBOL_BUFFER            CodeBuffer,
+                         PSCRIPT_ENGINE_TOKEN      Argument,
+                         PVARIABLE_TYPE            ParameterType,
+                         PSCRIPT_ENGINE_ERROR_TYPE Error)
+{
+    PSYMBOL Symbol = NewSymbol();
+
+    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
+    Symbol->Value = ParameterType->Kind == TY_STRUCT ? FUNC_PUSH_AGGREGATE : FUNC_PUSH;
+    PushSymbol(CodeBuffer, Symbol);
+    RemoveSymbol(&Symbol);
+
+    Symbol = ToSymbol(Argument, Error);
+    PushSymbol(CodeBuffer, Symbol);
+    RemoveSymbol(&Symbol);
+
+    if (ParameterType->Kind == TY_STRUCT)
+    {
+        Symbol        = NewSymbol();
+        Symbol->Type  = SYMBOL_NUM_TYPE;
+        Symbol->Value = Argument->AddressSpace ? Argument->AddressSpace : SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
+        PushSymbol(CodeBuffer, Symbol);
+        Symbol->Value = ParameterType->Size;
+        PushSymbol(CodeBuffer, Symbol);
+        RemoveSymbol(&Symbol);
+    }
 }
 
 static PSCRIPT_ENGINE_TOKEN
@@ -1133,6 +1302,7 @@ ScriptEngineParse(char * str)
     LastStructObjectType    = NULL;
     SizeofContextCount      = 0;
     LogicalContextCount     = 0;
+    ResetFunctionParameterDeclarator();
 
     PSCRIPT_ENGINE_TOKEN_LIST Stack        = NewTokenList();
     PSCRIPT_ENGINE_TOKEN_LIST MatchedStack = NewTokenList();
@@ -2099,6 +2269,37 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             RemoveSymbol(&Symbol);
             RemoveToken(&Op0);
         }
+        else if (!strcmp(Operator->Value, "@MEMBER_DOT_ARRAY_READ") ||
+                 !strcmp(Operator->Value, "@MEMBER_ARROW_ARRAY_READ"))
+        {
+            PSCRIPT_ENGINE_TOKEN_LIST SavedIndices = NewTokenList();
+            PSCRIPT_ENGINE_TOKEN      NestedOperator;
+
+            while (MatchedStack->Pointer >= 2 &&
+                   !strcmp(Top(MatchedStack)->Value, "@ARRAY_DIM_NUMBER"))
+            {
+                Push(SavedIndices, Pop(MatchedStack));
+                Push(SavedIndices, Pop(MatchedStack));
+            }
+
+            NestedOperator = NewToken(SEMANTIC_RULE,
+                                      !strcmp(Operator->Value, "@MEMBER_DOT_ARRAY_READ") ?
+                                          "@MEMBER_DOT_READ" : "@MEMBER_ARROW_READ");
+            CodeGen(MatchedStack, CodeBuffer, NestedOperator, Error, ScriptSource);
+            RemoveToken(&NestedOperator);
+
+            for (unsigned int Index = SavedIndices->Pointer; Index > 0; Index--)
+                Push(MatchedStack, *(SavedIndices->Head + Index - 1));
+            SavedIndices->Pointer = 0;
+            RemoveTokenList(SavedIndices);
+
+            if (*Error == SCRIPT_ENGINE_ERROR_FREE)
+            {
+                NestedOperator = NewToken(SEMANTIC_RULE, "@ARRAY_INDEX_READ");
+                CodeGen(MatchedStack, CodeBuffer, NestedOperator, Error, ScriptSource);
+                RemoveToken(&NestedOperator);
+            }
+        }
         else if (!strcmp(Operator->Value, "@MEMBER_DOT_LVALUE") ||
                  !strcmp(Operator->Value, "@MEMBER_ARROW_LVALUE") ||
                  !strcmp(Operator->Value, "@MEMBER_DOT_READ") ||
@@ -2395,8 +2596,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         }
         else if (!strcmp(Operator->Value, "@FUNCTION_PARAMETER"))
         {
+            unsigned int SlotCount;
             Op0          = Pop(MatchedStack);
-            VariableType = HandleType(MatchedStack);
+            VariableType = BuildFunctionParameterType(MatchedStack, Error);
 
             if (VariableType->Kind == TY_UNKNOWN)
             {
@@ -2404,8 +2606,64 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 break;
             }
 
-            NewFunctionParameterIdentifier(Op0);
+            if (VariableType->Kind == TY_VOID ||
+                (VariableType->Kind == TY_STRUCT && !VariableType->IsComplete))
+            {
+                *Error = VariableType->Kind == TY_STRUCT ? SCRIPT_ENGINE_ERROR_INCOMPLETE_TYPE : SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                break;
+            }
+            SlotCount = VariableType->Kind == TY_STRUCT ?
+                            ((unsigned int)VariableType->Size + 7U) / 8U : 1U;
+            NewFunctionParameterIdentifier(Op0, VariableType, SlotCount);
             CurrentUserDefinedFunction->ParameterNumber++;
+            CurrentUserDefinedFunction->ParameterSlotCount += SlotCount;
+            ResetFunctionParameterDeclarator();
+        }
+        else if (!strcmp(Operator->Value, "@FUNCTION_PARAMETER_STRUCT_BASE"))
+        {
+            Op0 = Pop(MatchedStack);
+            FunctionParameterStructBaseType = FindStructType(Op0->Value);
+            RemoveToken(&Op0);
+            if (!FunctionParameterStructBaseType)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_UNKNOWN_STRUCT_TAG;
+                break;
+            }
+        }
+        else if (!strcmp(Operator->Value, "@FUNCTION_PARAMETER_POINTER_TO_ARRAY"))
+        {
+            FunctionParameterPointerToArray = TRUE;
+        }
+        else if (!strcmp(Operator->Value, "@FUNCTION_PARAMETER_EMPTY_ARRAY_DIMENSION"))
+        {
+            FunctionParameterHasArray          = TRUE;
+            FunctionParameterOuterDimensionSeen = TRUE;
+        }
+        else if (!strcmp(Operator->Value, "@FUNCTION_PARAMETER_ARRAY_DIMENSION"))
+        {
+            unsigned long long Dimension;
+            Op0       = Pop(MatchedStack);
+            Dimension = strtoull(Op0->Value, NULL, 0);
+            RemoveToken(&Op0);
+            if (!Dimension || Dimension > UINT32_MAX)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_INVALID_ARRAY_SIZE;
+                break;
+            }
+            if (!FunctionParameterPointerToArray && !FunctionParameterOuterDimensionSeen)
+            {
+                FunctionParameterHasArray          = TRUE;
+                FunctionParameterOuterDimensionSeen = TRUE;
+            }
+            else if (FunctionParameterDimensionCount >= 16)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_INVALID_ARRAY_SIZE;
+                break;
+            }
+            else
+            {
+                FunctionParameterDimensions[FunctionParameterDimensionCount++] = (unsigned int)Dimension;
+            }
         }
         else if (!strcmp(Operator->Value, "@END_OF_USER_DEFINED_FUNCTION"))
         {
@@ -2619,6 +2877,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             PSYMBOL              TempSymbol    = NULL;
             int                  VariableNum   = 0;
             PSCRIPT_ENGINE_TOKEN FunctionToken = NULL;
+            PSCRIPT_ENGINE_TOKEN_LIST Arguments = NewTokenList();
 
             while (MatchedStack->Pointer > 0)
             {
@@ -2631,16 +2890,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 else
                 {
                     VariableNum++;
-                    Symbol        = NewSymbol();
-                    Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
-                    Symbol->Value = FUNC_PUSH;
-                    PushSymbol(CodeBuffer, Symbol);
-                    RemoveSymbol(&Symbol);
-
-                    Symbol = ToSymbol(FunctionToken, Error);
-                    PushSymbol(CodeBuffer, Symbol);
-                    RemoveSymbol(&Symbol);
-                    RemoveToken(&FunctionToken);
+                    Push(Arguments, FunctionToken);
                 }
             }
 
@@ -2649,14 +2899,62 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             if (!Node)
             {
                 *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_FUNCTION;
+                RemoveTokenList(Arguments);
                 break;
             }
 
             if (VariableNum != Node->ParameterNumber)
             {
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                RemoveTokenList(Arguments);
                 break;
             }
+
+            for (unsigned int ArgumentIndex = 0; ArgumentIndex < Arguments->Pointer; ArgumentIndex++)
+            {
+                PSCRIPT_ENGINE_TOKEN Argument = *(Arguments->Head + ArgumentIndex);
+                unsigned int ParameterIndex = (unsigned int)Node->ParameterNumber - 1U - ArgumentIndex;
+                PSCRIPT_ENGINE_TOKEN Parameter = *(((PSCRIPT_ENGINE_TOKEN_LIST)Node->FunctionParameterIdTable)->Head + ParameterIndex);
+                PVARIABLE_TYPE ParameterType = (PVARIABLE_TYPE)Parameter->VariableType;
+                PVARIABLE_TYPE ArgumentType  = GetAdjustedFunctionArgumentType(Argument);
+
+                if (!ArgumentType || !ParameterType)
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_UNDEFINED_VARIABLE_TYPE;
+                    break;
+                }
+
+                if (ParameterType->Kind == TY_STRUCT || ParameterType->Kind == TY_PTR)
+                {
+                    if (!FunctionParameterTypesAreCompatible(ParameterType, ArgumentType))
+                    {
+                        *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                        break;
+                    }
+                }
+                else
+                {
+                    PSCRIPT_ENGINE_TOKEN Converted = EmitScalarCast(CodeBuffer, Argument, ParameterType, Error);
+                    if (!Converted || *Error != SCRIPT_ENGINE_ERROR_FREE)
+                        break;
+                    if (Converted != Argument)
+                    {
+                        *(Arguments->Head + ArgumentIndex) = Converted;
+                        FreeTemp(Argument);
+                        RemoveToken(&Argument);
+                        Argument = Converted;
+                    }
+                }
+
+                EmitFunctionArgumentPush(CodeBuffer, Argument, ParameterType, Error);
+                FreeTemp(Argument);
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                    break;
+            }
+
+            RemoveTokenList(Arguments);
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                break;
 
             Symbol        = NewSymbol();
             Symbol->Type  = SYMBOL_SEMANTIC_RULE_TYPE;
@@ -2678,7 +2976,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
             Symbol        = NewSymbol();
             Symbol->Type  = SYMBOL_NUM_TYPE;
-            Symbol->Value = Node->ParameterNumber;
+            Symbol->Value = Node->ParameterSlotCount;
             PushSymbol(CodeBuffer, Symbol);
             RemoveSymbol(&Symbol);
 
@@ -2990,19 +3288,28 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
 
             if (!strcmp(Operator->Value, "@ARRAY_INDEX_READ"))
             {
-                PSCRIPT_ENGINE_TOKEN ValueToken = EmitTypedScalarLoad(
-                    CodeBuffer,
-                    OffsetToken,
-                    AddressSpace,
-                    VariableType,
-                    Error);
-                if (!ValueToken || *Error != SCRIPT_ENGINE_ERROR_FREE)
+                if (VariableType->Kind == TY_ARRAY || VariableType->Kind == TY_STRUCT)
                 {
-                    break;
+                    OffsetToken->VariableType = VariableType;
+                    OffsetToken->IsAddress    = TRUE;
+                    OffsetToken->AddressSpace = AddressSpace;
                 }
-                FreeTemp(OffsetToken);
-                RemoveToken(&OffsetToken);
-                OffsetToken = ValueToken;
+                else
+                {
+                    PSCRIPT_ENGINE_TOKEN ValueToken = EmitTypedScalarLoad(
+                        CodeBuffer,
+                        OffsetToken,
+                        AddressSpace,
+                        VariableType,
+                        Error);
+                    if (!ValueToken || *Error != SCRIPT_ENGINE_ERROR_FREE)
+                    {
+                        break;
+                    }
+                    FreeTemp(OffsetToken);
+                    RemoveToken(&OffsetToken);
+                    OffsetToken = ValueToken;
+                }
             }
             else if (!strcmp(Operator->Value, "@ARRAY_INDEX_WRITE"))
             {
@@ -6209,8 +6516,17 @@ ToSymbol(PSCRIPT_ENGINE_TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
         return NewWstringSymbol(Token);
 
     case FUNCTION_PARAMETER_ID:
-        Symbol->Value = GetFunctionParameterIdentifier(Token);
-        SetType(&Symbol->Type, SYMBOL_FUNCTION_PARAMETER_ID_TYPE);
+        Symbol->Value = GetFunctionParameterMemoryIndex(Token);
+        if (Token->VariableType && ((PVARIABLE_TYPE)Token->VariableType)->Kind == TY_STRUCT)
+        {
+            Symbol->Len = GetFunctionParameterSlotCount(Token);
+            SetType(&Symbol->Type, SYMBOL_REFERENCE_FUNCTION_PARAMETER_TYPE);
+        }
+        else
+        {
+            Symbol->Len = GetFloatingValueKind((PVARIABLE_TYPE)Token->VariableType);
+            SetType(&Symbol->Type, SYMBOL_FUNCTION_PARAMETER_ID_TYPE);
+        }
         return Symbol;
 
     case DEFERENCE_TEMP:
@@ -6880,11 +7196,55 @@ GetLocalIdentifierIsImplicitType(PSCRIPT_ENGINE_TOKEN Token)
  * @return int
  */
 int
-NewFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token)
+NewFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token,
+                               VARIABLE_TYPE *     VariableType,
+                               unsigned int        SlotCount)
 {
     PSCRIPT_ENGINE_TOKEN CopiedToken = CopyToken(Token);
+    CopiedToken->VariableType        = VariableType;
+    CopiedToken->VariableMemoryIdx   = CurrentUserDefinedFunction->ParameterSlotCount;
+    CopiedToken->Len                 = SlotCount;
     Push(((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable), CopiedToken);
     return ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Pointer - 1;
+}
+
+VARIABLE_TYPE *
+GetFunctionParameterVariableType(PSCRIPT_ENGINE_TOKEN Token)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Pointer; i++)
+    {
+        CurrentToken = *(((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+            return CurrentToken->VariableType;
+    }
+    return NULL;
+}
+
+unsigned long long
+GetFunctionParameterMemoryIndex(PSCRIPT_ENGINE_TOKEN Token)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Pointer; i++)
+    {
+        CurrentToken = *(((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+            return CurrentToken->VariableMemoryIdx;
+    }
+    return 0;
+}
+
+unsigned int
+GetFunctionParameterSlotCount(PSCRIPT_ENGINE_TOKEN Token)
+{
+    PSCRIPT_ENGINE_TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < ((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Pointer; i++)
+    {
+        CurrentToken = *(((PSCRIPT_ENGINE_TOKEN_LIST)CurrentUserDefinedFunction->FunctionParameterIdTable)->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+            return CurrentToken->Len;
+    }
+    return 0;
 }
 
 /**
@@ -7135,6 +7495,7 @@ FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * 
         break;
 
     case FUNC_AGGREGATE_ZERO:
+    case FUNC_PUSH_AGGREGATE:
 
         *NumberOfGetOperands = 3;
         *NumberOfSetOperands = 0;

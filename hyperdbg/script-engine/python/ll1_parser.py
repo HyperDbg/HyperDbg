@@ -459,11 +459,15 @@ class LL1Parser:
             "bitwise_and_typed", "bitwise_or_typed", "bitwise_xor_typed",
             "shift_left_typed", "shift_right_typed",
             "gt_typed", "lt_typed", "egt_typed", "elt_typed", "equal_typed", "neq_typed",
-            "neg_typed", "bitwise_not_typed", "logical_not_typed", "pointer_diff"
+            "neg_typed", "bitwise_not_typed", "logical_not_typed", "pointer_diff",
+            "push_aggregate"
         ]
         compiler_only_semantics = {
             "type_name_begin", "sizeof_begin", "sizeof_type", "sizeof_expression",
-            "logical_or_begin", "logical_or_end", "logical_and_begin", "logical_and_end"
+            "logical_or_begin", "logical_or_end", "logical_and_begin", "logical_and_end",
+            "function_parameter_struct_base", "function_parameter_pointer_to_array",
+            "function_parameter_array_dimension", "function_parameter_empty_array_dimension",
+            "member_dot_array_read", "member_arrow_array_read"
         }
         legacy_semantics = [x for x in self.SemantiRulesList if x not in aggregate_semantics and x not in append_only_semantics and x not in compiler_only_semantics]
         new_semantics = [x for x in self.SemantiRulesList if x in aggregate_semantics]
