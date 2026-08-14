@@ -95,9 +95,12 @@ ScriptEngineFloatingSymbolIsReadable(PSCRIPT_ENGINE_GENERAL_REGISTERS Registers,
         return TRUE;
     }
 
-    return BaseType == SYMBOL_TEMP_TYPE &&
-           Registers->StackBaseIndx < MAX_STACK_BUFFER_COUNT &&
-           Symbol->Value < MAX_STACK_BUFFER_COUNT - Registers->StackBaseIndx;
+    if (BaseType == SYMBOL_TEMP_TYPE)
+        return Registers->StackBaseIndx < MAX_STACK_BUFFER_COUNT &&
+               Symbol->Value < MAX_STACK_BUFFER_COUNT - Registers->StackBaseIndx;
+
+    return BaseType == SYMBOL_FUNCTION_PARAMETER_ID_TYPE &&
+           Registers->StackBaseIndx >= 3 + Symbol->Value;
 }
 
 static BOOLEAN
@@ -105,10 +108,13 @@ ScriptEngineFloatingSymbolIsWritable(PSCRIPT_ENGINE_GENERAL_REGISTERS Registers,
 {
     UINT64 BaseType = Symbol->Type & 0xffffffffULL;
 
-    return (Symbol->Len == SYMBOL_VALUE_KIND_FLOAT32 || Symbol->Len == SYMBOL_VALUE_KIND_FLOAT64) &&
-           BaseType == SYMBOL_TEMP_TYPE &&
-           Registers->StackBaseIndx < MAX_STACK_BUFFER_COUNT &&
-           Symbol->Value < MAX_STACK_BUFFER_COUNT - Registers->StackBaseIndx;
+    if (Symbol->Len != SYMBOL_VALUE_KIND_FLOAT32 && Symbol->Len != SYMBOL_VALUE_KIND_FLOAT64)
+        return FALSE;
+    if (BaseType == SYMBOL_TEMP_TYPE)
+        return Registers->StackBaseIndx < MAX_STACK_BUFFER_COUNT &&
+               Symbol->Value < MAX_STACK_BUFFER_COUNT - Registers->StackBaseIndx;
+    return BaseType == SYMBOL_FUNCTION_PARAMETER_ID_TYPE &&
+           Registers->StackBaseIndx >= 3 + Symbol->Value;
 }
 
 typedef struct _SCRIPT_ENGINE_UINT128
@@ -1014,6 +1020,13 @@ GetValue(PGUEST_REGS                      GuestRegs,
             return (UINT64)&ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx - 3 - Symbol->Value];
         else
             return ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackBaseIndx - 3 - Symbol->Value];
+
+    case SYMBOL_REFERENCE_FUNCTION_PARAMETER_TYPE:
+        if (!Symbol->Len ||
+            ScriptGeneralRegisters->StackBaseIndx < 2 + Symbol->Value + Symbol->Len)
+            return NULL64_ZERO;
+        return (UINT64)&ScriptGeneralRegisters->StackBuffer[
+            ScriptGeneralRegisters->StackBaseIndx - 2 - Symbol->Value - Symbol->Len];
     }
 
     //
@@ -3359,6 +3372,12 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         break;
 
     case FUNC_PUSH:
+        if (!ScriptEngineHasOperands(CodeBuffer, *Indx, 1) ||
+            ScriptGeneralRegisters->StackIndx >= MAX_STACK_BUFFER_COUNT)
+        {
+            HasError = TRUE;
+            break;
+        }
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -3370,6 +3389,62 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         ScriptGeneralRegisters->StackIndx++;
 
         break;
+
+    case FUNC_PUSH_AGGREGATE:
+    {
+        BYTE   MovingBuffer[64];
+        UINT64 Done  = 0;
+        UINT64 Slots;
+        UINT64 DestinationAddress;
+
+        if (!ScriptEngineHasOperands(CodeBuffer, *Indx, 3))
+        {
+            HasError = TRUE;
+            break;
+        }
+        Src0 = CodeBuffer->Head + (*Indx)++;
+        Src1 = CodeBuffer->Head + (*Indx)++;
+        Src2 = CodeBuffer->Head + (*Indx)++;
+        SrcVal0 = GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src0, FALSE);
+        SrcVal1 = GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src1, FALSE);
+        SrcVal2 = GetValue(GuestRegs, ActionDetail, ScriptGeneralRegisters, Src2, FALSE);
+
+        if (!ScriptEngineSymbolIsImmediateInteger(Src1) ||
+            !ScriptEngineSymbolIsImmediateInteger(Src2) ||
+            SrcVal2 > 0xffffffffULL ||
+            !SrcVal2 ||
+            SrcVal2 > 0xffffffffffffffffULL - 7 ||
+            !ScriptEngineAddressRangeIsValid(ScriptGeneralRegisters, SrcVal0, SrcVal1, SrcVal2))
+        {
+            HasError = TRUE;
+            break;
+        }
+
+        Slots = (SrcVal2 + 7) / 8;
+        if (!Slots || Slots > MAX_STACK_BUFFER_COUNT ||
+            ScriptGeneralRegisters->StackIndx > MAX_STACK_BUFFER_COUNT - Slots)
+        {
+            HasError = TRUE;
+            break;
+        }
+
+        DestinationAddress = (UINT64)&ScriptGeneralRegisters->StackBuffer[ScriptGeneralRegisters->StackIndx];
+        memset((PVOID)DestinationAddress, 0, (SIZE_T)(Slots * sizeof(UINT64)));
+        while (Done < SrcVal2)
+        {
+            UINT32 Chunk = (UINT32)((SrcVal2 - Done) > sizeof(MovingBuffer) ? sizeof(MovingBuffer) : (SrcVal2 - Done));
+            if (!ScriptEngineTransferMemory(ScriptGeneralRegisters, SrcVal0 + Done, SrcVal1, MovingBuffer, Chunk, FALSE))
+            {
+                HasError = TRUE;
+                break;
+            }
+            memcpy((PVOID)(DestinationAddress + Done), MovingBuffer, Chunk);
+            Done += Chunk;
+        }
+        if (!HasError)
+            ScriptGeneralRegisters->StackIndx += Slots;
+        break;
+    }
 
     case FUNC_POP:
         ScriptGeneralRegisters->StackIndx--;

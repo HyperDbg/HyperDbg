@@ -954,6 +954,10 @@ GetToken(char * c, char * str)
                             else if (GetFunctionParameterIdentifier(Token) != -1)
                             {
                                 Token->Type = FUNCTION_PARAMETER_ID;
+                                Token->VariableType = GetFunctionParameterVariableType(Token);
+                                Token->VariableMemoryIdx = GetFunctionParameterMemoryIndex(Token);
+                                Token->Len = GetFunctionParameterSlotCount(Token);
+                                Token->AddressSpace = SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
                             }
                             else if (GetLocalIdentifierVal(Token) != -1)
                             {
@@ -1022,6 +1026,10 @@ GetToken(char * c, char * str)
                             else if (GetFunctionParameterIdentifier(Token) != -1)
                             {
                                 Token->Type = FUNCTION_PARAMETER_ID;
+                                Token->VariableType = GetFunctionParameterVariableType(Token);
+                                Token->VariableMemoryIdx = GetFunctionParameterMemoryIndex(Token);
+                                Token->Len = GetFunctionParameterSlotCount(Token);
+                                Token->AddressSpace = SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
                             }
                             else if (GetLocalIdentifierVal(Token) != -1)
                             {
@@ -1102,6 +1110,10 @@ GetToken(char * c, char * str)
                         else if (GetFunctionParameterIdentifier(Token) != -1)
                         {
                             Token->Type = FUNCTION_PARAMETER_ID;
+                            Token->VariableType = GetFunctionParameterVariableType(Token);
+                            Token->VariableMemoryIdx = GetFunctionParameterMemoryIndex(Token);
+                            Token->Len = GetFunctionParameterSlotCount(Token);
+                            Token->AddressSpace = SCRIPT_ENGINE_ADDRESS_SPACE_LOCAL;
                         }
                         else if (GetLocalIdentifierVal(Token) != -1)
                         {

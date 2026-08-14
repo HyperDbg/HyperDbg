@@ -284,6 +284,7 @@ typedef struct _USER_DEFINED_FUNCTION_NODE
     long long unsigned                   Address;
     long long unsigned                   VariableType;
     long long unsigned                   ParameterNumber;
+    long long unsigned                   ParameterSlotCount;
     long long unsigned                   MaxTempNumber;
     long long unsigned                   LocalVariableNumber;
     long long unsigned                   IdTable;
