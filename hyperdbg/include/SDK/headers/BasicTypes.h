@@ -95,20 +95,12 @@ typedef union _LARGE_INTEGER {
 // To be fixed later, linux wchar_t is 4 bytes, but windows wchar_t is 2 bytes
 //
 // typedef UINT16  wchar_t;
+// (the kernel-mode wchar_t stand-in lives in WdkTypes.h, included below)
 typedef UINT16 WCHAR;
 // typedef wchar_t WCHAR;
 
 typedef PVOID    HANDLE;
 typedef HANDLE * PHANDLE;
-
-// NT counted string (ntdef.h). Kept in its Windows shape so the shared driver
-// entry points that take one keep their signature; no Linux caller builds one.
-typedef struct _UNICODE_STRING
-{
-    USHORT  Length;
-    USHORT  MaximumLength;
-    WCHAR * Buffer;
-} UNICODE_STRING, *PUNICODE_STRING;
 
 // Windows pointer-style aliases (used by the cross-platform driver/IOCTL wrappers)
 typedef PVOID   LPVOID;
@@ -134,79 +126,10 @@ typedef struct _PROCESS_INFORMATION
     DWORD  dwThreadId;
 } PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION;
 
-// NT status + kernel event/object types (the kernel notify path — see
-// PlatformEvent). Scalar/opaque definitions so the shared Windows signatures
-// compile on Linux; the event/object backing itself is stubbed for now (a real
-// version would map KEVENT onto eventfd). NTSTATUS is fundamental and reused
-// across many kernel TUs.
-typedef LONG  NTSTATUS;
-typedef LONG  KPRIORITY;
-typedef ULONG ACCESS_MASK;
-typedef CHAR  KPROCESSOR_MODE;
-typedef UCHAR KIRQL; // IRQL token; on Linux the raise/lower maps to preempt_disable/enable
-typedef KIRQL * PKIRQL;
-
-typedef struct _KEVENT KEVENT, *PKEVENT; // opaque (eventfd-backed later)
-typedef PVOID POBJECT_TYPE;              // opaque NT object type
-typedef PVOID POBJECT_HANDLE_INFORMATION; // opaque access-state out-param
-
-#    define STATUS_SUCCESS               ((NTSTATUS)0x00000000L)
-#    define STATUS_PENDING               ((NTSTATUS)0x00000103L)
-#    define STATUS_NOT_IMPLEMENTED       ((NTSTATUS)0xC0000002L)
-#    define STATUS_INVALID_PARAMETER     ((NTSTATUS)0xC000000DL)
-#    define STATUS_INSUFFICIENT_RESOURCES ((NTSTATUS)0xC000009AL)
-#    define NT_SUCCESS(Status)           (((NTSTATUS)(Status)) >= 0)
-
-// Access-mask bits used when referencing a user-mode event object (winnt.h)
-#    define SYNCHRONIZE        0x00100000L
-#    define EVENT_MODIFY_STATE 0x0002
-
-// NT I/O-manager types (the kernel notify path — see PlatformIo). Only the
-// members the shared code touches are mirrored, under their WDK names; the
-// layout is NOT the NT one and nothing here is produced by a Linux kernel yet
-// (a real version maps the IRP onto a char-device read/ioctl request, with
-// PlatformIo filling these in).
-typedef CHAR CCHAR;
-
-#    define IO_NO_INCREMENT 0
-
-typedef struct _IO_STATUS_BLOCK
-{
-    NTSTATUS  Status;
-    ULONG_PTR Information;
-} IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
-
-typedef struct _IO_STACK_LOCATION
-{
-    UCHAR MajorFunction;
-    UCHAR MinorFunction;
-
-    union
-    {
-        struct
-        {
-            ULONG OutputBufferLength;
-            ULONG InputBufferLength;
-            ULONG IoControlCode;
-            PVOID Type3InputBuffer;
-        } DeviceIoControl;
-    } Parameters;
-} IO_STACK_LOCATION, *PIO_STACK_LOCATION;
-
-typedef struct _IRP
-{
-    CCHAR StackCount;
-    CCHAR CurrentLocation;
-
-    union
-    {
-        PVOID SystemBuffer;
-    } AssociatedIrp;
-
-    IO_STATUS_BLOCK IoStatus;
-    KPROCESSOR_MODE RequestorMode;
-    PVOID           UserBuffer;
-} IRP, *PIRP;
+// Every WDK / NT kernel type, status code and ntdef macro the shared sources
+// need now lives in one header instead of being spread through the SDK. It is
+// included here (not from HyperDbgSdk.h) so the scalars above are in scope.
+#include "../../platform/general/header/WdkTypes.h"
 
 #endif
 

@@ -49,11 +49,29 @@ obj-m += HyperDbg.o
 ccflags-y += -I$(src)/linux/kernel
 ccflags-y += -I$(src)/include
 ccflags-y += -I$(src)/dependencies
+# hyperhv's own headers (its pch.h lives at hyperhv/pch.h, NOT hyperhv/header/,
+# so this cannot shadow the unified pch — see the warning below).
+ccflags-y += -I$(src)/hyperhv/header
+# hyperkd spells its includes BOTH ways: "debugger/core/State.h" (relative to
+# hyperkd/header) and "header/debugger/..." (relative to hyperkd), so it needs
+# both roots — matching the two /I entries in hyperkd.vcxproj. NOTE: this is the
+# case the warning below is about — hyperkd/header DOES contain a pch.h, so these
+# two MUST stay after -I$(src)/linux/kernel or every TU gets the Windows pch.
+ccflags-y += -I$(src)/hyperkd
+ccflags-y += -I$(src)/hyperkd/header
 
 # Windows-origin sources declare no-argument functions as `f()` rather than the
 # ISO C `f(void)`; the kernel builds with -Werror=strict-prototypes, so silence
 # it module-wide rather than editing every shared signature.
 ccflags-y += -Wno-strict-prototypes
+
+# Each module keeps its globals as bare tentative definitions in a header that
+# its pch pulls into EVERY TU (hyperkd/header/globals/Global.h: `KEVENT g_Foo;`).
+# MSVC merges those; GCC has defaulted to -fno-common since 10, which turns them
+# into "multiple definition" at link. -fcommon restores the model the source was
+# written against, instead of rewriting every globals header to extern + one
+# defining TU (that would be a refactor of shared Windows code).
+ccflags-y += -fcommon
 
 # Force default C dialect etc. can be added here later, e.g.:
 # ccflags-y += -Wno-declaration-after-statement
@@ -109,11 +127,16 @@ HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
 # HyperDbg-objs += include/components/callback/code/HyperLogCallback.o
 
 # --- script-eval (script engine kernel eval) -------------------------------
-HyperDbg-objs += script-eval/code/Functions.o
-HyperDbg-objs += script-eval/code/Keywords.o
-HyperDbg-objs += script-eval/code/PseudoRegisters.o
-HyperDbg-objs += script-eval/code/Regs.o
-HyperDbg-objs += script-eval/code/ScriptEngineEval.o
+# Compile-gated on hyperhv/hyperkd/hypertrace: with SCRIPT_ENGINE_KERNEL_MODE now
+# defined (see linux/kernel/pch.h) these TUs select their kernel arms, which call
+# into the VMM (VmFunc*, MemoryMapper*, CheckAccessValidityAndSafety, ...), the
+# debugger (g_DbgState, Debugger*Event, Kd/Ud*, Tracing*) and hypertrace
+# (HyperTraceLbr*). Keep commented out until those modules land.
+# HyperDbg-objs += script-eval/code/Functions.o
+# HyperDbg-objs += script-eval/code/Keywords.o
+# HyperDbg-objs += script-eval/code/PseudoRegisters.o
+# HyperDbg-objs += script-eval/code/Regs.o
+# HyperDbg-objs += script-eval/code/ScriptEngineEval.o
 
 
 # --- hyperhv (hypervisor: VMX/EPT) -----------------------------------------

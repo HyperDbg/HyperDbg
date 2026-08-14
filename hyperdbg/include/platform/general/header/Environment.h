@@ -43,6 +43,7 @@
 #    define _In_reads_bytes_(x)
 #    define _Out_writes_bytes_(x)
 #    define _Inout_updates_bytes_all_(x)
+#    define _In_reads_bytes_opt_(x)
 #    define _Use_decl_annotations_
 #    define _Analysis_assume_(x)
 
@@ -100,6 +101,9 @@ typedef int SOCKET;
 // Windows calling convention (no-op on Linux)
 #    define WINAPI
 #    define NTAPI
+#    define __stdcall
+#    define __cdecl
+#    define __fastcall
 
 // Windows module handle (equivalent to dlopen's void * on Linux)
 typedef void * HMODULE;
@@ -107,14 +111,7 @@ typedef void * HMODULE;
 // Misc Windows macros
 #    define UNREFERENCED_PARAMETER(P) ((void)(P))
 
-// NT element-count macro (ntdef.h)
-#    define RTL_NUMBER_OF(A) (sizeof(A) / sizeof((A)[0]))
-
-// NT ASSERT. On a checked Windows build this bugchecks; the closest kernel-side
-// Linux analog that keeps the machine alive is WARN_ON (splat + continue).
-#    ifdef HYPERDBG_KERNEL_MODE
-#        define ASSERT(Expression) WARN_ON(!(Expression))
-#    endif // HYPERDBG_KERNEL_MODE
+// NT/WDK types, status codes and ntdef macros: see WdkTypes.h
 
 // Win32 wait/event constants (used by the cross-platform sync wrappers)
 #    define INFINITE      0xFFFFFFFF

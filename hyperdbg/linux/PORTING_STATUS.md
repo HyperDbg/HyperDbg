@@ -1122,6 +1122,59 @@ The unified `linux/kernel/pch.h` gained `config/Configuration.h`, the hyperlog
 SDK module/imports/intrinsics headers (the `Log`/`LogInfo` macros — on Windows
 every project pch has these) and the three `components/optimizations` headers.
 
+### WDK type shims — `WdkTypes.h` (2026-08-14)
+
+New `include/platform/general/header/WdkTypes.h` collects **every** Linux stand-in
+for a WDK/NT type, status code and ntdef macro in one place, instead of leaving
+them spread through `BasicTypes.h` / `Environment.h`. The ones written earlier
+(NTSTATUS, KEVENT, IRP, IO_STACK_LOCATION, UNICODE_STRING, KIRQL, STATUS_*, the
+access masks) moved there too; `BasicTypes.h` now just includes it, positioned so
+the scalar typedefs above are in scope and DataTypes.h is not needed.
+
+Declarations are labelled by how much they can be trusted — **faithful** (means
+the same on both sides), **structural** (WDK member names, non-NT layout, nothing
+builds one yet), **opaque** (correctly-sized blob passed only by pointer). New
+this round: PEPROCESS/PETHREAD, CLIENT_ID, OBJECT_ATTRIBUTES +
+InitializeObjectAttributes, KAPC_STATE, ACCESS_STATE, GENERIC_MAPPING,
+PROCESS_BASIC_INFORMATION, PROCESSINFOCLASS, MODE (KernelMode/UserMode),
+DISPATCHER_HEADER, DEVICE/DRIVER_OBJECT, UNICODE_STRING32, LIST_ENTRY32, PWSTR,
+SSIZE_T, the Rtl memory macros, CONTAINING_RECORD, PAGE_ALIGN, PAGED_CODE,
+NTKERNELAPI, and the pre-SAL `IN`/`OUT`/`__in` annotation family.
+
+Two of these had to become **complete** types rather than opaque handles, because
+shared code embeds them by value: `KEVENT` (hyperkd's globals hold one) and
+`DISPATCHER_HEADER` (inside NT_KPROCESS). Both are sized blobs with the reason
+written at the declaration.
+
+### The unified pch now DELEGATES (2026-08-14)
+
+`linux/kernel/pch.h` no longer copies a module's include list — it includes the
+module's own pch (`#include "../../hyperkd/header/pch.h"`), reached via
+`-I$(src)/hyperkd` + `-I$(src)/hyperkd/header`. Those lists stay owned by
+upstream and cannot drift. This only became possible once WdkTypes.h existed:
+delegating before it broke every green TU (`PlatformMem.c` 0 -> 48 errors), and
+after it that TU is back to 0.
+
+Measured on the hyperkd block (33 TUs, none ported): **1528 -> 157 errors**, 5 TUs
+now compile clean. ~79% of the original count was never WDK work at all, just
+hyperkd's own declarations being invisible.
+
+Also added to `Kbuild`: `-fcommon`. Every module keeps its globals as bare
+tentative definitions in a header its pch pulls into every TU
+(`KEVENT g_UserDebuggerWaitingCommandEvent;`). MSVC merges those; GCC has
+defaulted to `-fno-common` since 10, which makes them a link error. `-fcommon`
+restores the model the source was written against — the alternative was rewriting
+every globals header to extern + one defining TU, which is a refactor of shared
+Windows code.
+
+What the remaining 157 actually are: WDK calls that ALREADY have Platform
+wrappers and just need call-site swaps when each file is ported
+(`PsGetCurrentProcessId` 13, `KeGetCurrentProcessorNumberEx` 8,
+`KeQueryActiveProcessorCount` 7, `DbgBreakPoint` 17), plus genuine hyperhv
+symbols (`LayoutGetCurrentProcessCr3` 13,
+`CommonGetProcessNameFromProcessControlBlock` 8) that stay unresolved until the
+VMM lands.
+
 ---
 
 ## Building
