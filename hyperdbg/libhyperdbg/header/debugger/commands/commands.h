@@ -53,6 +53,9 @@ VOID
 ShowMemoryCommandDB(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 VOID
+ShowMemoryCommandDW(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+
+VOID
 ShowMemoryCommandDD(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 VOID
@@ -60,6 +63,9 @@ ShowMemoryCommandDC(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_
 
 VOID
 ShowMemoryCommandDQ(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+
+VOID
+ShowMemoryCommandDA(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 VOID
 CommandPteShowResults(UINT64 TargetVa, PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteRead);

@@ -308,6 +308,17 @@ HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
 
         break;
 
+    case DEBUGGER_SHOW_COMMAND_DW:
+
+        ShowMemoryCommandDW(
+            Buffer,
+            Size,
+            Address,
+            MemoryType,
+            ReturnedLength);
+
+        break;
+
     case DEBUGGER_SHOW_COMMAND_DD:
 
         ShowMemoryCommandDD(
@@ -322,6 +333,17 @@ HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     case DEBUGGER_SHOW_COMMAND_DQ:
 
         ShowMemoryCommandDQ(
+            Buffer,
+            Size,
+            Address,
+            MemoryType,
+            ReturnedLength);
+
+        break;
+
+    case DEBUGGER_SHOW_COMMAND_DA:
+
+        ShowMemoryCommandDA(
             Buffer,
             Size,
             Address,
@@ -547,6 +569,57 @@ ShowMemoryCommandDC(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_
 }
 
 /**
+ * @brief Show memory in word format (DW)
+ *
+ * @param OutputBuffer the buffer to show
+ * @param Size size of memory to read
+ * @param Address location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param Length Length of memory to show
+ *
+ * @return VOID
+ */
+VOID
+ShowMemoryCommandDW(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+{
+    for (UINT32 i = 0; i < Size; i += 16)
+    {
+        if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
+        {
+            ShowMessages("#\t");
+        }
+
+        //
+        // Print address
+        //
+        ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
+
+        //
+        // Print the hex code
+        //
+        for (SIZE_T j = 0; j < 16; j += 2)
+        {
+            //
+            // check to see if the address is valid or not
+            //
+            if (i + j >= Length)
+            {
+                ShowMessages("???? ");
+            }
+            else
+            {
+                UINT16 OutputBufferVar = *((UINT16 *)&OutputBuffer[i + j]);
+                ShowMessages("%04X ", OutputBufferVar);
+            }
+        }
+        //
+        // Go to new line
+        //
+        ShowMessages("\n");
+    }
+}
+
+/**
  * @brief Show memory in dword format (DD)
  *
  * @param OutputBuffer the buffer to show
@@ -650,6 +723,50 @@ ShowMemoryCommandDQ(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_
         //
         ShowMessages("\n");
     }
+}
+
+/**
+ * @brief Formats and prints a buffer as a printable ASCII string, replacing
+ *        non-printable bytes with '.' and stopping at a null terminator
+ *
+ * @param OutputBuffer the buffer to show
+ * @param Size size of memory to read
+ * @param Address location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param Length Length of memory to show
+ *
+ * @return VOID
+ */
+VOID
+ShowMemoryCommandDA(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+{
+    if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
+    {
+        ShowMessages("#\t");
+    }
+
+    ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address)).c_str());
+
+    for (UINT32 i = 0; i < Length; i++)
+    {
+        UCHAR Ch = OutputBuffer[i];
+
+        if (Ch == '\0')
+        {
+            break;
+        }
+
+        if (Ch >= 0x20 && Ch <= 0x7e)
+        {
+            ShowMessages("%c", Ch);
+        }
+        else
+        {
+            ShowMessages(".");
+        }
+    }
+
+    ShowMessages("\n");
 }
 
 /**

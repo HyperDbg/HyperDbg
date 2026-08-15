@@ -529,12 +529,6 @@ const UCHAR BuildSignature[] = {
 #define DL_DEFAULT_MAX_NODES 0x100
 
 /**
- * @brief default length for dw command
- *
- */
-#define DW_DEFAULT_LENGTH 0x80
-
-/**
  * @brief default length for da command
  *
  */

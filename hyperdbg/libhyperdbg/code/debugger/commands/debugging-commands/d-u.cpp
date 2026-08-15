@@ -18,79 +18,6 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
- * @brief Formats and prints a buffer as word (2-byte) values, 8 per line,
- *        WinDbg 'dw' style
- *
- * @param Buffer
- * @param Size
- * @param Address
- * @param ReturnedLength
- *
- * @return VOID
- */
-static VOID
-ShowMemoryCommandDwLocal(UCHAR * Buffer, UINT32 Size, UINT64 Address, UINT32 ReturnedLength)
-{
-    UINT32 NumWords = ReturnedLength / sizeof(UINT16);
-
-    for (UINT32 i = 0; i < NumWords; i++)
-    {
-        if (i % 8 == 0)
-        {
-            if (i != 0)
-            {
-                ShowMessages("\n");
-            }
-            ShowMessages("%016llx  ", Address + (i * sizeof(UINT16)));
-        }
-
-        UINT16 Value = *(UINT16 *)(Buffer + (i * sizeof(UINT16)));
-        ShowMessages("%04x ", Value);
-    }
-
-    ShowMessages("\n");
-}
-
-/**
- * @brief Formats and prints a buffer as a printable ASCII string, replacing
- *        non-printable bytes with '.' and stopping at a null terminator,
- *        WinDbg 'da' style
- *
- * @param Buffer
- * @param Size
- * @param Address
- * @param ReturnedLength
- *
- * @return VOID
- */
-static VOID
-ShowMemoryCommandDaLocal(UCHAR * Buffer, UINT32 Size, UINT64 Address, UINT32 ReturnedLength)
-{
-    ShowMessages("%016llx  \"", Address);
-
-    for (UINT32 i = 0; i < ReturnedLength; i++)
-    {
-        UCHAR Ch = Buffer[i];
-
-        if (Ch == '\0')
-        {
-            break;
-        }
-
-        if (Ch >= 0x20 && Ch <= 0x7e)
-        {
-            ShowMessages("%c", Ch);
-        }
-        else
-        {
-            ShowMessages(".");
-        }
-    }
-
-    ShowMessages("\"\n");
-}
-
-/**
  * @brief help of u* d* !u* !d* commands
  *
  * @return VOID
@@ -162,15 +89,11 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
     UINT32  Pid             = 0;
     UINT32  Length          = 0;
     UINT64  Offset          = 0;
-    UINT64  MaxNodes        = DL_DEFAULT_MAX_NODES;
     UINT64  TargetAddress   = 0;
     BOOLEAN IsNextProcessId = FALSE;
     BOOLEAN IsFirstCommand  = TRUE;
     BOOLEAN IsNextLength    = FALSE;
     BOOLEAN IsNextOffset    = FALSE;
-    BOOLEAN IsDlCommand     = FALSE;
-    BOOLEAN IsDwCommand     = FALSE;
-    BOOLEAN IsDaCommand     = FALSE;
 
     string FirstCommand = GetCaseSensitiveStringFromCommandToken(CommandTokens.front());
 
@@ -199,13 +122,6 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
         if (IsFirstCommand)
         {
             IsFirstCommand = FALSE;
-            IsDlCommand    = CompareLowerCaseStrings(CommandTokens.at(0), "dl") |
-                             CompareLowerCaseStrings(CommandTokens.at(0), "!dl");
-            IsDwCommand    = CompareLowerCaseStrings(CommandTokens.at(0), "dw") |
-                             CompareLowerCaseStrings(CommandTokens.at(0), "!dw");
-            IsDaCommand    = CompareLowerCaseStrings(CommandTokens.at(0), "da") |
-                             CompareLowerCaseStrings(CommandTokens.at(0), "!da");
-
             continue;
         }
 
@@ -222,19 +138,7 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
 
         if (IsNextLength == TRUE)
         {
-            //
-            // For 'dl', 'l' means max node count rather than a byte length,
-            // but it's parsed the same way
-            //
-            if (IsDlCommand)
-            {
-                if (!ConvertTokenToUInt64(Section, &MaxNodes))
-                {
-                    ShowMessages("err, you should enter a valid count\n\n");
-                    return;
-                }
-            }
-            else if (!ConvertTokenToUInt32(Section, &Length))
+            if (!ConvertTokenToUInt32(Section, &Length))
             {
                 ShowMessages("err, you should enter a valid length\n\n");
                 return;
@@ -260,7 +164,7 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
             continue;
         }
 
-        if (IsDlCommand && CompareLowerCaseStrings(Section, "o"))
+        if (CompareLowerCaseStrings(Section, "o"))
         {
             IsNextOffset = TRUE;
             continue;
@@ -313,7 +217,7 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
     //
     // Check if the user didn't specify a length for d* and u* commands, then we use default value
     //
-    if (Length == 0 && !IsDlCommand)
+    if (Length == 0)
     {
         //
         // Default length (user doesn't specified)
@@ -325,26 +229,20 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
         {
             Length = 0x40;
         }
-        else if (IsDwCommand)
-        {
-            Length = DW_DEFAULT_LENGTH;
-        }
-        else if (IsDaCommand)
+        else if (CompareLowerCaseStrings(CommandTokens.at(0), "da") ||
+                 CompareLowerCaseStrings(CommandTokens.at(0), "!da"))
         {
             Length = DA_DEFAULT_LENGTH;
+        }
+        else if (CompareLowerCaseStrings(CommandTokens.at(0), "dl") ||
+                 CompareLowerCaseStrings(CommandTokens.at(0), "!dl"))
+        {
+            Length = DL_DEFAULT_MAX_NODES;
         }
         else
         {
             Length = 0x80;
         }
-    }
-
-    //
-    // Check if the user didn't specify a max node count for dl command, then we use default value
-    //
-    if (IsDlCommand && MaxNodes == 0)
-    {
-        MaxNodes = DL_DEFAULT_MAX_NODES;
     }
 
     if (IsNextLength || IsNextProcessId || IsNextOffset)
@@ -392,6 +290,16 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
                                         Length,
                                         NULL);
     }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dw"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DW,
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
     else if (CompareLowerCaseStrings(CommandTokens.at(0), "dd"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DD,
@@ -412,6 +320,24 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
                                         Length,
                                         NULL);
     }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "da"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DA,
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dl"))
+    {
+        HyperDbgShowMemoryLinkedList(TargetAddress,
+                                     DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                     Pid,
+                                     Offset,
+                                     Length);
+    }
     else if (CompareLowerCaseStrings(CommandTokens.at(0), "!db"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DB,
@@ -425,6 +351,16 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
     else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dc"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DC,
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dw"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DW,
                                         TargetAddress,
                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
                                         READ_FROM_KERNEL,
@@ -451,6 +387,24 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
                                         Pid,
                                         Length,
                                         NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!da"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DA,
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dl"))
+    {
+        HyperDbgShowMemoryLinkedList(TargetAddress,
+                                     DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                     Pid,
+                                     Offset,
+                                     Length);
     }
 
     //
@@ -499,77 +453,5 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
             Pid,
             Length,
             NULL);
-    }
-
-    //
-    // Word dump (dw / !dw) — self-contained: read raw bytes, format locally
-    //
-    else if (IsDwCommand)
-    {
-        UCHAR *                           Buffer         = (UCHAR *)malloc(Length);
-        UINT32                            ReturnedLength = 0;
-        DEBUGGER_READ_MEMORY_ADDRESS_MODE AddressMode;
-        BOOLEAN                           Status;
-
-        Status = HyperDbgReadMemory(TargetAddress,
-                                    CompareLowerCaseStrings(CommandTokens.at(0), "dw") ? DEBUGGER_READ_VIRTUAL_ADDRESS : DEBUGGER_READ_PHYSICAL_ADDRESS,
-                                    READ_FROM_KERNEL,
-                                    Pid,
-                                    Length,
-                                    FALSE,
-                                    &AddressMode,
-                                    (BYTE *)Buffer,
-                                    &ReturnedLength);
-
-        if (!Status || ReturnedLength == 0)
-        {
-            ShowMessages("err, invalid address\n");
-        }
-        else
-        {
-            ShowMemoryCommandDwLocal(Buffer, Length, TargetAddress, ReturnedLength);
-        }
-
-        std::free(Buffer);
-    }
-
-    //
-    // ASCII string dump (da / !da) — self-contained: read raw bytes, format locally
-    //
-    else if (IsDaCommand)
-    {
-        UCHAR *                           Buffer         = (UCHAR *)malloc(Length);
-        UINT32                            ReturnedLength = 0;
-        DEBUGGER_READ_MEMORY_ADDRESS_MODE AddressMode;
-        BOOLEAN                           Status;
-
-        Status = HyperDbgReadMemory(TargetAddress,
-                                    CompareLowerCaseStrings(CommandTokens.at(0), "da") ? DEBUGGER_READ_VIRTUAL_ADDRESS : DEBUGGER_READ_PHYSICAL_ADDRESS,
-                                    READ_FROM_KERNEL,
-                                    Pid,
-                                    Length,
-                                    FALSE,
-                                    &AddressMode,
-                                    (BYTE *)Buffer,
-                                    &ReturnedLength);
-
-        if (!Status || ReturnedLength == 0)
-        {
-            ShowMessages("err, invalid address\n");
-        }
-        else
-        {
-            ShowMemoryCommandDaLocal(Buffer, Length, TargetAddress, ReturnedLength);
-        }
-
-        std::free(Buffer);
-    }
-    else if (IsDlCommand)
-    {
-        HyperDbgShowMemoryLinkedList(TargetAddress,
-                                     CompareLowerCaseStrings(CommandTokens.at(0), "dl") ? DEBUGGER_READ_VIRTUAL_ADDRESS : DEBUGGER_READ_PHYSICAL_ADDRESS,
-                                     Pid,
-                                     Offset,
-                                     MaxNodes);
     }
 }
