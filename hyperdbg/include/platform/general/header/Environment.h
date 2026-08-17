@@ -44,6 +44,9 @@
 #    define _Out_writes_bytes_(x)
 #    define _Inout_updates_bytes_all_(x)
 #    define _In_reads_bytes_opt_(x)
+#    define _Success_(x)
+#    define _Ret_maybenull_
+#    define _Must_inspect_result_
 #    define _Use_decl_annotations_
 #    define _Analysis_assume_(x)
 

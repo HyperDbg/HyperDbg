@@ -25,18 +25,31 @@ typedef unsigned long long QWORD;
 typedef int                BOOL;
 
 typedef short SHORT;
-typedef long  LONG;
+
+#ifdef _WIN32 // Windows (LLP64: long is 32-bit)
+
+typedef long          LONG;
+typedef unsigned long ULONG;
+
+#else // Linux (LP64: long is 64-bit, so the Windows widths need int)
+
+typedef int          LONG;
+typedef unsigned int ULONG;
+
+#endif
 
 typedef unsigned short USHORT;
-typedef unsigned long  ULONG;
 
 typedef char          CHAR;
 typedef unsigned char UCHAR;
 typedef UCHAR         BOOLEAN;
 typedef BOOLEAN *     PBOOLEAN;
 
-typedef unsigned long  DWORD;
-typedef unsigned long  ULONG;
+#ifdef _WIN32
+typedef unsigned long DWORD;
+#else
+typedef unsigned int  DWORD;
+#endif
 typedef unsigned char  BYTE;
 typedef unsigned short USHORT;
 typedef unsigned short WORD;

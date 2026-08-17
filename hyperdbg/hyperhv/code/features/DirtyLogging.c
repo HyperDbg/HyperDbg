@@ -25,7 +25,7 @@ DirtyLoggingInitialize()
     //
     // Query count of active processors
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // The explanations are copied from Intel whitepaper on PML:
@@ -186,7 +186,7 @@ DirtyLoggingUninitialize()
     //
     // Query count of active processors
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Broadcast VMCALL to disable PML controls from vmx-root

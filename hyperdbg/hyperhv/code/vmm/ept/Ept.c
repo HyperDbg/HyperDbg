@@ -871,7 +871,7 @@ EptLogicalProcessorInitialize(VOID)
     //
     // Get number of processors
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {

@@ -735,7 +735,7 @@ ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu)
     Result = BinarySearchPerformSearchItem(&g_ExecTrapState.InterceptionProcessIds[0],
                                            g_ExecTrapState.NumberOfItems,
                                            &Index,
-                                           (UINT64)PsGetCurrentProcessId());
+                                           (UINT64)PlatformProcessGetCurrentProcessId());
 
     //
     // Release the lock for the exec trap process list

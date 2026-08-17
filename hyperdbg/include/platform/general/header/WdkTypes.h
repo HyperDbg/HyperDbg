@@ -49,6 +49,12 @@
 #    define DECLSPEC_NORETURN
 
 //
+// Alignment attribute on the VMX region / per-CPU state structures. Real effect
+// on both sides, just a different spelling.
+//
+#    define DECLSPEC_ALIGN(x) __attribute__((aligned(x)))
+
+//
 // Pre-SAL2 annotations (__in / __out family). The modern _In_ / _Out_ spellings
 // are in Environment.h with the rest of the SAL set; these older ones only ever
 // appear in the NT headers' own prototypes.
@@ -61,8 +67,14 @@
 #    define __inout_opt
 #    define __in_bcount(x)
 #    define __out_bcount(x)
-#    define __reserved
 #    define _Strict_type_match_
+
+//
+// NOT defined here: __reserved. Nothing in the tree annotates with it, and
+// glibc's <linux/stat.h> uses that exact spelling as a STRUCT MEMBER name
+// (struct statx_timestamp), so defining it away breaks any TU that includes
+// <sys/stat.h> after this header.
+//
 
 //
 // The original (pre-__in) annotation spelling, still used across the NT process
@@ -84,6 +96,18 @@ typedef CHAR    CCHAR;
 typedef UCHAR   KIRQL; // IRQL token; the raise/lower maps to preempt_disable/enable
 typedef KIRQL * PKIRQL;
 typedef INT64   SSIZE_T;
+
+//
+// Processor-affinity bitmask (ntdef.h). FAITHFUL for <= 64 cores, which is the
+// same ceiling the Windows type has inside one processor group.
+//
+typedef ULONG_PTR KAFFINITY;
+
+//
+// A physical address is a LARGE_INTEGER on Windows; keeping the union means the
+// .QuadPart / .LowPart accesses in the memory code compile unchanged.
+//
+typedef LARGE_INTEGER PHYSICAL_ADDRESS, *PPHYSICAL_ADDRESS;
 typedef WCHAR * PWSTR;
 
 //
@@ -96,6 +120,20 @@ typedef enum _MODE
     UserMode,
     MaximumMode
 } MODE;
+
+//
+// Pool type passed to the (already wrapped) allocation routines. Values match
+// the WDK so any stored/compared constant keeps its meaning.
+//
+typedef enum _POOL_TYPE
+{
+    NonPagedPool             = 0,
+    PagedPool                = 1,
+    NonPagedPoolMustSucceed  = 2,
+    NonPagedPoolCacheAligned = 4,
+    PagedPoolCacheAligned    = 5,
+    NonPagedPoolNx           = 512
+} POOL_TYPE;
 
 //////////////////////////////////////////////////
 //                Status codes                  //
@@ -120,6 +158,27 @@ typedef enum _MODE
 #    define PROCESS_ALL_ACCESS  0x001FFFFF
 
 //////////////////////////////////////////////////
+//        Memory protection / allocation        //
+//////////////////////////////////////////////////
+
+//
+// Page protection and allocation-type flags (winnt.h). Kept at their Windows
+// values because the shared code both passes and stores them.
+//
+#    define PAGE_NOCACHE            0x200
+#    define PAGE_READWRITE          0x04
+#    define PAGE_EXECUTE_READWRITE  0x40
+
+#    define MEM_COMMIT              0x00001000
+#    define MEM_RESERVE             0x00002000
+#    define MEM_RELEASE             0x00008000
+
+//
+// Type maxima (ntdef.h / winnt.h)
+//
+#    define MAXDWORD64 0xffffffffffffffffULL
+
+//////////////////////////////////////////////////
 //                ntdef macros                  //
 //////////////////////////////////////////////////
 
@@ -127,6 +186,12 @@ typedef enum _MODE
 // Element count (ntdef.h)
 //
 #    define RTL_NUMBER_OF(A) (sizeof(A) / sizeof((A)[0]))
+
+//
+// Element count of an ARRAY MEMBER of a struct type (ntdef.h)
+//
+#    define RTL_NUMBER_OF_FIELD(type, field) \
+        (RTL_NUMBER_OF(((type *)0)->field))
 
 //
 // Recover the containing struct from a pointer to one of its members (ntdef.h).
@@ -163,6 +228,12 @@ typedef enum _MODE
 // that keeps the machine alive is WARN_ON (splat + continue).
 //
 #        define ASSERT(Expression) WARN_ON(!(Expression))
+
+//
+// The ntddk.h spelling of the same assertion (it differs from ASSERT only in
+// how the Windows debugger reports it).
+//
+#        define NT_ASSERT(Expression) ASSERT(Expression)
 
 //
 // The Linux kernel has no wchar_t at all (it is a libc typedef, and <wchar.h> is

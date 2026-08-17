@@ -1175,6 +1175,89 @@ symbols (`LayoutGetCurrentProcessCr3` 13,
 `CommonGetProcessNameFromProcessControlBlock` 8) that stay unresolved until the
 VMM lands.
 
+### `hyperhv/` — mechanical pass (2026-08-17): 143 -> 79 errors, 29/55 TUs clean
+
+Measured per TU with `make one`. Nothing here is a design decision; the open ones
+are listed at the end.
+
+| Windows | Linux |
+|---------|-------|
+| `KeGetCurrentProcessorNumberEx(NULL)` (17), `KeQueryActiveProcessorCount(0)` (15) | `PlatformCpu*` |
+| `PsGetCurrentProcessId/ThreadId/Process` (12), `ObDereferenceObject` (8) | `PlatformProcess*` / `PlatformObjectDereference` |
+| `KeRaiseIrqlToDpcLevel` / `KeLowerIrql` | `PlatformIrql*` |
+| `KeInitializeDpc` / `KeSetTargetProcessorDpc` / `KeInsertQueueDpc` | `PlatformDpc*` |
+| `_bittest`, `__readpmc`, `_xsetbv`, `InterlockedExchange` | new `CpuBitTest`, `CpuReadPmc`, `CpuXsetbv`, `CpuInterlockedExchange` |
+| `_inp/_inpw/_inpd`, `_outp/_outpw/_outpd` (Pci.c) | the `CpuIoIn*`/`CpuIoOut*` wrappers that already existed |
+| `NT_ASSERT`, `KAFFINITY`, `MAXDWORD64`, `PAGE_*`, `MEM_*` | `WdkTypes.h` |
+| `InitializeListHead`, `InsertHeadList`, `RemoveEntryList` | `nt-list.h`, now reachable from the kernel build |
+
+`hyperhv/pch.h` gained the 5 platform headers those wrappers live in (Cpu, Dpc,
+Event, Irql, Process); it only had Mem/Intrinsics/Broadcast/IntrinsicsVmx.
+
+**`nt-list.h` reaches the kernel via `DataTypes.h`**, included right after the
+`LIST_ENTRY` layout it operates on (the way `BasicTypes.h` includes
+`WdkTypes.h`) — it was previously only in libhyperdbg's user-mode pch. Its
+`#include <stddef.h>` had to become `<linux/stddef.h>` under
+`HYPERDBG_KERNEL_MODE`: the module builds `-nostdinc`.
+
+**`PlatformDpcSetTargetProcessor` is new.** Windows picks the DPC's CPU with a
+setter on the object; Linux picks it as an argument at queue time
+(`queue_work_on`). So the Linux `KDPC` carries a `TargetCore` (`-1` =
+`KDPC_NO_TARGET_CORE`, set by `PlatformDpcInitialize`) and
+`PlatformDpcInsertQueueDpc` applies it. Keeping the state means the call sites
+keep their 1:1 Windows shape; every existing hyperlog caller stays on the
+unpinned `queue_work` path.
+
+**`KIDT_ENTRY`'s 64-bit half was invisible** — `IdtEmulation.h:55` guarded it with
+`_M_AMD64`, which is MSVC's spelling only, so the GCC build silently lost
+`HighestPart` + `Reserved`. Guard now also accepts `__x86_64__`.
+
+**`_M_AMD64` is NOT defined globally for Linux** (the obvious shortcut): Zydis and
+ia32-doc test it to select MSVC intrinsics, so defining it would steer them into
+Windows-only code paths.
+
+Open, all needing a decision before hyperhv finishes: `DbgBreakPoint` (16 errors —
+it comes from the `LogError` macro, so it hits nearly every file),
+`KeGenericCallDpc` (3), the `Mm*`/`Zw*` memory family (~15), TSX `_xbegin/_xend`,
+`ZydisKernel.c` (wants `ntimage.h`), and the 4 `__try`/`__except` files, which are
+deliberately deferred to their own step.
+
+### Integer-width typedefs: Windows LLP64 vs Linux LP64 (2026-08-17)
+
+`BasicTypes.h` typedef'd `LONG`/`ULONG`/`DWORD` to `long`, which is **32-bit on
+Windows and 64-bit on Linux**. Everything built, but the widths silently
+disagreed with the Windows source's assumptions. Two failures made it visible:
+`Pci.c`'s `switch` on `sizeof(DWORD)` vs `sizeof(QWORD)` became a *duplicate case*
+(both 8), and `KIDT_ENTRY`'s `ULONG x : 16` bitfields were laid out in 64-bit
+units.
+
+They are now `int`/`unsigned int` on Linux (Windows keeps `long`, matching the
+WDK's own typedefs — redefining them there would clash with `ntdef.h`).
+
+Cost across BOTH builds: **one** cast site — `script-eval/Functions.c` declares a
+parameter as raw `volatile long *` and passes it to a `volatile LONG *` API, which
+is the same type only on Windows.
+
+Still on `size_t`: `SIZE_T` (Windows: `unsigned __int64`). That is what the
+5 remaining `CpuStosQ` and the `VmxVmread64P` pointer errors are.
+
+### Found while validating the above: the user-mode build was broken (2026-08-17)
+
+Unrelated to the kernel work, pre-existing on the branch, now fixed:
+
+- `libhyperdbg/CMakeLists.txt` listed `ucpuid.cpp` with no path — CMake could not
+  find it and generated **zero** sources for the whole target.
+- `uin.cpp` / `uout.cpp` are in `libhyperdbg.vcxproj` but were never added to
+  CMake, so `CommandUserIn`/`CommandUserOut` were undefined at link.
+- `WdkTypes.h` `#define __reserved` (a pre-SAL annotation with **no users** in the
+  tree) erased the member of that name in glibc's `<linux/stat.h>`
+  (`struct statx_timestamp`), breaking every TU that included `<sys/stat.h>`
+  after the SDK. Removed, with the reason recorded at the site.
+
+Still missing from CMake vs the vcxproj, NOT added (they need a look first):
+`../include/components/pe/code/pe-image-reader.cpp` and
+`code/debugger/misc/pt-helper.cpp` (pt.cpp itself is Linux-stubbed).
+
 ---
 
 ## Building

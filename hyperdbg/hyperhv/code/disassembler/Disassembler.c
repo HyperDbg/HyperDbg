@@ -191,9 +191,9 @@ DisassemblerShowOneInstructionInVmxNonRootMode(PVOID Address, UINT64 ActualRip, 
         // LogInfo("+%-4X 0x%-16llX\t\t%hs\n", (UINT32)ReadOffset, InstrAddress, PrintBuffer);
 
         Log("core: %x | pid: %x - tid: %x,\t %llx \t\t\t\t%hs\n",
-            KeGetCurrentProcessorNumberEx(NULL),
-            PsGetCurrentProcessId(),
-            PsGetCurrentThreadId(),
+            PlatformCpuGetCurrentProcessorNumber(),
+            PlatformProcessGetCurrentProcessId(),
+            PlatformProcessGetCurrentThreadId(),
             ActualRip,
             PrintBuffer);
 

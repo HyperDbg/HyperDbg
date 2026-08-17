@@ -19,7 +19,7 @@
 BOOLEAN
 GlobalGuestStateAllocateZeroedMemory(VOID)
 {
-    SSIZE_T BufferSizeInByte = sizeof(VIRTUAL_MACHINE_STATE) * KeQueryActiveProcessorCount(0);
+    SSIZE_T BufferSizeInByte = sizeof(VIRTUAL_MACHINE_STATE) * PlatformCpuGetActiveProcessorCount();
 
     //
     // Allocate global variable to hold Guest(s) state

@@ -40,7 +40,7 @@ VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu)
         return;
     }
 
-    _xsetbv(XCrIndex, XCr0.AsUInt);
+    CpuXsetbv(XCrIndex, XCr0.AsUInt);
 }
 
 /**

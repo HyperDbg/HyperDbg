@@ -53,7 +53,7 @@ SwitchToProcessMemoryLayout(UINT32 ProcessId)
     //
     CpuWriteCr3(GuestCr3);
 
-    ObDereferenceObject(TargetEprocess);
+    PlatformObjectDereference(TargetEprocess);
 
     return CurrentProcessCr3;
 }

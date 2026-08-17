@@ -663,7 +663,7 @@ MemoryMapperInitialize()
     UINT64 TempPte;
     ULONG  ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // *** Reserve the address for all cores (read pte and va) ***
@@ -715,7 +715,7 @@ MemoryMapperInitialize()
 VOID
 MemoryMapperUninitialize()
 {
-    ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ULONG ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
@@ -993,7 +993,7 @@ MemoryMapperReadMemorySafeWrapper(
     SIZE_T                                SizeToRead,
     UINT32                                TargetProcessId)
 {
-    ULONG            CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG            CurrentCore = PlatformCpuGetCurrentProcessorNumber();
     UINT64           AddressToCheck;
     PHYSICAL_ADDRESS PhysicalAddress;
 
@@ -1325,7 +1325,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                                    PCR3_TYPE                              TargetProcessCr3,
                                    UINT32                                 TargetProcessId)
 {
-    ULONG            CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG            CurrentCore = PlatformCpuGetCurrentProcessorNumber();
     UINT64           AddressToCheck;
     PHYSICAL_ADDRESS PhysicalAddress;
 
@@ -1507,7 +1507,7 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
     PEPROCESS  SourceProcess;
     KAPC_STATE State = {0};
 
-    if (PsGetCurrentProcessId() != (HANDLE)ProcessId)
+    if (PlatformProcessGetCurrentProcessId() != (HANDLE)ProcessId)
     {
         //
         // User needs another process memory
@@ -1537,13 +1537,13 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
 
             KeUnstackDetachProcess(&State);
 
-            ObDereferenceObject(SourceProcess);
+            PlatformObjectDereference(SourceProcess);
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
             KeUnstackDetachProcess(&State);
 
-            ObDereferenceObject(SourceProcess);
+            PlatformObjectDereference(SourceProcess);
             return NULL64_ZERO;
         }
     }
@@ -1587,7 +1587,7 @@ MemoryMapperFreeMemoryOnTargetProcess(UINT32 ProcessId,
     PEPROCESS  SourceProcess;
     KAPC_STATE State = {0};
 
-    if (PsGetCurrentProcessId() != (HANDLE)ProcessId)
+    if (PlatformProcessGetCurrentProcessId() != (HANDLE)ProcessId)
     {
         //
         // User needs another process memory
@@ -1614,13 +1614,13 @@ MemoryMapperFreeMemoryOnTargetProcess(UINT32 ProcessId,
 
             KeUnstackDetachProcess(&State);
 
-            ObDereferenceObject(SourceProcess);
+            PlatformObjectDereference(SourceProcess);
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
             KeUnstackDetachProcess(&State);
 
-            ObDereferenceObject(SourceProcess);
+            PlatformObjectDereference(SourceProcess);
             return FALSE;
         }
     }

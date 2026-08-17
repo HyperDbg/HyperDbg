@@ -79,6 +79,12 @@ extern inline ULONG_PTR
 extern inline VOID
 CpuWriteCr8(ULONG_PTR Cr8Value);
 
+//
+// XSETBV
+//
+extern inline VOID
+CpuXsetbv(UINT32 XcrIndex, UINT64 Value);
+
 //////////////////////////////////////////////////
 //             MSR Instructions                 //
 //////////////////////////////////////////////////
@@ -207,6 +213,12 @@ extern inline UINT64
 extern inline UINT64
 CpuReadTscp(UINT32 * Aux);
 
+//
+// RDPMC
+//
+extern inline UINT64
+CpuReadPmc(UINT32 Counter);
+
 //////////////////////////////////////////////////
 //          Interlocked (Atomic) Operations     //
 //////////////////////////////////////////////////
@@ -228,6 +240,9 @@ CpuInterlockedCompareExchange64(INT64 volatile * Destination, INT64 ExChange, IN
 
 extern inline LONG
 CpuInterlockedCompareExchange(LONG volatile * Destination, LONG ExChange, LONG Comparand);
+
+extern inline LONG
+CpuInterlockedExchange(LONG volatile * Target, LONG Value);
 
 extern inline UCHAR
 CpuInterlockedBitTestAndSet(volatile LONG * Base, LONG Bit);
@@ -265,6 +280,12 @@ CpuStosQ(UINT64 * Destination, UINT64 Value, SIZE_T Count);
 //////////////////////////////////////////////////
 //              Bit Scan Instructions           //
 //////////////////////////////////////////////////
+
+//
+// BT
+//
+extern inline UCHAR
+CpuBitTest(const LONG * Base, LONG Offset);
 
 //
 // BSF 64

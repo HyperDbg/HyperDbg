@@ -26,7 +26,15 @@
 
 #ifndef _WIN32
 
-#    include <stddef.h> // offsetof
+//
+// offsetof. The kernel module builds with -nostdinc, so the libc spelling of
+// this header does not exist there — the kernel ships its own.
+//
+#    ifdef HYPERDBG_KERNEL_MODE
+#        include <linux/stddef.h>
+#    else
+#        include <stddef.h>
+#    endif
 
 //
 // Given the address of a LIST_ENTRY field embedded in a struct, recover the
