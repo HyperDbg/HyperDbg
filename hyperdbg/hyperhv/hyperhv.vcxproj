@@ -139,6 +139,11 @@
     <ClCompile Include="..\include\components\optimizations\code\OptimizationsExamples.c" />
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformDpc.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformEvent.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIrql.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformProcess.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsicsVmx.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
@@ -247,6 +252,11 @@
     <ClInclude Include="..\include\components\spinlock\header\Spinlock.h" />
     <ClInclude Include="..\include\macros\MetaMacros.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformDpc.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformEvent.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIrql.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformProcess.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsicsVmx.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />

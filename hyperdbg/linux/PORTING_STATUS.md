@@ -1216,6 +1216,23 @@ unpinned `queue_work` path.
 ia32-doc test it to select MSVC intrinsics, so defining it would steer them into
 Windows-only code paths.
 
+**⚠️ A Platform swap is TWO edits, and the Linux build cannot see the second one.**
+Windows builds each driver as its own DLL that compiles only the `Platform*.c`
+files listed in ITS `.vcxproj`; Linux links one module, so every wrapper is always
+present. Swapping a call site therefore links fine here and fails on the Windows
+CI with `LNK2001: unresolved external symbol Platform...`. This pass needed
+`PlatformCpu/Dpc/Event/Irql/Process.c` added to `hyperhv.vcxproj` (+ `.filters`),
+which had only Broadcast/Intrinsics/IntrinsicsVmx/Mem.
+
+What each project compiles today, i.e. what the next sweep has to top up:
+
+| project | has |
+|---|---|
+| hyperkd | Broadcast, Cpu, Intrinsics, Mem, Process, Str |
+| hypertrace / hyperperf | Broadcast, Cpu, Intrinsics, Mem |
+| hyperevade | Intrinsics, Mem |
+| hyperlog | everything except Broadcast/IntrinsicsVmx |
+
 Open, all needing a decision before hyperhv finishes: `DbgBreakPoint` (16 errors —
 it comes from the `LogError` macro, so it hits nearly every file),
 `KeGenericCallDpc` (3), the `Mm*`/`Zw*` memory family (~15), TSX `_xbegin/_xend`,
