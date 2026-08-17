@@ -1542,9 +1542,16 @@ DebuggerCommandUserIn(PDEBUGGER_USER_IN_REQUEST_RESPONSE DebuggerUserInRequest)
     USHORT Port     = DebuggerUserInRequest->PortAddress;
 
     //
-    // Zero out memory buffer
+    // Zero out memory buffer (maybe its not needed, but anyway lets zero out memory, we dont like garbage
+    // and some weird undefined behavior)
     //
     RtlZeroMemory(DebuggerUserInRequest, SIZEOF_DEBUGGER_USER_IN_REQUEST_RESPONSE);
+
+    //
+    // because we zeroed out, everything wiped out! but we need to restore correct values into their related fields
+    //
+    DebuggerUserInRequest->UserChosenRegister = Register;
+    DebuggerUserInRequest->PortAddress        = Port;
 
     //
     // we're already in kernel mode, so there is no need to check for CPL and IOPL, TSS and etc.
@@ -1593,9 +1600,17 @@ DebuggerCommandUserOut(PDEBUGGER_USER_OUT_REQUEST_RESPONSE DebuggerUserOutReques
     UINT32 Value    = DebuggerUserOutRequest->Value;
 
     //
-    // Zero out memory buffer
+    // Same as IN instruction, zero out memory buffer (maybe its not needed, but anyway lets zero out memory, 
+    // we dont like garbage and some weird undefined behavior)
     //
     RtlZeroMemory(DebuggerUserOutRequest, SIZEOF_DEBUGGER_USER_OUT_REQUEST_RESPONSE);
+
+    //
+    // because we zeroed out, everything wiped out! but we need to restore correct values into their related fields
+    //
+    DebuggerUserOutRequest->UserChosenRegister = Register;
+    DebuggerUserOutRequest->PortAddress        = Port;
+    DebuggerUserOutRequest->Value              = Value;
 
     //
     // we're already in kernel mode, so there is no need to check for CPL and IOPL, TSS and etc.
