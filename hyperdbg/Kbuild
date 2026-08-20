@@ -200,15 +200,18 @@ HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
 # HyperDbg-objs += hyperhv/code/vmm/vmx/VmxBroadcast.o
 # HyperDbg-objs += hyperhv/code/vmm/vmx/VmxMechanisms.o
 # HyperDbg-objs += hyperhv/code/vmm/vmx/VmxRegions.o
-#   hyperhv assembly (MASM -> GAS/.S translation required; not just a build change)
-# HyperDbg-objs += hyperhv/code/assembly/AsmCommon.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmEpt.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmHooks.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmInterruptHandlers.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmSegmentRegs.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmVmexitHandler.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmVmxContextState.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmVmxOperation.o
+#   hyperhv assembly: the *.asm (MASM) are ported to *.S (GAS) as EMPTY STUBS —
+#   every symbol is a bare `ret` placeholder so the module links; real bodies are
+#   still TODO(Linux) in each .S. Active because the stubs are self-contained
+#   (define symbols, reference nothing) so the module stays loadable.
+HyperDbg-objs += hyperhv/code/assembly/AsmCommon-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmEpt-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmHooks-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmInterruptHandlers-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmSegmentRegs-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmVmexitHandler-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmVmxContextState-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmVmxOperation-linux.o
 
 # --- hyperkd (the driver: device/IOCTL + debugger core) --------------------
 # HyperDbg-objs += hyperkd/code/common/Common.o

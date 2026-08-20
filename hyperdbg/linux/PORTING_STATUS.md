@@ -1309,18 +1309,35 @@ passes DPC routines of several shapes to `KeGenericCallDpc(PKDEFERRED_ROUTINE)`
 
 **NOT promoted to Kbuild ACTIVE yet — the module still won't LINK.** A probe
 (all 48 uncommented) surfaced the link-phase blockers, in order:
-1. `IoHandler.h` defines 12 `IoIn*/IoOut*` as plain **`inline`** (not `static
-   inline`). Kernel's `inline` macro carries `__gnu_inline`, so each TU emits an
-   external symbol → **multiple definition** (MSVC folds via COMDAT). One header,
-   12 pure wrappers. Needs a decision: edit to `static inline` (shared code) vs a
-   Linux-only route.
-2. **Assembly** — C files call `Asm*` from the 8 `.S` files (MASM→GAS, separately
-   deferred). Undefined at modpost until ported. **Hard prerequisite** for link.
-3. **Cross-module** — hyperhv references hyperkd/hypertrace/script-eval/zydis
-   (not yet ported).
+1. ~~`IoHandler.h` 12 plain-`inline` → multiple definition~~ **FIXED (Linux-only
+   route).** The shared header is untouched; instead `hyperhv/pch.h` wraps its one
+   `#include "vmm/vmx/IoHandler.h"` in a `#if __linux__` `push_macro/undef/define
+   inline = static inline __maybe_unused/…/pop_macro` span, so each TU gets
+   internal-linkage copies (what MSVC's COMDAT folding produces). Verified: 0
+   `IoIn*/IoOut*` collisions. Chosen over editing the header to `static inline`
+   because the user wants the Windows source byte-for-byte unchanged.
+2. `DllInitialize`/`DllUnload` **multiple definition** — `hyperhv/common/UnloadDll.c`
+   and `hyperlog/UnloadDll.c` each define them (the Windows per-DLL unload trick).
+   In one Linux module only one may exist. Resolution at promotion: drop
+   `hyperhv/common/UnloadDll.o` from Kbuild, same rationale as the dropped
+   `HyperLogCallback.o`.
+3. **Assembly** — **STUBBED (2026-08-20).** The 8 `*.asm` (MASM) are ported to
+   `*-linux.S` (GAS) as **empty `ret` stubs** — one `.S` per `.asm`, each defining
+   its `PUBLIC` symbols (67 total incl. `InterruptHandler0..30`) via
+   `SYM_FUNC_START/END`, bodies all `TODO(Linux)`. Now in Kbuild ACTIVE (self-
+   contained → module stays loadable) and present in `HyperDbg.ko`. Windows keeps
+   building the `.asm`; the `.S` are Kbuild-only, never in a `.vcxproj`.
+   `-linux` suffix matches `symbol-linux.cpp` etc. **Real bodies still owed.**
+4. **Cross-module** — **NONE.** The link probe (47-file core) surfaced *zero*
+   hyperkd/hypertrace/script-eval/zydis undefined symbols. hyperhv is
+   self-contained.
 
-So promotion waits on the assembly port + a decision on (1). Compile progress is
-provable today via `make one FILE=hyperhv/code/...`.
+**So the ONLY thing between here and a linking hyperhv core** is the 4 C symbols
+defined in the still-deferred TUs: `CheckAddressCanonicality` (AddressCheck/TSX),
+`MemoryMapperReadMemorySafe`, `VmxPerformVirtualizationOnSpecificCore`,
+`VmxCompatibleWcslen` (MemoryMapper/Vmx/SEH). Stub those 4 (or land the files) and
+the 47-file set promotes to a loadable `.ko`. Compile progress provable via
+`make one FILE=hyperhv/code/...`.
 
 ---
 
