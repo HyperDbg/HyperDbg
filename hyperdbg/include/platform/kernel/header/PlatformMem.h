@@ -69,3 +69,53 @@ PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
 
 PVOID
 PlatformMemFreePool(PVOID BufferAddress);
+
+#if defined(__linux__)
+
+//////////////////////////////////////////////////
+//     Linux stand-ins for WDK memory APIs      //
+//        (placeholder stubs, see the .c)       //
+//////////////////////////////////////////////////
+
+PVOID
+MmMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, MEMORY_CACHING_TYPE CacheType);
+
+PVOID
+MmMapIoSpaceEx(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ULONG Protect);
+
+VOID
+MmUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes);
+
+PHYSICAL_ADDRESS
+MmGetPhysicalAddress(PVOID BaseAddress);
+
+PVOID
+MmGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress);
+
+PPHYSICAL_MEMORY_RANGE
+MmGetPhysicalMemoryRanges(VOID);
+
+PVOID
+MmAllocateMappingAddress(SIZE_T NumberOfBytes, ULONG PoolTag);
+
+VOID
+MmFreeMappingAddress(PVOID BaseAddress, ULONG PoolTag);
+
+VOID
+MmFreeContiguousMemory(PVOID BaseAddress);
+
+VOID
+ExFreePool(PVOID P);
+
+NTSTATUS
+ZwAllocateVirtualMemory(HANDLE    ProcessHandle,
+                        PVOID *   BaseAddress,
+                        ULONG_PTR ZeroBits,
+                        PSIZE_T   RegionSize,
+                        ULONG     AllocationType,
+                        ULONG     Protect);
+
+NTSTATUS
+ZwFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType);
+
+#endif // defined(__linux__)

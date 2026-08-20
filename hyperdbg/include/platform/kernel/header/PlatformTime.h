@@ -27,3 +27,15 @@ PlatformTimeConvertToLocalTime(PLARGE_INTEGER SystemTime, PLARGE_INTEGER LocalTi
 
 VOID
 PlatformTimeConvertToTimeFields(PLARGE_INTEGER Time, PTIME_FIELDS TimeFields);
+
+#if defined(__linux__)
+
+//////////////////////////////////////////////////
+//   Linux stand-in for WDK performance counter //
+//        (placeholder stub, see the .c)        //
+//////////////////////////////////////////////////
+
+LARGE_INTEGER
+KeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency);
+
+#endif // defined(__linux__)

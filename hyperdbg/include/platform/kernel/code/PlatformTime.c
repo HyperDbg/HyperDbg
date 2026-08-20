@@ -124,3 +124,34 @@ PlatformTimeConvertToTimeFields(PLARGE_INTEGER Time, PTIME_FIELDS TimeFields)
 
 #endif
 }
+
+#if defined(__linux__)
+
+//
+// -------------------------------------------------------------------------
+// Linux stand-in for the raw WDK KeQueryPerformanceCounter. Placeholder stub.
+// Windows gets this from <ntddk.h>, so the block is __linux__-only.
+// -------------------------------------------------------------------------
+//
+
+/**
+ * @brief WDK stand-in: read the performance counter (and, optionally, its
+ *        frequency).
+ * @details Stub for now: reports 0 for both counter and frequency.
+ *
+ * TODO(Linux): back with ktime_get_ns()/tsc so busy-wait loops using this
+ *              actually elapse.
+ */
+LARGE_INTEGER
+KeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency)
+{
+    LARGE_INTEGER Counter;
+    Counter.QuadPart = 0;
+
+    if (PerformanceFrequency != NULL)
+        PerformanceFrequency->QuadPart = 0;
+
+    return Counter; // TODO(Linux)
+}
+
+#endif // defined(__linux__)

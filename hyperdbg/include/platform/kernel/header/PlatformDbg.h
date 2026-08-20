@@ -21,3 +21,20 @@
 
 VOID
 PlatformDbgPrint(const CHAR * Format, ...);
+
+#if defined(__linux__)
+
+//////////////////////////////////////////////////
+//     Linux stand-ins for WDK debug APIs       //
+//        (placeholder stubs, see the .c)       //
+//////////////////////////////////////////////////
+
+//
+// WDK: break into the attached kernel debugger (int 3). It sits inside the
+// LogError() macro, so nearly every TU expands it. On Linux it is a no-op — see
+// PlatformDbg.c for why a real breakpoint would panic the box.
+//
+VOID
+DbgBreakPoint(VOID);
+
+#endif // defined(__linux__)

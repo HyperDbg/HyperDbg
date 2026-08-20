@@ -253,3 +253,96 @@ PlatformMemFreePool(PVOID BufferAddress)
 #endif
     return NULL;
 }
+
+#if defined(__linux__)
+
+//
+// -------------------------------------------------------------------------
+// Linux stand-ins for raw WDK memory-manager / pool APIs the shared sources
+// call by name. Placeholder stubs: return NULL / failure / zero and do nothing.
+// Windows gets these from <ntddk.h>, so the whole block is __linux__-only.
+// TODO(Linux): replace each with its real Linux equivalent (ioremap,
+//              virt_to_phys, phys_to_virt, ...) as the callers are brought up.
+// -------------------------------------------------------------------------
+//
+
+PVOID
+MmMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, MEMORY_CACHING_TYPE CacheType)
+{
+    return NULL; // TODO(Linux): ioremap()
+}
+
+PVOID
+MmMapIoSpaceEx(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ULONG Protect)
+{
+    return NULL; // TODO(Linux): ioremap_prot()
+}
+
+VOID
+MmUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes)
+{
+    // no-op // TODO(Linux): iounmap()
+}
+
+PHYSICAL_ADDRESS
+MmGetPhysicalAddress(PVOID BaseAddress)
+{
+    PHYSICAL_ADDRESS Pa;
+    Pa.QuadPart = 0;
+    return Pa; // TODO(Linux): virt_to_phys()
+}
+
+PVOID
+MmGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress)
+{
+    return NULL; // TODO(Linux): phys_to_virt()
+}
+
+PPHYSICAL_MEMORY_RANGE
+MmGetPhysicalMemoryRanges(VOID)
+{
+    return NULL; // TODO(Linux): walk the memblock/e820 ranges
+}
+
+PVOID
+MmAllocateMappingAddress(SIZE_T NumberOfBytes, ULONG PoolTag)
+{
+    return NULL; // TODO(Linux): reserve a kernel VA window
+}
+
+VOID
+MmFreeMappingAddress(PVOID BaseAddress, ULONG PoolTag)
+{
+    // no-op
+}
+
+VOID
+MmFreeContiguousMemory(PVOID BaseAddress)
+{
+    // no-op // TODO(Linux): pair with the contiguous allocator used by callers
+}
+
+VOID
+ExFreePool(PVOID P)
+{
+    // no-op // TODO(Linux): kfree(), paired with the matching allocation stub
+}
+
+NTSTATUS
+ZwAllocateVirtualMemory(HANDLE    ProcessHandle,
+                        PVOID *   BaseAddress,
+                        ULONG_PTR ZeroBits,
+                        PSIZE_T   RegionSize,
+                        ULONG     AllocationType,
+                        ULONG     Protect)
+{
+    return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_mmap into the target mm
+}
+
+NTSTATUS
+ZwFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType)
+{
+    return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_munmap
+}
+
+#endif // defined(__linux__)

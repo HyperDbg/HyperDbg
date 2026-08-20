@@ -96,6 +96,7 @@ typedef unsigned long long DWORD64, *PDWORD64;
 
 typedef unsigned long long ULONGLONG;
 typedef unsigned long long ULONG_PTR, *PULONG_PTR;
+typedef signed long long   LONG_PTR, *PLONG_PTR;
 
 typedef INT64 LONGLONG;
 

@@ -1275,6 +1275,53 @@ Still missing from CMake vs the vcxproj, NOT added (they need a look first):
 `../include/components/pe/code/pe-image-reader.cpp` and
 `code/debugger/misc/pt-helper.cpp` (pt.cpp itself is Linux-stubbed).
 
+### `hyperhv/` — WDK stub layer: 48/55 TUs now COMPILE (2026-08-20)
+
+Routed the raw WDK/NT functions hyperhv calls *directly* (not via a `Platform*`
+wrapper) through the existing platform layer as **placeholder stubs** — chosen
+over a new catch-all file so each lands in its domain module and rides an
+already-active TU (no Kbuild/vcxproj change). All Linux-only (`#if __linux__`),
+so Windows keeps getting these from `<ntddk.h>`.
+
+| module | added WDK stand-ins |
+|---|---|
+| `PlatformDbg` | `DbgBreakPoint` → **no-op** (real int3 would panic; it's in `LogError`) |
+| `PlatformMem` | `MmMapIoSpace(Ex)`, `MmUnmapIoSpace`, `MmGet{Physical,VirtualForPhysical}Address`, `MmGetPhysicalMemoryRanges`, `Mm{Allocate,Free}MappingAddress`, `MmFreeContiguousMemory`, `ExFreePool`, `Zw{Allocate,Free}VirtualMemory` |
+| `PlatformProcess` | `PsLookupProcessByProcessId`, `PsInitialSystemProcess`, `NtCurrentProcess`, `Ke{Set,Revert}…AffinityThread` |
+| `PlatformDpc` | `KeGenericCallDpc` |
+| `PlatformTime` | `KeQueryPerformanceCounter` |
+
+Stubs return NULL/fail/0 with `TODO(Linux)`. New WDK **types** in `WdkTypes.h`:
+`MEMORY_CACHING_TYPE`, `MM_COPY_ADDRESS`, `PHYSICAL_MEMORY_RANGE`,
+`PROCESSOR_NUMBER`; `LONG_PTR` added to `BasicTypes.h` (Linux arm). `hyperhv/pch.h`
+gained `PlatformDbg.h`/`PlatformTime.h` under `#if __linux__` (the only two
+platform headers it lacked). The `QuadPart`/`LARGE_INTEGER` "type mismatch" errors
+were **downstream of the missing prototypes** — correct return types fixed them.
+
+Kbuild: `-Wno-error=incompatible-pointer-types` (warning, not silence) — hyperhv
+passes DPC routines of several shapes to `KeGenericCallDpc(PKDEFERRED_ROUTINE)`
+(MSVC C4113); same flag also covers the benign LP64 `SIZE_T*`↔`UINT64*` spelling
+(`CpuStosQ`, `VmxVmread64P` — both 64-bit, no truncation).
+
+**Still erroring (7 TUs), unchanged plan:** 4 SEH `__try` (`MemoryManager`,
+`MemoryMapper`, `Vmx`, `VmxRegions`), `ZydisKernel` (`ntimage.h`), `AddressCheck`
+(TSX `_xbegin/_xend`).
+
+**NOT promoted to Kbuild ACTIVE yet — the module still won't LINK.** A probe
+(all 48 uncommented) surfaced the link-phase blockers, in order:
+1. `IoHandler.h` defines 12 `IoIn*/IoOut*` as plain **`inline`** (not `static
+   inline`). Kernel's `inline` macro carries `__gnu_inline`, so each TU emits an
+   external symbol → **multiple definition** (MSVC folds via COMDAT). One header,
+   12 pure wrappers. Needs a decision: edit to `static inline` (shared code) vs a
+   Linux-only route.
+2. **Assembly** — C files call `Asm*` from the 8 `.S` files (MASM→GAS, separately
+   deferred). Undefined at modpost until ported. **Hard prerequisite** for link.
+3. **Cross-module** — hyperhv references hyperkd/hypertrace/script-eval/zydis
+   (not yet ported).
+
+So promotion waits on the assembly port + a decision on (1). Compile progress is
+provable today via `make one FILE=hyperhv/code/...`.
+
 ---
 
 ## Building

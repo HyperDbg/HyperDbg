@@ -142,3 +142,64 @@ PlatformProcessGetCurrentThreadTeb(VOID)
 
 #endif
 }
+
+#if defined(__linux__)
+
+//
+// -------------------------------------------------------------------------
+// Linux stand-ins for raw WDK process/thread APIs the shared sources call by
+// name. Placeholder stubs. Windows gets these from <ntddk.h>/<ntifs.h>, so the
+// whole block is __linux__-only.
+// -------------------------------------------------------------------------
+//
+
+//
+// WDK global: pointer to the System process' EPROCESS. NULL until a real
+// process model is wired up. TODO(Linux): point at &init_task's mm/owner.
+//
+PEPROCESS PsInitialSystemProcess = NULL;
+
+/**
+ * @brief WDK stand-in: pseudo-handle for the current process.
+ * @details Windows returns (HANDLE)-1; kept identical so callers that pass it
+ *          straight back into Zw*VirtualMemory compare/behave the same.
+ */
+HANDLE
+NtCurrentProcess(VOID)
+{
+    return (HANDLE)(LONG_PTR)-1;
+}
+
+/**
+ * @brief WDK stand-in: look up an EPROCESS by PID. Stub: always fails.
+ * TODO(Linux): find_get_pid()/pid_task() and hang a PEPROCESS shim off it.
+ */
+NTSTATUS
+PsLookupProcessByProcessId(HANDLE ProcessId, PEPROCESS * Process)
+{
+    if (Process != NULL)
+        *Process = NULL;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux)
+}
+
+/**
+ * @brief WDK stand-in: pin the current thread to one processor. Stub: no-op.
+ * TODO(Linux): set_cpus_allowed_ptr() and remember the old mask.
+ */
+VOID
+KeSetSystemAffinityThread(KAFFINITY Affinity)
+{
+    // no-op
+}
+
+/**
+ * @brief WDK stand-in: undo KeSetSystemAffinityThread. Stub: no-op.
+ */
+VOID
+KeRevertToUserAffinityThread(VOID)
+{
+    // no-op
+}
+
+#endif // defined(__linux__)

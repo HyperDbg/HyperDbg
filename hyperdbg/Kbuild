@@ -71,6 +71,14 @@ ccflags-y += -DZYDIS_STATIC_BUILD -DZYCORE_STATIC_BUILD -DZYAN_NO_LIBC -DZYDIS_N
 # it module-wide rather than editing every shared signature.
 ccflags-y += -Wno-strict-prototypes
 
+# hyperhv passes DPC routines of several shapes (VOID- and BOOLEAN-returning, and
+# some with a typed 2nd parameter) to KeGenericCallDpc(), whose prototype is the
+# WDK PKDEFERRED_ROUTINE. MSVC accepts this with a warning (C4113); GCC makes
+# incompatible-pointer-types a hard error. Rewriting the call sites would edit
+# shared Windows code, which the port forbids, so downgrade it to a WARNING
+# (-Wno-error=, not -Wno-) — the mismatch stays visible, exactly as on Windows.
+ccflags-y += -Wno-error=incompatible-pointer-types
+
 # Each module keeps its globals as bare tentative definitions in a header that
 # its pch pulls into EVERY TU (hyperkd/header/globals/Global.h: `KEVENT g_Foo;`).
 # MSVC merges those; GCC has defaulted to -fno-common since 10, which turns them

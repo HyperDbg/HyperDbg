@@ -27,3 +27,15 @@ PlatformDpcSetTargetProcessor(PRKDPC Dpc, CCHAR Number);
 
 BOOLEAN
 PlatformDpcInsertQueueDpc(PRKDPC Dpc, PVOID SystemArgument1, PVOID SystemArgument2);
+
+#if defined(__linux__)
+
+//////////////////////////////////////////////////
+//      Linux stand-in for WDK generic DPC      //
+//        (placeholder stub, see the .c)        //
+//////////////////////////////////////////////////
+
+VOID
+KeGenericCallDpc(PKDEFERRED_ROUTINE Routine, PVOID Context);
+
+#endif // defined(__linux__)

@@ -468,4 +468,54 @@ typedef struct _IRP
     PVOID           UserBuffer;
 } IRP, *PIRP;
 
+//////////////////////////////////////////////////
+//                Memory manager                //
+//////////////////////////////////////////////////
+
+//
+// Faithful: the WDK caching enum. Only the members shared code names are listed.
+// The raw Mm* wrappers that consume it are stubs (PlatformWdk.c), so the value
+// is not acted upon yet.
+//
+typedef enum _MEMORY_CACHING_TYPE
+{
+    MmNonCached      = 0,
+    MmCached         = 1,
+    MmWriteCombined  = 2,
+} MEMORY_CACHING_TYPE;
+
+//
+// Structural: member names match the WDK so MmCopyMemory-style call sites
+// compile. Nothing on Linux fills one in yet.
+//
+typedef struct _MM_COPY_ADDRESS
+{
+    union
+    {
+        PVOID            VirtualAddress;
+        PHYSICAL_ADDRESS PhysicalAddress;
+    };
+} MM_COPY_ADDRESS, *PMMPFN_IDENTITY;
+
+//
+// Structural: one span returned by MmGetPhysicalMemoryRanges (a NULL-terminated
+// array). The wrapper is a stub, so no array is produced yet.
+//
+typedef struct _PHYSICAL_MEMORY_RANGE
+{
+    PHYSICAL_ADDRESS BaseAddress;
+    LARGE_INTEGER    NumberOfBytes;
+} PHYSICAL_MEMORY_RANGE, *PPHYSICAL_MEMORY_RANGE;
+
+//
+// Faithful: the WDK's (group, number) processor coordinate. Single-group on the
+// platforms we target, so Group is always 0.
+//
+typedef struct _PROCESSOR_NUMBER
+{
+    USHORT Group;
+    UCHAR  Number;
+    UCHAR  Reserved;
+} PROCESSOR_NUMBER, *PPROCESSOR_NUMBER;
+
 #endif // defined(__linux__)
