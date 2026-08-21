@@ -72,7 +72,7 @@ TransparentHandleSystemCallHook(GUEST_REGS * Regs)
         return;
     }
 
-    PCHAR  CallingProcess = g_Callbacks.CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess());
+    PCHAR  CallingProcess = g_Callbacks.CommonGetProcessNameFromProcessControlBlock(PlatformProcessGetCurrentProcess());
     UINT64 Context        = Regs->rax;
 
     //
@@ -196,8 +196,8 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
         ContextParams.OptionalParam3 = Regs->r8 - 0x400;
 
         g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                            Regs->rax,
                                                            &ContextParams);
 
@@ -210,8 +210,8 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
         ContextParams.OptionalParam3 = Regs->r8;
 
         g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                            Regs->rax,
                                                            &ContextParams);
 
@@ -224,8 +224,8 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
         ContextParams.OptionalParam3 = Regs->r8;
 
         g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                            Regs->rax,
                                                            &ContextParams);
         break;
@@ -237,8 +237,8 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
         ContextParams.OptionalParam3 = 0x8;
 
         g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                            Regs->rax,
                                                            &ContextParams);
         break;
@@ -258,8 +258,8 @@ TransparentHandleNtQuerySystemInformationSyscall(GUEST_REGS * Regs)
     //        ContextParams.OptionalParam4                  = Regs->r9;
     //
     //        g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-    //                                           HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-    //                                           HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+    //                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+    //                                           HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
     //                                           Regs->rax,
     //                                           &ContextParams);
     //        break;
@@ -363,11 +363,11 @@ TransparentHandleNtQueryAttributesFileSyscall(GUEST_REGS * Regs)
         //
         for (UINT16 j = 0; j < (sizeof(HV_FILES) / sizeof(HV_FILES[0])); j++)
         {
-            if (wcsstr(FilePath, HV_FILES[j]))
+            if (PlatformWcsStr(FilePath, HV_FILES[j]))
             {
                 g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                                    Regs->rax,
                                                                    &ContextParams);
 
@@ -419,11 +419,11 @@ TransparentHandleNtOpenDirectoryObjectSyscall(GUEST_REGS * Regs)
         //
         for (UINT16 j = 0; j < (sizeof(HV_DIRS) / sizeof(HV_DIRS[0])); j++)
         {
-            if (wcsstr(DirPath, HV_DIRS[j]))
+            if (PlatformWcsStr(DirPath, HV_DIRS[j]))
             {
                 g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                                    Regs->rax,
                                                                    &ContextParams);
 
@@ -459,8 +459,8 @@ TransparentHandleNtSystemDebugControlSyscall(GUEST_REGS * Regs)
     // Set the trap flag to intercept the SYSRET instruction
     //
     g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                       HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                       HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                        Regs->rax,
                                                        &ContextParams);
 }
@@ -487,8 +487,8 @@ TransparentHandleNtQueryInformationProcessSyscall(GUEST_REGS * Regs)
     // Set the trap flag to intercept the SYSRET instruction
     //
     g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                       HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                       HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                        Regs->rax,
                                                        &ContextParams);
 }
@@ -524,7 +524,7 @@ TransparentHandleNtOpenFileSyscall(GUEST_REGS * Regs)
         //
         for (UINT16 j = 0; j < (sizeof(HV_FILES) / sizeof(HV_FILES[0])); j++)
         {
-            if (wcsstr(FileName, HV_FILES[j]))
+            if (PlatformWcsStr(FileName, HV_FILES[j]))
             {
                 LogInfo("A call to NtOpenFile systemcall for a hypervisor specific file was made");
 
@@ -539,8 +539,8 @@ TransparentHandleNtOpenFileSyscall(GUEST_REGS * Regs)
                 //
                 SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
                 g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                                    Regs->rax,
                                                                    &ContextParams);
 
@@ -586,7 +586,7 @@ TransparentHandleNtOpenKeySyscall(GUEST_REGS * Regs)
         //
         for (UINT16 j = 0; j < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); j++)
         {
-            if (wcsstr(KeyName, HV_REGKEYS[j]) > 0)
+            if (PlatformWcsStr(KeyName, HV_REGKEYS[j]) > 0)
             {
                 //
                 // If a match was found, corrupt the user-mode pointer in CPU registers, so that, when the kernel-mode execution continues, it would fail.
@@ -598,8 +598,8 @@ TransparentHandleNtOpenKeySyscall(GUEST_REGS * Regs)
                 //
                 SYSCALL_CALLBACK_CONTEXT_PARAMS ContextParams = {0};
                 g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                                    Regs->rax,
                                                                    &ContextParams);
 
@@ -660,7 +660,7 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
         //
         for (ULONG i = 0; i < (sizeof(TRANSPARENT_DETECTABLE_REGISTRY_KEYS) / sizeof(TRANSPARENT_DETECTABLE_REGISTRY_KEYS[0])); i++)
         {
-            if (!wcscmp(KeyName, TRANSPARENT_DETECTABLE_REGISTRY_KEYS[i]))
+            if (!PlatformWcsCmp(KeyName, TRANSPARENT_DETECTABLE_REGISTRY_KEYS[i]))
             {
                 //
                 // If a match is found, set up the context values and set the trap flag for the SYSRET callback
@@ -680,7 +680,7 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 }
                 else
                 {
-                    LogInfo("Process 0x%llx on thread %llx executed NtQueryValueKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+                    LogInfo("Process 0x%llx on thread %llx executed NtQueryValueKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()), HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()));
 
                     PlatformMemFreePool(NameBuf);
                     return;
@@ -695,7 +695,7 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 }
                 else
                 {
-                    LogInfo("Process 0x%llx on thread %llx executed NtQueryValueKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+                    LogInfo("Process 0x%llx on thread %llx executed NtQueryValueKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()), HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()));
 
                     PlatformMemFreePool(NameBuf);
                     return;
@@ -705,8 +705,8 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 // Set the trap flag to intercept the SYSRET instruction
                 //
                 g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                                    Regs->rax,
                                                                    &ContextParams);
 
@@ -724,7 +724,7 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
         //
         for (UINT16 j = 1; j < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); j++)
         {
-            if (wcsstr(KeyName, HV_REGKEYS[j]) > 0)
+            if (PlatformWcsStr(KeyName, HV_REGKEYS[j]) > 0)
             {
                 //
                 // When the match is found, corrupt the buffer pointers in the registers
@@ -739,8 +739,8 @@ TransparentHandleNtQueryValueKeySyscall(GUEST_REGS * Regs)
                 // Set the trap flag to intercept the SYSRET instruction
                 //
                 g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                                   HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                                   HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                                   HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                                    Regs->rax,
                                                                    &ContextParams);
 
@@ -781,7 +781,7 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
     }
     else
     {
-        LogInfo("Process 0x%llx on thread %llx executed NtEnumerateKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+        LogInfo("Process 0x%llx on thread %llx executed NtEnumerateKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()), HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()));
         return;
     }
 
@@ -794,7 +794,7 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
     }
     else
     {
-        LogInfo("Process 0x%llx on thread %llx executed NtEnumerateKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+        LogInfo("Process 0x%llx on thread %llx executed NtEnumerateKey systemcall but reading the provided arguments from %RSP failed", HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()), HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()));
         return;
     }
 
@@ -811,8 +811,8 @@ TransparentHandleNtEnumerateKeySyscall(GUEST_REGS * Regs)
     // Set the trap flag to intercept the SYSRET instruction
     //
     g_Callbacks.SyscallCallbackSetTrapFlagAfterSyscall(Regs,
-                                                       HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()),
+                                                       HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                       HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
                                                        Regs->rax,
                                                        &ContextParams);
 }
@@ -957,7 +957,7 @@ TransparentHandleProcessInformationQuery(SYSCALL_CALLBACK_CONTEXT_PARAMS * Param
             //
             for (UINT16 i = 0; i < (sizeof(HV_PROCESSES) / sizeof(HV_PROCESSES[0])); i++)
             {
-                if (!_wcsnicmp(ImageName, HV_PROCESSES[i], (CurStructBuf.ImageName.Length) / sizeof(WCHAR)))
+                if (!PlatformWcsNiCmp(ImageName, HV_PROCESSES[i], (CurStructBuf.ImageName.Length) / sizeof(WCHAR)))
                 {
                     //
                     // If the name matches, bypass it by increasing the previous entries .nextEntryOffset value
@@ -1320,7 +1320,7 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
         //
         for (UINT16 i = 0; i < (sizeof(HV_REGKEYS) / sizeof(HV_REGKEYS[0])); i++)
         {
-            PWCH MatchStart = wcsstr(StringBuf, HV_REGKEYS[i]);
+            PWCH MatchStart = PlatformWcsStr(StringBuf, HV_REGKEYS[i]);
 
             while (MatchStart != 0)
             {
@@ -1356,9 +1356,9 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
                 //
                 // Obtain the lengths of all the strings and substring
                 //
-                ULONG TempSize = (ULONG)wcslen(NewVendorString) * sizeof(WCHAR);
+                ULONG TempSize = (ULONG)PlatformWcsLen(NewVendorString) * sizeof(WCHAR);
 
-                ULONG MatchedStringLen = (ULONG)wcslen(HV_REGKEYS[i]) * sizeof(WCHAR);
+                ULONG MatchedStringLen = (ULONG)PlatformWcsLen(HV_REGKEYS[i]) * sizeof(WCHAR);
                 ULONG OldLength        = *((PBYTE)Buf + DataLenOffset);
 
                 ULONG NewStringSize = OldLength - MatchedStringLen + TempSize;
@@ -1426,7 +1426,7 @@ TransparentReplaceVendorStringFromBufferWChar(SYSCALL_CALLBACK_CONTEXT_PARAMS * 
                 // Cleanup
                 //
 
-                MatchStart = wcsstr(StringBuf, HV_REGKEYS[i]);
+                MatchStart = PlatformWcsStr(StringBuf, HV_REGKEYS[i]);
 
                 if (!MatchStart)
                     i = 0;

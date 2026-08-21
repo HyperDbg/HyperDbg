@@ -1445,6 +1445,35 @@ pass; just uncommented them. **`UnloadDll.o` deliberately omitted** — its `Dll
 module needs exactly one copy — same rule as the pending hyperhv/common/UnloadDll drop). Full
 `make` links `HyperDbg.ko` clean, `Transparent*` now `T` in the module.
 
+**⚠️ CAVEAT — hyperevade is feature-flagged OFF, so its `Transparent*` are no-op STUBS.**
+Every hyperevade TU is `#if ActivateHyperEvadeProject != TRUE` (no-op stubs) / `#else` (real
+impl). `include/config/Configuration.h:80` sets it `FALSE` (upstream default, same on Windows),
+so only the stub branch compiles — that's *why* it needed zero Linux changes and links with no
+external refs. The real transparency code (~1900 lines using `PsGetCurrentProcessId`,
+`PsGetCurrentThreadId`, … raw WDK) is compiled out.
+
+**UPDATE — real hyperevade branch now PORTED (builds when the flag is on), 2026-08-21.**
+Flipped `ActivateHyperEvadeProject TRUE` to see the surface, ported it, flipped back to `FALSE`
+(upstream default — leaving it on would change Windows behavior). What the real `SyscallFootprints.c`
+needed, in three tiers:
+- **WDK type/const/struct shims** → `WdkTypes.h` (Linux block): types `PWCH`,`PBYTE`,`DWORD_PTR`;
+  status codes `STATUS_INVALID_INFO_CLASS/BUFFER_OVERFLOW/BUFFER_TOO_SMALL/OBJECT_NAME_NOT_FOUND/
+  DEBUGGER_INACTIVE`; structs `FILE_BASIC_INFORMATION`, `SYSTEM_FIRMWARE_TABLE_INFORMATION` (+enum
+  `SYSTEM_FIRMWARE_TABLE_ACTION`). The wall of "excess elements in const int[]" errors was all
+  downstream of the single missing `PWCH`.
+- **Ps\* → platform layer** (user chose call-site swap over raw shims): `PsGetCurrentProcess{,Id}`/
+  `PsGetCurrentThreadId` → `PlatformProcessGetCurrentProcess{,Id}`/`...ThreadId` (37 sites; the layer
+  already had them). Added `PlatformProcess.c` to hyperevade's Windows `.vcxproj`(+filters) + its
+  header to the pch, so it links on both OSes (same treatment as PlatformDbg).
+- **Wide-string ops → new `PlatformWcs{Len,Cmp,Str,NiCmp}`** in `PlatformStr.{h,c}` (Win→CRT
+  `wcslen`/`wcscmp`/`wcsstr`/`_wcsnicmp`, Linux→16-bit impls; kernel has none + sets
+  `-fno-builtin-wcslen`). 11 call sites swapped; `PlatformStr.c` added to hyperevade's `.vcxproj`.
+  KEY: the kernel builds with **`-fshort-wchar`**, so `WCHAR`/`L"..."` are 16-bit — matching the
+  UTF-16 guest data, so the `L"..."` string tables needed no change.
+
+Result: full `make` links `HyperDbg.ko` clean with `ActivateHyperEvadeProject` **either** TRUE or
+FALSE. Shipped default is FALSE; the routing/shims sit dormant-but-correct until it's enabled.
+
 **Cluster status:** zydis ✅ + hyperevade ✅ both active and linking. Remaining for hyperhv
 promotion: uncomment hyperhv's ~54 objects (drop hyperhv/common/UnloadDll.o dup, use
 ZydisKernel-linux.o), which pulls in the SEH-stubbed VmxRegions/MemoryManager — all already

@@ -48,6 +48,12 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformStr.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformProcess.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
     <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c">
       <Filter>code\platform</Filter>
     </ClCompile>
@@ -87,6 +93,12 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformStr.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformProcess.h">
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h">
