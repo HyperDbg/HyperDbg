@@ -53,3 +53,6 @@ PlatformProcessSetSystemAffinity(KAFFINITY Affinity);
 
 VOID
 PlatformProcessRevertToUserAffinity(VOID);
+
+HANDLE
+PlatformProcessGetCurrentProcessHandle(VOID);

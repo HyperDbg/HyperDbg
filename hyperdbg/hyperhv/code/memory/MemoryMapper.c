@@ -1564,8 +1564,8 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
         //
         // Allocate in memory in target process
         //
-        Status = ZwAllocateVirtualMemory(
-            NtCurrentProcess(),
+        Status = PlatformMemAllocateVirtualMemory(
+            PlatformProcessGetCurrentProcessHandle(),
             &AllocPtr,
             (ULONG_PTR)NULL,
             &AllocSize,
@@ -1653,10 +1653,10 @@ MemoryMapperFreeMemoryOnTargetProcess(UINT32 ProcessId,
         //
         // Deallocate memory in target process
         //
-        Status = ZwFreeVirtualMemory(NtCurrentProcess(),
-                                     &BaseAddress,
-                                     &AllocSize,
-                                     MEM_RELEASE);
+        Status = PlatformMemFreeVirtualMemory(PlatformProcessGetCurrentProcessHandle(),
+                                              &BaseAddress,
+                                              &AllocSize,
+                                              MEM_RELEASE);
     }
 
     if (!NT_SUCCESS(Status))

@@ -227,3 +227,18 @@ PlatformProcessRevertToUserAffinity(VOID)
     // no-op
 #endif
 }
+
+/**
+ * @brief Pseudo-handle for the current process. Windows: NtCurrentProcess()
+ *        ((HANDLE)-1). Linux: the same (HANDLE)-1 sentinel so callers that pass
+ *        it straight into the Zw*VirtualMemory wrappers keep identical semantics.
+ */
+HANDLE
+PlatformProcessGetCurrentProcessHandle(VOID)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return NtCurrentProcess();
+#elif defined(__linux__)
+    return (HANDLE)(LONG_PTR)-1;
+#endif
+}

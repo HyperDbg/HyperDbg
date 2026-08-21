@@ -107,3 +107,14 @@ PlatformMemCopyMemory(PVOID TargetAddress, MM_COPY_ADDRESS SourceAddress, SIZE_T
 
 VOID
 PlatformMemFreePoolUntagged(PVOID P);
+
+NTSTATUS
+PlatformMemAllocateVirtualMemory(HANDLE    ProcessHandle,
+                                 PVOID *   BaseAddress,
+                                 ULONG_PTR ZeroBits,
+                                 PSIZE_T   RegionSize,
+                                 ULONG     AllocationType,
+                                 ULONG     Protect);
+
+NTSTATUS
+PlatformMemFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType);

@@ -378,3 +378,40 @@ PlatformMemFreePoolUntagged(PVOID P)
     // no-op // TODO(Linux): kfree(), paired with the matching allocation stub
 #endif
 }
+
+NTSTATUS
+PlatformMemAllocateVirtualMemory(HANDLE    ProcessHandle,
+                                 PVOID *   BaseAddress,
+                                 ULONG_PTR ZeroBits,
+                                 PSIZE_T   RegionSize,
+                                 ULONG     AllocationType,
+                                 ULONG     Protect)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return ZwAllocateVirtualMemory(ProcessHandle, BaseAddress, ZeroBits, RegionSize, AllocationType, Protect);
+#elif defined(__linux__)
+    (void)ProcessHandle;
+    (void)BaseAddress;
+    (void)ZeroBits;
+    (void)RegionSize;
+    (void)AllocationType;
+    (void)Protect;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_mmap into the target process' mm
+#endif
+}
+
+NTSTATUS
+PlatformMemFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return ZwFreeVirtualMemory(ProcessHandle, BaseAddress, RegionSize, FreeType);
+#elif defined(__linux__)
+    (void)ProcessHandle;
+    (void)BaseAddress;
+    (void)RegionSize;
+    (void)FreeType;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_munmap
+#endif
+}

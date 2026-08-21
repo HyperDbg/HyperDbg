@@ -1393,6 +1393,24 @@ Two corrections while landing it:
   (+`.filters`) so the definition links per-module on Windows (matches how every other
   `Platform*.c` is already compiled per-module). On Linux it's one `.ko`, so `PlatformDbg.o`
   (already active) covers all of them. Full `make` links `HyperDbg.ko` clean.
+- **`MemoryMapper.c` regression from the refactor.** The refactor deleted (didn't wrap)
+  the `ZwAllocateVirtualMemory`/`ZwFreeVirtualMemory`/`NtCurrentProcess` raw stubs, but the
+  two self-process `else` branches still called them by name → implicit-decl errors.
+  Completed the refactor: new `PlatformMemAllocateVirtualMemory` / `PlatformMemFreeVirtualMemory`
+  (mirror the Zw* signatures; Win forwards, Linux → `STATUS_UNSUCCESSFUL`) and
+  `PlatformProcessGetCurrentProcessHandle` (Win `NtCurrentProcess()`, Linux `(HANDLE)-1`).
+  The two cross-process branches keep raw Zw*/`NtCurrentProcess` inside their `#ifdef _WIN32`
+  (win32-only, not Linux-reachable).
+
+**hyperhv compile state (2026-08-21): 53/54 C TUs `make one`-clean.** Only
+`disassembler/ZydisKernel.c` fails — `#include <ntimage.h>` (WDK PE header:
+`PIMAGE_NT_HEADERS`, `RtlImageNtHeader`, `IMAGE_FIRST_SECTION`, …). Whole hyperhv C set is
+still commented-out in Kbuild; module links today on the active set (platform + hyperlog +
+components + asm stubs). NEXT: (1) land `ZydisKernel.c` (PE-type shims in `WdkTypes.h` +
+`#if _WIN32` guard, or stub), then (2) start promoting hyperhv TUs into Kbuild ACTIVE — but
+the moment `Vmx.c` goes active it pulls cross-module undefined symbols (hyperevade
+`Transparent*`, zydis `ZydisGetVersion`), so hyperhv can't link alone; the cluster
+hyperhv + hyperevade + zydis comes up together.
 
 ---
 
