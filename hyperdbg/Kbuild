@@ -64,6 +64,9 @@ ccflags-y += -I$(src)/dependencies
 # with these same defines (no libc, static), see hyperhv.vcxproj.
 ccflags-y += -I$(src)/dependencies/zydis/include
 ccflags-y += -I$(src)/dependencies/zydis/dependencies/zycore/include
+# zydis's own data tables are pulled with angle-bracket includes (<Generated/*.inc>),
+# so its src/ dir must be on the search path — zydis's CMake adds it as PRIVATE "src".
+ccflags-y += -I$(src)/dependencies/zydis/src
 ccflags-y += -DZYDIS_STATIC_BUILD -DZYCORE_STATIC_BUILD -DZYAN_NO_LIBC -DZYDIS_NO_LIBC
 
 # Windows-origin sources declare no-argument functions as `f()` rather than the
@@ -146,60 +149,62 @@ HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
 
 
 # --- hyperhv (hypervisor: VMX/EPT) -----------------------------------------
-# HyperDbg-objs += hyperhv/code/broadcast/Broadcast.o
-# HyperDbg-objs += hyperhv/code/broadcast/DpcRoutines.o
-# HyperDbg-objs += hyperhv/code/common/Bitwise.o
-# HyperDbg-objs += hyperhv/code/common/Common.o
+HyperDbg-objs += hyperhv/code/broadcast/Broadcast.o
+HyperDbg-objs += hyperhv/code/broadcast/DpcRoutines.o
+HyperDbg-objs += hyperhv/code/common/Bitwise.o
+HyperDbg-objs += hyperhv/code/common/Common.o
 # HyperDbg-objs += hyperhv/code/common/UnloadDll.o
-# HyperDbg-objs += hyperhv/code/components/registers/DebugRegisters.o
-# HyperDbg-objs += hyperhv/code/devices/Apic.o
-# HyperDbg-objs += hyperhv/code/devices/Pci.o
-# HyperDbg-objs += hyperhv/code/disassembler/Disassembler.o
-# HyperDbg-objs += hyperhv/code/disassembler/ZydisKernel.o
-# HyperDbg-objs += hyperhv/code/features/CompatibilityChecks.o
-# HyperDbg-objs += hyperhv/code/features/DirtyLogging.o
-# HyperDbg-objs += hyperhv/code/globals/GlobalVariableManagement.o
-# HyperDbg-objs += hyperhv/code/hooks/ept-hook/EptHook.o
-# HyperDbg-objs += hyperhv/code/hooks/ept-hook/ExecTrap.o
-# HyperDbg-objs += hyperhv/code/hooks/ept-hook/ModeBasedExecHook.o
-# HyperDbg-objs += hyperhv/code/hooks/syscall-hook/EferHook.o
-# HyperDbg-objs += hyperhv/code/hooks/syscall-hook/SyscallCallback.o
-# HyperDbg-objs += hyperhv/code/interface/Callback.o
-# HyperDbg-objs += hyperhv/code/interface/Configuration.o
-# HyperDbg-objs += hyperhv/code/interface/DirectVmcall.o
-# HyperDbg-objs += hyperhv/code/interface/Dispatch.o
-# HyperDbg-objs += hyperhv/code/interface/Export.o
-# HyperDbg-objs += hyperhv/code/interface/HyperEvade.o
-# HyperDbg-objs += hyperhv/code/memory/AddressCheck.o
-# HyperDbg-objs += hyperhv/code/memory/Conversion.o
-# HyperDbg-objs += hyperhv/code/memory/Layout.o
-# HyperDbg-objs += hyperhv/code/memory/MemoryManager.o
-# HyperDbg-objs += hyperhv/code/memory/MemoryMapper.o
-# HyperDbg-objs += hyperhv/code/memory/Segmentation.o
-# HyperDbg-objs += hyperhv/code/memory/SwitchLayout.o
-# HyperDbg-objs += hyperhv/code/mmio/MmioShadowing.o
-# HyperDbg-objs += hyperhv/code/processor/Idt.o
-# HyperDbg-objs += hyperhv/code/processor/Smm.o
-# HyperDbg-objs += hyperhv/code/vmm/ept/Ept.o
-# HyperDbg-objs += hyperhv/code/vmm/ept/Invept.o
-# HyperDbg-objs += hyperhv/code/vmm/ept/Vpid.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Counters.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmcalls.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmexits.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Events.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Hv.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/IdtEmulation.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/IoHandler.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/ManageRegs.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/MsrHandlers.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Mtf.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/ProtectedHv.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmcall.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmexit.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmx.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxBroadcast.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxMechanisms.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxRegions.o
+HyperDbg-objs += hyperhv/code/components/registers/DebugRegisters.o
+HyperDbg-objs += hyperhv/code/devices/Apic.o
+HyperDbg-objs += hyperhv/code/devices/Pci.o
+HyperDbg-objs += hyperhv/code/disassembler/Disassembler.o
+# ZydisKernel.c is the Windows-only Zydis sample driver (dead code, WDK PE deps) —
+# Linux swaps the whole TU for an empty stub, ZydisKernel-linux.c (see that file).
+HyperDbg-objs += hyperhv/code/disassembler/ZydisKernel-linux.o
+HyperDbg-objs += hyperhv/code/features/CompatibilityChecks.o
+HyperDbg-objs += hyperhv/code/features/DirtyLogging.o
+HyperDbg-objs += hyperhv/code/globals/GlobalVariableManagement.o
+HyperDbg-objs += hyperhv/code/hooks/ept-hook/EptHook.o
+HyperDbg-objs += hyperhv/code/hooks/ept-hook/ExecTrap.o
+HyperDbg-objs += hyperhv/code/hooks/ept-hook/ModeBasedExecHook.o
+HyperDbg-objs += hyperhv/code/hooks/syscall-hook/EferHook.o
+HyperDbg-objs += hyperhv/code/hooks/syscall-hook/SyscallCallback.o
+HyperDbg-objs += hyperhv/code/interface/Callback.o
+HyperDbg-objs += hyperhv/code/interface/Configuration.o
+HyperDbg-objs += hyperhv/code/interface/DirectVmcall.o
+HyperDbg-objs += hyperhv/code/interface/Dispatch.o
+HyperDbg-objs += hyperhv/code/interface/Export.o
+HyperDbg-objs += hyperhv/code/interface/HyperEvade.o
+HyperDbg-objs += hyperhv/code/memory/AddressCheck.o
+HyperDbg-objs += hyperhv/code/memory/Conversion.o
+HyperDbg-objs += hyperhv/code/memory/Layout.o
+HyperDbg-objs += hyperhv/code/memory/MemoryManager.o
+HyperDbg-objs += hyperhv/code/memory/MemoryMapper.o
+HyperDbg-objs += hyperhv/code/memory/Segmentation.o
+HyperDbg-objs += hyperhv/code/memory/SwitchLayout.o
+HyperDbg-objs += hyperhv/code/mmio/MmioShadowing.o
+HyperDbg-objs += hyperhv/code/processor/Idt.o
+HyperDbg-objs += hyperhv/code/processor/Smm.o
+HyperDbg-objs += hyperhv/code/vmm/ept/Ept.o
+HyperDbg-objs += hyperhv/code/vmm/ept/Invept.o
+HyperDbg-objs += hyperhv/code/vmm/ept/Vpid.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Counters.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmcalls.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmexits.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Events.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Hv.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/IdtEmulation.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/IoHandler.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/ManageRegs.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/MsrHandlers.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Mtf.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/ProtectedHv.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Vmcall.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Vmexit.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Vmx.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/VmxBroadcast.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/VmxMechanisms.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/VmxRegions.o
 #   hyperhv assembly: the *.asm (MASM) are ported to *.S (GAS) as EMPTY STUBS —
 #   every symbol is a bare `ret` placeholder so the module links; real bodies are
 #   still TODO(Linux) in each .S. Active because the stubs are self-contained
@@ -251,10 +256,14 @@ HyperDbg-objs += hyperhv/code/assembly/AsmVmxOperation-linux.o
 # HyperDbg-objs += hyperkd/code/assembly/AsmDebugger.o
 
 # --- hyperevade (transparency / anti-detection) ----------------------------
-# HyperDbg-objs += hyperevade/code/SyscallFootprints.o
-# HyperDbg-objs += hyperevade/code/Transparency.o
-# HyperDbg-objs += hyperevade/code/UnloadDll.o
-# HyperDbg-objs += hyperevade/code/VmxFootprints.o
+# Leaf module: provides the Transparent* symbols hyperhv calls, and itself only
+# needs the already-active platform layer (CpuReadTsc, PlatformMemAllocate*), so
+# it links today. UnloadDll.o is OMITTED — its DllInitialize/DllUnload duplicate
+# hyperlog's (the Windows per-DLL unload trick; one module needs only one copy).
+HyperDbg-objs += hyperevade/code/SyscallFootprints.o
+HyperDbg-objs += hyperevade/code/Transparency.o
+HyperDbg-objs += hyperevade/code/VmxFootprints.o
+# HyperDbg-objs += hyperevade/code/UnloadDll.o   # dup DllInitialize/DllUnload (see above)
 
 # --- hyperperf (PMU) -------------------------------------------------------
 # HyperDbg-objs += hyperperf/code/api/PerfApi.o
@@ -273,9 +282,39 @@ HyperDbg-objs += hyperhv/code/assembly/AsmVmxOperation-linux.o
 # HyperDbg-objs += hypertrace/code/pt/Pt.o
 
 # --- zydis (kernel disassembler, needed by hyperhv/disassembler) -----------
-# Built with ZYAN_NO_LIBC;ZYDIS_NO_LIBC;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD.
-# Enumerate dependencies/zydis/src/*.c + dependencies/zydis/.../zycore/*.c here,
-# or build them into a built-in.a. Deferred until hyperhv compiles.
+# Built with ZYAN_NO_LIBC;ZYDIS_NO_LIBC;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD
+# (defines + include paths in the ccflags-y block above). Self-contained: no
+# external symbols, so it links into the .ko on its own even before hyperhv
+# calls it. Windows builds zydis as a separate static lib; Linux has one module,
+# so the sources compile straight in.
+# zycore (zydis's support library)
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Allocator.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/ArgParse.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Bitset.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Format.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/List.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/String.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Vector.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Zycore.o
+# zydis proper
+HyperDbg-objs += dependencies/zydis/src/Decoder.o
+HyperDbg-objs += dependencies/zydis/src/DecoderData.o
+HyperDbg-objs += dependencies/zydis/src/Disassembler.o
+HyperDbg-objs += dependencies/zydis/src/Encoder.o
+HyperDbg-objs += dependencies/zydis/src/EncoderData.o
+HyperDbg-objs += dependencies/zydis/src/FormatterATT.o
+HyperDbg-objs += dependencies/zydis/src/FormatterBase.o
+HyperDbg-objs += dependencies/zydis/src/FormatterBuffer.o
+HyperDbg-objs += dependencies/zydis/src/Formatter.o
+HyperDbg-objs += dependencies/zydis/src/FormatterIntel.o
+HyperDbg-objs += dependencies/zydis/src/MetaInfo.o
+HyperDbg-objs += dependencies/zydis/src/Mnemonic.o
+HyperDbg-objs += dependencies/zydis/src/Register.o
+HyperDbg-objs += dependencies/zydis/src/Segment.o
+HyperDbg-objs += dependencies/zydis/src/SharedData.o
+HyperDbg-objs += dependencies/zydis/src/String.o
+HyperDbg-objs += dependencies/zydis/src/Utils.o
+HyperDbg-objs += dependencies/zydis/src/Zydis.o
 
 # ===========================================================================
 # PER-OBJECT INCLUDE ROOTS

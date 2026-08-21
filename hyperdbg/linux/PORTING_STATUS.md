@@ -1402,15 +1402,70 @@ Two corrections while landing it:
   The two cross-process branches keep raw Zw*/`NtCurrentProcess` inside their `#ifdef _WIN32`
   (win32-only, not Linux-reachable).
 
-**hyperhv compile state (2026-08-21): 53/54 C TUs `make one`-clean.** Only
-`disassembler/ZydisKernel.c` fails — `#include <ntimage.h>` (WDK PE header:
-`PIMAGE_NT_HEADERS`, `RtlImageNtHeader`, `IMAGE_FIRST_SECTION`, …). Whole hyperhv C set is
-still commented-out in Kbuild; module links today on the active set (platform + hyperlog +
-components + asm stubs). NEXT: (1) land `ZydisKernel.c` (PE-type shims in `WdkTypes.h` +
-`#if _WIN32` guard, or stub), then (2) start promoting hyperhv TUs into Kbuild ACTIVE — but
-the moment `Vmx.c` goes active it pulls cross-module undefined symbols (hyperevade
-`Transparent*`, zydis `ZydisGetVersion`), so hyperhv can't link alone; the cluster
-hyperhv + hyperevade + zydis comes up together.
+**hyperhv compile state (2026-08-21): ALL C TUs `make one`-clean.** The last blocker,
+`disassembler/ZydisKernel.c` (`#include <ntimage.h>`), was resolved via the `*-linux.c`
+file-swap convention: it's a byte-for-byte reformat of Zydis's Windows-only sample driver
+(`dependencies/zydis/examples/ZydisWinKernel.c` — the only kernel sample zydis ships; no
+Linux twin exists upstream), and its sole function `DriverEntryTest` is **dead code** (called
+by nothing, walks the driver's own PE image). New empty stub
+`hyperhv/code/disassembler/ZydisKernel-linux.c`; Kbuild's commented line now points at
+`ZydisKernel-linux.o`. Windows keeps building the original (still in `hyperhv.vcxproj`). No
+PE-type shims added — a shim would serve a function no caller invokes.
+
+Whole hyperhv C set is still commented-out in Kbuild; module links today on the active set
+(platform + hyperlog + components + asm stubs). NEXT: start promoting hyperhv TUs into Kbuild
+ACTIVE — but the moment `Vmx.c` goes active it pulls cross-module undefined symbols
+(hyperevade `Transparent*`, zydis `ZydisGetVersion`), so hyperhv can't link alone; the cluster
+hyperhv + hyperevade + zydis comes up together (also: land `VmxRegions.c`/`MemoryManager.c`
+remaining SEH, drop the duplicate `hyperhv/common/UnloadDll.o`, and enumerate
+`dependencies/zydis/src/*.c` + zycore into Kbuild — headers are already on the include path).
+
+### zydis library — ACTIVE in Kbuild (2026-08-21)
+
+Brought up the whole disassembler engine so hyperhv's `ZydisGetVersion`/`ZydisDecoder*`/
+`ZydisFormatter*` refs will resolve. All **18 `zydis/src/*.c` + 8 `zycore/src/*.c`** compile
+kernel-mode clean (`ZYAN_NO_LIBC`/`ZYDIS_NO_LIBC`/`*_STATIC_BUILD` were already in `ccflags-y`)
+and are now `HyperDbg-objs`. One fix: the data-table TUs pull `<Generated/*.inc>` with **angle
+brackets**, so `-I$(src)/dependencies/zydis/src` had to join the include block (zydis's own
+CMake adds it as `PRIVATE "src"`; the `Generated/` tables are checked in under `src/Generated/`).
+zydis is self-contained (zero external symbols), so it links into `HyperDbg.ko` on its own —
+verified: `nm` shows `ZydisGetVersion` et al. as `T`, full `make` links clean (`.ko` ~4.9 MB).
+Windows builds zydis as a separate static lib; Linux compiles the sources straight into the one
+module. **Done — next in the cluster: hyperevade.**
+
+### hyperevade — ACTIVE in Kbuild (2026-08-21)
+
+Turned out to be a **leaf**, not a peer of hyperhv: `nm` on its objects shows the 3 substantive
+TUs (`SyscallFootprints.c`, `Transparency.c`, `VmxFootprints.c`) reference only **two** external
+symbols — `CpuReadTsc` + `PlatformMemAllocateZeroedNonPagedPool` — both already active in the
+platform layer. And it *provides* the 12 `Transparent*` symbols hyperhv's `Vmx.c` needs. So it
+links today, before hyperhv. All 3 were already `make one`-clean from the earlier mechanical
+pass; just uncommented them. **`UnloadDll.o` deliberately omitted** — its `DllInitialize`/
+`DllUnload` duplicate hyperlog's already-active pair (the Windows per-DLL unload trick; one Linux
+module needs exactly one copy — same rule as the pending hyperhv/common/UnloadDll drop). Full
+`make` links `HyperDbg.ko` clean, `Transparent*` now `T` in the module.
+
+**Cluster status:** zydis ✅ + hyperevade ✅ both active and linking. Remaining for hyperhv
+promotion: uncomment hyperhv's ~54 objects (drop hyperhv/common/UnloadDll.o dup, use
+ZydisKernel-linux.o), which pulls in the SEH-stubbed VmxRegions/MemoryManager — all already
+`make one`-clean — so hyperhv should now link against the active zydis + hyperevade + platform.
+
+### 🎉 hyperhv PROMOTED — the hypervisor links into HyperDbg.ko (2026-08-21)
+
+Uncommented all 53 hyperhv C objects + 8 asm stubs, with two exclusions: `common/UnloadDll.o`
+(dup `DllInitialize`/`DllUnload` vs hyperlog) and `disassembler/ZydisKernel.o` (→ its
+`ZydisKernel-linux.o` stub instead). It linked **first try, clean** — no undefined symbols, no
+multiple-definition (the `-fcommon` + per-object include roots + all the in-place SEH/TSX/WDK
+stubbing already did the work; deps zydis + hyperevade + platform were all active). `make clean
+&& make` → exit 0, `HyperDbg.ko` ~9.6 MB, hyperhv core symbols (`EptHook*`, `VmxPerform*`,
+`BroadcastVmxVirtualizationAllCores`, …) all `T` in the module. Remaining warnings are the
+known-benign objtool naked-return (asm stubs) + `-fcommon` COMMON-symbol modpost notes.
+
+**This is COMPILE/LINK-complete for hyperhv — NOT runtime.** Every WDK-heavy path is still a
+`TODO(Linux)` stub (SEH fixups, MmCopyMemory, Zw*VirtualMemory, KeStackAttachProcess, MSR probe,
+the 8 assembly files are empty `ret` stubs, etc.). The module builds and would load, but the
+hypervisor does nothing real yet. NEXT fronts (per the 5-step roadmap in memory): hyperkd (the
+driver/IOCTL char device), then real assembly bodies, then the SEH→extable + WDK-stub bodies.
 
 ---
 
