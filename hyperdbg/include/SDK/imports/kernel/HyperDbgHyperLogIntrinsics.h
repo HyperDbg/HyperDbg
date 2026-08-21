@@ -53,7 +53,7 @@ typedef enum _LOG_TYPE
                  __func__,                           \
                  __LINE__,                           \
                  ##__VA_ARGS__);                     \
-        DbgBreakPoint()
+        PlatformDbgBreakPoint()
 
 /**
  * @brief Log without any prefix
@@ -120,7 +120,7 @@ typedef enum _LOG_TYPE
                                                 __LINE__,                           \
                                                 ##__VA_ARGS__);                     \
         if (DebugMode)                                                              \
-        DbgBreakPoint()
+        PlatformDbgBreakPoint()
 
 /**
  * @brief Log without any prefix

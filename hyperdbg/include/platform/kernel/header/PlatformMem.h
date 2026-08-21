@@ -70,52 +70,40 @@ PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
 PVOID
 PlatformMemFreePool(PVOID BufferAddress);
 
-#if defined(__linux__)
-
 //////////////////////////////////////////////////
-//     Linux stand-ins for WDK memory APIs      //
-//        (placeholder stubs, see the .c)       //
+//   Cross-platform memory-manager / pool APIs  //
+//   (Windows -> WDK; Linux arm stubbed, see .c)//
 //////////////////////////////////////////////////
 
 PVOID
-MmMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, MEMORY_CACHING_TYPE CacheType);
+PlatformMemMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, MEMORY_CACHING_TYPE CacheType);
 
 PVOID
-MmMapIoSpaceEx(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ULONG Protect);
+PlatformMemMapIoSpaceEx(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ULONG Protect);
 
 VOID
-MmUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes);
+PlatformMemUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes);
 
 PHYSICAL_ADDRESS
-MmGetPhysicalAddress(PVOID BaseAddress);
+PlatformMemGetPhysicalAddress(PVOID BaseAddress);
 
 PVOID
-MmGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress);
+PlatformMemGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress);
 
 PPHYSICAL_MEMORY_RANGE
-MmGetPhysicalMemoryRanges(VOID);
+PlatformMemGetPhysicalMemoryRanges(VOID);
 
 PVOID
-MmAllocateMappingAddress(SIZE_T NumberOfBytes, ULONG PoolTag);
+PlatformMemAllocateMappingAddress(SIZE_T NumberOfBytes, ULONG PoolTag);
 
 VOID
-MmFreeMappingAddress(PVOID BaseAddress, ULONG PoolTag);
+PlatformMemFreeMappingAddress(PVOID BaseAddress, ULONG PoolTag);
 
 VOID
-MmFreeContiguousMemory(PVOID BaseAddress);
-
-VOID
-ExFreePool(PVOID P);
+PlatformMemFreeContiguousMemory(PVOID BaseAddress);
 
 NTSTATUS
-ZwAllocateVirtualMemory(HANDLE    ProcessHandle,
-                        PVOID *   BaseAddress,
-                        ULONG_PTR ZeroBits,
-                        PSIZE_T   RegionSize,
-                        ULONG     AllocationType,
-                        ULONG     Protect);
+PlatformMemCopyMemory(PVOID TargetAddress, MM_COPY_ADDRESS SourceAddress, SIZE_T NumberOfBytes, ULONG Flags, PSIZE_T NumberOfBytesTransferred);
 
-NTSTATUS
-ZwFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType);
-
-#endif // defined(__linux__)
+VOID
+PlatformMemFreePoolUntagged(PVOID P);

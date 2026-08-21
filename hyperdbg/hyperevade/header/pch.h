@@ -69,6 +69,7 @@
 //
 #include "platform/kernel/header/PlatformMem.h"
 #include "platform/kernel/header/PlatformIntrinsics.h"
+#include "platform/kernel/header/PlatformDbg.h"
 
 //
 // Hyperevade Callbacks

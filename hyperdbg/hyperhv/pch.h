@@ -71,15 +71,13 @@
 #include "platform/kernel/header/PlatformProcess.h"
 
 //
-// Linux-only: these two platform headers are not part of the Windows pch (the
-// WDK supplies DbgBreakPoint / KeQueryPerformanceCounter there). On Linux they
-// carry the placeholder WDK stand-ins for those, so hyperhv TUs can see the
-// prototypes. Guarded so the Windows build is unchanged.
+// hyperhv now routes breakpoints and the performance counter through the
+// platform layer (PlatformDbgBreakPoint / PlatformTimeQueryPerformanceCounter),
+// so both headers are needed on both platforms. Their .c files are listed in
+// hyperhv.vcxproj (Windows) and the root Kbuild (Linux).
 //
-#if defined(__linux__)
-#    include "platform/kernel/header/PlatformDbg.h"
-#    include "platform/kernel/header/PlatformTime.h"
-#endif // defined(__linux__)
+#include "platform/kernel/header/PlatformDbg.h"
+#include "platform/kernel/header/PlatformTime.h"
 
 //
 // VMM Callbacks

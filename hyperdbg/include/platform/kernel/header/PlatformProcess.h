@@ -34,28 +34,22 @@ PlatformProcessGetCurrentThread(VOID);
 PVOID
 PlatformProcessGetCurrentThreadTeb(VOID);
 
-#if defined(__linux__)
-
 //////////////////////////////////////////////////
-//  Linux stand-ins for WDK process/thread APIs //
-//        (placeholder stubs, see the .c)       //
+//   Cross-platform process/thread APIs         //
+//   (Windows -> WDK; Linux arm stubbed, see .c)//
 //////////////////////////////////////////////////
 
-//
-// WDK global: pointer to the System process' EPROCESS (stub value in the .c).
-//
-extern PEPROCESS PsInitialSystemProcess;
-
-HANDLE
-NtCurrentProcess(VOID);
+PEPROCESS
+PlatformProcessGetInitialSystemProcess(VOID);
 
 NTSTATUS
-PsLookupProcessByProcessId(HANDLE ProcessId, PEPROCESS * Process);
+PlatformProcessLookupByProcessId(HANDLE ProcessId, PEPROCESS * Process);
+
+UCHAR *
+PlatformProcessGetImageFileName(PEPROCESS Process);
 
 VOID
-KeSetSystemAffinityThread(KAFFINITY Affinity);
+PlatformProcessSetSystemAffinity(KAFFINITY Affinity);
 
 VOID
-KeRevertToUserAffinityThread(VOID);
-
-#endif // defined(__linux__)
+PlatformProcessRevertToUserAffinity(VOID);

@@ -498,6 +498,12 @@ typedef struct _MM_COPY_ADDRESS
 } MM_COPY_ADDRESS, *PMMPFN_IDENTITY;
 
 //
+// Flags for MmCopyMemory's source-address interpretation (WDK values).
+//
+#    define MM_COPY_MEMORY_PHYSICAL 0x1
+#    define MM_COPY_MEMORY_VIRTUAL  0x2
+
+//
 // Structural: one span returned by MmGetPhysicalMemoryRanges (a NULL-terminated
 // array). The wrapper is a stub, so no array is produced yet.
 //

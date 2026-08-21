@@ -386,7 +386,7 @@ ApicInitialize()
     // however, this address is valid for almost all of the systems
     //
     PaIoApicBase.QuadPart = IO_APIC_DEFAULT_BASE_ADDR & 0xFFFFFF000;
-    g_IoApicBase          = MmMapIoSpace(PaIoApicBase, 0x1000, MmNonCached);
+    g_IoApicBase          = PlatformMemMapIoSpace(PaIoApicBase, 0x1000, MmNonCached);
 
     if (!g_IoApicBase)
     {
@@ -407,7 +407,7 @@ ApicInitialize()
     else
     {
         PaApicBase.QuadPart = ApicBaseMSR & 0xFFFFFF000;
-        g_ApicBase          = MmMapIoSpace(PaApicBase, 0x1000, MmNonCached);
+        g_ApicBase          = PlatformMemMapIoSpace(PaApicBase, 0x1000, MmNonCached);
 
         if (!g_ApicBase)
         {
@@ -433,7 +433,7 @@ ApicUninitialize()
     //
     if (g_ApicBase)
     {
-        MmUnmapIoSpace(g_ApicBase, 0x1000);
+        PlatformMemUnmapIoSpace(g_ApicBase, 0x1000);
     }
 
     //
@@ -441,7 +441,7 @@ ApicUninitialize()
     //
     if (g_IoApicBase)
     {
-        MmUnmapIoSpace(g_IoApicBase, 0x1000);
+        PlatformMemUnmapIoSpace(g_IoApicBase, 0x1000);
     }
 }
 

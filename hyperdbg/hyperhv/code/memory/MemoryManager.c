@@ -26,7 +26,7 @@ ReadPhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T Bu
     PHYSICAL_ADDRESS PhysicalAddressTemp = {0};
     PhysicalAddressTemp.QuadPart         = (LONGLONG)PhysicalAddress;
 
-    PVOID VirtualAddress = MmMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE | PAGE_NOCACHE);
+    PVOID VirtualAddress = PlatformMemMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE | PAGE_NOCACHE);
 
     if (VirtualAddress == NULL)
     {
@@ -35,7 +35,7 @@ ReadPhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T Bu
 
     RtlCopyMemory(Buffer, VirtualAddress, BufferSize);
 
-    MmUnmapIoSpace(VirtualAddress, BufferSize);
+    PlatformMemUnmapIoSpace(VirtualAddress, BufferSize);
 
     return TRUE;
 }
@@ -55,7 +55,7 @@ WritePhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T B
     PHYSICAL_ADDRESS PhysicalAddressTemp = {0};
     PhysicalAddressTemp.QuadPart         = (LONGLONG)PhysicalAddress;
 
-    PVOID VirtualAddress = MmMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE | PAGE_NOCACHE);
+    PVOID VirtualAddress = PlatformMemMapIoSpaceEx(PhysicalAddressTemp, BufferSize, PAGE_READWRITE | PAGE_NOCACHE);
     if (VirtualAddress == NULL)
     {
         return FALSE;
@@ -63,7 +63,7 @@ WritePhysicalMemoryUsingMapIoSpace(PVOID PhysicalAddress, PVOID Buffer, SIZE_T B
 
     RtlCopyMemory(VirtualAddress, Buffer, BufferSize);
 
-    MmUnmapIoSpace(VirtualAddress, BufferSize);
+    PlatformMemUnmapIoSpace(VirtualAddress, BufferSize);
 
     return TRUE;
 }
@@ -110,13 +110,14 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
         // User needs another process memory
         //
 
-        if (PsLookupProcessByProcessId(PID, &SourceProcess) != STATUS_SUCCESS)
+        if (PlatformProcessLookupByProcessId(PID, &SourceProcess) != STATUS_SUCCESS)
         {
             //
             // if the process not found
             //
             return FALSE;
         }
+#ifdef _WIN32
         __try
         {
             KeStackAttachProcess(SourceProcess, &State);
@@ -146,18 +147,40 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
 
             return FALSE;
         }
+#else
+        //
+        // TODO(Linux): port the cross-process physical read. It needs a Linux
+        // stand-in for KeStackAttachProcess (switch mm / kthread_use_mm) plus an
+        // SEH -> _ASM_EXTABLE guard. Fail safely for now and release the process
+        // reference taken above.
+        //
+        (void)State;
+        (void)TempPhysicalAddress;
+        (void)CopyAddress;
+        PlatformObjectDereference(SourceProcess);
+        return FALSE;
+#endif
     }
     else
     {
         //
         // Process needs itself memory
         //
+#ifdef _WIN32
         __try
         {
+#else
+        //
+        // TODO(Linux): the __try guards MmCopyMemory against faults. Run the body
+        // unguarded for now (MmCopyMemory is itself a stub); port to an
+        // _ASM_EXTABLE fixup when the copy is real.
+        //
+        {
+#endif
             if (MemType == DEBUGGER_READ_VIRTUAL_ADDRESS)
             {
                 CopyAddress.VirtualAddress = Address;
-                MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_VIRTUAL, ReturnSize);
+                PlatformMemCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_VIRTUAL, ReturnSize);
             }
             else if (MemType == DEBUGGER_READ_PHYSICAL_ADDRESS)
             {
@@ -171,7 +194,7 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
 
                 CopyAddress.PhysicalAddress.QuadPart = (LONGLONG)Address;
 
-                if (MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize) != STATUS_SUCCESS && *ReturnSize == 0)
+                if (PlatformMemCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize) != STATUS_SUCCESS && *ReturnSize == 0)
                 {
                     //
                     // If the memory is not readable, it might be an MMIO address
@@ -209,11 +232,15 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
             //
 
             return TRUE;
+#ifdef _WIN32
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
             return FALSE;
         }
+#else
+        }
+#endif
     }
 }
 

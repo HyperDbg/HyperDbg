@@ -153,27 +153,28 @@ PlatformDpcInsertQueueDpc(PRKDPC Dpc, PVOID SystemArgument1, PVOID SystemArgumen
 #endif
 }
 
-#if defined(__linux__)
-
-//
-// -------------------------------------------------------------------------
-// Linux stand-in for the raw WDK KeGenericCallDpc. Placeholder stub.
-// Windows gets this from <ntddk.h>, so the block is __linux__-only.
-// -------------------------------------------------------------------------
-//
-
 /**
- * @brief WDK stand-in: run a DPC routine on every processor.
- * @details Windows broadcasts the routine to all cores via a generic DPC. Stub
- *          for now: does nothing.
+ * @brief Run a DPC routine on every processor.
+ * @details Windows broadcasts the routine to all cores via KeGenericCallDpc().
+ *          Linux arm is a stub for now.
  *
  * TODO(Linux): drive on_each_cpu()/smp_call_function() through the KDPC
  *              trampoline the way PlatformDpc already replays a single DPC.
  */
 VOID
-KeGenericCallDpc(PKDEFERRED_ROUTINE Routine, PVOID Context)
+PlatformDpcGenericCall(PKDEFERRED_ROUTINE Routine, PVOID Context)
 {
-    // no-op
-}
+#if defined(_WIN32) || defined(_WIN64)
 
-#endif // defined(__linux__)
+    KeGenericCallDpc(Routine, Context);
+
+#elif defined(__linux__)
+
+    // no-op
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}

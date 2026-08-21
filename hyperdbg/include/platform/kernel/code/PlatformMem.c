@@ -254,95 +254,127 @@ PlatformMemFreePool(PVOID BufferAddress)
     return NULL;
 }
 
-#if defined(__linux__)
-
 //
 // -------------------------------------------------------------------------
-// Linux stand-ins for raw WDK memory-manager / pool APIs the shared sources
-// call by name. Placeholder stubs: return NULL / failure / zero and do nothing.
-// Windows gets these from <ntddk.h>, so the whole block is __linux__-only.
-// TODO(Linux): replace each with its real Linux equivalent (ioremap,
+// Cross-platform wrappers for the memory-manager / pool APIs the shared sources
+// use. Windows forwards to the WDK; the Linux arm is a placeholder stub for now.
+// The #ifdef lives INSIDE each wrapper so the call sites stay OS-agnostic.
+// TODO(Linux): replace each Linux arm with its real equivalent (ioremap,
 //              virt_to_phys, phys_to_virt, ...) as the callers are brought up.
 // -------------------------------------------------------------------------
 //
 
 PVOID
-MmMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, MEMORY_CACHING_TYPE CacheType)
+PlatformMemMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, MEMORY_CACHING_TYPE CacheType)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    return MmMapIoSpace(PhysicalAddress, NumberOfBytes, CacheType);
+#elif defined(__linux__)
     return NULL; // TODO(Linux): ioremap()
+#endif
 }
 
 PVOID
-MmMapIoSpaceEx(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ULONG Protect)
+PlatformMemMapIoSpaceEx(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ULONG Protect)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    return MmMapIoSpaceEx(PhysicalAddress, NumberOfBytes, Protect);
+#elif defined(__linux__)
     return NULL; // TODO(Linux): ioremap_prot()
+#endif
 }
 
 VOID
-MmUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes)
+PlatformMemUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    MmUnmapIoSpace(BaseAddress, NumberOfBytes);
+#elif defined(__linux__)
     // no-op // TODO(Linux): iounmap()
+#endif
 }
 
 PHYSICAL_ADDRESS
-MmGetPhysicalAddress(PVOID BaseAddress)
+PlatformMemGetPhysicalAddress(PVOID BaseAddress)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    return MmGetPhysicalAddress(BaseAddress);
+#elif defined(__linux__)
     PHYSICAL_ADDRESS Pa;
     Pa.QuadPart = 0;
     return Pa; // TODO(Linux): virt_to_phys()
+#endif
 }
 
 PVOID
-MmGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress)
+PlatformMemGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    return MmGetVirtualForPhysical(PhysicalAddress);
+#elif defined(__linux__)
     return NULL; // TODO(Linux): phys_to_virt()
+#endif
 }
 
 PPHYSICAL_MEMORY_RANGE
-MmGetPhysicalMemoryRanges(VOID)
+PlatformMemGetPhysicalMemoryRanges(VOID)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    return MmGetPhysicalMemoryRanges();
+#elif defined(__linux__)
     return NULL; // TODO(Linux): walk the memblock/e820 ranges
+#endif
 }
 
 PVOID
-MmAllocateMappingAddress(SIZE_T NumberOfBytes, ULONG PoolTag)
+PlatformMemAllocateMappingAddress(SIZE_T NumberOfBytes, ULONG PoolTag)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    return MmAllocateMappingAddress(NumberOfBytes, PoolTag);
+#elif defined(__linux__)
     return NULL; // TODO(Linux): reserve a kernel VA window
+#endif
 }
 
 VOID
-MmFreeMappingAddress(PVOID BaseAddress, ULONG PoolTag)
+PlatformMemFreeMappingAddress(PVOID BaseAddress, ULONG PoolTag)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    MmFreeMappingAddress(BaseAddress, PoolTag);
+#elif defined(__linux__)
     // no-op
+#endif
 }
 
 VOID
-MmFreeContiguousMemory(PVOID BaseAddress)
+PlatformMemFreeContiguousMemory(PVOID BaseAddress)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    MmFreeContiguousMemory(BaseAddress);
+#elif defined(__linux__)
     // no-op // TODO(Linux): pair with the contiguous allocator used by callers
+#endif
+}
+
+NTSTATUS
+PlatformMemCopyMemory(PVOID TargetAddress, MM_COPY_ADDRESS SourceAddress, SIZE_T NumberOfBytes, ULONG Flags, PSIZE_T NumberOfBytesTransferred)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmCopyMemory(TargetAddress, SourceAddress, NumberOfBytes, Flags, NumberOfBytesTransferred);
+#elif defined(__linux__)
+    if (NumberOfBytesTransferred != NULL)
+        *NumberOfBytesTransferred = 0;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux): copy_from_kernel_nofault (virtual) / memremap+copy (physical)
+#endif
 }
 
 VOID
-ExFreePool(PVOID P)
+PlatformMemFreePoolUntagged(PVOID P)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    ExFreePool(P);
+#elif defined(__linux__)
     // no-op // TODO(Linux): kfree(), paired with the matching allocation stub
+#endif
 }
-
-NTSTATUS
-ZwAllocateVirtualMemory(HANDLE    ProcessHandle,
-                        PVOID *   BaseAddress,
-                        ULONG_PTR ZeroBits,
-                        PSIZE_T   RegionSize,
-                        ULONG     AllocationType,
-                        ULONG     Protect)
-{
-    return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_mmap into the target mm
-}
-
-NTSTATUS
-ZwFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType)
-{
-    return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_munmap
-}
-
-#endif // defined(__linux__)

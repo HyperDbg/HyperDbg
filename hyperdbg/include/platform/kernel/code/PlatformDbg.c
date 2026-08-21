@@ -44,29 +44,29 @@ PlatformDbgPrint(const CHAR * Format, ...)
 #endif
 }
 
-#if defined(__linux__)
-
-//
-// -------------------------------------------------------------------------
-// Linux stand-ins for raw WDK debug APIs the shared sources call by name.
-// Placeholder stubs: they compile + link today, real behaviour ported later.
-// Windows gets these from <ntddk.h>, so the whole block is __linux__-only.
-// -------------------------------------------------------------------------
-//
-
 /**
- * @brief WDK stand-in: break into the kernel debugger.
+ * @brief Break into the kernel debugger.
  * @details Windows fires int 3 into the attached kernel debugger. On Linux no
  *          debugger is normally attached, so a real breakpoint would panic the
- *          machine. It sits in the LogError() path (fires only when DebugMode is
- *          set), so the port makes it a no-op.
+ *          machine — and this sits in the LogError() path (fires only when
+ *          DebugMode is set) — so the Linux arm is a no-op.
  *
  * TODO(Linux): route to a real breakpoint once a kgdb-style transport exists.
  */
 VOID
-DbgBreakPoint(VOID)
+PlatformDbgBreakPoint(VOID)
 {
-    // no-op
-}
+#if defined(_WIN32) || defined(_WIN64)
 
-#endif // defined(__linux__)
+    DbgBreakPoint();
+
+#elif defined(__linux__)
+
+    // no-op
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}

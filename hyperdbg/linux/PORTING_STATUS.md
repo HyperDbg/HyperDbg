@@ -1332,12 +1332,67 @@ passes DPC routines of several shapes to `KeGenericCallDpc(PKDEFERRED_ROUTINE)`
    hyperkd/hypertrace/script-eval/zydis undefined symbols. hyperhv is
    self-contained.
 
-**So the ONLY thing between here and a linking hyperhv core** is the 4 C symbols
-defined in the still-deferred TUs: `CheckAddressCanonicality` (AddressCheck/TSX),
-`MemoryMapperReadMemorySafe`, `VmxPerformVirtualizationOnSpecificCore`,
-`VmxCompatibleWcslen` (MemoryMapper/Vmx/SEH). Stub those 4 (or land the files) and
-the 47-file set promotes to a loadable `.ko`. Compile progress provable via
-`make one FILE=hyperhv/code/...`.
+### `hyperhv/` — SEH/TSX stubbed in place; 3 more TUs compile (2026-08-20)
+
+The 4 symbols above were stranded in deferred TUs. Ported those blocks **in place**
+with the documented `#ifdef _WIN32 / #else` convention (pattern #1) — shared file,
+Windows sees only the `_WIN32` branch (byte-identical), Linux gets a `TODO(Linux)`
+stub. One definition per function, so **no duplicate-symbol trap** when the real
+Linux body later replaces the `#else`.
+
+- `AddressCheck.c` — `CheckAddressValidityUsingTsx`: `_xbegin/_xend` → `#else`
+  returns FALSE (TSX unavailable/microcode-disabled; TODO: `copy_from_kernel_nofault`).
+- `Vmx.c` — `VmxCheckIsOnVmxRoot`: `__try/__except` → `#else` runs the VMREAD
+  unguarded (TODO: `_ASM_EXTABLE` fixup for the #UD).
+- `MemoryMapper.c` — 2 cross-process `__try` blocks: WDK-heavy body
+  (`KeStackAttachProcess`, `Zw*VirtualMemory`) kept inside `_WIN32`; `#else` fails
+  safely + releases the process ref (TODO: `kthread_use_mm` + extable). This keeps
+  `KeStackAttachProcess` off the Linux link surface (no new stub needed).
+
+Result: `AddressCheck.c`, `MemoryMapper.c`, `Vmx.c` all `make one`-clean. Still
+SEH-deferred: `MemoryManager.c`, `VmxRegions.c`. Still `ntimage.h`: `ZydisKernel.c`.
+
+**Promotion probe (50 hyperhv C + 8 asm stubs, minus the Dll dup):** no compile
+errors, no multiple-definition — the original 4 symbols are resolved. Adding the
+big central `Vmx.c` reveals the **next** frontier (10 undefined), which is where
+hyperhv stops being self-contained:
+
+| symbols | source | kind |
+|---|---|---|
+| 4× `Transparent*` | `hyperevade/code/*.c` | **cross-module: hyperevade** |
+| `ZydisGetVersion` | `dependencies/zydis/src/Zydis.c` | **zydis library** |
+| 3× `VmxAllocateHost*` / `InvalidMsrBimap` | `VmxRegions.c` | deferred SEH file |
+| `WritePhysicalMemoryUsingMapIoSpace` | `MemoryManager.c` | deferred SEH file |
+| `PsGetProcessImageFileName` | WDK | 1 more WDK stub |
+
+So a linking hyperhv now needs: land `VmxRegions.c`+`MemoryManager.c` (same SEH
+in-place treatment), 1 WDK stub, and bring up **hyperevade** (4 files) + **zydis**
+(enumerate `dependencies/zydis/src/*.c`). Not promoted — tree stays green; progress
+provable via `make one`.
+
+### `hyperhv/` — raw-WDK stubs promoted to `Platform*` wrappers (2026-08-21)
+
+The `#if __linux__` raw-name WDK stubs (`MmMapIoSpace`, `PsLookupProcessByProcessId`,
+`KeGenericCallDpc`, `KeQueryPerformanceCounter`, …) became proper cross-platform
+`Platform*` wrappers: the `#ifdef` moved *inside* each body (Windows arm forwards to
+the WDK, Linux arm keeps the stub), so call sites are OS-agnostic. hyperhv call sites
+updated to the new names (`PlatformMemMapIoSpaceEx`, `PlatformProcessLookupByProcessId`,
+`PlatformMemCopyMemory`, `PlatformMemFreePoolUntagged`, `PlatformDbgBreakPoint`, …).
+
+Two corrections while landing it:
+- **`ExFreePool` wrapper name collision.** The new `ExFreePool` wrapper was named
+  `PlatformMemFreePool`, which already exists (that one wraps `ExFreePoolWithTag(…,POOLTAG)`).
+  Folding them would tag-mismatch on Windows (`MmGetPhysicalMemoryRanges` uses the MM tag,
+  not `POOLTAG`) → bugcheck. Renamed the untagged one `PlatformMemFreePoolUntagged`;
+  sole caller `ExecTrap.c:360` updated.
+- **`DbgBreakPoint` promoted, not left raw.** It's called by the shared `LogError`/`Log`
+  macros in `SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h` (both `UseDbgPrint…` arms),
+  which fan out into 5 kernel modules. Changed the two macro sites to `PlatformDbgBreakPoint()`,
+  added `PlatformDbg.h` to hyperkd + hyperevade pch (others already had it), and added
+  `PlatformDbg.c` to the ClCompile/ClInclude of all 5 non-hyperlog Windows `.vcxproj`
+  (+`.filters`) so the definition links per-module on Windows (matches how every other
+  `Platform*.c` is already compiled per-module). On Linux it's one `.ko`, so `PlatformDbg.o`
+  (already active) covers all of them. Full `make` links `HyperDbg.ko` clean.
 
 ---
 

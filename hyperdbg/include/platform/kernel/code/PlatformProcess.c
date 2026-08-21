@@ -143,63 +143,87 @@ PlatformProcessGetCurrentThreadTeb(VOID)
 #endif
 }
 
-#if defined(__linux__)
-
 //
 // -------------------------------------------------------------------------
-// Linux stand-ins for raw WDK process/thread APIs the shared sources call by
-// name. Placeholder stubs. Windows gets these from <ntddk.h>/<ntifs.h>, so the
-// whole block is __linux__-only.
+// Cross-platform wrappers for the process/thread APIs the shared sources use.
+// Windows forwards to the WDK; the Linux arm is a placeholder stub for now.
 // -------------------------------------------------------------------------
 //
-
-//
-// WDK global: pointer to the System process' EPROCESS. NULL until a real
-// process model is wired up. TODO(Linux): point at &init_task's mm/owner.
-//
-PEPROCESS PsInitialSystemProcess = NULL;
 
 /**
- * @brief WDK stand-in: pseudo-handle for the current process.
- * @details Windows returns (HANDLE)-1; kept identical so callers that pass it
- *          straight back into Zw*VirtualMemory compare/behave the same.
+ * @brief The System process' EPROCESS. Windows: PsInitialSystemProcess. Linux:
+ *        NULL stub. TODO(Linux): a PEPROCESS shim over &init_task.
  */
-HANDLE
-NtCurrentProcess(VOID)
+PEPROCESS
+PlatformProcessGetInitialSystemProcess(VOID)
 {
-    return (HANDLE)(LONG_PTR)-1;
+#if defined(_WIN32) || defined(_WIN64)
+    return PsInitialSystemProcess;
+#elif defined(__linux__)
+    return NULL; // TODO(Linux)
+#endif
 }
 
 /**
- * @brief WDK stand-in: look up an EPROCESS by PID. Stub: always fails.
+ * @brief Look up an EPROCESS by PID. Windows: PsLookupProcessByProcessId().
+ *        Linux: stub that always fails.
  * TODO(Linux): find_get_pid()/pid_task() and hang a PEPROCESS shim off it.
  */
 NTSTATUS
-PsLookupProcessByProcessId(HANDLE ProcessId, PEPROCESS * Process)
+PlatformProcessLookupByProcessId(HANDLE ProcessId, PEPROCESS * Process)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    return PsLookupProcessByProcessId(ProcessId, Process);
+#elif defined(__linux__)
     if (Process != NULL)
         *Process = NULL;
 
     return STATUS_UNSUCCESSFUL; // TODO(Linux)
+#endif
 }
 
 /**
- * @brief WDK stand-in: pin the current thread to one processor. Stub: no-op.
+ * @brief The short image name of a process. Windows: PsGetProcessImageFileName().
+ *        Linux: a static "" so callers doing string ops don't dereference NULL.
+ * TODO(Linux): get_task_comm() on the task_struct backing Process.
+ */
+UCHAR *
+PlatformProcessGetImageFileName(PEPROCESS Process)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return PsGetProcessImageFileName(Process);
+#elif defined(__linux__)
+    static UCHAR Unknown[] = "";
+    (void)Process;
+    return Unknown;
+#endif
+}
+
+/**
+ * @brief Pin the current thread to one processor. Windows:
+ *        KeSetSystemAffinityThread(). Linux: no-op stub.
  * TODO(Linux): set_cpus_allowed_ptr() and remember the old mask.
  */
 VOID
-KeSetSystemAffinityThread(KAFFINITY Affinity)
+PlatformProcessSetSystemAffinity(KAFFINITY Affinity)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    KeSetSystemAffinityThread(Affinity);
+#elif defined(__linux__)
     // no-op
+#endif
 }
 
 /**
- * @brief WDK stand-in: undo KeSetSystemAffinityThread. Stub: no-op.
+ * @brief Undo PlatformProcessSetSystemAffinity. Windows:
+ *        KeRevertToUserAffinityThread(). Linux: no-op stub.
  */
 VOID
-KeRevertToUserAffinityThread(VOID)
+PlatformProcessRevertToUserAffinity(VOID)
 {
+#if defined(_WIN32) || defined(_WIN64)
+    KeRevertToUserAffinityThread();
+#elif defined(__linux__)
     // no-op
+#endif
 }
-
-#endif // defined(__linux__)
