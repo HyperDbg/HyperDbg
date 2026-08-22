@@ -857,8 +857,10 @@ link into `HyperDbg.ko`. Next front is the subsystems above it (hyperlog first).
 
 **🎉 The entire `platform/kernel` OS-abstraction layer now compiles and
 `HyperDbg.ko` links with all 13 TUs active (2026-08-11).** No `#error` stubs left
-in the layer. Next front: the subsystems above it (hyperlog is the natural first —
-it's the sole consumer of most of what was just built).
+in the layer. Then `components/` (2026-08-14) and `hyperlog/` (2026-08-14, see
+below) came online on top of it. **Next front: `script-eval/` — `Functions.c`
+first (`wchar_t` has no kernel definition, plus `-Werror=return-type` on the
+UNREACHABLE-style tails).**
 
 ### `PlatformCpu.c` — DONE (2026-08-01)
 
@@ -1049,6 +1051,229 @@ since **1601**; Linux gives Unix-epoch (1970) — bridged by two constants
 them). All three kernel symbols are module-exported (verified). Guard removed.
 Note: upstream `Logging.c` currently has the timestamp *formatting* commented out
 (`RtlStringCchPrintfA` not IRQL-safe), so the value is computed but not yet printed.
+
+### `components/` layer — PARTIAL (2026-08-14)
+
+Whole `components/` block had been uncommented in `Kbuild` optimistically, but only
+three of six TUs are self-contained. Active now (compile clean, in `HyperDbg.ko`):
+`spinlock/Spinlock.o`, `optimizations/AvlTree.o`, `optimizations/InsertionSort.o`.
+Re-commented (hyperlog-gated — need `Log`/`LogInfo` + the `g_Callbacks` global):
+`optimizations/BinarySearch.o`, `optimizations/OptimizationsExamples.o`,
+`callback/HyperLogCallback.o`. Uncomment those alongside `hyperlog/Logging.c`.
+
+**`Spinlock.c`** — three MSVC intrinsics routed through the platform-intrinsics
+layer (chosen over file-local shims: keeps the `Cpu*` wrappers the single intrinsic
+boundary). Two new kernel wrappers added to `PlatformIntrinsics.{h,c}` (both with
+win + linux arms, mirroring the existing 64-bit CAS):
+
+| Spinlock.c call | new wrapper | Linux impl |
+|-----------------|-------------|-----------|
+| `_mm_pause()` | `CpuPause()` (already existed) | `__asm__("pause")` |
+| `_interlockedbittestandset(l,0)` | `CpuInterlockedBitTestAndSet` | `__atomic_fetch_or` → old bit |
+| `InterlockedCompareExchange` | `CpuInterlockedCompareExchange` (32-bit) | `__atomic_compare_exchange_n` |
+
+`HyperDbg.ko` links clean with these three components active.
+
+Windows fallout (fixed same day): `hyperlog` was the one MSVC project that compiles
+`Spinlock.c` without `PlatformIntrinsics.c`, so the new `Cpu*` calls broke its build
+(C4013 + would not have linked). Added `PlatformIntrinsics.c` to `hyperlog.vcxproj`
+(+ `.filters`) and `PlatformIntrinsics.h` to `hyperlog/header/pch.h`, matching what
+`hyperperf`/`hypertrace`/`hyperkd`/`hyperevade`/`hyperhv` already do. Rule of thumb:
+any new `Cpu*` call inside `include/components/` must be checked against every
+`.vcxproj` that compiles that component.
+
+### `hyperlog/` — DONE (2026-08-14) — `Logging.c` + `UnloadDll.c`
+
+`HyperDbg.ko` links with the whole message-tracing layer active, plus the two
+components that were waiting on it (`BinarySearch.o`, `OptimizationsExamples.o`).
+
+| Windows | Linux |
+|---------|-------|
+| `vsprintf_s` / `sprintf_s` / `strnlen_s` | new `PlatformStr.{h,c}` → `vsnprintf` / `strnlen` |
+| `RTL_NUMBER_OF`, `ASSERT`, `_Analysis_assume_` | `Environment.h` macros (`ASSERT` → `WARN_ON`) |
+| `IRP`, `IO_STACK_LOCATION`, `IO_STATUS_BLOCK`, `UNICODE_STRING` | real structs in `BasicTypes.h` (WDK member names, NOT the NT layout) |
+| `STATUS_PENDING/INVALID_PARAMETER/INSUFFICIENT_RESOURCES`, `IO_NO_INCREMENT`, `SYNCHRONIZE`, `EVENT_MODIFY_STATE` | same values, `BasicTypes.h` |
+| `ExEventObjectType` (ntddk global) | placeholder token defined in `PlatformEvent.c` |
+
+The IRP structs were the one real decision: `Logging.c` dereferences IRP members
+directly, so the opaque `struct _IRP` shim had to grow the members the shared code
+touches (the header already said this was owed once hyperlog compiled). Nothing
+constructs one on Linux yet — `PlatformIo` is still stubbed, so the whole
+IRP/EVENT notify path is compile-only until the char device lands.
+
+`PlatformSprintf` already existed, misplaced, in `PlatformMem.{h,c}` with no
+callers; moved into `PlatformStr` so both spellings share the "-1 on truncation"
+semantics that `Logging.c` tests for. `PlatformStr.c` is wired into `Kbuild` +
+`hyperlog.vcxproj`/`.filters` + both pch files.
+
+Two Linux-only edits inside shared code: `(PVOID *)` cast on the
+`PlatformObjectReferenceByHandle` out-param (`PKEVENT *` → `PVOID *`, which the
+kernel build treats as an error and MSVC accepts), and the `#if defined(__linux__)`
+include block at the top of `Logging.c`.
+
+**DROPPED (Windows-only): `components/callback/HyperLogCallback.c`.** It *defines*
+the same `LogCallback*` entry points as `Logging.c` — on Windows it is the per-DLL
+forwarding shim (hyperhv/hypertrace/hyperperf cannot call into `hyperlog.dll`, so
+each compiles it to bounce through its own `g_Callbacks`). One Linux module = the
+real implementation is already linked in, so it is redundant *and* a duplicate
+symbol. Kept commented out in `Kbuild` with that note.
+
+The unified `linux/kernel/pch.h` gained `config/Configuration.h`, the hyperlog
+SDK module/imports/intrinsics headers (the `Log`/`LogInfo` macros — on Windows
+every project pch has these) and the three `components/optimizations` headers.
+
+### WDK type shims — `WdkTypes.h` (2026-08-14)
+
+New `include/platform/general/header/WdkTypes.h` collects **every** Linux stand-in
+for a WDK/NT type, status code and ntdef macro in one place, instead of leaving
+them spread through `BasicTypes.h` / `Environment.h`. The ones written earlier
+(NTSTATUS, KEVENT, IRP, IO_STACK_LOCATION, UNICODE_STRING, KIRQL, STATUS_*, the
+access masks) moved there too; `BasicTypes.h` now just includes it, positioned so
+the scalar typedefs above are in scope and DataTypes.h is not needed.
+
+Declarations are labelled by how much they can be trusted — **faithful** (means
+the same on both sides), **structural** (WDK member names, non-NT layout, nothing
+builds one yet), **opaque** (correctly-sized blob passed only by pointer). New
+this round: PEPROCESS/PETHREAD, CLIENT_ID, OBJECT_ATTRIBUTES +
+InitializeObjectAttributes, KAPC_STATE, ACCESS_STATE, GENERIC_MAPPING,
+PROCESS_BASIC_INFORMATION, PROCESSINFOCLASS, MODE (KernelMode/UserMode),
+DISPATCHER_HEADER, DEVICE/DRIVER_OBJECT, UNICODE_STRING32, LIST_ENTRY32, PWSTR,
+SSIZE_T, the Rtl memory macros, CONTAINING_RECORD, PAGE_ALIGN, PAGED_CODE,
+NTKERNELAPI, and the pre-SAL `IN`/`OUT`/`__in` annotation family.
+
+Two of these had to become **complete** types rather than opaque handles, because
+shared code embeds them by value: `KEVENT` (hyperkd's globals hold one) and
+`DISPATCHER_HEADER` (inside NT_KPROCESS). Both are sized blobs with the reason
+written at the declaration.
+
+### The unified pch now DELEGATES (2026-08-14)
+
+`linux/kernel/pch.h` no longer copies a module's include list — it includes the
+module's own pch (`#include "../../hyperkd/header/pch.h"`), reached via
+`-I$(src)/hyperkd` + `-I$(src)/hyperkd/header`. Those lists stay owned by
+upstream and cannot drift. This only became possible once WdkTypes.h existed:
+delegating before it broke every green TU (`PlatformMem.c` 0 -> 48 errors), and
+after it that TU is back to 0.
+
+Measured on the hyperkd block (33 TUs, none ported): **1528 -> 157 errors**, 5 TUs
+now compile clean. ~79% of the original count was never WDK work at all, just
+hyperkd's own declarations being invisible.
+
+Also added to `Kbuild`: `-fcommon`. Every module keeps its globals as bare
+tentative definitions in a header its pch pulls into every TU
+(`KEVENT g_UserDebuggerWaitingCommandEvent;`). MSVC merges those; GCC has
+defaulted to `-fno-common` since 10, which makes them a link error. `-fcommon`
+restores the model the source was written against — the alternative was rewriting
+every globals header to extern + one defining TU, which is a refactor of shared
+Windows code.
+
+What the remaining 157 actually are: WDK calls that ALREADY have Platform
+wrappers and just need call-site swaps when each file is ported
+(`PsGetCurrentProcessId` 13, `KeGetCurrentProcessorNumberEx` 8,
+`KeQueryActiveProcessorCount` 7, `DbgBreakPoint` 17), plus genuine hyperhv
+symbols (`LayoutGetCurrentProcessCr3` 13,
+`CommonGetProcessNameFromProcessControlBlock` 8) that stay unresolved until the
+VMM lands.
+
+### `hyperhv/` — mechanical pass (2026-08-17): 143 -> 79 errors, 29/55 TUs clean
+
+Measured per TU with `make one`. Nothing here is a design decision; the open ones
+are listed at the end.
+
+| Windows | Linux |
+|---------|-------|
+| `KeGetCurrentProcessorNumberEx(NULL)` (17), `KeQueryActiveProcessorCount(0)` (15) | `PlatformCpu*` |
+| `PsGetCurrentProcessId/ThreadId/Process` (12), `ObDereferenceObject` (8) | `PlatformProcess*` / `PlatformObjectDereference` |
+| `KeRaiseIrqlToDpcLevel` / `KeLowerIrql` | `PlatformIrql*` |
+| `KeInitializeDpc` / `KeSetTargetProcessorDpc` / `KeInsertQueueDpc` | `PlatformDpc*` |
+| `_bittest`, `__readpmc`, `_xsetbv`, `InterlockedExchange` | new `CpuBitTest`, `CpuReadPmc`, `CpuXsetbv`, `CpuInterlockedExchange` |
+| `_inp/_inpw/_inpd`, `_outp/_outpw/_outpd` (Pci.c) | the `CpuIoIn*`/`CpuIoOut*` wrappers that already existed |
+| `NT_ASSERT`, `KAFFINITY`, `MAXDWORD64`, `PAGE_*`, `MEM_*` | `WdkTypes.h` |
+| `InitializeListHead`, `InsertHeadList`, `RemoveEntryList` | `nt-list.h`, now reachable from the kernel build |
+
+`hyperhv/pch.h` gained the 5 platform headers those wrappers live in (Cpu, Dpc,
+Event, Irql, Process); it only had Mem/Intrinsics/Broadcast/IntrinsicsVmx.
+
+**`nt-list.h` reaches the kernel via `DataTypes.h`**, included right after the
+`LIST_ENTRY` layout it operates on (the way `BasicTypes.h` includes
+`WdkTypes.h`) — it was previously only in libhyperdbg's user-mode pch. Its
+`#include <stddef.h>` had to become `<linux/stddef.h>` under
+`HYPERDBG_KERNEL_MODE`: the module builds `-nostdinc`.
+
+**`PlatformDpcSetTargetProcessor` is new.** Windows picks the DPC's CPU with a
+setter on the object; Linux picks it as an argument at queue time
+(`queue_work_on`). So the Linux `KDPC` carries a `TargetCore` (`-1` =
+`KDPC_NO_TARGET_CORE`, set by `PlatformDpcInitialize`) and
+`PlatformDpcInsertQueueDpc` applies it. Keeping the state means the call sites
+keep their 1:1 Windows shape; every existing hyperlog caller stays on the
+unpinned `queue_work` path.
+
+**`KIDT_ENTRY`'s 64-bit half was invisible** — `IdtEmulation.h:55` guarded it with
+`_M_AMD64`, which is MSVC's spelling only, so the GCC build silently lost
+`HighestPart` + `Reserved`. Guard now also accepts `__x86_64__`.
+
+**`_M_AMD64` is NOT defined globally for Linux** (the obvious shortcut): Zydis and
+ia32-doc test it to select MSVC intrinsics, so defining it would steer them into
+Windows-only code paths.
+
+**⚠️ A Platform swap is TWO edits, and the Linux build cannot see the second one.**
+Windows builds each driver as its own DLL that compiles only the `Platform*.c`
+files listed in ITS `.vcxproj`; Linux links one module, so every wrapper is always
+present. Swapping a call site therefore links fine here and fails on the Windows
+CI with `LNK2001: unresolved external symbol Platform...`. This pass needed
+`PlatformCpu/Dpc/Event/Irql/Process.c` added to `hyperhv.vcxproj` (+ `.filters`),
+which had only Broadcast/Intrinsics/IntrinsicsVmx/Mem.
+
+What each project compiles today, i.e. what the next sweep has to top up:
+
+| project | has |
+|---|---|
+| hyperkd | Broadcast, Cpu, Intrinsics, Mem, Process, Str |
+| hypertrace / hyperperf | Broadcast, Cpu, Intrinsics, Mem |
+| hyperevade | Intrinsics, Mem |
+| hyperlog | everything except Broadcast/IntrinsicsVmx |
+
+Open, all needing a decision before hyperhv finishes: `DbgBreakPoint` (16 errors —
+it comes from the `LogError` macro, so it hits nearly every file),
+`KeGenericCallDpc` (3), the `Mm*`/`Zw*` memory family (~15), TSX `_xbegin/_xend`,
+`ZydisKernel.c` (wants `ntimage.h`), and the 4 `__try`/`__except` files, which are
+deliberately deferred to their own step.
+
+### Integer-width typedefs: Windows LLP64 vs Linux LP64 (2026-08-17)
+
+`BasicTypes.h` typedef'd `LONG`/`ULONG`/`DWORD` to `long`, which is **32-bit on
+Windows and 64-bit on Linux**. Everything built, but the widths silently
+disagreed with the Windows source's assumptions. Two failures made it visible:
+`Pci.c`'s `switch` on `sizeof(DWORD)` vs `sizeof(QWORD)` became a *duplicate case*
+(both 8), and `KIDT_ENTRY`'s `ULONG x : 16` bitfields were laid out in 64-bit
+units.
+
+They are now `int`/`unsigned int` on Linux (Windows keeps `long`, matching the
+WDK's own typedefs — redefining them there would clash with `ntdef.h`).
+
+Cost across BOTH builds: **one** cast site — `script-eval/Functions.c` declares a
+parameter as raw `volatile long *` and passes it to a `volatile LONG *` API, which
+is the same type only on Windows.
+
+Still on `size_t`: `SIZE_T` (Windows: `unsigned __int64`). That is what the
+5 remaining `CpuStosQ` and the `VmxVmread64P` pointer errors are.
+
+### Found while validating the above: the user-mode build was broken (2026-08-17)
+
+Unrelated to the kernel work, pre-existing on the branch, now fixed:
+
+- `libhyperdbg/CMakeLists.txt` listed `ucpuid.cpp` with no path — CMake could not
+  find it and generated **zero** sources for the whole target.
+- `uin.cpp` / `uout.cpp` are in `libhyperdbg.vcxproj` but were never added to
+  CMake, so `CommandUserIn`/`CommandUserOut` were undefined at link.
+- `WdkTypes.h` `#define __reserved` (a pre-SAL annotation with **no users** in the
+  tree) erased the member of that name in glibc's `<linux/stat.h>`
+  (`struct statx_timestamp`), breaking every TU that included `<sys/stat.h>`
+  after the SDK. Removed, with the reason recorded at the site.
+
+Still missing from CMake vs the vcxproj, NOT added (they need a look first):
+`../include/components/pe/code/pe-image-reader.cpp` and
+`code/debugger/misc/pt-helper.cpp` (pt.cpp itself is Linux-stubbed).
 
 ---
 

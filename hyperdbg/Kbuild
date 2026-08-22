@@ -43,20 +43,41 @@
 
 obj-m += HyperDbg.o
 
-# Include paths (union; harmless for the commented-out sources).
-#   linux/kernel -> the unified kernel pch.h that every `#include "pch.h"` hits
-#   include      -> SDK/, platform/, config/, macros/, components/ roots
-ccflags-y += -I$(src)/linux/kernel
+# ---------------------------------------------------------------------------
+# INCLUDE MODEL
+# ---------------------------------------------------------------------------
+# Every TU says `#include "pch.h"` and MUST get its OWN module's pch, the way
+# each .vcxproj's /I ordering arranges it on Windows. That is not cosmetic:
+# hyperkd and hyperhv each define _NT_KPROCESS and _PAGE_ENTRY, so a single pch
+# that pulled in both would not compile.
+#
+# Therefore the module roots are NOT global — they are attached per object at
+# the bottom of this file. Only the genuinely shared roots live in ccflags-y.
+#
+# The Linux side that no module pch can carry (kernel headers + the scope macros
+# a .vcxproj would pass as /D) is force-included in front of every TU instead.
+ccflags-y += -include $(src)/linux/kernel/LinuxPrelude.h
 ccflags-y += -I$(src)/include
 ccflags-y += -I$(src)/dependencies
 
-# Force default C dialect etc. can be added here later, e.g.:
-# ccflags-y += -Wno-declaration-after-statement
-#
-# When the module translation units come online they all `#include "pch.h"`,
-# which resolves to linux/kernel/pch.h via the -I above. If a module header dir
-# that itself contains a pch.h (e.g. hyperkd/header) is ever added to ccflags,
-# put it AFTER -I$(src)/linux/kernel or the wrong pch wins.
+# Zydis: hyperhv's disassembler. The Windows build compiles it for kernel mode
+# with these same defines (no libc, static), see hyperhv.vcxproj.
+ccflags-y += -I$(src)/dependencies/zydis/include
+ccflags-y += -I$(src)/dependencies/zydis/dependencies/zycore/include
+ccflags-y += -DZYDIS_STATIC_BUILD -DZYCORE_STATIC_BUILD -DZYAN_NO_LIBC -DZYDIS_NO_LIBC
+
+# Windows-origin sources declare no-argument functions as `f()` rather than the
+# ISO C `f(void)`; the kernel builds with -Werror=strict-prototypes, so silence
+# it module-wide rather than editing every shared signature.
+ccflags-y += -Wno-strict-prototypes
+
+# Each module keeps its globals as bare tentative definitions in a header that
+# its pch pulls into EVERY TU (hyperkd/header/globals/Global.h: `KEVENT g_Foo;`).
+# MSVC merges those; GCC has defaulted to -fno-common since 10, which turns them
+# into "multiple definition" at link. -fcommon restores the model the source was
+# written against, instead of rewriting every globals header to extern + one
+# defining TU (that would be a refactor of shared Windows code).
+ccflags-y += -fcommon
 
 # ===========================================================================
 # ACTIVE — compiles + links today
@@ -79,30 +100,42 @@ HyperDbg-objs += include/platform/kernel/code/PlatformDpc.o
 HyperDbg-objs += include/platform/kernel/code/PlatformEvent.o
 HyperDbg-objs += include/platform/kernel/code/PlatformIo.o
 HyperDbg-objs += include/platform/kernel/code/PlatformIrql.o
-# Still on the WDK (process/spinlock/time). Commented out so the module links
-# today; uncomment each as `make one FILE=...` on it goes green.
 HyperDbg-objs += include/platform/kernel/code/PlatformProcess.o
 HyperDbg-objs += include/platform/kernel/code/PlatformSpinlock.o
+HyperDbg-objs += include/platform/kernel/code/PlatformStr.o
 HyperDbg-objs += include/platform/kernel/code/PlatformTime.o
+# --- hyperlog (message logging/tracing) ------------------------------------
+HyperDbg-objs += hyperlog/code/Logging.o
+HyperDbg-objs += hyperlog/code/UnloadDll.o
 
 # --- components (shared, header-driven) ------------------------------------
+# Self-contained (compile clean today):
 HyperDbg-objs += include/components/spinlock/code/Spinlock.o
 HyperDbg-objs += include/components/optimizations/code/AvlTree.o
-HyperDbg-objs += include/components/optimizations/code/BinarySearch.o
 HyperDbg-objs += include/components/optimizations/code/InsertionSort.o
+# Need the logging layer (Log/LogInfo), so they came online with hyperlog:
+HyperDbg-objs += include/components/optimizations/code/BinarySearch.o
 HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
-HyperDbg-objs += include/components/callback/code/HyperLogCallback.o
+# DROPPED (Windows-only): callback/HyperLogCallback.c DEFINES the same
+# LogCallback* entry points as hyperlog/Logging.c. On Windows that is the
+# per-DLL forwarding shim — hyperhv/hypertrace/hyperperf cannot call into
+# hyperlog.dll directly, so each compiles this file to bounce through its own
+# g_Callbacks table. In the single Linux module the real implementation is
+# already linked in, so this file is both redundant and a duplicate symbol.
+# HyperDbg-objs += include/components/callback/code/HyperLogCallback.o
 
 # --- script-eval (script engine kernel eval) -------------------------------
+# Compile-gated on hyperhv/hyperkd/hypertrace: with SCRIPT_ENGINE_KERNEL_MODE now
+# defined (see linux/kernel/pch.h) these TUs select their kernel arms, which call
+# into the VMM (VmFunc*, MemoryMapper*, CheckAccessValidityAndSafety, ...), the
+# debugger (g_DbgState, Debugger*Event, Kd/Ud*, Tracing*) and hypertrace
+# (HyperTraceLbr*). Keep commented out until those modules land.
 # HyperDbg-objs += script-eval/code/Functions.o
 # HyperDbg-objs += script-eval/code/Keywords.o
 # HyperDbg-objs += script-eval/code/PseudoRegisters.o
 # HyperDbg-objs += script-eval/code/Regs.o
 # HyperDbg-objs += script-eval/code/ScriptEngineEval.o
 
-# --- hyperlog (message logging/tracing) ------------------------------------
-# HyperDbg-objs += hyperlog/code/Logging.o
-# HyperDbg-objs += hyperlog/code/UnloadDll.o
 
 # --- hyperhv (hypervisor: VMX/EPT) -----------------------------------------
 # HyperDbg-objs += hyperhv/code/broadcast/Broadcast.o
@@ -232,3 +265,37 @@ HyperDbg-objs += include/components/callback/code/HyperLogCallback.o
 # Built with ZYAN_NO_LIBC;ZYDIS_NO_LIBC;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD.
 # Enumerate dependencies/zydis/src/*.c + dependencies/zydis/.../zycore/*.c here,
 # or build them into a built-in.a. Deferred until hyperhv compiles.
+
+# ===========================================================================
+# PER-OBJECT INCLUDE ROOTS
+# ===========================================================================
+# Mirrors the /I list of each .vcxproj so every TU resolves "pch.h" to its own
+# module. kbuild appends CFLAGS_<obj> after ccflags-y, and GCC takes the FIRST
+# -I that matches, which is why no module root may appear in ccflags-y above.
+#
+# Shared TUs (the platform layer, components/, linux/kernel/Entry.c) have no
+# module of their own and use the unified linux/kernel/pch.h.
+
+hyperkd-roots    := -I$(src)/hyperkd/header -I$(src)/hyperkd
+hyperhv-roots    := -I$(src)/hyperhv -I$(src)/hyperhv/header -I$(src)/hyperhv/code
+hyperlog-roots   := -I$(src)/hyperlog/header
+hyperevade-roots := -I$(src)/hyperevade/header
+hypertrace-roots := -I$(src)/hypertrace/header
+hyperperf-roots  := -I$(src)/hyperperf/header
+shared-roots     := -I$(src)/linux/kernel
+
+# Driven off the files on disk, not off HyperDbg-objs, so that
+# `make one FILE=<path>` works for a TU that is still commented out above —
+# that is the whole porting loop.
+mod-sources = $(patsubst $(src)/%.c,%.o,$(shell find $(src)/$(1) -name '*.c' 2>/dev/null))
+
+$(foreach o,$(call mod-sources,hyperkd),$(eval CFLAGS_$(o) += $(hyperkd-roots)))
+$(foreach o,$(call mod-sources,hyperhv),$(eval CFLAGS_$(o) += $(hyperhv-roots)))
+$(foreach o,$(call mod-sources,hyperlog),$(eval CFLAGS_$(o) += $(hyperlog-roots)))
+$(foreach o,$(call mod-sources,hyperevade),$(eval CFLAGS_$(o) += $(hyperevade-roots)))
+$(foreach o,$(call mod-sources,hypertrace),$(eval CFLAGS_$(o) += $(hypertrace-roots)))
+$(foreach o,$(call mod-sources,hyperperf),$(eval CFLAGS_$(o) += $(hyperperf-roots)))
+# script-eval is compiled INSIDE hyperkd on Windows, so it takes hyperkd's roots
+$(foreach o,$(call mod-sources,script-eval),$(eval CFLAGS_$(o) += $(hyperkd-roots)))
+$(foreach o,$(call mod-sources,include),$(eval CFLAGS_$(o) += $(shared-roots)))
+$(foreach o,$(call mod-sources,linux),$(eval CFLAGS_$(o) += $(shared-roots)))

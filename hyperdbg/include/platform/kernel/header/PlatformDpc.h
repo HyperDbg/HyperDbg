@@ -22,5 +22,8 @@
 VOID
 PlatformDpcInitialize(PRKDPC Dpc, PKDEFERRED_ROUTINE DeferredRoutine, PVOID DeferredContext);
 
+VOID
+PlatformDpcSetTargetProcessor(PRKDPC Dpc, CCHAR Number);
+
 BOOLEAN
 PlatformDpcInsertQueueDpc(PRKDPC Dpc, PVOID SystemArgument1, PVOID SystemArgument2);

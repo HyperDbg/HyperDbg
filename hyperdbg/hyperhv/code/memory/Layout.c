@@ -41,7 +41,7 @@ LayoutGetCr3ByProcessId(UINT32 ProcessId)
     NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(TargetEprocess);
     ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
 
-    ObDereferenceObject(TargetEprocess);
+    PlatformObjectDereference(TargetEprocess);
 
     return ProcessCr3;
 }
@@ -60,7 +60,7 @@ LayoutGetCurrentProcessCr3()
     // Due to KVA Shadowing, we need to switch to a different directory table base
     // if the PCID indicates this is a user mode directory table base.
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PlatformProcessGetCurrentProcess());
     GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
 
     return GuestCr3;

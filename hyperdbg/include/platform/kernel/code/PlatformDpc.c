@@ -65,8 +65,39 @@ PlatformDpcInitialize(PRKDPC Dpc, PKDEFERRED_ROUTINE DeferredRoutine, PVOID Defe
     Dpc->DeferredContext = DeferredContext;
     Dpc->SystemArgument1 = NULL;
     Dpc->SystemArgument2 = NULL;
+    Dpc->TargetCore      = KDPC_NO_TARGET_CORE;
 
     INIT_WORK(&Dpc->Work, PlatformDpcWorkTrampoline);
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Pin a DPC to the processor it must run on
+ *
+ * @param Dpc Pointer to the initialized KDPC structure
+ * @param Number The logical processor number to run the deferred routine on
+ * @return VOID
+ */
+VOID
+PlatformDpcSetTargetProcessor(PRKDPC Dpc, CCHAR Number)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    KeSetTargetProcessorDpc(Dpc, Number);
+
+#elif defined(__linux__)
+
+    //
+    // There is no "set the target" call on the Linux side — the CPU is chosen
+    // when the work item is queued (queue_work_on), so record it here and let
+    // PlatformDpcInsertQueueDpc apply it.
+    //
+    Dpc->TargetCore = (INT32)Number;
 
 #else
 
@@ -103,6 +134,15 @@ PlatformDpcInsertQueueDpc(PRKDPC Dpc, PVOID SystemArgument1, PVOID SystemArgumen
     //
     Dpc->SystemArgument1 = SystemArgument1;
     Dpc->SystemArgument2 = SystemArgument2;
+
+    if (Dpc->TargetCore != KDPC_NO_TARGET_CORE)
+    {
+        //
+        // Pinned by PlatformDpcSetTargetProcessor — queue_work_on() is the
+        // per-CPU spelling of the same call.
+        //
+        return queue_work_on(Dpc->TargetCore, system_bh_wq, &Dpc->Work) ? TRUE : FALSE;
+    }
 
     return queue_work(system_bh_wq, &Dpc->Work) ? TRUE : FALSE;
 

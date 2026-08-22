@@ -13,6 +13,14 @@
 
 #if defined(__linux__)
 #    include "../header/PlatformEvent.h"
+
+//
+// Backing token for the NT global declared in PlatformEvent.h — never
+// inspected, it only has to be a dereferenceable address
+//
+static POBJECT_TYPE g_LinuxEventObjectType = NULL;
+POBJECT_TYPE *      ExEventObjectType      = &g_LinuxEventObjectType;
+
 #endif // defined(__linux__)
 
 /**

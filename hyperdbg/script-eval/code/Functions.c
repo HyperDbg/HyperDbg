@@ -709,7 +709,11 @@ ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWai
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    SpinlockLockWithCustomWait(Lock, MaxWait);
+    //
+    // The parameter is a raw `long`, which IS LONG on Windows but is 64-bit on
+    // Linux (LP64), so the conversion is spelled out. No-op on Windows.
+    //
+    SpinlockLockWithCustomWait((volatile LONG *)Lock, MaxWait);
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -721,7 +725,7 @@ ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWai
         return;
     }
 
-    SpinlockLockWithCustomWait(Lock, MaxWait);
+    SpinlockLockWithCustomWait((volatile LONG *)Lock, MaxWait);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

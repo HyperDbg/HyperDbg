@@ -27,11 +27,11 @@ CommonAffinityBroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc 
 
     KeSetSystemAffinityThread((KAFFINITY)(1ULL << ProcessorNumber));
 
-    OldIrql = KeRaiseIrqlToDpcLevel();
+    OldIrql = PlatformIrqlRaiseToDpcLevel();
 
     Routine(ProcessorNumber);
 
-    KeLowerIrql(OldIrql);
+    PlatformIrqlLower(OldIrql);
 
     KeRevertToUserAffinityThread();
 

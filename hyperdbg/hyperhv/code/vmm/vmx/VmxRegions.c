@@ -35,7 +35,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
-        KeRaiseIrqlToDpcLevel();
+        PlatformIrqlRaiseToDpcLevel();
 #endif // HYPERDBG_ENV_WINDOWS
 
     //
@@ -115,7 +115,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
-        KeRaiseIrqlToDpcLevel();
+        PlatformIrqlRaiseToDpcLevel();
 #endif // HYPERDBG_ENV_WINDOWS
 
     //

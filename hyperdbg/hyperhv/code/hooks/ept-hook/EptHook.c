@@ -74,7 +74,7 @@ EptHookReservePreallocatedPoolsForEptHooks(UINT32 Count)
     //
     // Get number of processors
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Request pages to be allocated for converting 2MB to 4KB pages
@@ -114,7 +114,7 @@ EptHookAllocateExtraHookingPagesForMemoryMonitorsAndExecEptHooks(UINT32 Count)
     //
     // Get number of processors
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Request pages to be allocated for converting 2MB to 4KB pages
@@ -158,7 +158,7 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Get number of processors
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Translate the page from a physical address to virtual so we can read its memory.
@@ -562,7 +562,7 @@ EptHookPerformHook(PVOID   TargetAddress,
         //
         // Perform the direct VMCALL
         //
-        if (DirectVmcallSetHiddenBreakpointHook(KeGetCurrentProcessorNumberEx(NULL), &DirectVmcallOptions) == STATUS_SUCCESS)
+        if (DirectVmcallSetHiddenBreakpointHook(PlatformCpuGetCurrentProcessorNumber(), &DirectVmcallOptions) == STATUS_SUCCESS)
         {
             LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
 
@@ -1022,7 +1022,7 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
     //
     // Get number of processors
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Translate the page from a physical address to virtual so we can read its memory.
@@ -2241,7 +2241,7 @@ EptHookPerformUnHookSingleAddress(UINT64                              VirtualAdd
     //
     if (ApplyDirectlyFromVmxRoot || ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
     {
-        ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+        ProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
     }
 
     //
@@ -2532,7 +2532,7 @@ EptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
     //
     // Create a temporary VCpu
     //
-    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[KeGetCurrentProcessorNumberEx(NULL)];
+    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[PlatformCpuGetCurrentProcessorNumber()];
 
     //
     // Set the register for the temporary VCpu

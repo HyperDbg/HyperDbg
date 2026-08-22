@@ -192,7 +192,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
     ULONG                      CurrentCore;
     BOOLEAN                    Interruptible;
     VMX_INTERRUPTIBILITY_STATE InterruptibilityState = {0};
-    CurrentCore                                      = KeGetCurrentProcessorNumberEx(NULL);
+    CurrentCore                                      = PlatformCpuGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE * VCpu                     = &g_GuestState[CurrentCore];
 
     //
@@ -412,8 +412,8 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         //
         if (g_SyscallCallbackStatus &&
             SyscallCallbackCheckAndHandleAfterSyscallTrapFlags(VCpu,
-                                                               HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                               HANDLE_TO_UINT32(PsGetCurrentThreadId())))
+                                                               HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                               HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId())))
         {
             //
             // Being here means that this #DB was caused by a trap flag of

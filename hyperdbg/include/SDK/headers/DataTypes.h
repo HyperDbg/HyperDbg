@@ -60,6 +60,13 @@ typedef struct _LIST_ENTRY
 } LIST_ENTRY, *PLIST_ENTRY;
 
 //
+// The NT list API (InitializeListHead, InsertHeadList, RemoveEntryList, ...)
+// that the shared code calls on this exact layout. Included here, right after
+// the layout it operates on, the way BasicTypes.h includes WdkTypes.h.
+//
+#    include "../../platform/general/header/nt-list.h"
+
+//
 // Broken-down calendar time — mirrors the Windows TIME_FIELDS that
 // RtlTimeToTimeFields produces (CSHORT == SHORT). See PlatformTime.
 //
@@ -113,7 +120,14 @@ typedef struct _KDPC
     PVOID              DeferredContext;
     PVOID              SystemArgument1;
     PVOID              SystemArgument2;
+    INT32              TargetCore; // KeSetTargetProcessorDpc's core, or -1 for "any" (see PlatformDpc.c)
 } KDPC, *PKDPC, *PRKDPC;
+
+//
+// "No target core selected" — the state a KDPC is in until
+// PlatformDpcSetTargetProcessor pins it, mirroring an unpinned Windows DPC.
+//
+#    define KDPC_NO_TARGET_CORE (-1)
 
 //
 // Windows KSPIN_LOCK is an integer token; Linux's spinlock_t is a real struct.

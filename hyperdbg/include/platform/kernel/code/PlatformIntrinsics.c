@@ -199,6 +199,26 @@ CpuWriteCr8(ULONG_PTR Cr8Value)
 #endif
 }
 
+/**
+ * @brief Write an extended control register (XSETBV)
+ *
+ * @param XcrIndex
+ * @param Value
+ */
+inline VOID
+CpuXsetbv(UINT32 XcrIndex, UINT64 Value)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    _xsetbv(XcrIndex, Value);
+#elif defined(__linux__)
+    __asm__ __volatile__("xsetbv"
+                         :
+                         : "c"(XcrIndex), "a"((UINT32)Value), "d"((UINT32)(Value >> 32)));
+#else
+#    error "Unsupported platform"
+#endif
+}
+
 //////////////////////////////////////////////////
 //             MSR Instructions                 //
 //////////////////////////////////////////////////
@@ -325,6 +345,26 @@ CpuReadTscp(UINT32 * Aux)
 #endif
 }
 
+/**
+ * @brief Read a Performance-Monitoring Counter
+ *
+ * @param Counter
+ * @return UINT64
+ */
+inline UINT64
+CpuReadPmc(UINT32 Counter)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return __readpmc(Counter);
+#elif defined(__linux__)
+    UINT32 __lo, __hi;
+    __asm__ __volatile__("rdpmc" : "=a"(__lo), "=d"(__hi) : "c"(Counter));
+    return ((UINT64)__hi << 32) | __lo;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
 //////////////////////////////////////////////////
 //          Interlocked (Atomic) Operations     //
 //////////////////////////////////////////////////
@@ -406,6 +446,55 @@ CpuInterlockedCompareExchange64(INT64 volatile * Destination, INT64 ExChange, IN
 #endif
 }
 
+/**
+ * @brief Atomic 32-bit compare-exchange
+ */
+inline LONG
+CpuInterlockedCompareExchange(LONG volatile * Destination, LONG ExChange, LONG Comparand)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedCompareExchange(Destination, ExChange, Comparand);
+#elif defined(__linux__)
+    LONG Expected = Comparand;
+    __atomic_compare_exchange_n(Destination, &Expected, ExChange, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+    return Expected;
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Atomic 32-bit exchange
+ */
+inline LONG
+CpuInterlockedExchange(LONG volatile * Target, LONG Value)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return InterlockedExchange(Target, Value);
+#elif defined(__linux__)
+    return __atomic_exchange_n(Target, Value, __ATOMIC_SEQ_CST);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
+/**
+ * @brief Atomically set a bit, returning its previous value
+ */
+inline UCHAR
+CpuInterlockedBitTestAndSet(volatile LONG * Base, LONG Bit)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return _interlockedbittestandset(Base, Bit);
+#elif defined(__linux__)
+    LONG Mask = (1L << Bit);
+    LONG Old  = __atomic_fetch_or(Base, Mask, __ATOMIC_SEQ_CST);
+    return (UCHAR)((Old >> Bit) & 1);
+#else
+#    error "Unsupported platform"
+#endif
+}
+
 //////////////////////////////////////////////////
 //           Descriptor Table Instructions      //
 //////////////////////////////////////////////////
@@ -474,6 +563,36 @@ CpuStosQ(UINT64 * Destination, UINT64 Value, SIZE_T Count)
 //////////////////////////////////////////////////
 //              Bit Scan Instructions           //
 //////////////////////////////////////////////////
+
+/**
+ * @brief Test a bit, returning its value
+ *
+ * @param Base
+ * @param Offset
+ * @return UCHAR
+ */
+inline UCHAR
+CpuBitTest(const LONG * Base, LONG Offset)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return _bittest(Base, Offset);
+#elif defined(__linux__)
+
+    UCHAR Result;
+
+    __asm__ __volatile__(
+        "btl %2, %1\n\t"
+        "setc %0"
+        : "=q"(Result)
+        : "m"(*Base), "r"(Offset)
+        : "cc");
+
+    return Result;
+
+#else
+#    error "Unsupported platform"
+#endif
+}
 
 /**
  * @brief Bit scan forward (64-bit)

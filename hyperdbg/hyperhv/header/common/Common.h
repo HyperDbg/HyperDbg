@@ -15,7 +15,7 @@
  * @brief Core Id
  *
  */
-#define __CPU_INDEX__ KeGetCurrentProcessorNumberEx(NULL)
+#define __CPU_INDEX__ PlatformCpuGetCurrentProcessorNumber()
 
 /**
  * @brief Alignment Size

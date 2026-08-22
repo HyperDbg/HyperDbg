@@ -217,7 +217,7 @@ ModeBasedExecHookInitialize()
     //
     // Get number of processors
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Check if MBEC supported by this processors

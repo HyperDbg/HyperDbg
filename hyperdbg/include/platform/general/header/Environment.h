@@ -43,6 +43,18 @@
 #    define _In_reads_bytes_(x)
 #    define _Out_writes_bytes_(x)
 #    define _Inout_updates_bytes_all_(x)
+#    define _In_reads_bytes_opt_(x)
+#    define _Success_(x)
+#    define _Ret_maybenull_
+#    define _Must_inspect_result_
+#    define _Use_decl_annotations_
+#    define _Analysis_assume_(x)
+
+// MSVC extended-attribute keyword. The only forms used in the shared tree are
+// dllexport/dllimport (the per-module import/export plumbing, which collapses to
+// nothing in the single Linux module) and deprecated (a harmless hint). No
+// __declspec(align(...)) exists in kernel scope, so emptying it is safe.
+#    define __declspec(x)
 
 // The following libc headers exist only in user space; a Linux KERNEL build
 // (HYPERDBG_KERNEL_MODE) has no libc, so they are guarded out there. User-mode
@@ -92,12 +104,17 @@ typedef int SOCKET;
 // Windows calling convention (no-op on Linux)
 #    define WINAPI
 #    define NTAPI
+#    define __stdcall
+#    define __cdecl
+#    define __fastcall
 
 // Windows module handle (equivalent to dlopen's void * on Linux)
 typedef void * HMODULE;
 
 // Misc Windows macros
 #    define UNREFERENCED_PARAMETER(P) ((void)(P))
+
+// NT/WDK types, status codes and ntdef macros: see WdkTypes.h
 
 // Win32 wait/event constants (used by the cross-platform sync wrappers)
 #    define INFINITE      0xFFFFFFFF

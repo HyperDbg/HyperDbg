@@ -68,7 +68,12 @@ TransparentHideDebuggerWrapper(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE * Tra
     //
     // Common callbacks
     //
-    HyperevadeCallbacks.CommonGetProcessNameFromProcessControlBlock = CommonGetProcessNameFromProcessControlBlock;
+    //
+    // The callback is typed on PVOID while the function takes a PEPROCESS; MSVC
+    // accepts that silently, GCC does not, so the conversion is spelled out.
+    //
+    HyperevadeCallbacks.CommonGetProcessNameFromProcessControlBlock =
+        (COMMON_GET_PROCESS_NAME_FROM_PROCESS_CONTROL_BLOCK)CommonGetProcessNameFromProcessControlBlock;
 
     //
     // System call callbacks

@@ -89,6 +89,7 @@
 #include "platform/kernel/header/PlatformBroadcast.h"
 #include "platform/kernel/header/PlatformProcess.h"
 #include "platform/kernel/header/PlatformCpu.h"
+#include "platform/kernel/header/PlatformStr.h"
 
 //
 // Optimization algorithms

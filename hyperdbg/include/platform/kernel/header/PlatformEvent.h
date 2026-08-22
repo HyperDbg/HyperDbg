@@ -15,6 +15,18 @@
 #    include "../../../../include/SDK/HyperDbgSdk.h"
 #endif // defined(__linux__)
 
+#if defined(__linux__)
+
+//
+// NT's global event object-type pointer (ntddk). Shared code passes
+// *ExEventObjectType when referencing a user-mode event handle; Linux has no
+// object manager, so this is a placeholder token that the (fail-closed)
+// PlatformObjectReferenceByHandle stub ignores. Defined in PlatformEvent.c.
+//
+extern POBJECT_TYPE * ExEventObjectType;
+
+#endif // defined(__linux__)
+
 //////////////////////////////////////////////////
 //                  Functions                   //
 //////////////////////////////////////////////////

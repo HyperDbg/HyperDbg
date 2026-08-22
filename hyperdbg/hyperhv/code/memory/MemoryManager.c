@@ -104,7 +104,7 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
     // The second thing that we consider here is reading a physical address doesn't
     // need to attach to another process
     //
-    if (PsGetCurrentProcessId() != PID && MemType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+    if (PlatformProcessGetCurrentProcessId() != PID && MemType == DEBUGGER_READ_VIRTUAL_ADDRESS)
     {
         //
         // User needs another process memory
@@ -134,7 +134,7 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
             CopyAddress.PhysicalAddress.QuadPart = TempPhysicalAddress.QuadPart;
             MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize);
 
-            ObDereferenceObject(SourceProcess);
+            PlatformObjectDereference(SourceProcess);
 
             return TRUE;
         }
@@ -142,7 +142,7 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
         {
             KeUnstackDetachProcess(&State);
 
-            ObDereferenceObject(SourceProcess);
+            PlatformObjectDereference(SourceProcess);
 
             return FALSE;
         }
