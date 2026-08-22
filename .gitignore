@@ -400,3 +400,15 @@ StructLayoutSettings.json
 .idea
 cmake-build-debug
 /hyperdbg/hyperhv/zydis/
+
+# CMake in-source build output
+# (hyperdbg/linux/README.md builds with `cmake .`, which generates these
+#  next to the sources; the Makefile rules are scoped to the directories
+#  that actually hold a CMakeLists.txt so the hand-written Makefiles under
+#  hyperdbg/linux/mock/ and hwdbg/sim/ stay tracked)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+/hyperdbg/Makefile
+/hyperdbg/*/Makefile
+/examples/*/*/Makefile
