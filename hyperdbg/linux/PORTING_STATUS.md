@@ -1576,3 +1576,12 @@ wall of undefined-symbol link errors from the not-yet-ported files. The file nee
 not be in `Kbuild` yet. Keep `HyperDbg-objs` = only files that compile clean, so a
 full `make` always yields a loadable `.ko`; promote each file's line once `make
 one` on it is green.
+
+### Windows build fix — ntifs.h in the lean driver pchs (2026-08-23)
+The port-added platform fns `PlatformMemAllocate/FreeVirtualMemory` (Zw*VirtualMemory)
+and `PlatformDpcGenericCall` (KeGenericCallDpc) are declared only by `<ntifs.h>`, not
+`<ntddk.h>`. Shared `PlatformMem.c`/`PlatformDpc.c` compile into every kernel project, so
+hyperlog/hyperperf/hypertrace (pch used `<ntddk.h>`) failed Windows CI with C4013 (+/WX).
+Fix: their pch now `#include <ntifs.h>` (superset of ntddk.h), matching hyperkd/hyperhv.
+Windows-only (`#ifdef HYPERDBG_ENV_WINDOWS`), so the Linux .ko is unaffected. Behavior-
+preserving. Not compile-tested here — needs a Windows CI re-run to confirm.
