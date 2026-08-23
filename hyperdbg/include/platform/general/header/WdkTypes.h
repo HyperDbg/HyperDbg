@@ -150,11 +150,6 @@ typedef enum _POOL_TYPE
 #    define STATUS_INSUFFICIENT_RESOURCES ((NTSTATUS)0xC000009AL)
 #    define STATUS_UNSUCCESSFUL           ((NTSTATUS)0xC0000001L)
 #    define STATUS_ACCESS_DENIED          ((NTSTATUS)0xC0000022L)
-#    define STATUS_INVALID_INFO_CLASS     ((NTSTATUS)0xC0000003L)
-#    define STATUS_BUFFER_OVERFLOW        ((NTSTATUS)0x80000005L)
-#    define STATUS_BUFFER_TOO_SMALL       ((NTSTATUS)0xC0000023L)
-#    define STATUS_OBJECT_NAME_NOT_FOUND  ((NTSTATUS)0xC0000034L)
-#    define STATUS_DEBUGGER_INACTIVE      ((NTSTATUS)0xC0000354L)
 #    define NT_SUCCESS(Status)            (((NTSTATUS)(Status)) >= 0)
 
 //////////////////////////////////////////////////
@@ -424,37 +419,6 @@ typedef struct _PROCESS_BASIC_INFORMATION
     ULONG_PTR UniqueProcessId;
     ULONG_PTR InheritedFromUniqueProcessId;
 } PROCESS_BASIC_INFORMATION, *PPROCESS_BASIC_INFORMATION;
-
-//
-// NT file-attribute info (NtQueryAttributesFile). Layout is the WDK's so the
-// hyperevade transparency code compiles unchanged.
-//
-typedef struct _FILE_BASIC_INFORMATION
-{
-    LARGE_INTEGER CreationTime;
-    LARGE_INTEGER LastAccessTime;
-    LARGE_INTEGER LastWriteTime;
-    LARGE_INTEGER ChangeTime;
-    ULONG         FileAttributes;
-} FILE_BASIC_INFORMATION, *PFILE_BASIC_INFORMATION;
-
-//
-// NT firmware-table query (NtQuerySystemInformation / SystemFirmwareTableInformation).
-//
-typedef enum _SYSTEM_FIRMWARE_TABLE_ACTION
-{
-    SystemFirmwareTable_Enumerate = 0,
-    SystemFirmwareTable_Get       = 1
-} SYSTEM_FIRMWARE_TABLE_ACTION;
-
-typedef struct _SYSTEM_FIRMWARE_TABLE_INFORMATION
-{
-    ULONG                        ProviderSignature;
-    SYSTEM_FIRMWARE_TABLE_ACTION Action;
-    ULONG                        TableID;
-    ULONG                        TableBufferLength;
-    UCHAR                        TableBuffer[1];
-} SYSTEM_FIRMWARE_TABLE_INFORMATION, *PSYSTEM_FIRMWARE_TABLE_INFORMATION;
 
 //////////////////////////////////////////////////
 //                 I/O manager                  //

@@ -25,7 +25,7 @@ CommonIsProcessExist(UINT32 ProcId)
 {
     PEPROCESS TargetEprocess;
 
-    if (PsLookupProcessByProcessId((HANDLE)ProcId, &TargetEprocess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)ProcId, &TargetEprocess) != STATUS_SUCCESS)
     {
         //
         // There was an error, probably the process id was not found
@@ -34,7 +34,7 @@ CommonIsProcessExist(UINT32 ProcId)
     }
     else
     {
-        ObDereferenceObject(TargetEprocess);
+        PlatformObjectDereference(TargetEprocess);
 
         return TRUE;
     }
@@ -77,7 +77,7 @@ CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess)
     PCHAR Result = 0;
 
     //
-    // We can't use PsLookupProcessByProcessId as in pageable and not
+    // We can't use PlatformProcessLookupByProcessId as in pageable and not
     // work on vmx-root
     //
     Result = (CHAR *)PsGetProcessImageFileName(Eprocess);
@@ -121,7 +121,7 @@ CommonUndocumentedNtOpenProcess(
     AccessState.PreviouslyGrantedAccess |= AccessState.RemainingDesiredAccess;
     AccessState.RemainingDesiredAccess = 0;
 
-    Status = PsLookupProcessByProcessId(ProcessId, &ProcessObject);
+    Status = PlatformProcessLookupByProcessId(ProcessId, &ProcessObject);
 
     if (!NT_SUCCESS(Status))
     {
@@ -139,7 +139,7 @@ CommonUndocumentedNtOpenProcess(
 
     SeDeleteAccessState(&AccessState);
 
-    ObDereferenceObject(ProcessObject);
+    PlatformObjectDereference(ProcessObject);
 
     if (NT_SUCCESS(Status))
         *ProcessHandle = ProcHandle;
@@ -225,7 +225,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         //
         // Dereference the target process
         //
-        ObDereferenceObject(Process);
+        PlatformObjectDereference(Process);
 
         break;
 
@@ -257,7 +257,7 @@ CommonValidateCoreNumber(UINT32 CoreNumber)
 {
     ULONG ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     if (CoreNumber >= ProcessorsCount)
     {

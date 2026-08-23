@@ -42,7 +42,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
     //
     PAGED_CODE();
 
-    Status = PsLookupProcessByProcessId(ProcessId, &EProcess);
+    Status = PlatformProcessLookupByProcessId(ProcessId, &EProcess);
 
     if (NT_SUCCESS(Status))
     {
@@ -54,7 +54,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
             return FALSE;
         }
 
-        ObDereferenceObject(EProcess);
+        PlatformObjectDereference(EProcess);
     }
     else
     {
@@ -183,7 +183,7 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
     //
     PAGED_CODE();
 
-    Status = PsLookupProcessByProcessId(ProcessId, &EProcess);
+    Status = PlatformProcessLookupByProcessId(ProcessId, &EProcess);
 
     if (NT_SUCCESS(Status))
     {
@@ -195,7 +195,7 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
             return FALSE;
         }
 
-        ObDereferenceObject(EProcess);
+        PlatformObjectDereference(EProcess);
     }
     else
     {
@@ -754,7 +754,7 @@ UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
 {
     PEPROCESS SourceProcess;
 
-    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -762,7 +762,7 @@ UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
         return FALSE;
     }
 
-    ObDereferenceObject(SourceProcess);
+    PlatformObjectDereference(SourceProcess);
 
     return UserAccessIsWow64ProcessByEprocess(SourceProcess, Is32Bit);
 }
@@ -781,7 +781,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
     PEPROCESS SourceProcess;
     BOOLEAN   Is32Bit;
 
-    if (PsLookupProcessByProcessId((HANDLE)ProcessLoadedModuleRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)ProcessLoadedModuleRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -790,7 +790,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
         return FALSE;
     }
 
-    ObDereferenceObject(SourceProcess);
+    PlatformObjectDereference(SourceProcess);
 
     //
     // check whether the target process is 32-bit or 64-bit
@@ -870,7 +870,7 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
     // Find the thread debugging detail structure
     //
     ProcessDebuggingDetail =
-        AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+        AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
 
     //
     // Check if we find the debugging detail of the thread or not

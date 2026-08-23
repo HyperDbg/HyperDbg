@@ -305,7 +305,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
             // for disassembly, so we have to query whether the target process is a
             // 32-bit process or a 64-bit process
             //
-            if (UserAccessIsWow64ProcessByEprocess(PsGetCurrentProcess(), &Is32BitProcess))
+            if (UserAccessIsWow64ProcessByEprocess(PlatformProcessGetCurrentProcess(), &Is32BitProcess))
             {
                 if (Is32BitProcess)
                 {
@@ -350,7 +350,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
     NTSTATUS Status;
     ULONG    ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // We don't check whether the MSR is in valid range of hardware or not
@@ -376,7 +376,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Broadcast to all cores to change their Msrs
             //
-            KeGenericCallDpc(DpcRoutineWriteMsrToAllCores, 0x0);
+            PlatformDpcGenericCall(DpcRoutineWriteMsrToAllCores, 0x0);
         }
         else
         {
@@ -430,7 +430,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Broadcast to all cores to read their Msrs
             //
-            KeGenericCallDpc(DpcRoutineReadMsrToAllCores, 0x0);
+            PlatformDpcGenericCall(DpcRoutineReadMsrToAllCores, 0x0);
 
             //
             // When we reach here, all processors read their shits
@@ -533,7 +533,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
     {
-        if (EditMemRequest->ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()) && VirtualAddressToPhysicalAddress((PVOID)EditMemRequest->Address) == 0)
+        if (EditMemRequest->ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()) && VirtualAddressToPhysicalAddress((PVOID)EditMemRequest->Address) == 0)
         {
             //
             // It's an invalid address in current process
@@ -804,7 +804,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         }
         else
         {
-            if (SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
+            if (SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()))
             {
                 CurrentProcessCr3 = SwitchToProcessMemoryLayout(SearchMemRequest->ProcessId);
             }
@@ -979,7 +979,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         // Restore the previous memory layout (cr3), if the user specified a
         // special process
         //
-        if (IsDebuggeePaused || SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
+        if (IsDebuggeePaused || SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()))
         {
             SwitchToPreviousProcess(CurrentProcessCr3);
         }
@@ -1154,7 +1154,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
             SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)StartAddress);
             EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess((PVOID)EndAddress);
         }
-        else if (SearchMemRequest->ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()))
+        else if (SearchMemRequest->ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()))
         {
             SearchMemRequest->Address = PhysicalAddressToVirtualAddress(StartAddress);
             EndAddress                = PhysicalAddressToVirtualAddress(EndAddress);
@@ -1212,7 +1212,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Check if process id is valid or not
     //
-    if (SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()) && !CommonIsProcessExist(SearchMemRequest->ProcessId))
+    if (SearchMemRequest->ProcessId != HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()) && !CommonIsProcessExist(SearchMemRequest->ProcessId))
     {
         return STATUS_INVALID_PARAMETER;
     }

@@ -118,6 +118,9 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformTime.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformEvent.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformDpc.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformProcess.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformStr.c" />
@@ -171,6 +174,9 @@
     <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformTime.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformEvent.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformDpc.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformProcess.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformStr.h" />

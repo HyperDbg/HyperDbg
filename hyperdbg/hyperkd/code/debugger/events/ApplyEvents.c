@@ -49,7 +49,7 @@ ApplyEventMonitorEvent(PDEBUGGER_EVENT                   Event,
         //
         if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            TempProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+            TempProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
         }
         else
         {
@@ -373,7 +373,7 @@ ApplyEventEptHookExecCcEvent(PDEBUGGER_EVENT                   Event,
         //
         if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            TempProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+            TempProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
         }
         else
         {
@@ -444,7 +444,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook2FromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
+        if (!ConfigureEptHook2FromVmxRoot(PlatformCpuGetCurrentProcessorNumber(),
                                           (PVOID)Event->InitOptions.OptionalParam1,
                                           NULL))
         {
@@ -477,7 +477,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         if (Event->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || Event->ProcessId == 0)
         {
-            TempProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
+            TempProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
         }
         else
         {
@@ -494,7 +494,7 @@ ApplyEventEpthookInlineEvent(PDEBUGGER_EVENT                   Event,
         //
         // Invoke the hooker
         //
-        if (!ConfigureEptHook2(KeGetCurrentProcessorNumberEx(NULL),
+        if (!ConfigureEptHook2(PlatformCpuGetCurrentProcessorNumber(),
                                (PVOID)Event->InitOptions.OptionalParam1,
                                NULL,
                                TempProcessId))

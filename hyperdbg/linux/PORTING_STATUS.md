@@ -1420,6 +1420,36 @@ hyperhv + hyperevade + zydis comes up together (also: land `VmxRegions.c`/`Memor
 remaining SEH, drop the duplicate `hyperhv/common/UnloadDll.o`, and enumerate
 `dependencies/zydis/src/*.c` + zycore into Kbuild — headers are already on the include path).
 
+### hyperkd — mechanical WDK→platform routing pass: 9 → 25/33 compile (2026-08-21)
+
+Started the biggest module (the driver + debugger core, 33 TUs). The earlier hyperkd pass was
+partial — 24 files still called raw WDK functions. One sweep of behavior-preserving name swaps
+(all shared code, Windows keeps forwarding through the platform layer) cleared 15 files:
+- `PsGetCurrentProcess{,Id}`/`PsGetCurrentThread{,Id}` → `PlatformProcessGetCurrent*`
+- `PsLookupProcessByProcessId` → `PlatformProcessLookupByProcessId`; `ObDereferenceObject` →
+  `PlatformObjectDereference`
+- `KeGetCurrentProcessorNumberEx(NULL)` → `PlatformCpuGetCurrentProcessorNumber()`;
+  `KeQueryActiveProcessorCount(0)` → `PlatformCpuGetActiveProcessorCount()`
+- `Ke{Initialize,InsertQueue,GenericCall,SetTargetProcessor}Dpc` → `PlatformDpc*`
+Then `ScriptEngine.c`: `KeQuerySystemTime`/`ExSystemTimeToLocalTime`/`RtlTimeToTimeFields` →
+`PlatformTime*`, `sprintf_s` → `PlatformSprintf`. Wired `PlatformDpc.h/Event.h/Time.h` into
+hyperkd's pch and `PlatformDpc.c`/`PlatformEvent.c`/`PlatformTime.c` into `hyperkd.vcxproj`
+(+filters) so Windows links them (same per-module compile model as everything else).
+
+**Not promoted to Kbuild yet** — the 25 compiling TUs still reference symbols in the 8 that
+don't, so the link isn't closed. Remaining 8, each needing NEW work (not just routing):
+| file | needs |
+|---|---|
+| `DebuggerCommands.c` | port-I/O intrinsics `__out{byte,word,dword}` → new `CpuOut*` (outb/outw/outl) |
+| `common/Common.c` | `ZwOpenProcess`/`ZwTerminateProcess`/`ObOpenObjectByPointer`/`PsProcessType` (process control) |
+| `common/Synchronization.c` | kernel events `KeInitializeEvent`/`KeSetEvent`/`KeWaitForSingleObject` (+`Executive`/`SynchronizationEvent`) |
+| `user-level/Attaching.c` | `__try` SEH + `MmGetSystemRoutineAddress` + `RtlInitUnicodeString` |
+| `user-level/UserAccess.c` | cross-process attach `KeStackAttachProcess`/`KeUnstackDetachProcess` + `ObOpenObjectByPointer` |
+| `driver/Driver.c`,`Ioctl.c`,`Loader.c` | the char-device layer (`_DRIVER_OBJECT`/`_DEVICE_OBJECT`/IRP/`IRP_MJ_*`) — roadmap step 2 |
+
+These are real ports (new platform wrappers / a Linux char device / SEH→extable), several needing
+a design call, not mechanical swaps. Good checkpoint.
+
 ### zydis library — ACTIVE in Kbuild (2026-08-21)
 
 Brought up the whole disassembler engine so hyperhv's `ZydisGetVersion`/`ZydisDecoder*`/
@@ -1432,6 +1462,29 @@ zydis is self-contained (zero external symbols), so it links into `HyperDbg.ko` 
 verified: `nm` shows `ZydisGetVersion` et al. as `T`, full `make` links clean (`.ko` ~4.9 MB).
 Windows builds zydis as a separate static lib; Linux compiles the sources straight into the one
 module. **Done — next in the cluster: hyperevade.**
+
+### hyperevade — DROPPED from the Linux module (2026-08-23)
+
+**Reversal of the port work below.** hyperevade is Windows-only transparency/anti-
+detection and does not need to compile in the kernel module, so it is left out of
+the Kbuild entirely and its port-mechanical changes were reverted:
+- Kbuild: 3 hyperevade objs + `hyperevade-roots` removed.
+- `hyperevade/code/SyscallFootprints.c` + `hyperevade/header/pch.h` → restored to
+  their Windows originals (`git checkout master`); port-added platform refs pulled
+  from `hyperevade.vcxproj`(+filters). Kept: the `VmxFootprints.c` RIP-overflow fix
+  and `SyscallFootprints.h` concat fix (non-port Windows changes) and NuGet bits.
+- hyperevade-ONLY platform additions removed: `PlatformWcs{Len,Cmp,Str,NiCmp}`
+  (`PlatformStr.{c,h}`) and `FILE_BASIC_INFORMATION`/`SYSTEM_FIRMWARE_TABLE_*` + the
+  5 extra `STATUS_*` codes (`WdkTypes.h`). KEPT the shared `PlatformProcessGetCurrent*`
+  (22/21/9 hyperhv+hyperkd users) and generic `PWCH`/`PBYTE`/`DWORD_PTR`.
+- `ActivateHyperEvadeProject` stays `FALSE` (unchanged).
+- hyperhv calls the `Transparent*` symbols unconditionally, so a Linux-only no-op
+  stub TU — `hyperhv/code/interface/HyperEvadeStubs-linux.c` — supplies the 8
+  needed entry points so the `.ko` links (mirrors the flag-OFF stub branch;
+  `TransparentHideDebuggerWrapper`/`UnhideDebuggerWrapper` are hyperhv-local).
+- Verified: `make` → exit 0, `LD [M] HyperDbg.ko`, zero undefined `Transparent*`.
+
+The section below is the now-reverted port history, kept for reference.
 
 ### hyperevade — ACTIVE in Kbuild (2026-08-21)
 

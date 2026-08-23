@@ -175,6 +175,10 @@ HyperDbg-objs += hyperhv/code/interface/DirectVmcall.o
 HyperDbg-objs += hyperhv/code/interface/Dispatch.o
 HyperDbg-objs += hyperhv/code/interface/Export.o
 HyperDbg-objs += hyperhv/code/interface/HyperEvade.o
+# hyperevade itself is Windows-only and dropped from this module (see below), but
+# hyperhv calls its Transparent* symbols unconditionally — this Linux-only TU
+# supplies them as no-ops so the .ko links.
+HyperDbg-objs += hyperhv/code/interface/HyperEvadeStubs-linux.o
 HyperDbg-objs += hyperhv/code/memory/AddressCheck.o
 HyperDbg-objs += hyperhv/code/memory/Conversion.o
 HyperDbg-objs += hyperhv/code/memory/Layout.o
@@ -256,14 +260,15 @@ HyperDbg-objs += hyperhv/code/assembly/AsmVmxOperation-linux.o
 # HyperDbg-objs += hyperkd/code/assembly/AsmDebugger.o
 
 # --- hyperevade (transparency / anti-detection) ----------------------------
-# Leaf module: provides the Transparent* symbols hyperhv calls, and itself only
-# needs the already-active platform layer (CpuReadTsc, PlatformMemAllocate*), so
-# it links today. UnloadDll.o is OMITTED — its DllInitialize/DllUnload duplicate
-# hyperlog's (the Windows per-DLL unload trick; one module needs only one copy).
-HyperDbg-objs += hyperevade/code/SyscallFootprints.o
-HyperDbg-objs += hyperevade/code/Transparency.o
-HyperDbg-objs += hyperevade/code/VmxFootprints.o
-# HyperDbg-objs += hyperevade/code/UnloadDll.o   # dup DllInitialize/DllUnload (see above)
+# DROPPED from the Linux kernel module. hyperevade is Windows-only transparency/
+# anti-detection code (ActivateHyperEvadeProject is FALSE in
+# include/config/Configuration.h) and does not need to compile here. Its sources
+# stay on their Windows original — the port-mechanical platform swaps were
+# reverted — and it is left out of the build entirely.
+# HyperDbg-objs += hyperevade/code/SyscallFootprints.o
+# HyperDbg-objs += hyperevade/code/Transparency.o
+# HyperDbg-objs += hyperevade/code/VmxFootprints.o
+# HyperDbg-objs += hyperevade/code/UnloadDll.o
 
 # --- hyperperf (PMU) -------------------------------------------------------
 # HyperDbg-objs += hyperperf/code/api/PerfApi.o
@@ -329,7 +334,7 @@ HyperDbg-objs += dependencies/zydis/src/Zydis.o
 hyperkd-roots    := -I$(src)/hyperkd/header -I$(src)/hyperkd
 hyperhv-roots    := -I$(src)/hyperhv -I$(src)/hyperhv/header -I$(src)/hyperhv/code
 hyperlog-roots   := -I$(src)/hyperlog/header
-hyperevade-roots := -I$(src)/hyperevade/header
+# hyperevade is dropped from the Linux module (Windows-only), so no roots for it.
 hypertrace-roots := -I$(src)/hypertrace/header
 hyperperf-roots  := -I$(src)/hyperperf/header
 shared-roots     := -I$(src)/linux/kernel
@@ -342,7 +347,6 @@ mod-sources = $(patsubst $(src)/%.c,%.o,$(shell find $(src)/$(1) -name '*.c' 2>/
 $(foreach o,$(call mod-sources,hyperkd),$(eval CFLAGS_$(o) += $(hyperkd-roots)))
 $(foreach o,$(call mod-sources,hyperhv),$(eval CFLAGS_$(o) += $(hyperhv-roots)))
 $(foreach o,$(call mod-sources,hyperlog),$(eval CFLAGS_$(o) += $(hyperlog-roots)))
-$(foreach o,$(call mod-sources,hyperevade),$(eval CFLAGS_$(o) += $(hyperevade-roots)))
 $(foreach o,$(call mod-sources,hypertrace),$(eval CFLAGS_$(o) += $(hypertrace-roots)))
 $(foreach o,$(call mod-sources,hyperperf),$(eval CFLAGS_$(o) += $(hyperperf-roots)))
 # script-eval is compiled INSIDE hyperkd on Windows, so it takes hyperkd's roots

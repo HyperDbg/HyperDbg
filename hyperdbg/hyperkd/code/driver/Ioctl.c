@@ -167,7 +167,7 @@ DrvResolvePtTargetCr3(UINT32 ProcessId, BOOLEAN TraceUser, BOOLEAN TraceKernel)
     UINT64    UserCr3;
     UINT64    Chosen;
 
-    if (PsLookupProcessByProcessId((HANDLE)(ULONG_PTR)ProcessId, &TargetProcess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)(ULONG_PTR)ProcessId, &TargetProcess) != STATUS_SUCCESS)
     {
         return 0;
     }
@@ -175,7 +175,7 @@ DrvResolvePtTargetCr3(UINT32 ProcessId, BOOLEAN TraceUser, BOOLEAN TraceKernel)
     KernelCr3 = (UINT64)((NT_KPROCESS *)TargetProcess)->DirectoryTableBase;
     UserCr3   = *(UINT64 *)((UCHAR *)TargetProcess + UserDirTableBaseOffset);
 
-    ObDereferenceObject(TargetProcess);
+    PlatformObjectDereference(TargetProcess);
 
     if (TraceKernel && !TraceUser)
     {

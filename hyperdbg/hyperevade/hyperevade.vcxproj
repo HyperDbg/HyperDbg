@@ -111,9 +111,6 @@
     <ClCompile Include="..\include\components\spinlock\code\Spinlock.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
-    <ClCompile Include="..\include\platform\kernel\code\PlatformStr.c" />
-    <ClCompile Include="..\include\platform\kernel\code\PlatformProcess.c" />
-    <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c" />
     <ClCompile Include="code\SyscallFootprints.c" />
     <ClCompile Include="code\Transparency.c" />
     <ClCompile Include="code\UnloadDll.c" />
@@ -123,9 +120,6 @@
     <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
-    <ClInclude Include="..\include\platform\kernel\header\PlatformStr.h" />
-    <ClInclude Include="..\include\platform\kernel\header\PlatformProcess.h" />
-    <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h" />
     <ClInclude Include="header\SyscallFootprints.h" />
     <ClInclude Include="header\Transparency.h" />
     <ClInclude Include="header\pch.h" />

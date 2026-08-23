@@ -20,7 +20,7 @@
 BOOLEAN
 GlobalDebuggingStateAllocateZeroedMemory(VOID)
 {
-    SSIZE_T BufferSizeInByte = sizeof(PROCESSOR_DEBUGGING_STATE) * KeQueryActiveProcessorCount(0);
+    SSIZE_T BufferSizeInByte = sizeof(PROCESSOR_DEBUGGING_STATE) * PlatformCpuGetActiveProcessorCount();
 
     //
     // Allocate global variable to hold Debugging(s) state

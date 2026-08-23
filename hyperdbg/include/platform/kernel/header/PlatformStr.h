@@ -37,21 +37,3 @@ PlatformSprintf(CHAR * Buffer, SIZE_T BufferSize, const CHAR * Format, ...);
 //
 SIZE_T
 PlatformStrnlen(const CHAR * Str, SIZE_T MaxLength);
-
-//
-// WIDE-CHAR (UTF-16) STRING HELPERS
-// Windows forwards to the CRT wide funcs; Linux implements them (the kernel has
-// none, and WCHAR is 16-bit here via -fshort-wchar). Used by the hyperevade
-// transparency code to match UTF-16 guest data.
-//
-SIZE_T
-PlatformWcsLen(const WCHAR * String);
-
-INT32
-PlatformWcsCmp(const WCHAR * A, const WCHAR * B);
-
-WCHAR *
-PlatformWcsStr(const WCHAR * Haystack, const WCHAR * Needle);
-
-INT32
-PlatformWcsNiCmp(const WCHAR * A, const WCHAR * B, SIZE_T Count);
