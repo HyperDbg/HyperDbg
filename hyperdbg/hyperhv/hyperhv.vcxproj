@@ -148,6 +148,7 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsicsVmx.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformTime.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\common\Bitwise.c" />
@@ -262,6 +263,7 @@
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsicsVmx.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformTime.h" />
     <ClInclude Include="header\assembly\InlineAsm.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />
     <ClInclude Include="header\broadcast\DpcRoutines.h" />

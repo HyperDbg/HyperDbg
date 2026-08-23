@@ -308,6 +308,9 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformTime.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
     <ClCompile Include="code\memory\Segmentation.c">
       <Filter>code\memory</Filter>
     </ClCompile>
@@ -605,6 +608,9 @@
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformTime.h">
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="header\memory\Segmentation.h">

@@ -1593,3 +1593,11 @@ declarations and failed Windows CI with C4013 (+/WX). Two independent causes:
 All Windows-guarded (`#ifdef HYPERDBG_ENV_WINDOWS` / `#if _WIN32`), so the Linux .ko is
 unaffected (PlatformDpc.o re-verified `CC` clean). Behavior-preserving. Confirmed against
 the CI log: hyperlog/hyperperf/hypertrace/kdserial link; hyperevade pch fix awaits a re-run.
+
+**Follow-up (same day) — hyperhv link:** with the C4013s cleared, hyperhv then failed at
+link with LNK2019 `PlatformTimeQueryPerformanceCounter` (called by `Vmx.c`
+`VmxCompatibleMicroSleep`). That wrapper lives in `PlatformTime.c`, which `hyperhv.vcxproj`
+did not compile (only hyperlog/hyperkd did). Added `PlatformTime.c`/`.h` to
+`hyperhv.vcxproj`(+filters). Checked hyperhv references no other Platform* wrapper whose TU
+is missing (PlatformIo/Spinlock/Str unused), and the linker reported exactly 1 unresolved,
+so this closes it. Linux unaffected (PlatformTime.o already active in the Kbuild).
