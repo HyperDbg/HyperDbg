@@ -11,6 +11,16 @@
  */
 #include "pch.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+//
+// KeGenericCallDpc()'s prototype is declared manually in PlatformBroadcast.h
+// (it is not exposed by ntifs.h/ntddk.h). PlatformDpc.c is compiled by hyperlog,
+// whose pch pulls in neither PlatformBroadcast.h nor Broadcast.c, so include it
+// explicitly here for the KeGenericCallDpc() call below. hyperhv/hyperkd already
+// compile both this file and PlatformBroadcast.h together, so there is no clash.
+#    include "../header/PlatformBroadcast.h"
+#endif
+
 #if defined(__linux__)
 #    include "../header/PlatformDpc.h"
 
