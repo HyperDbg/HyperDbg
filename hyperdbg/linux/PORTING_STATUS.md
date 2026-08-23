@@ -1577,11 +1577,19 @@ not be in `Kbuild` yet. Keep `HyperDbg-objs` = only files that compile clean, so
 full `make` always yields a loadable `.ko`; promote each file's line once `make
 one` on it is green.
 
-### Windows build fix — ntifs.h in the lean driver pchs (2026-08-23)
-The port-added platform fns `PlatformMemAllocate/FreeVirtualMemory` (Zw*VirtualMemory)
-and `PlatformDpcGenericCall` (KeGenericCallDpc) are declared only by `<ntifs.h>`, not
-`<ntddk.h>`. Shared `PlatformMem.c`/`PlatformDpc.c` compile into every kernel project, so
-hyperlog/hyperperf/hypertrace (pch used `<ntddk.h>`) failed Windows CI with C4013 (+/WX).
-Fix: their pch now `#include <ntifs.h>` (superset of ntddk.h), matching hyperkd/hyperhv.
-Windows-only (`#ifdef HYPERDBG_ENV_WINDOWS`), so the Linux .ko is unaffected. Behavior-
-preserving. Not compile-tested here — needs a Windows CI re-run to confirm.
+### Windows build fix — lean-driver decls for port-added platform fns (2026-08-23)
+The port added `PlatformMemAllocate/FreeVirtualMemory` (call `Zw*VirtualMemory`) and
+`PlatformDpcGenericCall` (calls `KeGenericCallDpc`) to the shared `PlatformMem.c` /
+`PlatformDpc.c`, which compile into every kernel project. The lean drivers lacked the
+declarations and failed Windows CI with C4013 (+/WX). Two independent causes:
+1. **`Zw*VirtualMemory`** live in `<ntifs.h>`, not `<ntddk.h>`. The four projects whose
+   pch used `<ntddk.h>` — hyperlog, hyperperf, hypertrace, **hyperevade** — now
+   `#include <ntifs.h>` (superset of ntddk.h), matching hyperkd/hyperhv. (hyperevade
+   still builds on Windows even though it is dropped from the Linux module.)
+2. **`KeGenericCallDpc`** is declared manually (SAL) in `PlatformBroadcast.h`, not by any
+   WDK header. Only hyperlog compiles `PlatformDpc.c` without also pulling that header in,
+   so `PlatformDpc.c` now `#include`s `PlatformBroadcast.h` under `#if _WIN32`
+   (hyperhv/hyperkd already compile both together → no clash).
+All Windows-guarded (`#ifdef HYPERDBG_ENV_WINDOWS` / `#if _WIN32`), so the Linux .ko is
+unaffected (PlatformDpc.o re-verified `CC` clean). Behavior-preserving. Confirmed against
+the CI log: hyperlog/hyperperf/hypertrace/kdserial link; hyperevade pch fix awaits a re-run.
