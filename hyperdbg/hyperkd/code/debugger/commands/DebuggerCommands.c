@@ -1622,17 +1622,17 @@ DebuggerCommandUserOut(PDEBUGGER_USER_OUT_REQUEST_RESPONSE DebuggerUserOutReques
     switch (Register)
     {
     case AL_8_BIT_REGISTER:
-        __outbyte(Port, (UCHAR)Value);
+        CpuIoOutByte(Port, (UCHAR)Value);
 
         break;
 
     case AX_16_BIT_REGISTER:
-        __outword(Port, (USHORT)Value);
+        CpuIoOutWord(Port, (USHORT)Value);
 
         break;
 
     case EAX_32_BIT_REGISTER:
-        __outdword(Port, Value);
+        CpuIoOutDword(Port, Value);
 
         break;
     }

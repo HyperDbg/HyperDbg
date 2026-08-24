@@ -1450,6 +1450,49 @@ don't, so the link isn't closed. Remaining 8, each needing NEW work (not just ro
 These are real ports (new platform wrappers / a Linux char device / SEH→extable), several needing
 a design call, not mechanical swaps. Good checkpoint.
 
+**Update (2026-08-23): 26/33.** `DebuggerCommands.c` cleared — its `__out{byte,word,dword}`
+became `CpuIoOut{Byte,Word,Dword}` (those wrappers already existed in `PlatformIntrinsics`,
+Win arm forwards to `__out*`, Linux arm emits `out{b,w,l}`). Pure swap, compiles clean.
+Remaining 7 each need NEW work: `Synchronization.c` (new `PlatformEventInitialize`/`Wait`;
+only `PlatformEventSet` exists), `Common.c` + `UserAccess.c` (process open/terminate/attach
+wrappers), `Attaching.c` (SEH), and the 3 `driver/*` char-device TUs (design).
+
+**Update (2026-08-23): 30/33 — wrapper tier DONE.** The 4 wrapper TUs cleared with new
+compile-clean-skeleton platform wrappers (Windows arm real, Linux arm stub + TODO(Linux)):
+- `Synchronization.c`: new `PlatformEventInitialize`/`PlatformEventWait` (+ `EVENT_TYPE`/
+  `KWAIT_REASON` enum shims in WdkTypes).
+- `Common.c`: new `PlatformProcessOpen`/`PlatformProcessTerminate`/`PlatformObjectOpenByPointer`
+  + `PsProcessType` global shim (POBJECT_TYPE*, like ExEventObjectType).
+- `UserAccess.c`: new `PlatformProcessAttach`/`PlatformProcessDetach` (Ke{Un}StackAttachProcess);
+  `RtlInitUnicodeString`/`RtlCopyUnicodeString` added as inline WDK shims (byte-count field math).
+- `Attaching.c`: new `PlatformGetSystemRoutineAddress` (MmGetSystemRoutineAddress); the SEH
+  `__try/__except` guarded `#ifdef _WIN32`, Linux arm is an empty TODO stub (does NOT replicate
+  the nop-sled body — deliberately skeletal).
+Remaining 3 = the char-device layer (`driver/Driver.c`,`Ioctl.c`,`Loader.c`) — paused here for a
+design pass on the Linux char device (module_init/file_operations/unlocked_ioctl).
+
+**Update (2026-08-23): 32/33.** Two of the three "driver" TUs were NOT the rewrite — closed
+mechanically: `Loader.c` (`DbgPrint` → existing `PlatformDbgPrint`) and `Ioctl.c`
+(`IoGetCurrentIrpStackLocation`/`IoCompleteRequest` → existing `PlatformIo*` wrappers; wired
+`PlatformIo.h` into hyperkd's pch and `PlatformIo.c` into hyperkd.vcxproj+filters). The IOCTL
+dispatch *logic* was already fine — only the two IRP accessors were unwrapped.
+**Only `Driver.c` (DriverEntry) is the real char-device design piece:** `_DRIVER_OBJECT` is an
+opaque forward-decl on Linux (WdkTypes.h:374, no body), and DriverEntry builds the WDM
+device/IRP_MJ dispatch table + symbolic link + `SeSinglePrivilegeCheck` — no Linux equivalent.
+That becomes module_init/exit + alloc_chrdev_region/cdev_add + a file_operations whose
+.unlocked_ioctl calls the (now-compiling) IOCTL dispatch. Paused here for that design.
+
+**Update (2026-08-23): hyperkd compile-complete on Linux (33/33 via file swap).** Rather than
+port the WDM DriverEntry, `Driver.c` gets the established whole-file swap (like
+ZydisKernel-linux.c): new `hyperkd/code/driver/Driver-linux.c` is an EMPTY skeleton
+(`#include "pch.h"` + a TODO header naming the real char-device impl: module_init/exit,
+alloc_chrdev_region/cdev_add, file_operations.unlocked_ioctl → the IOCTL dispatch,
+capable(CAP_SYS_*) for the SE_DEBUG_PRIVILEGE check). Windows keeps compiling Driver.c
+unchanged (still in hyperkd.vcxproj); Driver-linux.c is Kbuild-only. So every hyperkd TU now
+compiles clean on Linux. The real char device is deferred but isolated to that one file.
+Next: promote hyperkd into the Kbuild (uncomment the 33 objs, Driver-linux.o for Driver.o) and
+resolve whatever cross-module link references surface.
+
 ### zydis library — ACTIVE in Kbuild (2026-08-21)
 
 Brought up the whole disassembler engine so hyperhv's `ZydisGetVersion`/`ZydisDecoder*`/
@@ -1548,6 +1591,39 @@ known-benign objtool naked-return (asm stubs) + `-fcommon` COMMON-symbol modpost
 the 8 assembly files are empty `ret` stubs, etc.). The module builds and would load, but the
 hypervisor does nothing real yet. NEXT fronts (per the 5-step roadmap in memory): hyperkd (the
 driver/IOCTL char device), then real assembly bodies, then the SEH→extable + WDK-stub bodies.
+
+### 🎉 hyperkd PROMOTED — the whole module links into HyperDbg.ko (2026-08-24)
+
+Uncommented all 33 hyperkd C objects (`Driver-linux.o` for `Driver.o`). Promoting it surfaced
+the cross-module link references, resolved four ways — module now `make`-clean, `HyperDbg.ko`
+~13 MB, zero undefined non-kernel symbols:
+
+1. **`KeGetCurrentProcessorNumberEx` in `script-eval/Functions.c`** (3 sites) → existing
+   `PlatformCpuGetCurrentProcessorNumber()` wrapper. Pure swap (Windows arm of the wrapper
+   forwards to `KeGetCurrentProcessorNumberEx(NULL)`, so Windows-identical).
+2. **hypertrace (LBR / Intel PT) — DEFERRED, not dropped.** 13 exported entry points are
+   referenced by active TUs (hyperkd Kd/Ioctl/Loader, hyperhv HyperEvade, script-eval
+   Functions). New `hypertrace/code/api/TraceApi-linux.c` defines exactly those as no-op
+   stubs (return FALSE / zero out-params). It gets `hypertrace-roots` automatically (the
+   Kbuild foreach is driven off files-on-disk), so `#include "pch.h"` resolves the packet
+   struct types. **This is real future work** — Intel LBR + Intel PT are cross-platform CPU
+   features (unlike Windows-only hyperevade). Its MSR programming already has PlatformCpu/
+   PlatformDpc wrappers; the genuinely new Linux piece is Intel PT's ToPA output buffers
+   (contiguous DMA memory + mapping into the target process). LBR is the natural first
+   milestone. ~4700 lines across lbr/Lbr.c, pt/Pt.c, api/*.
+3. **`PsGetProcessSectionBaseAddress`** (Common.c PROCESS_KILL_METHOD_3) → new
+   `PlatformProcessGetSectionBaseAddress` wrapper (Windows arm real; Linux arm returns NULL +
+   TODO(Linux): mm->start_code). Mirrors the existing `PlatformProcessGetImageFileName`.
+4. **`AsmDebuggerCustomCodeHandler` / `AsmDebuggerConditionCodeHandler`** (hyperkd assembly)
+   → new `AsmDebugger-linux.S` GAS stub, all 3 symbols of `AsmDebugger.asm` as bare-`ret`
+   placeholders (+ `AsmDebuggerSpinOnThread`). Matches the 8 hyperhv Asm*-linux.S stubs.
+
+The `g_*` COMMON-symbol modpost lines are benign (`-fcommon`, expected). **Compile/link-complete
+for the whole kernel module — NOT runtime.** Every WDK-heavy path across hyperhv/hyperkd is still
+a `TODO(Linux)` stub (SEH, MmCopyMemory, char device in `Driver-linux.c`, empty asm bodies,
+hypertrace). Deferred subsystems out of the build: hyperevade (Windows-only, dropped), hyperperf
++ hypertrace (deferred, portable future work). NEXT: the Linux char device (module_init/exit +
+alloc_chrdev_region/cdev_add + file_operations.unlocked_ioctl → IOCTL dispatch) in Driver-linux.c.
 
 ---
 

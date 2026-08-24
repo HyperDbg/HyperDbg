@@ -112,6 +112,14 @@ typedef WCHAR * PWSTR;
 typedef WCHAR * PWCH;
 typedef BYTE *  PBYTE;
 typedef ULONG_PTR DWORD_PTR;
+typedef ULONG_PTR UINT_PTR;
+
+//
+// Memory Descriptor List (ntddk MDL). hypertrace/hyperhv pass PMDL opaquely to
+// the Mm* mapping helpers; Linux has no MDL, so this is an opaque forward-decl
+// (its body is never dereferenced by the ported code).
+//
+typedef struct _MDL MDL, *PMDL;
 
 //
 // Processor mode discriminator (ntdef.h MODE). Passed to the object/handle
@@ -137,6 +145,25 @@ typedef enum _POOL_TYPE
     PagedPoolCacheAligned    = 5,
     NonPagedPoolNx           = 512
 } POOL_TYPE;
+
+//
+// Event type (ntdef.h EVENT_TYPE) passed to KeInitializeEvent: auto-reset
+// (SynchronizationEvent) vs manual-reset (NotificationEvent). Values match the WDK.
+//
+typedef enum _EVENT_TYPE
+{
+    NotificationEvent    = 0,
+    SynchronizationEvent = 1
+} EVENT_TYPE;
+
+//
+// Wait reason (ntddk KWAIT_REASON) passed to KeWaitForSingleObject. Only
+// Executive is ever named; the WDK enum's remaining reasons are unused here.
+//
+typedef enum _KWAIT_REASON
+{
+    Executive = 0
+} KWAIT_REASON;
 
 //////////////////////////////////////////////////
 //                Status codes                  //
@@ -261,6 +288,39 @@ typedef struct _UNICODE_STRING
     USHORT  MaximumLength;
     WCHAR * Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
+
+//
+// Rtl UNICODE_STRING helpers. On Windows the WDK provides these; on Linux they
+// are the same well-defined field arithmetic (Length/MaximumLength are byte
+// counts, Buffer is UTF-16 with -fshort-wchar), so a small inline is faithful.
+//
+static inline VOID
+RtlInitUnicodeString(PUNICODE_STRING DestinationString, const WCHAR * SourceString)
+{
+    USHORT Chars = 0;
+
+    if (SourceString != NULL)
+        while (SourceString[Chars] != 0)
+            Chars++;
+
+    DestinationString->Length        = (USHORT)(Chars * sizeof(WCHAR));
+    DestinationString->MaximumLength  = (USHORT)((Chars + 1) * sizeof(WCHAR));
+    DestinationString->Buffer         = (WCHAR *)SourceString;
+}
+
+static inline VOID
+RtlCopyUnicodeString(PUNICODE_STRING DestinationString, PUNICODE_STRING SourceString)
+{
+    USHORT CopyLength = SourceString->Length;
+
+    if (CopyLength > DestinationString->MaximumLength)
+        CopyLength = DestinationString->MaximumLength;
+
+    if (CopyLength != 0 && SourceString->Buffer != NULL && DestinationString->Buffer != NULL)
+        memcpy(DestinationString->Buffer, SourceString->Buffer, CopyLength);
+
+    DestinationString->Length = CopyLength;
+}
 
 //
 // 32-bit views of the same structures, used when the debugger walks a WoW64

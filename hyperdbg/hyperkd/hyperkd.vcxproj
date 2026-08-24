@@ -124,6 +124,7 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformProcess.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformStr.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIo.c" />
     <ClCompile Include="..\script-eval\code\Functions.c" />
     <ClCompile Include="..\script-eval\code\Keywords.c" />
     <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
@@ -180,6 +181,7 @@
     <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformProcess.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformStr.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIo.h" />
     <ClInclude Include="header\assembly\Assembly.h" />
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Synchronization.h" />

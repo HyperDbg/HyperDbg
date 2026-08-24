@@ -1842,7 +1842,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     // Get the current stack location of the IRP to access the parameters of the IOCTL request
     //
-    IrpStack = IoGetCurrentIrpStackLocation(Irp);
+    IrpStack = PlatformIoGetCurrentIrpStackLocation(Irp);
 
     //
     // Get the IOCTL code from the parameters
@@ -1856,7 +1856,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     {
         Irp->IoStatus.Status      = STATUS_SUCCESS;
         Irp->IoStatus.Information = 0;
-        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+        PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
 
         return STATUS_SUCCESS;
     }
@@ -1894,7 +1894,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         {
             Irp->IoStatus.Information = 0;
         }
-        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+        PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
     }
 
     return Status;

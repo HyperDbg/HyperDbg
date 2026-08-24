@@ -118,3 +118,6 @@ PlatformMemAllocateVirtualMemory(HANDLE    ProcessHandle,
 
 NTSTATUS
 PlatformMemFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType);
+
+NTSTATUS
+PlatformMemUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress);

@@ -46,7 +46,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
 
     if (NT_SUCCESS(Status))
     {
-        Status = ObOpenObjectByPointer(EProcess, 0, NULL, 0, 0, KernelMode, &ProcessHandle);
+        Status = PlatformObjectOpenByPointer(EProcess, 0, NULL, 0, 0, KernelMode, &ProcessHandle);
 
         if (!NT_SUCCESS(Status))
         {
@@ -187,7 +187,7 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
 
     if (NT_SUCCESS(Status))
     {
-        Status = ObOpenObjectByPointer(EProcess, 0, NULL, 0, 0, KernelMode, &ProcessHandle);
+        Status = PlatformObjectOpenByPointer(EProcess, 0, NULL, 0, 0, KernelMode, &ProcessHandle);
 
         if (!NT_SUCCESS(Status))
         {
@@ -364,13 +364,13 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
         return FALSE;
     }
 
-    KeStackAttachProcess(Proc, &State);
+    PlatformProcessAttach(Proc, &State);
 
     Ldr = (PPEB_LDR_DATA)Peb->Ldr;
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -402,7 +402,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
 
         *ModulesCount = CountOfModules;
 
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return TRUE;
     }
     else
@@ -421,7 +421,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -443,7 +443,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
             // a module is just loaded and we didn't allocate enough
             // memory for it, so it's better to continue
             //
-            KeUnstackDetachProcess(&State);
+            PlatformProcessDetach(&State);
             return TRUE;
         }
 
@@ -468,7 +468,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
         CurrentSavedModules++;
     }
 
-    KeUnstackDetachProcess(&State);
+    PlatformProcessDetach(&State);
 
     return TRUE;
 }
@@ -513,13 +513,13 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
         return FALSE;
     }
 
-    KeStackAttachProcess(Proc, &State);
+    PlatformProcessAttach(Proc, &State);
 
     Ldr = (PPEB_LDR_DATA32)Peb->Ldr;
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -545,7 +545,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
 
         *ModulesCount = CountOfModules;
 
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return TRUE;
     }
     else
@@ -564,7 +564,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -586,7 +586,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
             // a module is just loaded and we didn't allocate enough
             // memory for it, so it's better to continue
             //
-            KeUnstackDetachProcess(&State);
+            PlatformProcessDetach(&State);
             return TRUE;
         }
 
@@ -611,7 +611,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
         CurrentSavedModules++;
     }
 
-    KeUnstackDetachProcess(&State);
+    PlatformProcessDetach(&State);
 
     return TRUE;
 }
@@ -645,13 +645,13 @@ UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
         return FALSE;
     }
 
-    KeStackAttachProcess(Proc, &State);
+    PlatformProcessAttach(Proc, &State);
 
     Ldr = (PPEB_LDR_DATA32)Peb->Ldr;
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -693,7 +693,7 @@ UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
             ModulePath.Buffer);
     }
 
-    KeUnstackDetachProcess(&State);
+    PlatformProcessDetach(&State);
 
     return TRUE;
 }

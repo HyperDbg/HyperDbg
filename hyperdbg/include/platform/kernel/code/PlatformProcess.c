@@ -13,6 +13,14 @@
 
 #if defined(__linux__)
 #    include "../header/PlatformProcess.h"
+
+//
+// Backing token for the NT global PsProcessType declared in PlatformProcess.h —
+// never inspected, it only has to be a dereferenceable address.
+//
+static POBJECT_TYPE g_LinuxProcessObjectType = NULL;
+POBJECT_TYPE *      PsProcessType            = &g_LinuxProcessObjectType;
+
 #endif // defined(__linux__)
 
 /**
@@ -200,6 +208,23 @@ PlatformProcessGetImageFileName(PEPROCESS Process)
 }
 
 /**
+ * @brief Base address of a process's main executable image.
+ *        Windows: PsGetProcessSectionBaseAddress().
+ *        Linux: NULL — callers must tolerate "no image base yet".
+ * TODO(Linux): mm->start_code / the first VMA of the task_struct backing Process.
+ */
+PVOID
+PlatformProcessGetSectionBaseAddress(PEPROCESS Process)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return PsGetProcessSectionBaseAddress(Process);
+#elif defined(__linux__)
+    (void)Process;
+    return NULL;
+#endif
+}
+
+/**
  * @brief Pin the current thread to one processor. Windows:
  *        KeSetSystemAffinityThread(). Linux: no-op stub.
  * TODO(Linux): set_cpus_allowed_ptr() and remember the old mask.
@@ -240,5 +265,171 @@ PlatformProcessGetCurrentProcessHandle(VOID)
     return NtCurrentProcess();
 #elif defined(__linux__)
     return (HANDLE)(LONG_PTR)-1;
+#endif
+}
+
+/**
+ * @brief Open a handle to a process by its CLIENT_ID. Windows: ZwOpenProcess().
+ *        Linux: fail-closed stub.
+ * TODO(Linux): resolve the pid and hand back a Linux handle shim.
+ */
+NTSTATUS
+PlatformProcessOpen(PHANDLE            ProcessHandle,
+                    ACCESS_MASK        DesiredAccess,
+                    POBJECT_ATTRIBUTES ObjectAttributes,
+                    PCLIENT_ID         ClientId)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return ZwOpenProcess(ProcessHandle, DesiredAccess, ObjectAttributes, ClientId);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(DesiredAccess);
+    UNREFERENCED_PARAMETER(ObjectAttributes);
+    UNREFERENCED_PARAMETER(ClientId);
+
+    if (ProcessHandle != NULL)
+        *ProcessHandle = NULL;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux)
+#endif
+}
+
+/**
+ * @brief Terminate a process by handle. Windows: ZwTerminateProcess().
+ *        Linux: fail-closed stub.
+ * TODO(Linux): send SIGKILL to the task backing ProcessHandle.
+ */
+NTSTATUS
+PlatformProcessTerminate(HANDLE ProcessHandle, NTSTATUS ExitStatus)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return ZwTerminateProcess(ProcessHandle, ExitStatus);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(ProcessHandle);
+    UNREFERENCED_PARAMETER(ExitStatus);
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux)
+#endif
+}
+
+/**
+ * @brief Open a handle to a kernel object given a pointer to it. Windows:
+ *        ObOpenObjectByPointer(). Linux: fail-closed stub.
+ * TODO(Linux): map the object pointer to a Linux handle shim.
+ */
+NTSTATUS
+PlatformObjectOpenByPointer(PVOID           Object,
+                            ULONG           HandleAttributes,
+                            PACCESS_STATE   PassedAccessState,
+                            ACCESS_MASK     DesiredAccess,
+                            POBJECT_TYPE    ObjectType,
+                            KPROCESSOR_MODE AccessMode,
+                            PHANDLE         Handle)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return ObOpenObjectByPointer(Object,
+                                 HandleAttributes,
+                                 PassedAccessState,
+                                 DesiredAccess,
+                                 ObjectType,
+                                 AccessMode,
+                                 Handle);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(Object);
+    UNREFERENCED_PARAMETER(HandleAttributes);
+    UNREFERENCED_PARAMETER(PassedAccessState);
+    UNREFERENCED_PARAMETER(DesiredAccess);
+    UNREFERENCED_PARAMETER(ObjectType);
+    UNREFERENCED_PARAMETER(AccessMode);
+
+    if (Handle != NULL)
+        *Handle = NULL;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux)
+#endif
+}
+
+/**
+ * @brief Attach the current thread to a target process' address space. Windows:
+ *        KeStackAttachProcess(). Linux: no-op stub.
+ * TODO(Linux): kthread_use_mm() on the mm backing Process, saving state.
+ */
+VOID
+PlatformProcessAttach(PEPROCESS Process, PKAPC_STATE ApcState)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    KeStackAttachProcess(Process, ApcState);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(Process);
+    UNREFERENCED_PARAMETER(ApcState);
+#endif
+}
+
+/**
+ * @brief Detach from a process attached via PlatformProcessAttach. Windows:
+ *        KeUnstackDetachProcess(). Linux: no-op stub.
+ * TODO(Linux): kthread_unuse_mm() restoring the saved state.
+ */
+VOID
+PlatformProcessDetach(PKAPC_STATE ApcState)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    KeUnstackDetachProcess(ApcState);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(ApcState);
+#endif
+}
+
+/**
+ * @brief Resolve an exported kernel routine by name. Windows:
+ *        MmGetSystemRoutineAddress(). Linux: fail-closed stub (returns NULL).
+ * TODO(Linux): kallsyms_lookup_name()/an allowlist for the handful of routines
+ * the attach path late-binds.
+ */
+PVOID
+PlatformGetSystemRoutineAddress(PUNICODE_STRING SystemRoutineName)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmGetSystemRoutineAddress(SystemRoutineName);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(SystemRoutineName);
+
+    return NULL; // TODO(Linux)
+#endif
+}
+
+/**
+ * @brief Build an access state for an object-open. Windows: SeCreateAccessState().
+ *        Linux: fail-closed stub.
+ * TODO(Linux): no object-manager access model — the caller bails on failure.
+ */
+NTSTATUS
+PlatformSeCreateAccessState(PACCESS_STATE    AccessState,
+                            PVOID            AuxData,
+                            ACCESS_MASK      Access,
+                            PGENERIC_MAPPING GenericMapping)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return SeCreateAccessState(AccessState, AuxData, Access, GenericMapping);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(AccessState);
+    UNREFERENCED_PARAMETER(AuxData);
+    UNREFERENCED_PARAMETER(Access);
+    UNREFERENCED_PARAMETER(GenericMapping);
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux)
+#endif
+}
+
+/**
+ * @brief Release an access state from PlatformSeCreateAccessState. Windows:
+ *        SeDeleteAccessState(). Linux: no-op stub.
+ */
+VOID
+PlatformSeDeleteAccessState(PACCESS_STATE AccessState)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    SeDeleteAccessState(AccessState);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(AccessState);
 #endif
 }

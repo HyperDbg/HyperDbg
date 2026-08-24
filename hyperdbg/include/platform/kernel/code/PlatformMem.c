@@ -415,3 +415,21 @@ PlatformMemFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T 
     return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_munmap
 #endif
 }
+
+/**
+ * @brief Unmap a section previously mapped into a process. Windows:
+ *        MmUnmapViewOfSection(). Linux: fail-closed stub.
+ * TODO(Linux): vm_munmap() in the target process' mm.
+ */
+NTSTATUS
+PlatformMemUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmUnmapViewOfSection(Process, BaseAddress);
+#elif defined(__linux__)
+    (void)Process;
+    (void)BaseAddress;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux)
+#endif
+}

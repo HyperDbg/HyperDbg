@@ -86,6 +86,80 @@ PlatformEventSet(PKEVENT Event, KPRIORITY Increment, BOOLEAN Wait)
 }
 
 /**
+ * @brief Initialize a kernel event object
+ *
+ * @param Event Pointer to the KEVENT to initialize
+ * @param Type Event type (SynchronizationEvent = auto-reset, NotificationEvent = manual-reset)
+ * @param State Initial signaled state
+ * @return VOID
+ */
+VOID
+PlatformEventInitialize(PRKEVENT Event, EVENT_TYPE Type, BOOLEAN State)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    KeInitializeEvent(Event, Type, State);
+
+#elif defined(__linux__)
+
+    //
+    // STUB. TODO(Linux): initialize an eventfd/completion backing the KEVENT
+    // (Type selects auto- vs manual-reset semantics).
+    //
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(Type);
+    UNREFERENCED_PARAMETER(State);
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Wait until a kernel event object is signaled
+ *
+ * @param Object Pointer to the dispatcher object (KEVENT) to wait on
+ * @param WaitReason Reason for the wait (Executive)
+ * @param WaitMode Processor mode to wait in (KernelMode or UserMode)
+ * @param Alertable Whether the wait can be interrupted by an alert/APC
+ * @param Timeout Optional timeout; NULL waits indefinitely
+ * @return NTSTATUS STATUS_SUCCESS when the object is signaled
+ */
+NTSTATUS
+PlatformEventWait(PVOID           Object,
+                  KWAIT_REASON    WaitReason,
+                  KPROCESSOR_MODE WaitMode,
+                  BOOLEAN         Alertable,
+                  PLARGE_INTEGER  Timeout)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    return KeWaitForSingleObject(Object, WaitReason, WaitMode, Alertable, Timeout);
+
+#elif defined(__linux__)
+
+    //
+    // STUB. TODO(Linux): wait on the eventfd/completion backing the KEVENT.
+    // Returns immediately as signaled; no caller inspects the status today.
+    //
+    UNREFERENCED_PARAMETER(Object);
+    UNREFERENCED_PARAMETER(WaitReason);
+    UNREFERENCED_PARAMETER(WaitMode);
+    UNREFERENCED_PARAMETER(Alertable);
+    UNREFERENCED_PARAMETER(Timeout);
+
+    return STATUS_SUCCESS;
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
  * @brief Obtain a pointer to a kernel object by its user-mode handle and increment its reference count
  *
  * @param Handle User-mode handle referencing the kernel object

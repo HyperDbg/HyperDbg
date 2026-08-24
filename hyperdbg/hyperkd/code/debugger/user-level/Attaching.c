@@ -29,7 +29,7 @@ AttachingInitialize()
     if (g_PsGetProcessPeb == NULL)
     {
         RtlInitUnicodeString(&FunctionName, L"PsGetProcessPeb");
-        g_PsGetProcessPeb = (PsGetProcessPeb)MmGetSystemRoutineAddress(&FunctionName);
+        g_PsGetProcessPeb = (PsGetProcessPeb)PlatformGetSystemRoutineAddress(&FunctionName);
 
         if (g_PsGetProcessPeb == NULL)
         {
@@ -48,7 +48,7 @@ AttachingInitialize()
     if (g_PsGetProcessWow64Process == NULL)
     {
         RtlInitUnicodeString(&FunctionName, L"PsGetProcessWow64Process");
-        g_PsGetProcessWow64Process = (PsGetProcessWow64Process)MmGetSystemRoutineAddress(&FunctionName);
+        g_PsGetProcessWow64Process = (PsGetProcessWow64Process)PlatformGetSystemRoutineAddress(&FunctionName);
 
         if (g_PsGetProcessWow64Process == NULL)
         {
@@ -70,7 +70,7 @@ AttachingInitialize()
 
         RtlInitUnicodeString(&RoutineName, L"ZwQueryInformationProcess");
 
-        g_ZwQueryInformationProcess = (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
+        g_ZwQueryInformationProcess = (ZwQueryInformationProcess)PlatformGetSystemRoutineAddress(&RoutineName);
 
         if (g_ZwQueryInformationProcess == NULL)
         {
@@ -572,6 +572,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
         return FALSE;
     }
 
+#ifdef _WIN32
     __try
     {
         KeStackAttachProcess(SourceProcess, &State);
@@ -610,6 +611,14 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
 
         return FALSE;
     }
+#else
+    //
+    // TODO(Linux): write the NOP-sled/cpuid loop into the target process'
+    // address space (needs process attach + fault-safe writes). Stubbed.
+    //
+    UNREFERENCED_PARAMETER(ReservedBuffAddress);
+    UNREFERENCED_PARAMETER(State);
+#endif
 
     return TRUE;
 }

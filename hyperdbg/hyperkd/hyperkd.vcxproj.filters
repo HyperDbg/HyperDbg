@@ -273,6 +273,9 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformDpc.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIo.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
     <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c">
       <Filter>code\platform</Filter>
     </ClCompile>
@@ -432,6 +435,9 @@
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformDpc.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIo.h">
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h">

@@ -94,6 +94,7 @@
 #include "platform/kernel/header/PlatformDpc.h"
 #include "platform/kernel/header/PlatformEvent.h"
 #include "platform/kernel/header/PlatformTime.h"
+#include "platform/kernel/header/PlatformIo.h"
 
 //
 // Optimization algorithms
