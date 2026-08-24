@@ -1677,3 +1677,15 @@ did not compile (only hyperlog/hyperkd did). Added `PlatformTime.c`/`.h` to
 `hyperhv.vcxproj`(+filters). Checked hyperhv references no other Platform* wrapper whose TU
 is missing (PlatformIo/Spinlock/Str unused), and the linker reported exactly 1 unresolved,
 so this closes it. Linux unaffected (PlatformTime.o already active in the Kbuild).
+
+### Windows build fix — MmUnmapViewOfSection C4013 (2026-08-24)
+The port added `PlatformMemUnmapViewOfSection` to the shared `PlatformMem.c` (wraps the
+Common.c PROCESS_KILL_METHOD_3 unmap). Unlike `PsGetProcessSectionBaseAddress` /
+`Zw*ViewOfSection` (all in `<ntifs.h>`), **`MmUnmapViewOfSection` is a semi-documented
+ntoskrnl export the WDK headers do NOT declare** — hyperkd declares it privately in
+`hyperkd/header/common/Common.h`. But `PlatformMem.c` compiles into every kernel project, and
+hyperlog/hyperperf/hypertrace don't see that header → C4013 (+/WX) on all three. Fix: a
+Windows-guarded (`#if _WIN32`) manual `NTSTATUS MmUnmapViewOfSection(PEPROCESS, PVOID);`
+declaration at the top of `PlatformMem.c`, matching Common.h verbatim. Redundant-but-compatible
+where both headers are seen (hyperkd) — legal C. Linux `.ko` unaffected (block is Windows-only;
+PlatformMem.o re-verified `CC` clean).

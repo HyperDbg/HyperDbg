@@ -17,6 +17,18 @@
 #    include "../header/PlatformMem.h"
 #endif // defined(__linux__)
 
+#if defined(_WIN32) || defined(_WIN64)
+//
+// MmUnmapViewOfSection is a semi-documented ntoskrnl export that the WDK headers
+// (ntddk.h/ntifs.h) do not declare. hyperkd declares it privately in its
+// Common.h, but PlatformMemUnmapViewOfSection below is compiled into every kernel
+// project (hyperlog/hyperperf/hypertrace/...), which do not see that header — so
+// declare it here too, matching hyperkd/header/common/Common.h.
+//
+NTSTATUS
+MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress);
+#endif // defined(_WIN32) || defined(_WIN64)
+
 /////////////////////////////////////////////////
 /// ...  New Unified API ...
 /////////////////////////////////////////////////
