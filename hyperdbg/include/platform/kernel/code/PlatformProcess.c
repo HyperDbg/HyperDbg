@@ -23,6 +23,29 @@ POBJECT_TYPE *      PsProcessType            = &g_LinuxProcessObjectType;
 
 #endif // defined(__linux__)
 
+#if defined(_WIN32) || defined(_WIN64)
+//
+// Semi-documented ntoskrnl exports the WDK headers (ntddk.h/ntifs.h) do not
+// declare. hyperkd declares them privately in its Common.h, but the wrappers
+// below are compiled into every kernel project that pulls PlatformProcess.c
+// (hyperhv included), which do not see that header — so declare them here too,
+// matching hyperkd/header/common/Common.h.
+//
+PVOID
+PsGetProcessSectionBaseAddress(PEPROCESS Process);
+
+NTKERNELAPI NTSTATUS NTAPI
+SeCreateAccessState(
+    PACCESS_STATE    AccessState,
+    PVOID            AuxData,
+    ACCESS_MASK      DesiredAccess,
+    PGENERIC_MAPPING Mapping);
+
+NTKERNELAPI VOID NTAPI
+SeDeleteAccessState(
+    PACCESS_STATE AccessState);
+#endif // defined(_WIN32) || defined(_WIN64)
+
 /**
  * @brief Get the current thread ID
  *

@@ -1689,3 +1689,15 @@ Windows-guarded (`#if _WIN32`) manual `NTSTATUS MmUnmapViewOfSection(PEPROCESS, 
 declaration at the top of `PlatformMem.c`, matching Common.h verbatim. Redundant-but-compatible
 where both headers are seen (hyperkd) — legal C. Linux `.ko` unaffected (block is Windows-only;
 PlatformMem.o re-verified `CC` clean).
+
+**Follow-up (same day) — PlatformProcess.c, same class:** with hyperlog/hyperperf/hypertrace
+building, the build reached **hyperhv**, which also compiles `PlatformProcess.c` and hit three
+more Common.h-only ntoskrnl externs used by this session's new wrappers: `PsGetProcessSectionBaseAddress`
+(`PlatformProcessGetSectionBaseAddress`), `SeCreateAccessState` / `SeDeleteAccessState`
+(`PlatformSeCreate/DeleteAccessState`). Same fix: a `#if _WIN32` block at the top of
+`PlatformProcess.c` re-declaring the three verbatim from hyperkd/Common.h. Why not just
+`#include` hyperkd's Common.h: both hyperhv and hyperkd have a `common/Common.h`, and hyperhv's
+`/I` resolves `"common/Common.h"` to *its own* (no Ps/Se decls) — plus hyperhv's include dirs
+don't contain `hyperkd/header` at all, and the header drags in hyperkd-private KPROCESS structs
+(→ `_NT_KPROCESS` clash) and unported Linux types. So the shared platform TU declares them
+locally, guarded. Linux `.ko` re-verified `make` exit 0.
