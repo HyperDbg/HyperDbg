@@ -29,7 +29,7 @@ PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width)
     //
     // Restrict Offset to CAM address space; restrict BDF to our internal limits
     //
-    if (Offset > CAM_CONFIG_SPACE_LENGTH ||
+    if (Offset >= CAM_CONFIG_SPACE_LENGTH ||
         Bus >= BUS_MAX_NUM ||
         Device >= DEVICE_MAX_NUM ||
         Function >= FUNCTION_MAX_NUM)
@@ -79,7 +79,7 @@ PciWriteCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width, QWOR
     //
     // Restrict Offset to CAM address space; restrict BDF to our internal limits
     //
-    if (Offset > CAM_CONFIG_SPACE_LENGTH ||
+    if (Offset >= CAM_CONFIG_SPACE_LENGTH ||
         Bus >= BUS_MAX_NUM ||
         Device >= DEVICE_MAX_NUM ||
         Function >= FUNCTION_MAX_NUM)
