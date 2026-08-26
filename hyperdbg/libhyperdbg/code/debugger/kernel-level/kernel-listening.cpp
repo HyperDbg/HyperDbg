@@ -1453,7 +1453,7 @@ StartAgain:
                         // Replace non-printable characters with "."
                         for (UINT8 j = 0; j < 16; j++)
                         {
-                            CHAR c = (CHAR) * (cs + j);
+                            CHAR c = (CHAR) * (((BYTE *)cs) + j);
                             if (c >= 32 && c <= 126)
                             {
                                 ShowMessages("%c", c);
