@@ -262,6 +262,16 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
     MemoryMapperReadMemorySafe((UINT64)VirtualTarget, &HookedPage->FakePageContents, PAGE_SIZE);
 
     //
+    // Save the original byte of the first breakpoint
+    //
+    // It has to be read after the page contents are copied and before the 0xcc is
+    // written over it. EptHookUnHookSingleAddressHiddenBreakpoint() restores this
+    // entry like any other one, so leaving it at the zero the pool manager hands
+    // out would write a 0x00 over the target instruction instead of restoring it
+    //
+    HookedPage->PreviousBytesOnBreakpointAddresses[0] = *(BYTE *)TargetAddressInFakePageContent;
+
+    //
     // we set the breakpoint on the fake page
     //
     *(BYTE *)TargetAddressInFakePageContent = 0xcc;
