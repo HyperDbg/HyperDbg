@@ -218,6 +218,11 @@ typedef enum _KWAIT_REASON
 #    define RTL_NUMBER_OF(A) (sizeof(A) / sizeof((A)[0]))
 
 //
+// The winnt.h spelling of the same element count (it is RTL_NUMBER_OF_V2 there)
+//
+#    define ARRAYSIZE(A) RTL_NUMBER_OF(A)
+
+//
 // Element count of an ARRAY MEMBER of a struct type (ntdef.h)
 //
 #    define RTL_NUMBER_OF_FIELD(type, field) \
