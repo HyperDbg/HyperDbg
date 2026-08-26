@@ -243,7 +243,7 @@ VmxInitialize()
     // As we want to support more than 32 processor (64 logical-core)
     // we let windows execute our routine for us
     //
-    KeGenericCallDpc(DpcRoutineInitializeGuest, 0x0);
+    PlatformDpcGenericCall(DpcRoutineInitializeGuest, 0x0);
 
     //
     // Check if everything is ok then return true otherwise false
@@ -439,6 +439,7 @@ VmxCheckIsOnVmxRoot()
 {
     UINT64 VmcsLink = 0;
 
+#ifdef _WIN32
     __try
     {
         if (!VmxVmread64P(VMCS_GUEST_VMCS_LINK_POINTER, &VmcsLink))
@@ -452,6 +453,20 @@ VmxCheckIsOnVmxRoot()
     __except (1)
     {
     }
+#else
+    //
+    // TODO(Linux): the __try guards VMREAD against faulting (#UD) when the CPU
+    // is not in VMX-root. Port the SEH guard to an _ASM_EXTABLE fixup around the
+    // VMREAD. Unguarded for now (safe while the module is not yet virtualizing).
+    //
+    if (!VmxVmread64P(VMCS_GUEST_VMCS_LINK_POINTER, &VmcsLink))
+    {
+        if (VmcsLink != 0)
+        {
+            return TRUE;
+        }
+    }
+#endif
 
     return FALSE;
 }
@@ -576,8 +591,8 @@ VmxTerminate()
         //
         // Free the destination memory
         //
-        MmFreeContiguousMemory((PVOID)VCpu->VmxonRegionVirtualAddress);
-        MmFreeContiguousMemory((PVOID)VCpu->VmcsRegionVirtualAddress);
+        PlatformMemFreeContiguousMemory((PVOID)VCpu->VmxonRegionVirtualAddress);
+        PlatformMemFreeContiguousMemory((PVOID)VCpu->VmcsRegionVirtualAddress);
         PlatformMemFreePool((PVOID)VCpu->VmmStack);
         PlatformMemFreePool((PVOID)VCpu->MsrBitmapVirtualAddress);
         PlatformMemFreePool((PVOID)VCpu->IoBitmapVirtualAddressA);
@@ -1137,7 +1152,7 @@ VmxPerformTermination()
     //
     // Broadcast to terminate Vmx
     //
-    KeGenericCallDpc(DpcRoutineTerminateGuest, 0x0);
+    PlatformDpcGenericCall(DpcRoutineTerminateGuest, 0x0);
 
     //
     // ****** De-allocatee global variables ******
@@ -1156,7 +1171,7 @@ VmxPerformTermination()
     {
         if (g_GuestState[i].EptPageTable != NULL)
         {
-            MmFreeContiguousMemory(g_GuestState[i].EptPageTable);
+            PlatformMemFreeContiguousMemory(g_GuestState[i].EptPageTable);
         }
 
         g_GuestState[i].EptPageTable = NULL;
@@ -1371,15 +1386,15 @@ VOID
 VmxCompatibleMicroSleep(UINT64 Us)
 {
     LARGE_INTEGER Start, End, Frequency;
-    KeQueryPerformanceCounter(&Frequency);
+    PlatformTimeQueryPerformanceCounter(&Frequency);
 
     LONGLONG Ticks = (Frequency.QuadPart / 1000000) * Us;
 
-    Start = KeQueryPerformanceCounter(NULL);
+    Start = PlatformTimeQueryPerformanceCounter(NULL);
 
     while (TRUE)
     {
-        End = KeQueryPerformanceCounter(NULL);
+        End = PlatformTimeQueryPerformanceCounter(NULL);
         if (End.QuadPart - Start.QuadPart > Ticks)
             break;
     }

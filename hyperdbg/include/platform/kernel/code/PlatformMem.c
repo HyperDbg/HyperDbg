@@ -17,6 +17,18 @@
 #    include "../header/PlatformMem.h"
 #endif // defined(__linux__)
 
+#if defined(_WIN32) || defined(_WIN64)
+//
+// MmUnmapViewOfSection is a semi-documented ntoskrnl export that the WDK headers
+// (ntddk.h/ntifs.h) do not declare. hyperkd declares it privately in its
+// Common.h, but PlatformMemUnmapViewOfSection below is compiled into every kernel
+// project (hyperlog/hyperperf/hypertrace/...), which do not see that header — so
+// declare it here too, matching hyperkd/header/common/Common.h.
+//
+NTSTATUS
+MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress);
+#endif // defined(_WIN32) || defined(_WIN64)
+
 /////////////////////////////////////////////////
 /// ...  New Unified API ...
 /////////////////////////////////////////////////
@@ -252,4 +264,184 @@ PlatformMemFreePool(PVOID BufferAddress)
     kfree(BufferAddress);
 #endif
     return NULL;
+}
+
+//
+// -------------------------------------------------------------------------
+// Cross-platform wrappers for the memory-manager / pool APIs the shared sources
+// use. Windows forwards to the WDK; the Linux arm is a placeholder stub for now.
+// The #ifdef lives INSIDE each wrapper so the call sites stay OS-agnostic.
+// TODO(Linux): replace each Linux arm with its real equivalent (ioremap,
+//              virt_to_phys, phys_to_virt, ...) as the callers are brought up.
+// -------------------------------------------------------------------------
+//
+
+PVOID
+PlatformMemMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, MEMORY_CACHING_TYPE CacheType)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmMapIoSpace(PhysicalAddress, NumberOfBytes, CacheType);
+#elif defined(__linux__)
+    return NULL; // TODO(Linux): ioremap()
+#endif
+}
+
+PVOID
+PlatformMemMapIoSpaceEx(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ULONG Protect)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmMapIoSpaceEx(PhysicalAddress, NumberOfBytes, Protect);
+#elif defined(__linux__)
+    return NULL; // TODO(Linux): ioremap_prot()
+#endif
+}
+
+VOID
+PlatformMemUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    MmUnmapIoSpace(BaseAddress, NumberOfBytes);
+#elif defined(__linux__)
+    // no-op // TODO(Linux): iounmap()
+#endif
+}
+
+PHYSICAL_ADDRESS
+PlatformMemGetPhysicalAddress(PVOID BaseAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmGetPhysicalAddress(BaseAddress);
+#elif defined(__linux__)
+    PHYSICAL_ADDRESS Pa;
+    Pa.QuadPart = 0;
+    return Pa; // TODO(Linux): virt_to_phys()
+#endif
+}
+
+PVOID
+PlatformMemGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmGetVirtualForPhysical(PhysicalAddress);
+#elif defined(__linux__)
+    return NULL; // TODO(Linux): phys_to_virt()
+#endif
+}
+
+PPHYSICAL_MEMORY_RANGE
+PlatformMemGetPhysicalMemoryRanges(VOID)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmGetPhysicalMemoryRanges();
+#elif defined(__linux__)
+    return NULL; // TODO(Linux): walk the memblock/e820 ranges
+#endif
+}
+
+PVOID
+PlatformMemAllocateMappingAddress(SIZE_T NumberOfBytes, ULONG PoolTag)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmAllocateMappingAddress(NumberOfBytes, PoolTag);
+#elif defined(__linux__)
+    return NULL; // TODO(Linux): reserve a kernel VA window
+#endif
+}
+
+VOID
+PlatformMemFreeMappingAddress(PVOID BaseAddress, ULONG PoolTag)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    MmFreeMappingAddress(BaseAddress, PoolTag);
+#elif defined(__linux__)
+    // no-op
+#endif
+}
+
+VOID
+PlatformMemFreeContiguousMemory(PVOID BaseAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    MmFreeContiguousMemory(BaseAddress);
+#elif defined(__linux__)
+    // no-op // TODO(Linux): pair with the contiguous allocator used by callers
+#endif
+}
+
+NTSTATUS
+PlatformMemCopyMemory(PVOID TargetAddress, MM_COPY_ADDRESS SourceAddress, SIZE_T NumberOfBytes, ULONG Flags, PSIZE_T NumberOfBytesTransferred)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmCopyMemory(TargetAddress, SourceAddress, NumberOfBytes, Flags, NumberOfBytesTransferred);
+#elif defined(__linux__)
+    if (NumberOfBytesTransferred != NULL)
+        *NumberOfBytesTransferred = 0;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux): copy_from_kernel_nofault (virtual) / memremap+copy (physical)
+#endif
+}
+
+VOID
+PlatformMemFreePoolUntagged(PVOID P)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    ExFreePool(P);
+#elif defined(__linux__)
+    // no-op // TODO(Linux): kfree(), paired with the matching allocation stub
+#endif
+}
+
+NTSTATUS
+PlatformMemAllocateVirtualMemory(HANDLE    ProcessHandle,
+                                 PVOID *   BaseAddress,
+                                 ULONG_PTR ZeroBits,
+                                 PSIZE_T   RegionSize,
+                                 ULONG     AllocationType,
+                                 ULONG     Protect)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return ZwAllocateVirtualMemory(ProcessHandle, BaseAddress, ZeroBits, RegionSize, AllocationType, Protect);
+#elif defined(__linux__)
+    (void)ProcessHandle;
+    (void)BaseAddress;
+    (void)ZeroBits;
+    (void)RegionSize;
+    (void)AllocationType;
+    (void)Protect;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_mmap into the target process' mm
+#endif
+}
+
+NTSTATUS
+PlatformMemFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return ZwFreeVirtualMemory(ProcessHandle, BaseAddress, RegionSize, FreeType);
+#elif defined(__linux__)
+    (void)ProcessHandle;
+    (void)BaseAddress;
+    (void)RegionSize;
+    (void)FreeType;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux): vm_munmap
+#endif
+}
+
+/**
+ * @brief Unmap a section previously mapped into a process. Windows:
+ *        MmUnmapViewOfSection(). Linux: fail-closed stub.
+ * TODO(Linux): vm_munmap() in the target process' mm.
+ */
+NTSTATUS
+PlatformMemUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return MmUnmapViewOfSection(Process, BaseAddress);
+#elif defined(__linux__)
+    (void)Process;
+    (void)BaseAddress;
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux)
+#endif
 }

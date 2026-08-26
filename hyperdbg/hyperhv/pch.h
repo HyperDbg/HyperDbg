@@ -71,6 +71,15 @@
 #include "platform/kernel/header/PlatformProcess.h"
 
 //
+// hyperhv now routes breakpoints and the performance counter through the
+// platform layer (PlatformDbgBreakPoint / PlatformTimeQueryPerformanceCounter),
+// so both headers are needed on both platforms. Their .c files are listed in
+// hyperhv.vcxproj (Windows) and the root Kbuild (Linux).
+//
+#include "platform/kernel/header/PlatformDbg.h"
+#include "platform/kernel/header/PlatformTime.h"
+
+//
 // VMM Callbacks
 //
 #include "SDK/modules/VMM.h"
@@ -125,7 +134,30 @@
 #include "vmm/vmx/Hv.h"
 #include "vmm/vmx/MsrHandlers.h"
 #include "vmm/vmx/ProtectedHv.h"
+//
+// IoHandler.h defines its 12 IoIn*/IoOut* leaf wrappers as plain `inline`
+// (not `static inline`). MSVC gives those COMDAT/external-with-folding linkage,
+// so the Windows build links fine. Linux is different: the kernel's `inline`
+// macro carries __attribute__((gnu_inline)), which makes a plain `inline`
+// definition emit an EXTERNAL symbol in every TU that includes the header ->
+// "multiple definition" at link once more than one hyperhv TU is in the module.
+//
+// Linux-only route (leaves the shared header untouched): for the span of this
+// one include, redefine the `inline` keyword-macro to `static inline` so each
+// TU gets an internal-linkage copy (no external symbol, no collision) — exactly
+// the linkage MSVC's folding produces. push/pop_macro restores the kernel's own
+// `inline` immediately after, so nothing else is affected. Windows compiles the
+// bare include below, unchanged.
+//
+#if defined(__linux__)
+#    pragma push_macro("inline")
+#    undef inline
+#    define inline static inline __maybe_unused
+#endif
 #include "vmm/vmx/IoHandler.h"
+#if defined(__linux__)
+#    pragma pop_macro("inline")
+#endif
 #include "vmm/vmx/VmxMechanisms.h"
 #include "hooks/Hooks.h"
 #include "hooks/ModeBasedExecHook.h"

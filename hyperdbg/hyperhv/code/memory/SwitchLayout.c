@@ -28,7 +28,7 @@ SwitchToProcessMemoryLayout(UINT32 ProcessId)
     PEPROCESS TargetEprocess;
     CR3_TYPE  CurrentProcessCr3 = {0};
 
-    if (PsLookupProcessByProcessId((HANDLE)ProcessId, &TargetEprocess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)ProcessId, &TargetEprocess) != STATUS_SUCCESS)
     {
         //
         // There was an error, probably the process id was not found

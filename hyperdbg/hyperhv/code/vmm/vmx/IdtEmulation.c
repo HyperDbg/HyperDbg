@@ -278,7 +278,7 @@ IdtEmulationhandleHostInterrupt(_Inout_ INTERRUPT_TRAP_FRAME * IntrTrapFrame)
                 IntrTrapFrame->rsp,
                 IntrTrapFrame->error,
                 IntrTrapFrame->vector);
-        DbgBreakPoint();
+        PlatformDbgBreakPoint();
 
         break;
     }

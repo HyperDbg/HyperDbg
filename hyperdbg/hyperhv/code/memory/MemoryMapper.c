@@ -573,10 +573,10 @@ PVOID
 MemoryMapperMapReservedPageRange(SIZE_T Size)
 {
     //
-    // The MmAllocateMappingAddress routine reserves a range of
+    // The PlatformMemAllocateMappingAddress routine reserves a range of
     // system virtual address space of the specified size.
     //
-    return MmAllocateMappingAddress(Size, POOLTAG);
+    return PlatformMemAllocateMappingAddress(Size, POOLTAG);
 }
 
 /**
@@ -590,7 +590,7 @@ _Use_decl_annotations_
 VOID
 MemoryMapperUnmapReservedPageRange(PVOID VirtualAddress)
 {
-    MmFreeMappingAddress(VirtualAddress, POOLTAG);
+    PlatformMemFreeMappingAddress(VirtualAddress, POOLTAG);
 }
 
 /**
@@ -1513,13 +1513,14 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
         // User needs another process memory
         //
 
-        if (PsLookupProcessByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
+        if (PlatformProcessLookupByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
         {
             //
             // if the process not found
             //
             return NULL64_ZERO;
         }
+#ifdef _WIN32
         __try
         {
             KeStackAttachProcess(SourceProcess, &State);
@@ -1546,14 +1547,25 @@ MemoryMapperReserveUsermodeAddressOnTargetProcess(UINT32 ProcessId, BOOLEAN Allo
             PlatformObjectDereference(SourceProcess);
             return NULL64_ZERO;
         }
+#else
+        //
+        // TODO(Linux): port the cross-process reserve. It needs a Linux stand-in
+        // for KeStackAttachProcess (switch mm / kthread_use_mm) plus an
+        // SEH -> _ASM_EXTABLE guard. Fail safely for now and release the process
+        // reference taken above.
+        //
+        (void)State;
+        PlatformObjectDereference(SourceProcess);
+        return NULL64_ZERO;
+#endif
     }
     else
     {
         //
         // Allocate in memory in target process
         //
-        Status = ZwAllocateVirtualMemory(
-            NtCurrentProcess(),
+        Status = PlatformMemAllocateVirtualMemory(
+            PlatformProcessGetCurrentProcessHandle(),
             &AllocPtr,
             (ULONG_PTR)NULL,
             &AllocSize,
@@ -1593,13 +1605,14 @@ MemoryMapperFreeMemoryOnTargetProcess(UINT32 ProcessId,
         // User needs another process memory
         //
 
-        if (PsLookupProcessByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
+        if (PlatformProcessLookupByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
         {
             //
             // if the process not found
             //
             return FALSE;
         }
+#ifdef _WIN32
         __try
         {
             KeStackAttachProcess(SourceProcess, &State);
@@ -1623,16 +1636,27 @@ MemoryMapperFreeMemoryOnTargetProcess(UINT32 ProcessId,
             PlatformObjectDereference(SourceProcess);
             return FALSE;
         }
+#else
+        //
+        // TODO(Linux): port the cross-process free — same as the reserve path,
+        // it needs a KeStackAttachProcess stand-in plus an SEH -> _ASM_EXTABLE
+        // guard. Fail safely for now and release the process reference above.
+        //
+        (void)State;
+        (void)AllocSize;
+        PlatformObjectDereference(SourceProcess);
+        return FALSE;
+#endif
     }
     else
     {
         //
         // Deallocate memory in target process
         //
-        Status = ZwFreeVirtualMemory(NtCurrentProcess(),
-                                     &BaseAddress,
-                                     &AllocSize,
-                                     MEM_RELEASE);
+        Status = PlatformMemFreeVirtualMemory(PlatformProcessGetCurrentProcessHandle(),
+                                              &BaseAddress,
+                                              &AllocSize,
+                                              MEM_RELEASE);
     }
 
     if (!NT_SUCCESS(Status))

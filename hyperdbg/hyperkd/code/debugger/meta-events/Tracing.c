@@ -119,7 +119,7 @@ TracingRegularStepInInstruction()
     //
     // Unset the trap flag on the next VM-exit
     //
-    if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
+    if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()), HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId())))
     {
         LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
                    "where the trap flag should be masked. Please ensure that you manually unset the trap flag");

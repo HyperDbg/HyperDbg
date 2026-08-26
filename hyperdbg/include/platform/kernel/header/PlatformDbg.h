@@ -21,3 +21,11 @@
 
 VOID
 PlatformDbgPrint(const CHAR * Format, ...);
+
+//
+// Break into the kernel debugger. Windows: DbgBreakPoint() (int 3 into the
+// attached KD). Linux: no-op — a real breakpoint would panic an undebugged
+// machine, and this sits inside the LogError() path. See PlatformDbg.c.
+//
+VOID
+PlatformDbgBreakPoint(VOID);

@@ -63,6 +63,7 @@
 BOOLEAN
 ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName, _In_ UINT16 Function)
 {
+    ShowMessages("We are hereeee %s %s \n", DriverName, ServiceName);
     UNREFERENCED_PARAMETER(DriverName);
     UNREFERENCED_PARAMETER(ServiceName);
     UNREFERENCED_PARAMETER(Function);

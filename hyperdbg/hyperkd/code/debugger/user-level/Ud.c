@@ -132,7 +132,7 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
         // If the process debugging detail is not available, we should
         // find it by the current process id
         //
-        ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+        ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
 
         if (ProcessDebuggingDetail == NULL)
         {
@@ -210,7 +210,7 @@ UdBroadcastSetHardwareDebugRegistersAllCores(PVOID TargetAddress)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetHardwareDebugRegisters, TargetAddress);
+    PlatformDpcGenericCall(DpcRoutineSetHardwareDebugRegisters, TargetAddress);
 }
 
 /**
@@ -561,8 +561,8 @@ UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
     BOOLEAN                            CommandFound = FALSE;
 
-    ThreadDebuggingDetails = ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(HANDLE_TO_UINT32(PsGetCurrentProcessId()),
-                                                                                       HANDLE_TO_UINT32(PsGetCurrentThreadId()));
+    ThreadDebuggingDetails = ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()),
+                                                                                       HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()));
 
     if (!ThreadDebuggingDetails)
     {
@@ -832,7 +832,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Check entry of paused thread
     //
-    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
 
     if (!ProcessDebuggingDetails)
     {
@@ -845,7 +845,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Find the thread entry and if not found, create one for it
     //
-    ThreadDebuggingDetails = ThreadHolderFindOrCreateThreadDebuggingDetail(HANDLE_TO_UINT32(PsGetCurrentThreadId()), ProcessDebuggingDetails);
+    ThreadDebuggingDetails = ThreadHolderFindOrCreateThreadDebuggingDetail(HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()), ProcessDebuggingDetails);
 
     if (!ThreadDebuggingDetails)
     {
@@ -895,8 +895,8 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
     //
     // Set process debugging information
     //
-    PausePacket.ProcessId             = HANDLE_TO_UINT32(PsGetCurrentProcessId());
-    PausePacket.ThreadId              = HANDLE_TO_UINT32(PsGetCurrentThreadId());
+    PausePacket.ProcessId             = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
+    PausePacket.ThreadId              = HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId());
     PausePacket.ProcessDebuggingToken = ProcessDebuggingDetails->Token;
 
     //

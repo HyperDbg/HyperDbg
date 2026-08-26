@@ -1275,6 +1275,356 @@ Still missing from CMake vs the vcxproj, NOT added (they need a look first):
 `../include/components/pe/code/pe-image-reader.cpp` and
 `code/debugger/misc/pt-helper.cpp` (pt.cpp itself is Linux-stubbed).
 
+### `hyperhv/` — WDK stub layer: 48/55 TUs now COMPILE (2026-08-20)
+
+Routed the raw WDK/NT functions hyperhv calls *directly* (not via a `Platform*`
+wrapper) through the existing platform layer as **placeholder stubs** — chosen
+over a new catch-all file so each lands in its domain module and rides an
+already-active TU (no Kbuild/vcxproj change). All Linux-only (`#if __linux__`),
+so Windows keeps getting these from `<ntddk.h>`.
+
+| module | added WDK stand-ins |
+|---|---|
+| `PlatformDbg` | `DbgBreakPoint` → **no-op** (real int3 would panic; it's in `LogError`) |
+| `PlatformMem` | `MmMapIoSpace(Ex)`, `MmUnmapIoSpace`, `MmGet{Physical,VirtualForPhysical}Address`, `MmGetPhysicalMemoryRanges`, `Mm{Allocate,Free}MappingAddress`, `MmFreeContiguousMemory`, `ExFreePool`, `Zw{Allocate,Free}VirtualMemory` |
+| `PlatformProcess` | `PsLookupProcessByProcessId`, `PsInitialSystemProcess`, `NtCurrentProcess`, `Ke{Set,Revert}…AffinityThread` |
+| `PlatformDpc` | `KeGenericCallDpc` |
+| `PlatformTime` | `KeQueryPerformanceCounter` |
+
+Stubs return NULL/fail/0 with `TODO(Linux)`. New WDK **types** in `WdkTypes.h`:
+`MEMORY_CACHING_TYPE`, `MM_COPY_ADDRESS`, `PHYSICAL_MEMORY_RANGE`,
+`PROCESSOR_NUMBER`; `LONG_PTR` added to `BasicTypes.h` (Linux arm). `hyperhv/pch.h`
+gained `PlatformDbg.h`/`PlatformTime.h` under `#if __linux__` (the only two
+platform headers it lacked). The `QuadPart`/`LARGE_INTEGER` "type mismatch" errors
+were **downstream of the missing prototypes** — correct return types fixed them.
+
+Kbuild: `-Wno-error=incompatible-pointer-types` (warning, not silence) — hyperhv
+passes DPC routines of several shapes to `KeGenericCallDpc(PKDEFERRED_ROUTINE)`
+(MSVC C4113); same flag also covers the benign LP64 `SIZE_T*`↔`UINT64*` spelling
+(`CpuStosQ`, `VmxVmread64P` — both 64-bit, no truncation).
+
+**Still erroring (7 TUs), unchanged plan:** 4 SEH `__try` (`MemoryManager`,
+`MemoryMapper`, `Vmx`, `VmxRegions`), `ZydisKernel` (`ntimage.h`), `AddressCheck`
+(TSX `_xbegin/_xend`).
+
+**NOT promoted to Kbuild ACTIVE yet — the module still won't LINK.** A probe
+(all 48 uncommented) surfaced the link-phase blockers, in order:
+1. ~~`IoHandler.h` 12 plain-`inline` → multiple definition~~ **FIXED (Linux-only
+   route).** The shared header is untouched; instead `hyperhv/pch.h` wraps its one
+   `#include "vmm/vmx/IoHandler.h"` in a `#if __linux__` `push_macro/undef/define
+   inline = static inline __maybe_unused/…/pop_macro` span, so each TU gets
+   internal-linkage copies (what MSVC's COMDAT folding produces). Verified: 0
+   `IoIn*/IoOut*` collisions. Chosen over editing the header to `static inline`
+   because the user wants the Windows source byte-for-byte unchanged.
+2. `DllInitialize`/`DllUnload` **multiple definition** — `hyperhv/common/UnloadDll.c`
+   and `hyperlog/UnloadDll.c` each define them (the Windows per-DLL unload trick).
+   In one Linux module only one may exist. Resolution at promotion: drop
+   `hyperhv/common/UnloadDll.o` from Kbuild, same rationale as the dropped
+   `HyperLogCallback.o`.
+3. **Assembly** — **STUBBED (2026-08-20).** The 8 `*.asm` (MASM) are ported to
+   `*-linux.S` (GAS) as **empty `ret` stubs** — one `.S` per `.asm`, each defining
+   its `PUBLIC` symbols (67 total incl. `InterruptHandler0..30`) via
+   `SYM_FUNC_START/END`, bodies all `TODO(Linux)`. Now in Kbuild ACTIVE (self-
+   contained → module stays loadable) and present in `HyperDbg.ko`. Windows keeps
+   building the `.asm`; the `.S` are Kbuild-only, never in a `.vcxproj`.
+   `-linux` suffix matches `symbol-linux.cpp` etc. **Real bodies still owed.**
+4. **Cross-module** — **NONE.** The link probe (47-file core) surfaced *zero*
+   hyperkd/hypertrace/script-eval/zydis undefined symbols. hyperhv is
+   self-contained.
+
+### `hyperhv/` — SEH/TSX stubbed in place; 3 more TUs compile (2026-08-20)
+
+The 4 symbols above were stranded in deferred TUs. Ported those blocks **in place**
+with the documented `#ifdef _WIN32 / #else` convention (pattern #1) — shared file,
+Windows sees only the `_WIN32` branch (byte-identical), Linux gets a `TODO(Linux)`
+stub. One definition per function, so **no duplicate-symbol trap** when the real
+Linux body later replaces the `#else`.
+
+- `AddressCheck.c` — `CheckAddressValidityUsingTsx`: `_xbegin/_xend` → `#else`
+  returns FALSE (TSX unavailable/microcode-disabled; TODO: `copy_from_kernel_nofault`).
+- `Vmx.c` — `VmxCheckIsOnVmxRoot`: `__try/__except` → `#else` runs the VMREAD
+  unguarded (TODO: `_ASM_EXTABLE` fixup for the #UD).
+- `MemoryMapper.c` — 2 cross-process `__try` blocks: WDK-heavy body
+  (`KeStackAttachProcess`, `Zw*VirtualMemory`) kept inside `_WIN32`; `#else` fails
+  safely + releases the process ref (TODO: `kthread_use_mm` + extable). This keeps
+  `KeStackAttachProcess` off the Linux link surface (no new stub needed).
+
+Result: `AddressCheck.c`, `MemoryMapper.c`, `Vmx.c` all `make one`-clean. Still
+SEH-deferred: `MemoryManager.c`, `VmxRegions.c`. Still `ntimage.h`: `ZydisKernel.c`.
+
+**Promotion probe (50 hyperhv C + 8 asm stubs, minus the Dll dup):** no compile
+errors, no multiple-definition — the original 4 symbols are resolved. Adding the
+big central `Vmx.c` reveals the **next** frontier (10 undefined), which is where
+hyperhv stops being self-contained:
+
+| symbols | source | kind |
+|---|---|---|
+| 4× `Transparent*` | `hyperevade/code/*.c` | **cross-module: hyperevade** |
+| `ZydisGetVersion` | `dependencies/zydis/src/Zydis.c` | **zydis library** |
+| 3× `VmxAllocateHost*` / `InvalidMsrBimap` | `VmxRegions.c` | deferred SEH file |
+| `WritePhysicalMemoryUsingMapIoSpace` | `MemoryManager.c` | deferred SEH file |
+| `PsGetProcessImageFileName` | WDK | 1 more WDK stub |
+
+So a linking hyperhv now needs: land `VmxRegions.c`+`MemoryManager.c` (same SEH
+in-place treatment), 1 WDK stub, and bring up **hyperevade** (4 files) + **zydis**
+(enumerate `dependencies/zydis/src/*.c`). Not promoted — tree stays green; progress
+provable via `make one`.
+
+### `hyperhv/` — raw-WDK stubs promoted to `Platform*` wrappers (2026-08-21)
+
+The `#if __linux__` raw-name WDK stubs (`MmMapIoSpace`, `PsLookupProcessByProcessId`,
+`KeGenericCallDpc`, `KeQueryPerformanceCounter`, …) became proper cross-platform
+`Platform*` wrappers: the `#ifdef` moved *inside* each body (Windows arm forwards to
+the WDK, Linux arm keeps the stub), so call sites are OS-agnostic. hyperhv call sites
+updated to the new names (`PlatformMemMapIoSpaceEx`, `PlatformProcessLookupByProcessId`,
+`PlatformMemCopyMemory`, `PlatformMemFreePoolUntagged`, `PlatformDbgBreakPoint`, …).
+
+Two corrections while landing it:
+- **`ExFreePool` wrapper name collision.** The new `ExFreePool` wrapper was named
+  `PlatformMemFreePool`, which already exists (that one wraps `ExFreePoolWithTag(…,POOLTAG)`).
+  Folding them would tag-mismatch on Windows (`MmGetPhysicalMemoryRanges` uses the MM tag,
+  not `POOLTAG`) → bugcheck. Renamed the untagged one `PlatformMemFreePoolUntagged`;
+  sole caller `ExecTrap.c:360` updated.
+- **`DbgBreakPoint` promoted, not left raw.** It's called by the shared `LogError`/`Log`
+  macros in `SDK/imports/kernel/HyperDbgHyperLogIntrinsics.h` (both `UseDbgPrint…` arms),
+  which fan out into 5 kernel modules. Changed the two macro sites to `PlatformDbgBreakPoint()`,
+  added `PlatformDbg.h` to hyperkd + hyperevade pch (others already had it), and added
+  `PlatformDbg.c` to the ClCompile/ClInclude of all 5 non-hyperlog Windows `.vcxproj`
+  (+`.filters`) so the definition links per-module on Windows (matches how every other
+  `Platform*.c` is already compiled per-module). On Linux it's one `.ko`, so `PlatformDbg.o`
+  (already active) covers all of them. Full `make` links `HyperDbg.ko` clean.
+- **`MemoryMapper.c` regression from the refactor.** The refactor deleted (didn't wrap)
+  the `ZwAllocateVirtualMemory`/`ZwFreeVirtualMemory`/`NtCurrentProcess` raw stubs, but the
+  two self-process `else` branches still called them by name → implicit-decl errors.
+  Completed the refactor: new `PlatformMemAllocateVirtualMemory` / `PlatformMemFreeVirtualMemory`
+  (mirror the Zw* signatures; Win forwards, Linux → `STATUS_UNSUCCESSFUL`) and
+  `PlatformProcessGetCurrentProcessHandle` (Win `NtCurrentProcess()`, Linux `(HANDLE)-1`).
+  The two cross-process branches keep raw Zw*/`NtCurrentProcess` inside their `#ifdef _WIN32`
+  (win32-only, not Linux-reachable).
+
+**hyperhv compile state (2026-08-21): ALL C TUs `make one`-clean.** The last blocker,
+`disassembler/ZydisKernel.c` (`#include <ntimage.h>`), was resolved via the `*-linux.c`
+file-swap convention: it's a byte-for-byte reformat of Zydis's Windows-only sample driver
+(`dependencies/zydis/examples/ZydisWinKernel.c` — the only kernel sample zydis ships; no
+Linux twin exists upstream), and its sole function `DriverEntryTest` is **dead code** (called
+by nothing, walks the driver's own PE image). New empty stub
+`hyperhv/code/disassembler/ZydisKernel-linux.c`; Kbuild's commented line now points at
+`ZydisKernel-linux.o`. Windows keeps building the original (still in `hyperhv.vcxproj`). No
+PE-type shims added — a shim would serve a function no caller invokes.
+
+Whole hyperhv C set is still commented-out in Kbuild; module links today on the active set
+(platform + hyperlog + components + asm stubs). NEXT: start promoting hyperhv TUs into Kbuild
+ACTIVE — but the moment `Vmx.c` goes active it pulls cross-module undefined symbols
+(hyperevade `Transparent*`, zydis `ZydisGetVersion`), so hyperhv can't link alone; the cluster
+hyperhv + hyperevade + zydis comes up together (also: land `VmxRegions.c`/`MemoryManager.c`
+remaining SEH, drop the duplicate `hyperhv/common/UnloadDll.o`, and enumerate
+`dependencies/zydis/src/*.c` + zycore into Kbuild — headers are already on the include path).
+
+### hyperkd — mechanical WDK→platform routing pass: 9 → 25/33 compile (2026-08-21)
+
+Started the biggest module (the driver + debugger core, 33 TUs). The earlier hyperkd pass was
+partial — 24 files still called raw WDK functions. One sweep of behavior-preserving name swaps
+(all shared code, Windows keeps forwarding through the platform layer) cleared 15 files:
+- `PsGetCurrentProcess{,Id}`/`PsGetCurrentThread{,Id}` → `PlatformProcessGetCurrent*`
+- `PsLookupProcessByProcessId` → `PlatformProcessLookupByProcessId`; `ObDereferenceObject` →
+  `PlatformObjectDereference`
+- `KeGetCurrentProcessorNumberEx(NULL)` → `PlatformCpuGetCurrentProcessorNumber()`;
+  `KeQueryActiveProcessorCount(0)` → `PlatformCpuGetActiveProcessorCount()`
+- `Ke{Initialize,InsertQueue,GenericCall,SetTargetProcessor}Dpc` → `PlatformDpc*`
+Then `ScriptEngine.c`: `KeQuerySystemTime`/`ExSystemTimeToLocalTime`/`RtlTimeToTimeFields` →
+`PlatformTime*`, `sprintf_s` → `PlatformSprintf`. Wired `PlatformDpc.h/Event.h/Time.h` into
+hyperkd's pch and `PlatformDpc.c`/`PlatformEvent.c`/`PlatformTime.c` into `hyperkd.vcxproj`
+(+filters) so Windows links them (same per-module compile model as everything else).
+
+**Not promoted to Kbuild yet** — the 25 compiling TUs still reference symbols in the 8 that
+don't, so the link isn't closed. Remaining 8, each needing NEW work (not just routing):
+| file | needs |
+|---|---|
+| `DebuggerCommands.c` | port-I/O intrinsics `__out{byte,word,dword}` → new `CpuOut*` (outb/outw/outl) |
+| `common/Common.c` | `ZwOpenProcess`/`ZwTerminateProcess`/`ObOpenObjectByPointer`/`PsProcessType` (process control) |
+| `common/Synchronization.c` | kernel events `KeInitializeEvent`/`KeSetEvent`/`KeWaitForSingleObject` (+`Executive`/`SynchronizationEvent`) |
+| `user-level/Attaching.c` | `__try` SEH + `MmGetSystemRoutineAddress` + `RtlInitUnicodeString` |
+| `user-level/UserAccess.c` | cross-process attach `KeStackAttachProcess`/`KeUnstackDetachProcess` + `ObOpenObjectByPointer` |
+| `driver/Driver.c`,`Ioctl.c`,`Loader.c` | the char-device layer (`_DRIVER_OBJECT`/`_DEVICE_OBJECT`/IRP/`IRP_MJ_*`) — roadmap step 2 |
+
+These are real ports (new platform wrappers / a Linux char device / SEH→extable), several needing
+a design call, not mechanical swaps. Good checkpoint.
+
+**Update (2026-08-23): 26/33.** `DebuggerCommands.c` cleared — its `__out{byte,word,dword}`
+became `CpuIoOut{Byte,Word,Dword}` (those wrappers already existed in `PlatformIntrinsics`,
+Win arm forwards to `__out*`, Linux arm emits `out{b,w,l}`). Pure swap, compiles clean.
+Remaining 7 each need NEW work: `Synchronization.c` (new `PlatformEventInitialize`/`Wait`;
+only `PlatformEventSet` exists), `Common.c` + `UserAccess.c` (process open/terminate/attach
+wrappers), `Attaching.c` (SEH), and the 3 `driver/*` char-device TUs (design).
+
+**Update (2026-08-23): 30/33 — wrapper tier DONE.** The 4 wrapper TUs cleared with new
+compile-clean-skeleton platform wrappers (Windows arm real, Linux arm stub + TODO(Linux)):
+- `Synchronization.c`: new `PlatformEventInitialize`/`PlatformEventWait` (+ `EVENT_TYPE`/
+  `KWAIT_REASON` enum shims in WdkTypes).
+- `Common.c`: new `PlatformProcessOpen`/`PlatformProcessTerminate`/`PlatformObjectOpenByPointer`
+  + `PsProcessType` global shim (POBJECT_TYPE*, like ExEventObjectType).
+- `UserAccess.c`: new `PlatformProcessAttach`/`PlatformProcessDetach` (Ke{Un}StackAttachProcess);
+  `RtlInitUnicodeString`/`RtlCopyUnicodeString` added as inline WDK shims (byte-count field math).
+- `Attaching.c`: new `PlatformGetSystemRoutineAddress` (MmGetSystemRoutineAddress); the SEH
+  `__try/__except` guarded `#ifdef _WIN32`, Linux arm is an empty TODO stub (does NOT replicate
+  the nop-sled body — deliberately skeletal).
+Remaining 3 = the char-device layer (`driver/Driver.c`,`Ioctl.c`,`Loader.c`) — paused here for a
+design pass on the Linux char device (module_init/file_operations/unlocked_ioctl).
+
+**Update (2026-08-23): 32/33.** Two of the three "driver" TUs were NOT the rewrite — closed
+mechanically: `Loader.c` (`DbgPrint` → existing `PlatformDbgPrint`) and `Ioctl.c`
+(`IoGetCurrentIrpStackLocation`/`IoCompleteRequest` → existing `PlatformIo*` wrappers; wired
+`PlatformIo.h` into hyperkd's pch and `PlatformIo.c` into hyperkd.vcxproj+filters). The IOCTL
+dispatch *logic* was already fine — only the two IRP accessors were unwrapped.
+**Only `Driver.c` (DriverEntry) is the real char-device design piece:** `_DRIVER_OBJECT` is an
+opaque forward-decl on Linux (WdkTypes.h:374, no body), and DriverEntry builds the WDM
+device/IRP_MJ dispatch table + symbolic link + `SeSinglePrivilegeCheck` — no Linux equivalent.
+That becomes module_init/exit + alloc_chrdev_region/cdev_add + a file_operations whose
+.unlocked_ioctl calls the (now-compiling) IOCTL dispatch. Paused here for that design.
+
+**Update (2026-08-23): hyperkd compile-complete on Linux (33/33 via file swap).** Rather than
+port the WDM DriverEntry, `Driver.c` gets the established whole-file swap (like
+ZydisKernel-linux.c): new `hyperkd/code/driver/Driver-linux.c` is an EMPTY skeleton
+(`#include "pch.h"` + a TODO header naming the real char-device impl: module_init/exit,
+alloc_chrdev_region/cdev_add, file_operations.unlocked_ioctl → the IOCTL dispatch,
+capable(CAP_SYS_*) for the SE_DEBUG_PRIVILEGE check). Windows keeps compiling Driver.c
+unchanged (still in hyperkd.vcxproj); Driver-linux.c is Kbuild-only. So every hyperkd TU now
+compiles clean on Linux. The real char device is deferred but isolated to that one file.
+Next: promote hyperkd into the Kbuild (uncomment the 33 objs, Driver-linux.o for Driver.o) and
+resolve whatever cross-module link references surface.
+
+### zydis library — ACTIVE in Kbuild (2026-08-21)
+
+Brought up the whole disassembler engine so hyperhv's `ZydisGetVersion`/`ZydisDecoder*`/
+`ZydisFormatter*` refs will resolve. All **18 `zydis/src/*.c` + 8 `zycore/src/*.c`** compile
+kernel-mode clean (`ZYAN_NO_LIBC`/`ZYDIS_NO_LIBC`/`*_STATIC_BUILD` were already in `ccflags-y`)
+and are now `HyperDbg-objs`. One fix: the data-table TUs pull `<Generated/*.inc>` with **angle
+brackets**, so `-I$(src)/dependencies/zydis/src` had to join the include block (zydis's own
+CMake adds it as `PRIVATE "src"`; the `Generated/` tables are checked in under `src/Generated/`).
+zydis is self-contained (zero external symbols), so it links into `HyperDbg.ko` on its own —
+verified: `nm` shows `ZydisGetVersion` et al. as `T`, full `make` links clean (`.ko` ~4.9 MB).
+Windows builds zydis as a separate static lib; Linux compiles the sources straight into the one
+module. **Done — next in the cluster: hyperevade.**
+
+### hyperevade — DROPPED from the Linux module (2026-08-23)
+
+**Reversal of the port work below.** hyperevade is Windows-only transparency/anti-
+detection and does not need to compile in the kernel module, so it is left out of
+the Kbuild entirely and its port-mechanical changes were reverted:
+- Kbuild: 3 hyperevade objs + `hyperevade-roots` removed.
+- `hyperevade/code/SyscallFootprints.c` + `hyperevade/header/pch.h` → restored to
+  their Windows originals (`git checkout master`); port-added platform refs pulled
+  from `hyperevade.vcxproj`(+filters). Kept: the `VmxFootprints.c` RIP-overflow fix
+  and `SyscallFootprints.h` concat fix (non-port Windows changes) and NuGet bits.
+- hyperevade-ONLY platform additions removed: `PlatformWcs{Len,Cmp,Str,NiCmp}`
+  (`PlatformStr.{c,h}`) and `FILE_BASIC_INFORMATION`/`SYSTEM_FIRMWARE_TABLE_*` + the
+  5 extra `STATUS_*` codes (`WdkTypes.h`). KEPT the shared `PlatformProcessGetCurrent*`
+  (22/21/9 hyperhv+hyperkd users) and generic `PWCH`/`PBYTE`/`DWORD_PTR`.
+- `ActivateHyperEvadeProject` stays `FALSE` (unchanged).
+- hyperhv calls the `Transparent*` symbols unconditionally, so a Linux-only no-op
+  stub TU — `hyperhv/code/interface/HyperEvadeStubs-linux.c` — supplies the 8
+  needed entry points so the `.ko` links (mirrors the flag-OFF stub branch;
+  `TransparentHideDebuggerWrapper`/`UnhideDebuggerWrapper` are hyperhv-local).
+- Verified: `make` → exit 0, `LD [M] HyperDbg.ko`, zero undefined `Transparent*`.
+
+The section below is the now-reverted port history, kept for reference.
+
+### hyperevade — ACTIVE in Kbuild (2026-08-21)
+
+Turned out to be a **leaf**, not a peer of hyperhv: `nm` on its objects shows the 3 substantive
+TUs (`SyscallFootprints.c`, `Transparency.c`, `VmxFootprints.c`) reference only **two** external
+symbols — `CpuReadTsc` + `PlatformMemAllocateZeroedNonPagedPool` — both already active in the
+platform layer. And it *provides* the 12 `Transparent*` symbols hyperhv's `Vmx.c` needs. So it
+links today, before hyperhv. All 3 were already `make one`-clean from the earlier mechanical
+pass; just uncommented them. **`UnloadDll.o` deliberately omitted** — its `DllInitialize`/
+`DllUnload` duplicate hyperlog's already-active pair (the Windows per-DLL unload trick; one Linux
+module needs exactly one copy — same rule as the pending hyperhv/common/UnloadDll drop). Full
+`make` links `HyperDbg.ko` clean, `Transparent*` now `T` in the module.
+
+**⚠️ CAVEAT — hyperevade is feature-flagged OFF, so its `Transparent*` are no-op STUBS.**
+Every hyperevade TU is `#if ActivateHyperEvadeProject != TRUE` (no-op stubs) / `#else` (real
+impl). `include/config/Configuration.h:80` sets it `FALSE` (upstream default, same on Windows),
+so only the stub branch compiles — that's *why* it needed zero Linux changes and links with no
+external refs. The real transparency code (~1900 lines using `PsGetCurrentProcessId`,
+`PsGetCurrentThreadId`, … raw WDK) is compiled out.
+
+**UPDATE — real hyperevade branch now PORTED (builds when the flag is on), 2026-08-21.**
+Flipped `ActivateHyperEvadeProject TRUE` to see the surface, ported it, flipped back to `FALSE`
+(upstream default — leaving it on would change Windows behavior). What the real `SyscallFootprints.c`
+needed, in three tiers:
+- **WDK type/const/struct shims** → `WdkTypes.h` (Linux block): types `PWCH`,`PBYTE`,`DWORD_PTR`;
+  status codes `STATUS_INVALID_INFO_CLASS/BUFFER_OVERFLOW/BUFFER_TOO_SMALL/OBJECT_NAME_NOT_FOUND/
+  DEBUGGER_INACTIVE`; structs `FILE_BASIC_INFORMATION`, `SYSTEM_FIRMWARE_TABLE_INFORMATION` (+enum
+  `SYSTEM_FIRMWARE_TABLE_ACTION`). The wall of "excess elements in const int[]" errors was all
+  downstream of the single missing `PWCH`.
+- **Ps\* → platform layer** (user chose call-site swap over raw shims): `PsGetCurrentProcess{,Id}`/
+  `PsGetCurrentThreadId` → `PlatformProcessGetCurrentProcess{,Id}`/`...ThreadId` (37 sites; the layer
+  already had them). Added `PlatformProcess.c` to hyperevade's Windows `.vcxproj`(+filters) + its
+  header to the pch, so it links on both OSes (same treatment as PlatformDbg).
+- **Wide-string ops → new `PlatformWcs{Len,Cmp,Str,NiCmp}`** in `PlatformStr.{h,c}` (Win→CRT
+  `wcslen`/`wcscmp`/`wcsstr`/`_wcsnicmp`, Linux→16-bit impls; kernel has none + sets
+  `-fno-builtin-wcslen`). 11 call sites swapped; `PlatformStr.c` added to hyperevade's `.vcxproj`.
+  KEY: the kernel builds with **`-fshort-wchar`**, so `WCHAR`/`L"..."` are 16-bit — matching the
+  UTF-16 guest data, so the `L"..."` string tables needed no change.
+
+Result: full `make` links `HyperDbg.ko` clean with `ActivateHyperEvadeProject` **either** TRUE or
+FALSE. Shipped default is FALSE; the routing/shims sit dormant-but-correct until it's enabled.
+
+**Cluster status:** zydis ✅ + hyperevade ✅ both active and linking. Remaining for hyperhv
+promotion: uncomment hyperhv's ~54 objects (drop hyperhv/common/UnloadDll.o dup, use
+ZydisKernel-linux.o), which pulls in the SEH-stubbed VmxRegions/MemoryManager — all already
+`make one`-clean — so hyperhv should now link against the active zydis + hyperevade + platform.
+
+### 🎉 hyperhv PROMOTED — the hypervisor links into HyperDbg.ko (2026-08-21)
+
+Uncommented all 53 hyperhv C objects + 8 asm stubs, with two exclusions: `common/UnloadDll.o`
+(dup `DllInitialize`/`DllUnload` vs hyperlog) and `disassembler/ZydisKernel.o` (→ its
+`ZydisKernel-linux.o` stub instead). It linked **first try, clean** — no undefined symbols, no
+multiple-definition (the `-fcommon` + per-object include roots + all the in-place SEH/TSX/WDK
+stubbing already did the work; deps zydis + hyperevade + platform were all active). `make clean
+&& make` → exit 0, `HyperDbg.ko` ~9.6 MB, hyperhv core symbols (`EptHook*`, `VmxPerform*`,
+`BroadcastVmxVirtualizationAllCores`, …) all `T` in the module. Remaining warnings are the
+known-benign objtool naked-return (asm stubs) + `-fcommon` COMMON-symbol modpost notes.
+
+**This is COMPILE/LINK-complete for hyperhv — NOT runtime.** Every WDK-heavy path is still a
+`TODO(Linux)` stub (SEH fixups, MmCopyMemory, Zw*VirtualMemory, KeStackAttachProcess, MSR probe,
+the 8 assembly files are empty `ret` stubs, etc.). The module builds and would load, but the
+hypervisor does nothing real yet. NEXT fronts (per the 5-step roadmap in memory): hyperkd (the
+driver/IOCTL char device), then real assembly bodies, then the SEH→extable + WDK-stub bodies.
+
+### 🎉 hyperkd PROMOTED — the whole module links into HyperDbg.ko (2026-08-24)
+
+Uncommented all 33 hyperkd C objects (`Driver-linux.o` for `Driver.o`). Promoting it surfaced
+the cross-module link references, resolved four ways — module now `make`-clean, `HyperDbg.ko`
+~13 MB, zero undefined non-kernel symbols:
+
+1. **`KeGetCurrentProcessorNumberEx` in `script-eval/Functions.c`** (3 sites) → existing
+   `PlatformCpuGetCurrentProcessorNumber()` wrapper. Pure swap (Windows arm of the wrapper
+   forwards to `KeGetCurrentProcessorNumberEx(NULL)`, so Windows-identical).
+2. **hypertrace (LBR / Intel PT) — DEFERRED, not dropped.** 13 exported entry points are
+   referenced by active TUs (hyperkd Kd/Ioctl/Loader, hyperhv HyperEvade, script-eval
+   Functions). New `hypertrace/code/api/TraceApi-linux.c` defines exactly those as no-op
+   stubs (return FALSE / zero out-params). It gets `hypertrace-roots` automatically (the
+   Kbuild foreach is driven off files-on-disk), so `#include "pch.h"` resolves the packet
+   struct types. **This is real future work** — Intel LBR + Intel PT are cross-platform CPU
+   features (unlike Windows-only hyperevade). Its MSR programming already has PlatformCpu/
+   PlatformDpc wrappers; the genuinely new Linux piece is Intel PT's ToPA output buffers
+   (contiguous DMA memory + mapping into the target process). LBR is the natural first
+   milestone. ~4700 lines across lbr/Lbr.c, pt/Pt.c, api/*.
+3. **`PsGetProcessSectionBaseAddress`** (Common.c PROCESS_KILL_METHOD_3) → new
+   `PlatformProcessGetSectionBaseAddress` wrapper (Windows arm real; Linux arm returns NULL +
+   TODO(Linux): mm->start_code). Mirrors the existing `PlatformProcessGetImageFileName`.
+4. **`AsmDebuggerCustomCodeHandler` / `AsmDebuggerConditionCodeHandler`** (hyperkd assembly)
+   → new `AsmDebugger-linux.S` GAS stub, all 3 symbols of `AsmDebugger.asm` as bare-`ret`
+   placeholders (+ `AsmDebuggerSpinOnThread`). Matches the 8 hyperhv Asm*-linux.S stubs.
+
+The `g_*` COMMON-symbol modpost lines are benign (`-fcommon`, expected). **Compile/link-complete
+for the whole kernel module — NOT runtime.** Every WDK-heavy path across hyperhv/hyperkd is still
+a `TODO(Linux)` stub (SEH, MmCopyMemory, char device in `Driver-linux.c`, empty asm bodies,
+hypertrace). Deferred subsystems out of the build: hyperevade (Windows-only, dropped), hyperperf
++ hypertrace (deferred, portable future work). NEXT: the Linux char device (module_init/exit +
+alloc_chrdev_region/cdev_add + file_operations.unlocked_ioctl → IOCTL dispatch) in Driver-linux.c.
+
 ---
 
 ## Building
@@ -1302,3 +1652,52 @@ wall of undefined-symbol link errors from the not-yet-ported files. The file nee
 not be in `Kbuild` yet. Keep `HyperDbg-objs` = only files that compile clean, so a
 full `make` always yields a loadable `.ko`; promote each file's line once `make
 one` on it is green.
+
+### Windows build fix — lean-driver decls for port-added platform fns (2026-08-23)
+The port added `PlatformMemAllocate/FreeVirtualMemory` (call `Zw*VirtualMemory`) and
+`PlatformDpcGenericCall` (calls `KeGenericCallDpc`) to the shared `PlatformMem.c` /
+`PlatformDpc.c`, which compile into every kernel project. The lean drivers lacked the
+declarations and failed Windows CI with C4013 (+/WX). Two independent causes:
+1. **`Zw*VirtualMemory`** live in `<ntifs.h>`, not `<ntddk.h>`. The four projects whose
+   pch used `<ntddk.h>` — hyperlog, hyperperf, hypertrace, **hyperevade** — now
+   `#include <ntifs.h>` (superset of ntddk.h), matching hyperkd/hyperhv. (hyperevade
+   still builds on Windows even though it is dropped from the Linux module.)
+2. **`KeGenericCallDpc`** is declared manually (SAL) in `PlatformBroadcast.h`, not by any
+   WDK header. Only hyperlog compiles `PlatformDpc.c` without also pulling that header in,
+   so `PlatformDpc.c` now `#include`s `PlatformBroadcast.h` under `#if _WIN32`
+   (hyperhv/hyperkd already compile both together → no clash).
+All Windows-guarded (`#ifdef HYPERDBG_ENV_WINDOWS` / `#if _WIN32`), so the Linux .ko is
+unaffected (PlatformDpc.o re-verified `CC` clean). Behavior-preserving. Confirmed against
+the CI log: hyperlog/hyperperf/hypertrace/kdserial link; hyperevade pch fix awaits a re-run.
+
+**Follow-up (same day) — hyperhv link:** with the C4013s cleared, hyperhv then failed at
+link with LNK2019 `PlatformTimeQueryPerformanceCounter` (called by `Vmx.c`
+`VmxCompatibleMicroSleep`). That wrapper lives in `PlatformTime.c`, which `hyperhv.vcxproj`
+did not compile (only hyperlog/hyperkd did). Added `PlatformTime.c`/`.h` to
+`hyperhv.vcxproj`(+filters). Checked hyperhv references no other Platform* wrapper whose TU
+is missing (PlatformIo/Spinlock/Str unused), and the linker reported exactly 1 unresolved,
+so this closes it. Linux unaffected (PlatformTime.o already active in the Kbuild).
+
+### Windows build fix — MmUnmapViewOfSection C4013 (2026-08-24)
+The port added `PlatformMemUnmapViewOfSection` to the shared `PlatformMem.c` (wraps the
+Common.c PROCESS_KILL_METHOD_3 unmap). Unlike `PsGetProcessSectionBaseAddress` /
+`Zw*ViewOfSection` (all in `<ntifs.h>`), **`MmUnmapViewOfSection` is a semi-documented
+ntoskrnl export the WDK headers do NOT declare** — hyperkd declares it privately in
+`hyperkd/header/common/Common.h`. But `PlatformMem.c` compiles into every kernel project, and
+hyperlog/hyperperf/hypertrace don't see that header → C4013 (+/WX) on all three. Fix: a
+Windows-guarded (`#if _WIN32`) manual `NTSTATUS MmUnmapViewOfSection(PEPROCESS, PVOID);`
+declaration at the top of `PlatformMem.c`, matching Common.h verbatim. Redundant-but-compatible
+where both headers are seen (hyperkd) — legal C. Linux `.ko` unaffected (block is Windows-only;
+PlatformMem.o re-verified `CC` clean).
+
+**Follow-up (same day) — PlatformProcess.c, same class:** with hyperlog/hyperperf/hypertrace
+building, the build reached **hyperhv**, which also compiles `PlatformProcess.c` and hit three
+more Common.h-only ntoskrnl externs used by this session's new wrappers: `PsGetProcessSectionBaseAddress`
+(`PlatformProcessGetSectionBaseAddress`), `SeCreateAccessState` / `SeDeleteAccessState`
+(`PlatformSeCreate/DeleteAccessState`). Same fix: a `#if _WIN32` block at the top of
+`PlatformProcess.c` re-declaring the three verbatim from hyperkd/Common.h. Why not just
+`#include` hyperkd's Common.h: both hyperhv and hyperkd have a `common/Common.h`, and hyperhv's
+`/I` resolves `"common/Common.h"` to *its own* (no Ps/Se decls) — plus hyperhv's include dirs
+don't contain `hyperkd/header` at all, and the header drags in hyperkd-private KPROCESS structs
+(→ `_NT_KPROCESS` clash) and unported Linux types. So the shared platform TU declares them
+locally, guarded. Linux `.ko` re-verified `make` exit 0.

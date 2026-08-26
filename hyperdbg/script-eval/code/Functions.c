@@ -1108,7 +1108,7 @@ ScriptEngineFunctionPause(
     if (g_KernelDebuggerState && g_DebuggeeHaltReason == DEBUGGEE_PAUSING_REASON_NOT_PAUSED)
     {
         DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
-        ULONG                            CurrentCore          = KeGetCurrentProcessorNumberEx(NULL);
+        ULONG                            CurrentCore          = PlatformCpuGetCurrentProcessorNumber();
 
         //
         // Make the details of context
@@ -1186,7 +1186,7 @@ ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDet
         return;
     }
 
-    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = PlatformCpuGetCurrentProcessorNumber();
 
     if (State != 0)
     {
@@ -2311,7 +2311,7 @@ ScriptEngineFunctionEventTraceInstrumentationStep()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = PlatformCpuGetCurrentProcessorNumber();
 
     //
     // Call instrumentation step in

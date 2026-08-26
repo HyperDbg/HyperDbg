@@ -144,7 +144,7 @@ LoaderInitHyperLog()
         // We use DbgPrint here because if the hyperlog is not loaded we can't use it to log the error
         // so we just log the error with DbgPrint and continue without loading hyperlog
         //
-        DbgPrint("Err, HyperDbg's hyperlog was not loaded or already loaded");
+        PlatformDbgPrint("Err, HyperDbg's hyperlog was not loaded or already loaded");
         return FALSE;
     }
 }

@@ -55,7 +55,7 @@ DebuggerSetLastError(UINT32 LastError)
 BOOLEAN
 DebuggerInitializeScriptEngine()
 {
-    ULONG                       ProcessorsCount      = KeQueryActiveProcessorCount(0);
+    ULONG                       ProcessorsCount      = PlatformCpuGetActiveProcessorCount();
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
     //
@@ -224,7 +224,7 @@ DebuggerInitializeVmmOperations()
 BOOLEAN
 DebuggerInitialize()
 {
-    ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ULONG ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Also allocate the debugging state
@@ -354,7 +354,7 @@ DebuggerUninitialize()
     ULONG                       ProcessorsCount;
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Free the Pool manager
@@ -1171,7 +1171,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
     //
     // Find the debugging state structure
     //
-    DbgState = &g_DbgState[KeGetCurrentProcessorNumberEx(NULL)];
+    DbgState = &g_DbgState[PlatformCpuGetCurrentProcessorNumber()];
 
     //
     // Find the debugger events list base on the type of the event
@@ -1211,7 +1211,7 @@ DebuggerTriggerEvents(VMM_EVENT_TYPE_ENUM                   EventType,
         //
         // Check if this event is for this process or not
         //
-        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
+        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()))
         {
             //
             // This event is not related to either our process or all processes
@@ -1809,7 +1809,7 @@ DebuggerPerformRunTheCustomCode(PROCESSOR_DEBUGGING_STATE *        DbgState,
     // LogInfo("%X       Called from : %llx", Tag, Context);
     //
     //
-    // LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
+    // LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PlatformProcessGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
     // return;
     //
     // -----------------------------------------------------------------------------------------------------

@@ -44,8 +44,8 @@ ProcessHandleProcessChange(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Check if we reached to the target process or not
     //
-    if ((g_ProcessSwitch.ProcessId != NULL_ZERO && g_ProcessSwitch.ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId())) ||
-        (g_ProcessSwitch.Process != (UINT64)NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
+    if ((g_ProcessSwitch.ProcessId != NULL_ZERO && g_ProcessSwitch.ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId())) ||
+        (g_ProcessSwitch.Process != (UINT64)NULL && g_ProcessSwitch.Process == PlatformProcessGetCurrentProcess()))
     {
         KdHandleBreakpointAndDebugBreakpoints(DbgState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
 
@@ -531,9 +531,9 @@ ProcessInterpretProcess(PROCESSOR_DEBUGGING_STATE * DbgState, PDEBUGGEE_DETAILS_
         //
         // Debugger wants to know current pid, nt!_EPROCESS and process name
         //
-        PidRequest->ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
-        PidRequest->Process   = (UINT64)PsGetCurrentProcess();
-        MemoryMapperReadMemorySafe((UINT64)CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &PidRequest->ProcessName, 16);
+        PidRequest->ProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
+        PidRequest->Process   = (UINT64)PlatformProcessGetCurrentProcess();
+        MemoryMapperReadMemorySafe((UINT64)CommonGetProcessNameFromProcessControlBlock(PlatformProcessGetCurrentProcess()), &PidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -674,10 +674,10 @@ ProcessQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
 BOOLEAN
 ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcessRequest)
 {
-    GetInformationProcessRequest->ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
-    GetInformationProcessRequest->Process   = (UINT64)PsGetCurrentProcess();
+    GetInformationProcessRequest->ProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
+    GetInformationProcessRequest->Process   = (UINT64)PlatformProcessGetCurrentProcess();
     RtlCopyMemory(&GetInformationProcessRequest->ProcessName,
-                  CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()),
+                  CommonGetProcessNameFromProcessControlBlock(PlatformProcessGetCurrentProcess()),
                   15);
 
     GetInformationProcessRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
