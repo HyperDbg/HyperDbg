@@ -40,7 +40,7 @@
 #define DEVICE_MAX_NUM          32
 #define FUNCTION_MAX_NUM        8
 #define DEV_MAX_NUM             255
-#define CAM_CONFIG_SPACE_LENGTH 255
+#define CAM_CONFIG_SPACE_LENGTH 256
 
 /**
  * @brief PCI Common Header
