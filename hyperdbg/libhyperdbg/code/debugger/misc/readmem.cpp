@@ -364,6 +364,17 @@ HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
 
         break;
 
+    case DEBUGGER_SHOW_COMMAND_DQS:
+
+        ShowMemoryCommandDQS(
+            Buffer,
+            Size,
+            Address,
+            MemoryType,
+            ReturnedLength);
+
+        break;
+
     case DEBUGGER_SHOW_COMMAND_DUMP:
 
         CommandDumpSaveIntoFile(Buffer, Size);
@@ -789,6 +800,67 @@ ShowMemoryCommandDDS(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER
             // Showing function names here (function prints the symbol itself)
             //
             SymbolShowFunctionNameBasedOnAddress((UINT64)OutputBufferVar, &UsedBaseAddress);
+        }
+
+        //
+        // Go to new line
+        //
+        ShowMessages("\n");
+    }
+}
+
+/**
+ * @brief Show memory in quad-word format with symbol resolution (DQS)
+ *
+ * @param OutputBuffer the buffer to show
+ * @param Size size of memory to read
+ * @param Address location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param Length Length of memory to show
+ *
+ * @return VOID
+ */
+VOID
+ShowMemoryCommandDQS(UCHAR * OutputBuffer, UINT32 Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
+{
+    UINT64 UsedBaseAddress = NULL;
+
+    for (UINT32 i = 0; i < Size; i += 8)
+    {
+        if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
+        {
+            ShowMessages("#\t");
+        }
+
+        //
+        // Print address
+        //
+        ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
+
+        //
+        // check to see if the address is valid or not
+        //
+        if (i + 8 > Length)
+        {
+            ShowMessages("????????`????????\n");
+            continue;
+        }
+
+        UINT64 OutputBufferVar = *((UINT64 *)&OutputBuffer[i]);
+
+        ShowMessages("%s", SeparateTo64BitValue(OutputBufferVar).c_str());
+
+        //
+        // Apply addressconversion of settings here
+        //
+        if (g_AddressConversion)
+        {
+            ShowMessages("  ");
+
+            //
+            // Showing function names here (function prints the symbol itself)
+            //
+            SymbolShowFunctionNameBasedOnAddress(OutputBufferVar, &UsedBaseAddress);
         }
 
         //

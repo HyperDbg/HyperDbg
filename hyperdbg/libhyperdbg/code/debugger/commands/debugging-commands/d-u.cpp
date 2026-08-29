@@ -330,6 +330,16 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
                                         Length,
                                         NULL);
     }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dqs"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQS,
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
     else if (CompareLowerCaseStrings(CommandTokens.at(0), "da"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DA,
@@ -401,6 +411,16 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
     else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dds"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DDS,
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dqs"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQS,
                                         TargetAddress,
                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
                                         READ_FROM_KERNEL,
