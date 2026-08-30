@@ -25,7 +25,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandReadMemoryAndDisassemblerHelp()
 {
-    ShowMessages("db dc dd dq dl dw da !db !dc !dd !dq !dl !dw !da & u u64 !u !u64 u2 u32 !u2 !u32 : reads the  "
+    ShowMessages("db dc dd dq dl dw da dds dqs dps !db !dc !dd !dq !dl !dw !da !dds !dqs !dps & u u64 !u !u64 u2 u32 !u2 !u32 : reads the  "
                  "memory in different shapes (hex), disassembles, or walks linked lists\n");
     ShowMessages("db  Byte and ASCII characters\n");
     ShowMessages("dc  Double-word values (4 bytes) and ASCII characters\n");
@@ -36,6 +36,10 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("u u64 Disassembler at the target address (x64) \n");
     ShowMessages("u2 u32  Disassembler at the target address (x86) \n");
     ShowMessages("dl  Walks a linked list starting at an address and shows each node\n");
+    ShowMessages("dds Double-word (4-byte) values, with each value resolved to a symbol name (module!symbol+offset) where possible\n");
+    ShowMessages("dps Pointer-sized (8-byte) values, with each value resolved to a symbol name (module!symbol+offset) where possible\n");
+    ShowMessages("dqs Quad-word (8-byte) values, with each value resolved to a symbol name (module!symbol+offset) where possible\n");
+
     ShowMessages("\nIf you want to read physical memory then add '!' at the "
                  "start of the command\n");
     ShowMessages("you can also disassemble physical memory using '!u'\n\n");
@@ -51,6 +55,9 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("syntax : \tu2 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tu32 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tdl [Address (hex)] [o Offset (hex)] [l Count (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tdds [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tdps [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tdqs [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask\n");
@@ -73,6 +80,12 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("\t\te.g : dl nt!PsActiveProcessHead\n");
     ShowMessages("\t\te.g : dl @rax o 8\n");
     ShowMessages("\t\te.g : dl fffff8077356f010 o 8 l 20 pid 4\n");
+    ShowMessages("\t\te.g : dds nt!KiServiceTable\n");
+    ShowMessages("\t\te.g : dds @rax l 40\n");
+    ShowMessages("\t\te.g : dps nt!KiServiceTable\n");
+    ShowMessages("\t\te.g : dps fffff801deadb000 l 40 pid 4\n");
+    ShowMessages("\t\te.g : dqs nt!KiServiceTable\n");
+    ShowMessages("\t\te.g : !dqs 100000\n");
 }
 
 /**
@@ -320,6 +333,36 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
                                         Length,
                                         NULL);
     }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dds"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DDS,
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dqs"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQS,
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "dps"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DPS,
+                                        TargetAddress,
+                                        DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
     else if (CompareLowerCaseStrings(CommandTokens.at(0), "da"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DA,
@@ -381,6 +424,36 @@ CommandReadMemoryAndDisassembler(vector<CommandToken> CommandTokens, string Comm
     else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dq"))
     {
         HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dds"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DDS,
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dqs"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DQS,
+                                        TargetAddress,
+                                        DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                        READ_FROM_KERNEL,
+                                        Pid,
+                                        Length,
+                                        NULL);
+    }
+    else if (CompareLowerCaseStrings(CommandTokens.at(0), "!dps"))
+    {
+        HyperDbgShowMemoryOrDisassemble(DEBUGGER_SHOW_COMMAND_DPS,
                                         TargetAddress,
                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
                                         READ_FROM_KERNEL,
