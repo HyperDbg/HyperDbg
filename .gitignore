@@ -400,3 +400,9 @@ StructLayoutSettings.json
 .idea
 cmake-build-debug
 /hyperdbg/hyperhv/zydis/
+
+# Local patch and agent files
+*.patch
+.agents/
+/hyperdbg/README_SNAPSHOT_FUZZING.md
+/hyperdbg/README_UNIFIED_FUZZING_STEALTH.md
