@@ -1785,8 +1785,9 @@ DrvDispatchFuzzerIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNo
     PUINT32                            SnapshotClearRequest   = NULL;
     PDEBUGGER_FUZZ_ITERATE_REQUEST     FuzzIterateRequest     = NULL;
     PFUZZ_AFL_COVERAGE_MAP             FuzzMapRequest         = NULL;
-    PFUZZ_CRASH_REPORT                 FuzzCrashReportRequest = NULL;
-    PDEBUGGER_FUZZ_RUN_BATCH_REQUEST   FuzzBatchRequest       = NULL;
+    PFUZZ_CRASH_REPORT                  FuzzCrashReportRequest = NULL;
+    PDEBUGGER_FUZZ_RUN_BATCH_REQUEST    FuzzBatchRequest       = NULL;
+    PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST FuzzGetPtStreamRequest = NULL;
 
     switch (Ioctl)
     {
@@ -1921,6 +1922,24 @@ DrvDispatchFuzzerIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNo
         Status = SnapshotClearCrashReport();
 
         DrvAdjustStatusAndSetOutputSize(0, DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_GET_PT_STREAM:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST),
+                                                (PVOID *)&FuzzGetPtStreamRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotGetPtStream(FuzzGetPtStreamRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST), DoNotChangeInformation, Irp, &Status);
         break;
 
 

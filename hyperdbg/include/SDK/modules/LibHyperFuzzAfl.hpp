@@ -236,6 +236,75 @@ public:
         );
     }
 
+    /**
+     * @brief Fetches the raw Intel PT ToPA packet stream buffer for deep LibAFL trace decoding
+     */
+    bool GetPtTraceStream(std::vector<uint8_t>& out_pt_data) {
+        DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST req{};
+        req.BufferSize = static_cast<uint32_t>(SNAPSHOT_MAX_INPUT_SIZE);
+        DWORD returned = 0;
+
+        BOOL status = DeviceIoControl(
+            device_handle_,
+            IOCTL_FUZZ_GET_PT_STREAM,
+            &req, sizeof(req),
+            &req, sizeof(req),
+            &returned,
+            nullptr
+        );
+
+        if (!status || req.TransferredBytes == 0) {
+            out_pt_data.clear();
+            return false;
+        }
+
+        out_pt_data.assign(req.PacketBuffer, req.PacketBuffer + req.TransferredBytes);
+        return true;
+    }
+
+    /**
+     * @brief Executes an autonomous in-kernel batch of fuzzing iterations
+     */
+    bool RunBatch(uint32_t count,
+                  uint64_t target_va,
+                  const uint8_t* seed_data,
+                  size_t seed_size,
+                  uint32_t* out_executed = nullptr,
+                  FUZZ_CRASH_REPORT* out_crash = nullptr) {
+        DEBUGGER_FUZZ_RUN_BATCH_REQUEST req{};
+        req.IterationCount        = count;
+        req.TargetVirtualAddress  = target_va;
+        req.InputSize             = static_cast<uint32_t>(min(seed_size, static_cast<size_t>(SNAPSHOT_MAX_INPUT_SIZE)));
+
+        if (seed_data != nullptr && req.InputSize > 0) {
+            memcpy(req.InputBuffer, seed_data, req.InputSize);
+        }
+
+        DWORD returned = 0;
+        BOOL status = DeviceIoControl(
+            device_handle_,
+            IOCTL_FUZZ_RUN_BATCH,
+            &req, sizeof(req),
+            &req, sizeof(req),
+            &returned,
+            nullptr
+        );
+
+        if (!status) {
+            return false;
+        }
+
+        if (out_executed) {
+            *out_executed = req.ExecutedCount;
+        }
+
+        if (out_crash && req.ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION) {
+            *out_crash = req.CrashReport;
+        }
+
+        return true;
+    }
+
 private:
     HANDLE        device_handle_;
     std::wstring  device_path_;

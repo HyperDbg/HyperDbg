@@ -55,11 +55,14 @@ typedef LBR_BRANCH_ENTRY LBR_ENTRY, *PLBR_ENTRY;
 #define COVERAGE_MODE_LBR_EDGE_RECORDING   0x00000004
 
 //
-// Anti-Tamper & Evasion Modes (TSC Time Dilation)
+// Anti-Tamper & Evasion Modes (TSC Time Dilation & Anti-Cheat Stealth)
 //
-#define EVASION_MODE_NONE                  0x00000000
-#define EVASION_MODE_FIXED_DELTA           0x00000001
-#define EVASION_MODE_INSTRUCTION_DILATION  0x00000002
+#define EVASION_MODE_NONE                     0x00000000
+#define EVASION_MODE_FIXED_DELTA              0x00000001
+#define EVASION_MODE_INSTRUCTION_DILATION     0x00000002
+#define EVASION_MODE_MSR_LATENCY_COMPENSATION 0x00000004
+#define EVASION_MODE_EPT_TIMING_SMOOTHING     0x00000008
+#define EVASION_MODE_KTRAP_FRAME_CLEANSE      0x00000010
 
 //////////////////////////////////////////////////
 //                 IOCTL Codes                  //
@@ -117,6 +120,12 @@ typedef LBR_BRANCH_ENTRY LBR_ENTRY, *PLBR_ENTRY;
  */
 #define IOCTL_FUZZ_CLEAR_CRASH_REPORT \
     CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x08, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief IOCTL to fetch the raw Intel PT ToPA packet stream buffer.
+ */
+#define IOCTL_FUZZ_GET_PT_STREAM \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x09, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #endif
 
 
@@ -362,4 +371,16 @@ typedef struct _DEBUGGER_FUZZ_RUN_BATCH_REQUEST
     UINT32           KernelStatus;
 
 } DEBUGGER_FUZZ_RUN_BATCH_REQUEST, *PDEBUGGER_FUZZ_RUN_BATCH_REQUEST;
+
+/**
+ * @brief Request packet for IOCTL_FUZZ_GET_PT_STREAM
+ */
+typedef struct _DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST
+{
+    UINT32 BufferSize;
+    UINT32 TransferredBytes;
+    UINT8  PacketBuffer[SNAPSHOT_MAX_INPUT_SIZE];
+    UINT32 KernelStatus;
+
+} DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST, *PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST;
 

@@ -35,3 +35,9 @@ TestScriptEngineVariableTypes();
 
 BOOLEAN
 TestSnapshotFuzzingEngine();
+
+int
+FuzzTargetUserModeParser(const UINT8 * Buffer, size_t Size);
+
+BOOLEAN
+FuzzTargetKernelIoctlHandler(UINT32 IoctlCode, const UINT8 * InputBuffer, size_t InputSize, UINT32 * OutStatus);

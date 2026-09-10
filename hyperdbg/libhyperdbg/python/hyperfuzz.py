@@ -51,6 +51,14 @@ IOCTL_FUZZ_MAP_COVERAGE     = CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 
 IOCTL_FUZZ_GET_CRASH_REPORT   = CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x06, METHOD_BUFFERED, FILE_ANY_ACCESS)
 IOCTL_FUZZ_RUN_BATCH           = CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x07, METHOD_BUFFERED, FILE_ANY_ACCESS)
 IOCTL_FUZZ_CLEAR_CRASH_REPORT = CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x08, METHOD_BUFFERED, FILE_ANY_ACCESS)
+IOCTL_FUZZ_GET_PT_STREAM       = CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x09, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+EVASION_MODE_NONE                     = 0x00000000
+EVASION_MODE_FIXED_DELTA              = 0x00000001
+EVASION_MODE_INSTRUCTION_DILATION     = 0x00000002
+EVASION_MODE_MSR_LATENCY_COMPENSATION = 0x00000004
+EVASION_MODE_EPT_TIMING_SMOOTHING     = 0x00000008
+EVASION_MODE_KTRAP_FRAME_CLEANSE      = 0x00000010
 
 #
 # ctypes Structures
@@ -175,6 +183,14 @@ class DEBUGGER_FUZZ_RUN_BATCH_REQUEST(ctypes.Structure):
         ("ElapsedCycles",         ctypes.c_ulonglong),
         ("CrashReport",           FUZZ_CRASH_REPORT),
         ("KernelStatus",          ctypes.c_uint),
+    ]
+
+class DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST(ctypes.Structure):
+    _fields_ = [
+        ("BufferSize",       ctypes.c_uint),
+        ("TransferredBytes", ctypes.c_uint),
+        ("PacketBuffer",     ctypes.c_ubyte * SNAPSHOT_MAX_INPUT_SIZE),
+        ("KernelStatus",     ctypes.c_uint),
     ]
 
 
@@ -344,6 +360,32 @@ class HyperDbgSnapshotFuzzer:
         """
         dummy = ctypes.c_ulong()
         self._send_ioctl(IOCTL_FUZZ_CLEAR_CRASH_REPORT, dummy, dummy)
+
+    def get_pt_stream(self) -> bytes:
+        """
+        Retrieves the raw binary Intel PT ToPA packet buffer from the hypervisor.
+        """
+        req = DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST()
+        req.BufferSize = SNAPSHOT_MAX_INPUT_SIZE
+        self._send_ioctl(IOCTL_FUZZ_GET_PT_STREAM, req, req)
+        if req.TransferredBytes > 0:
+            return bytes(req.PacketBuffer[:req.TransferredBytes])
+        return b""
+
+    def run_batch(self, iterations: int, target_va: int, seed: bytes = b"") -> tuple:
+        """
+        Runs an autonomous batch of fuzz iterations directly in kernel mode.
+        """
+        req = DEBUGGER_FUZZ_RUN_BATCH_REQUEST()
+        req.IterationCount = iterations
+        req.TargetVirtualAddress = target_va
+        req.InputSize = min(len(seed), SNAPSHOT_MAX_INPUT_SIZE)
+        if seed:
+            for i, b in enumerate(seed[:req.InputSize]):
+                req.InputBuffer[i] = b
+
+        self._send_ioctl(IOCTL_FUZZ_RUN_BATCH, req, req)
+        return req.ExecutedCount, req.ExecutionStatus, req.ElapsedCycles
 
     def close(self):
         if self.handle and self.handle != -1:

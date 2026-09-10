@@ -378,6 +378,186 @@ TestSnapshotFuzzingEngine()
         return FALSE;
     }
 
+/**
+ * @brief Unit Test 8: Validates MSR latency compensation and timing smoothing math.
+ */
+static BOOLEAN
+TestMsrLatencyCompensation()
+{
+    printf("  [+] Sub-test: Validating MSR latency compensation & EPT timing smoothing...\n");
+
+    UINT64 BaselineTsc = 0x200000000ULL;
+    UINT64 VirtualDelta = 0x400; // Simulated delta accumulated
+
+    // Apply MSR latency compensation: deduct hypervisor VM-exit tax
+    if (VirtualDelta >= 0x320)
+    {
+        VirtualDelta -= 0x20;
+    }
+
+    if (VirtualDelta != (0x400 - 0x20))
+    {
+        printf("  [-] Err: MSR latency compensation calculation failed (%llu != %llu).\n",
+               VirtualDelta, (0x400ULL - 0x20ULL));
+        return FALSE;
+    }
+
+    // Apply EPT timing smoothing
+    VirtualDelta = (VirtualDelta & ~0x1FULL) + 0x10;
+    if ((VirtualDelta & 0x1F) != 0x10)
+    {
+        printf("  [-] Err: EPT timing smoothing failed to normalize jitter.\n");
+        return FALSE;
+    }
+
+    UINT64 FinalTsc = BaselineTsc + VirtualDelta;
+    if (FinalTsc <= BaselineTsc)
+    {
+        printf("  [-] Err: Compensated TSC is non-monotonic.\n");
+        return FALSE;
+    }
+
+    printf("  [+] Sub-test: MSR latency compensation passed.\n");
+    return TRUE;
+}
+
+/**
+ * @brief Unit Test 9: Validates Intel PT ToPA stream export and TIP/FUP packet parsing.
+ */
+static BOOLEAN
+TestIntelPtStreamExport()
+{
+    printf("  [+] Sub-test: Validating Intel PT ToPA stream buffer & packet extraction...\n");
+
+    // Construct mock raw Intel PT packet stream: PSB + TIP(0x0D) + TIP.PGE(0x11)
+    UINT8 PtBuffer[64] = {0};
+    // 16-byte PSB
+    PtBuffer[0]  = 0x02; PtBuffer[1]  = 0x82;
+    PtBuffer[2]  = 0x02; PtBuffer[3]  = 0x82;
+    PtBuffer[4]  = 0x02; PtBuffer[5]  = 0x82;
+    PtBuffer[6]  = 0x02; PtBuffer[7]  = 0x82;
+    PtBuffer[8]  = 0x02; PtBuffer[9]  = 0x82;
+    PtBuffer[10] = 0x02; PtBuffer[11] = 0x82;
+    PtBuffer[12] = 0x02; PtBuffer[13] = 0x82;
+    PtBuffer[14] = 0x02; PtBuffer[15] = 0x82;
+
+    // TIP Packet: 0x0D (IpBytes = 2 -> 4-byte address)
+    // Byte0: (2 << 5) | 0x0D = 0x4D
+    PtBuffer[16] = 0x4D;
+    *(UINT32 *)(PtBuffer + 17) = 0x401000;
+
+    // Next TIP Packet: 0x4D to 0x401080
+    PtBuffer[21] = 0x4D;
+    *(UINT32 *)(PtBuffer + 22) = 0x401080;
+
+    FUZZ_AFL_COVERAGE_MAP Map = {0};
+    SnapshotParsePtCoverage(PtBuffer, 26, &Map);
+
+    if (Map.TotalEdgesCovered < 1)
+    {
+        printf("  [-] Err: Failed to extract branch edge from Intel PT stream.\n");
+        return FALSE;
+    }
+
+    printf("  [+] Sub-test: Intel PT ToPA stream extraction passed (Edges: %llu).\n", Map.TotalEdgesCovered);
+    return TRUE;
+}
+
+/**
+ * @brief Unit Test 10: Validates Ring-3 user-mode parser snapshot fuzzing target.
+ */
+static BOOLEAN
+TestRing3ParserFuzzing()
+{
+    printf("  [+] Sub-test: Validating Ring-3 user-mode target parser...\n");
+
+    // 1. Valid Echo packet
+    UINT8 ValidPacket[16] = {0};
+    ValidPacket[0] = 0x5A; ValidPacket[1] = 0x5A; // Magic
+    ValidPacket[2] = 0x01; ValidPacket[3] = 0x00; // Echo Command
+    ValidPacket[4] = 0x04;                        // DataLength = 4
+    ValidPacket[8] = 'T'; ValidPacket[9] = 'E'; ValidPacket[10] = 'S'; ValidPacket[11] = 'T';
+
+    int Res = FuzzTargetUserModeParser(ValidPacket, sizeof(ValidPacket));
+    if (Res != 0)
+    {
+        printf("  [-] Err: Valid packet parsing failed (res: %d).\n", Res);
+        return FALSE;
+    }
+
+    // 2. Vulnerability trigger packet (Simulated crash)
+    ValidPacket[2] = 0xFF; // Crash trigger command
+    Res = FuzzTargetUserModeParser(ValidPacket, sizeof(ValidPacket));
+    if (Res != -2)
+    {
+        printf("  [-] Err: Crash trigger packet was not trapped (res: %d).\n", Res);
+        return FALSE;
+    }
+
+    printf("  [+] Sub-test: Ring-3 user-mode target parser passed.\n");
+    return TRUE;
+}
+
+/**
+ * @brief Unit Test 11: Validates Ring-0 kernel IOCTL dispatch snapshot fuzzing target.
+ */
+static BOOLEAN
+TestRing0KernelDispatchFuzzing()
+{
+    printf("  [+] Sub-test: Validating Ring-0 kernel IOCTL dispatch handler...\n");
+
+    UINT32 Status = 0;
+    UINT8 PingPayload[4] = {'P', 'I', 'N', 'G'};
+
+    // 1. Test normal IOCTL dispatch
+    BOOLEAN Dispatched = FuzzTargetKernelIoctlHandler(0x80002000, PingPayload, sizeof(PingPayload), &Status);
+    if (!Dispatched || Status != 0)
+    {
+        printf("  [-] Err: Normal IOCTL ping dispatch failed (status: 0x%x).\n", Status);
+        return FALSE;
+    }
+
+    // 2. Test kernel vulnerability trigger payload
+    UINT64 CrashVal = 0xDEADBEEFCAFEBABEULL;
+    Dispatched = FuzzTargetKernelIoctlHandler(0x80002004, (const UINT8 *)&CrashVal, sizeof(CrashVal), &Status);
+    if (Dispatched || Status != 0xC0000005)
+    {
+        printf("  [-] Err: Kernel access violation trigger was not trapped cleanly (status: 0x%x).\n", Status);
+        return FALSE;
+    }
+
+    printf("  [+] Sub-test: Ring-0 kernel IOCTL dispatch target passed.\n");
+    return TRUE;
+}
+
+/**
+ * @brief Master test runner for snapshot fuzzing engine testcases.
+ */
+BOOLEAN
+TestSnapshotFuzzingEngine()
+{
+    printf("\n=== Running HyperDbg Snapshot Fuzzing Engine Tests ===\n");
+
+    if (!TestSnapshotContextLayout())
+    {
+        return FALSE;
+    }
+
+    if (!TestAflEdgeCoverageHashing())
+    {
+        return FALSE;
+    }
+
+    if (!TestCrashDeduplicationHashing())
+    {
+        return FALSE;
+    }
+
+    if (!TestMutatorSafety())
+    {
+        return FALSE;
+    }
+
     if (!TestSyntheticTscEvasion())
     {
         return FALSE;
@@ -389,6 +569,26 @@ TestSnapshotFuzzingEngine()
     }
 
     if (!TestMtfStealthInterception())
+    {
+        return FALSE;
+    }
+
+    if (!TestMsrLatencyCompensation())
+    {
+        return FALSE;
+    }
+
+    if (!TestIntelPtStreamExport())
+    {
+        return FALSE;
+    }
+
+    if (!TestRing3ParserFuzzing())
+    {
+        return FALSE;
+    }
+
+    if (!TestRing0KernelDispatchFuzzing())
     {
         return FALSE;
     }

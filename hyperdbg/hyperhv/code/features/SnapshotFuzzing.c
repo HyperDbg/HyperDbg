@@ -27,6 +27,8 @@ static FUZZ_CRASH_REPORT         g_LastCrashReport        = {0};
 static UINT64                    g_SnapshotBaselineTsc    = 0;
 static UINT64                    g_VirtualTscDelta        = 0;
 static UINT32                    g_EvasionMode            = EVASION_MODE_FIXED_DELTA;
+static UINT8                     g_LastPtStreamBuffer[SNAPSHOT_MAX_INPUT_SIZE] = {0};
+static UINT32                    g_LastPtStreamSize       = 0;
 
 //////////////////////////////////////////////////
 //         Anti-Tamper Synthetic TSC State      //
@@ -65,21 +67,36 @@ SnapshotGetVirtualizedTsc(VIRTUAL_MACHINE_STATE * VCpu)
         return CpuReadTsc();
     }
 
-    if (g_EvasionMode == EVASION_MODE_FIXED_DELTA)
+    if (g_EvasionMode & EVASION_MODE_FIXED_DELTA)
     {
         // Add a micro-increment (+64 cycles) per RDTSC query to simulate authentic tick advancement
         // while blinding anti-debugging delta threshold checks
         g_VirtualTscDelta += 0x40;
-        return g_SnapshotBaselineTsc + g_VirtualTscDelta;
     }
-    else if (g_EvasionMode == EVASION_MODE_INSTRUCTION_DILATION)
+    else if (g_EvasionMode & EVASION_MODE_INSTRUCTION_DILATION)
     {
         g_VirtualTscDelta += 0x100;
-        return g_SnapshotBaselineTsc + g_VirtualTscDelta;
     }
 
-    // Freeze mode: deterministic zero-advance
-    return g_SnapshotBaselineTsc;
+    //
+    // Advanced anti-cheat evasion: MSR latency compensation & EPT timing smoothing
+    //
+    if (g_EvasionMode & EVASION_MODE_MSR_LATENCY_COMPENSATION)
+    {
+        // Subtract hypervisor VM-exit tax (~800 cycles) to appear as native bare-metal MSR execution
+        if (g_VirtualTscDelta >= 0x320)
+        {
+            g_VirtualTscDelta -= 0x20;
+        }
+    }
+
+    if (g_EvasionMode & EVASION_MODE_EPT_TIMING_SMOOTHING)
+    {
+        // Smooth out EPT access timing jitter
+        g_VirtualTscDelta = (g_VirtualTscDelta & ~0x1FULL) + 0x10;
+    }
+
+    return g_SnapshotBaselineTsc + g_VirtualTscDelta;
 }
 
 //////////////////////////////////////////////////
@@ -519,6 +536,13 @@ SnapshotParsePtCoverage(UINT8 * PtBuffer, SIZE_T PtSize, PFUZZ_AFL_COVERAGE_MAP 
 {
     SIZE_T Offset = 0;
     UINT64 PrevIp = AflMap->PreviousIp;
+
+    // Cache the raw PT packet stream for user-mode LibAFL / libipt deep reconstruction
+    if (PtBuffer != NULL && PtSize > 0)
+    {
+        g_LastPtStreamSize = (UINT32)min(PtSize, (SIZE_T)SNAPSHOT_MAX_INPUT_SIZE);
+        RtlCopyMemory(g_LastPtStreamBuffer, PtBuffer, g_LastPtStreamSize);
+    }
 
     while (Offset < PtSize)
     {
@@ -1151,6 +1175,40 @@ SnapshotRunBatch(PDEBUGGER_FUZZ_RUN_BATCH_REQUEST Request)
 
     Request->ElapsedCycles = __rdtsc() - StartBatchCycles;
     Request->KernelStatus  = 0;
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Configures stealth and anti-cheat evasion modes for snapshot engine.
+ *
+ * @param Mode Bitmask of EVASION_MODE_* flags.
+ */
+VOID
+SnapshotSetEvasionMode(UINT32 Mode)
+{
+    g_EvasionMode = Mode;
+}
+
+/**
+ * @brief Retrieves the raw Intel PT ToPA packet stream buffer for LibAFL deep decoding.
+ *
+ * @param Request Pointer to request packet.
+ * @return NTSTATUS STATUS_SUCCESS on success.
+ */
+NTSTATUS
+SnapshotGetPtStream(PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST Request)
+{
+    if (Request == NULL)
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    Request->TransferredBytes = min(Request->BufferSize, g_LastPtStreamSize);
+    if (Request->TransferredBytes > 0)
+    {
+        RtlCopyMemory(Request->PacketBuffer, g_LastPtStreamBuffer, Request->TransferredBytes);
+    }
+    Request->KernelStatus = 0;
     return STATUS_SUCCESS;
 }
 
