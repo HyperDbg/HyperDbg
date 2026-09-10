@@ -404,5 +404,6 @@ cmake-build-debug
 # Local patch and agent files
 *.patch
 .agents/
+docs/
 /hyperdbg/README_SNAPSHOT_FUZZING.md
 /hyperdbg/README_UNIFIED_FUZZING_STEALTH.md
