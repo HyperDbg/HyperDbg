@@ -20,13 +20,17 @@
 VOID
 CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    //
-    // I realized that if you log anything here (LogInfo) then
-    // the system-halts, currently don't have any idea of how
-    // to solve it, in the future we solve it using tsc offsetting
-    // or tsc scalling (The reason is because of that fucking patchguard :( )
-    //
-    UINT64      Tsc       = CpuReadTsc();
+    UINT64 Tsc;
+
+    if (SnapshotIsActive())
+    {
+        Tsc = SnapshotGetVirtualizedTsc(VCpu);
+    }
+    else
+    {
+        Tsc = CpuReadTsc();
+    }
+
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     GuestRegs->rax = 0x00000000ffffffff & Tsc;
@@ -42,8 +46,19 @@ CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UINT32      Aux       = 0;
-    UINT64      Tsc       = CpuReadTscp(&Aux);
+    UINT32      Aux = 0;
+    UINT64      Tsc;
+
+    if (SnapshotIsActive())
+    {
+        Tsc = SnapshotGetVirtualizedTsc(VCpu);
+        Aux = VCpu->CoreId;
+    }
+    else
+    {
+        Tsc = CpuReadTscp(&Aux);
+    }
+
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     GuestRegs->rax = 0x00000000ffffffff & Tsc;

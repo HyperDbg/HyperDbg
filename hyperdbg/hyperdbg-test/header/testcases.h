@@ -32,3 +32,6 @@ TestScriptEngineFloatingPoint();
 
 BOOLEAN
 TestScriptEngineVariableTypes();
+
+BOOLEAN
+TestSnapshotFuzzingEngine();

@@ -341,6 +341,9 @@
     <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c">
       <Filter>code\components\callback</Filter>
     </ClCompile>
+    <ClCompile Include="code\features\SnapshotFuzzing.c">
+      <Filter>code\features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -446,6 +449,9 @@
       <Filter>header\features</Filter>
     </ClInclude>
     <ClInclude Include="header\features\CompatibilityChecks.h">
+      <Filter>header\features</Filter>
+    </ClInclude>
+    <ClInclude Include="header\features\SnapshotFuzzing.h">
       <Filter>header\features</Filter>
     </ClInclude>
     <ClInclude Include="header\hooks\ModeBasedExecHook.h">

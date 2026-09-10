@@ -57,3 +57,6 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
 
 NTSTATUS
 DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation);
+
+NTSTATUS
+DrvDispatchFuzzerIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation);

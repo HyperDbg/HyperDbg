@@ -89,6 +89,12 @@
  */
 #define IOCTL_HYPERTRACE_IOCTL IOCTL_START_CODE + 0x300
 
+/**
+ * @brief ioctl, for Fuzzing and Snapshot related functionalities
+ *
+ */
+#define IOCTL_FUZZER_IOCTL IOCTL_START_CODE + 0x400
+
 //////////////////////////////////////////////////
 //                 Basic IOCTLs                 //
 //////////////////////////////////////////////////
@@ -435,3 +441,71 @@
  */
 #define IOCTL_PERFORM_HYPERTRACE_PT_MMAP \
     CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_HYPERTRACE_IOCTL + 0x05, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+//////////////////////////////////////////////////
+//         Fuzzing & Snapshot IOCTLs            //
+//////////////////////////////////////////////////
+
+#ifndef IOCTL_SNAPSHOT_TAKE
+/**
+ * @brief IOCTL to create an in-memory execution snapshot at current state.
+ */
+#define IOCTL_SNAPSHOT_TAKE \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x01, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_SNAPSHOT_RESTORE
+/**
+ * @brief IOCTL to roll back system state to the baseline snapshot.
+ */
+#define IOCTL_SNAPSHOT_RESTORE \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x02, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_SNAPSHOT_CLEAR
+/**
+ * @brief IOCTL to clear and deallocate snapshot buffers.
+ */
+#define IOCTL_SNAPSHOT_CLEAR \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x03, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_FUZZ_ITERATE
+/**
+ * @brief IOCTL to inject testcase input and execute a single fuzzing iteration.
+ */
+#define IOCTL_FUZZ_ITERATE \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x04, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_FUZZ_MAP_COVERAGE
+/**
+ * @brief IOCTL to map the shared AFL 64KB coverage bitmap into user-mode address space.
+ */
+#define IOCTL_FUZZ_MAP_COVERAGE \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x05, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_FUZZ_GET_CRASH_REPORT
+/**
+ * @brief IOCTL to retrieve the last crash report (registers, stack, LBR trace, exception code).
+ */
+#define IOCTL_FUZZ_GET_CRASH_REPORT \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x06, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_FUZZ_RUN_BATCH
+/**
+ * @brief IOCTL to execute an autonomous batch of fuzzing iterations directly in-kernel.
+ */
+#define IOCTL_FUZZ_RUN_BATCH \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x07, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_FUZZ_CLEAR_CRASH_REPORT
+/**
+ * @brief IOCTL to clear the last captured crash telemetry report.
+ */
+#define IOCTL_FUZZ_CLEAR_CRASH_REPORT \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x08, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif

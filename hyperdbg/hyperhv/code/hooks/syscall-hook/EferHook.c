@@ -256,6 +256,28 @@ SyscallHookEmulateSYSRET(VIRTUAL_MACHINE_STATE * VCpu)
     return TRUE;
 }
 
+//////////////////////////////////////////////////
+//           EFER Opcode Call-Site Cache        //
+//////////////////////////////////////////////////
+
+typedef enum _EFER_HOOK_OPCODE_TYPE
+{
+    EFER_OPCODE_UNKNOWN = 0,
+    EFER_OPCODE_SYSCALL = 1,
+    EFER_OPCODE_SYSRET  = 2
+} EFER_HOOK_OPCODE_TYPE;
+
+#define EFER_OPCODE_CACHE_SIZE 256
+#define EFER_OPCODE_CACHE_MASK (EFER_OPCODE_CACHE_SIZE - 1)
+
+typedef struct _EFER_OPCODE_CACHE_ENTRY
+{
+    UINT64                Rip;
+    EFER_HOOK_OPCODE_TYPE OpcodeType;
+} EFER_OPCODE_CACHE_ENTRY;
+
+static EFER_OPCODE_CACHE_ENTRY g_EferOpcodeCache[EFER_OPCODE_CACHE_SIZE] = {0};
+
 /**
  * @brief Detect whether the #UD was because of Syscall or Sysret or not
  *
@@ -269,11 +291,28 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
     CR3_TYPE GuestCr3;
     UINT64   OriginalCr3;
     UINT64   Rip;
+    UINT32   CacheIndex;
 
     //
     // Reading guest's RIP
     //
     VmxVmread64P(VMCS_GUEST_RIP, &Rip);
+
+    //
+    // Check L1 Call-Site Cache to avoid costly memory reads or CR3 switches
+    //
+    CacheIndex = (UINT32)((Rip >> 1) & EFER_OPCODE_CACHE_MASK);
+    if (g_EferOpcodeCache[CacheIndex].Rip == Rip)
+    {
+        if (g_EferOpcodeCache[CacheIndex].OpcodeType == EFER_OPCODE_SYSCALL)
+        {
+            goto EmulateSYSCALL;
+        }
+        else if (g_EferOpcodeCache[CacheIndex].OpcodeType == EFER_OPCODE_SYSRET)
+        {
+            goto EmulateSYSRET;
+        }
+    }
 
     if (g_IsUnsafeSyscallOrSysretHandling)
     {
@@ -291,10 +330,14 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
         //
         if (Rip & 0xff00000000000000)
         {
+            g_EferOpcodeCache[CacheIndex].Rip        = Rip;
+            g_EferOpcodeCache[CacheIndex].OpcodeType = EFER_OPCODE_SYSRET;
             goto EmulateSYSRET;
         }
         else
         {
+            g_EferOpcodeCache[CacheIndex].Rip        = Rip;
+            g_EferOpcodeCache[CacheIndex].OpcodeType = EFER_OPCODE_SYSCALL;
             goto EmulateSYSCALL;
         }
     }
@@ -357,6 +400,8 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
         if (InstructionBuffer[0] == 0x0F &&
             InstructionBuffer[1] == 0x05)
         {
+            g_EferOpcodeCache[CacheIndex].Rip        = Rip;
+            g_EferOpcodeCache[CacheIndex].OpcodeType = EFER_OPCODE_SYSCALL;
             goto EmulateSYSCALL;
         }
 
@@ -364,6 +409,8 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
             InstructionBuffer[1] == 0x0F &&
             InstructionBuffer[2] == 0x07)
         {
+            g_EferOpcodeCache[CacheIndex].Rip        = Rip;
+            g_EferOpcodeCache[CacheIndex].OpcodeType = EFER_OPCODE_SYSRET;
             goto EmulateSYSRET;
         }
 

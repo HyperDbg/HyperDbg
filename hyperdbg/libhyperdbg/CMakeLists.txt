@@ -63,6 +63,8 @@ set(SourceFiles
     "code/debugger/commands/extension-commands/pcicam.cpp"
     "code/debugger/commands/extension-commands/pcitree.cpp"
     "code/debugger/commands/extension-commands/pt.cpp"
+    "code/debugger/commands/extension-commands/snapshot.cpp"
+    "code/debugger/commands/extension-commands/crash.cpp"
     "code/debugger/commands/extension-commands/smi.cpp"
     "code/debugger/commands/extension-commands/xsetbv.cpp"
     "code/debugger/commands/extension-commands/rev.cpp"

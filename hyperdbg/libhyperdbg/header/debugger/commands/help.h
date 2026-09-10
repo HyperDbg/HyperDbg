@@ -321,6 +321,15 @@ CommandLbrdumpHelp();
 VOID
 CommandPtHelp();
 
+VOID
+CommandSnapshotHelp();
+
+VOID
+CommandFuzzHelp();
+
+VOID
+CommandCrashHelp();
+
 //
 // hwdbg commands
 //

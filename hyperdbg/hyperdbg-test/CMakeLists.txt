@@ -3,6 +3,7 @@ set(SourceFiles
     "code/tests/hyperdbg-test.cpp"
     "code/tests/namedpipe.cpp"
     "code/tests/tools.cpp"
+    "code/tests/fuzzing-test.cpp"
     "pch.cpp"
     "../include/platform/user/header/Environment.h"
     "header/namedpipe.h"

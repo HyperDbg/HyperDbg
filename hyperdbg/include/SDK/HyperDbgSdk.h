@@ -29,6 +29,12 @@
 #include "SDK/headers/PtDefinitions.h"
 
 //
+// Hypervisor Snapshot Fuzzing & Coverage Engine
+//
+#include "SDK/headers/SnapshotFuzzing.h"
+#include "SDK/modules/HyperFuzz.h"
+
+//
 // Request Packets
 //
 #include "SDK/headers/RequestStructures.h"
