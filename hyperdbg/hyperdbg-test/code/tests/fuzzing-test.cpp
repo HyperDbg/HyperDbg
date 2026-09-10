@@ -478,7 +478,7 @@ TestRing3ParserFuzzing()
     ValidPacket[4] = 0x04;                        // DataLength = 4
     ValidPacket[8] = 'T'; ValidPacket[9] = 'E'; ValidPacket[10] = 'S'; ValidPacket[11] = 'T';
 
-    int Res = FuzzTargetUserModeParser(ValidPacket, sizeof(ValidPacket));
+    INT32 Res = FuzzTargetUserModeParser(ValidPacket, sizeof(ValidPacket));
     if (Res != 0)
     {
         printf("  [-] Err: Valid packet parsing failed (res: %d).\n", Res);

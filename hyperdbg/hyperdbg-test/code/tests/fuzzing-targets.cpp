@@ -28,8 +28,8 @@ typedef struct _MOCK_PARSER_HEADER
  * @param Size Length of testcase in bytes.
  * @return INT32 Parsing exit code (0 = success, -1 = invalid format, -2 = exception triggered).
  */
-int
-FuzzTargetUserModeParser(const UINT8 * Buffer, size_t Size)
+INT32
+FuzzTargetUserModeParser(const UINT8 * Buffer, SIZE_T Size)
 {
     if (Buffer == NULL || Size < sizeof(MOCK_PARSER_HEADER))
     {
@@ -48,8 +48,8 @@ FuzzTargetUserModeParser(const UINT8 * Buffer, size_t Size)
     if (Header->Command == 1)
     {
         volatile UINT32 Sum = 0;
-        size_t CopyLen = min((size_t)Header->DataLength, Size - sizeof(MOCK_PARSER_HEADER));
-        for (size_t i = 0; i < CopyLen; i++)
+        SIZE_T CopyLen = min((SIZE_T)Header->DataLength, Size - sizeof(MOCK_PARSER_HEADER));
+        for (SIZE_T i = 0; i < CopyLen; i++)
         {
             Sum += Buffer[sizeof(MOCK_PARSER_HEADER) + i];
         }
@@ -60,12 +60,12 @@ FuzzTargetUserModeParser(const UINT8 * Buffer, size_t Size)
     if (Header->Command == 2)
     {
         volatile UINT8 Scratch[32] = {0};
-        size_t CopyLen = min((size_t)Header->DataLength, sizeof(Scratch));
-        for (size_t i = 0; i < CopyLen; i++)
+        SIZE_T CopyLen = min((SIZE_T)Header->DataLength, sizeof(Scratch));
+        for (SIZE_T i = 0; i < CopyLen; i++)
         {
             Scratch[i] = Buffer[sizeof(MOCK_PARSER_HEADER) + i] ^ 0xAA;
         }
-        return (int)Scratch[0];
+        return (INT32)Scratch[0];
     }
 
     // Branch 3: Trigger crash condition (Simulated vulnerability for fuzzer detection)
@@ -88,7 +88,7 @@ FuzzTargetUserModeParser(const UINT8 * Buffer, size_t Size)
  * @return BOOLEAN TRUE on dispatch success.
  */
 BOOLEAN
-FuzzTargetKernelIoctlHandler(UINT32 IoctlCode, const UINT8 * InputBuffer, size_t InputSize, UINT32 * OutStatus)
+FuzzTargetKernelIoctlHandler(UINT32 IoctlCode, const UINT8 * InputBuffer, SIZE_T InputSize, UINT32 * OutStatus)
 {
     if (OutStatus == NULL)
     {
