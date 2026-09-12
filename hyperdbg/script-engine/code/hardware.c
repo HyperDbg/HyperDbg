@@ -193,11 +193,11 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
             Stages++;
             ShowMessages("- %lld. found a semnatic rule (operator) | type: 0x%llx, value: 0x%llx\n", i, SymbolArray[i].Type, SymbolArray[i].Value);
 
-            if (FuncGetNumberOfOperands(SymbolArray[i].Type, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
+            if (FuncGetNumberOfOperands(SymbolArray[i].Value, &NumberOfGetOperands, &NumberOfSetOperands) == FALSE)
             {
                 NotSupported = TRUE;
                 ShowMessages("err, unknown operand type for the operator (0x%llx)\n",
-                             SymbolArray[i].Type);
+                             SymbolArray[i].Value);
 
                 return FALSE;
             }
@@ -389,8 +389,8 @@ HardwareScriptInterpreterCheckScriptBufferWithScriptCapabilities(HWDBG_INSTANCE_
 
                 NotSupported = TRUE;
                 ShowMessages("err, undefined operator for hwdbg: %lld (0x%llx)\n",
-                             SymbolArray[i].Type,
-                             SymbolArray[i].Type);
+                             SymbolArray[i].Value,
+                             SymbolArray[i].Value);
 
                 break;
             }

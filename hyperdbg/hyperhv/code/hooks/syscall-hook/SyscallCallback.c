@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file SyscallCallback.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author jtaw5649
@@ -54,6 +54,13 @@ SyscallCallbackInitialize()
         // Allocate buffer for the syscall callback trap flag state
         //
         g_SyscallCallbackTrapFlagState = (SYSCALL_CALLBACK_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(SYSCALL_CALLBACK_TRAP_FLAG_STATE));
+
+        if (g_SyscallCallbackTrapFlagState == NULL)
+        {
+            ConfigureEptHookUnHookSingleAddress((UINT64)g_SystemCallHookAddress, (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId());
+            g_SystemCallHookAddress = NULL;
+            return FALSE;
+        }
 
         //
         // Intercept trap flags #DBs and #BPs for the syscall callback
@@ -157,6 +164,14 @@ SyscallCallbackStoreProcessInformation(UINT32                            Process
     ProcThrdInfo.Fields.ThreadId  = ThreadId;
 
     //
+    // Ensure trap flag state buffer is valid
+    //
+    if (g_SyscallCallbackTrapFlagState == NULL)
+    {
+        return FALSE;
+    }
+
+    //
     // Make sure, nobody is in the middle of modifying the list
     //
     SpinlockLock(&SyscallCallbackModeTrapListLock);
@@ -211,6 +226,19 @@ Return:
     return SuccessfullyStored;
 }
 
+static BOOLEAN g_SyscallCallbackStealthMtf = FALSE;
+
+/**
+ * @brief Configure stealth MTF mode for syscall return interception.
+ *
+ * @param EnableMtf If TRUE, uses hardware MTF on return instead of altering RFLAGS.TF in KTRAP_FRAME.
+ */
+VOID
+SyscallCallbackSetStealthMtf(BOOLEAN EnableMtf)
+{
+    g_SyscallCallbackStealthMtf = EnableMtf;
+}
+
 /**
  * @brief Set the trap flag in the guest after a syscall
  *
@@ -256,17 +284,20 @@ SyscallCallbackSetTrapFlagAfterSyscall(GUEST_REGS *                      Regs,
     //
 
     //
-    // Set the trap flag to TRUE because we want to intercept the thread again
-    // once it returns to the user-mode (SYSRET) instruction
+    // Set the trap flag or arm stealth MTF depending on configuration
     //
-    // Here the RFLAGS is in the R11 register (See Intel manual about the SYSCALL register)
-    //
-    Regs->r11 |= X86_FLAGS_TF;
-
-    //
-    // Create log message for the syscall
-    //
-    // LogInfo("Syscall callback set trap flag for process: %x, thread: %x\n", ProcessId, ThreadId);
+    if (g_SyscallCallbackStealthMtf)
+    {
+        // Zero-footprint hardware MTF: keeps RFLAGS.TF pristine in KTRAP_FRAME
+        HvSetMonitorTrapFlag(TRUE);
+    }
+    else
+    {
+        //
+        // Here the RFLAGS is in the R11 register (See Intel manual about the SYSCALL register)
+        //
+        Regs->r11 |= X86_FLAGS_TF;
+    }
 
     return TRUE;
 }
@@ -314,6 +345,14 @@ SyscallCallbackCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
     ProcThrdInfo.Fields.ThreadId  = ThreadId;
 
     //
+    // Ensure trap flag state buffer is valid
+    //
+    if (g_SyscallCallbackTrapFlagState == NULL)
+    {
+        return FALSE;
+    }
+
+    //
     // Make sure, nobody is in the middle of modifying the list
     //
     SpinlockLock(&SyscallCallbackModeTrapListLock);
@@ -343,9 +382,16 @@ SyscallCallbackCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
         memcpy(&Params, &g_SyscallCallbackTrapFlagState->Params[Index], sizeof(SYSCALL_CALLBACK_CONTEXT_PARAMS));
 
         //
-        // Clear the trap flag from the RFLAGS register
+        // Clear the trap flag from the RFLAGS register or disarm MTF
         //
-        HvSetRflagTrapFlag(FALSE);
+        if (g_SyscallCallbackStealthMtf)
+        {
+            HvSetMonitorTrapFlag(FALSE);
+        }
+        else
+        {
+            HvSetRflagTrapFlag(FALSE);
+        }
 
         //
         // Remove the thread/process from the list of processes/threads

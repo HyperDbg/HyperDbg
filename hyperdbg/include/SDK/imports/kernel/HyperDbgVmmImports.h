@@ -1044,3 +1044,43 @@ PciReadCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width);
 
 IMPORT_EXPORT_VMM BOOLEAN
 PciWriteCam(WORD Bus, WORD Device, WORD Function, BYTE Offset, UINT8 Width, QWORD Value);
+
+//////////////////////////////////////////////////
+//     Snapshot & Fuzzing Functions            	//
+//////////////////////////////////////////////////
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotTake(PDEBUGGER_SNAPSHOT_TAKE_REQUEST Request);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotRestore(PDEBUGGER_SNAPSHOT_RESTORE_REQUEST Request);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotClear(PUINT32 Status);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotFuzzIterate(PDEBUGGER_FUZZ_ITERATE_REQUEST Request);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotMapCoverage(PFUZZ_AFL_COVERAGE_MAP DestinationBuffer);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotGetCrashReport(PFUZZ_CRASH_REPORT Report);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotClearCrashReport(VOID);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotRunBatch(PDEBUGGER_FUZZ_RUN_BATCH_REQUEST Request);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotGetPtStream(PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST Request);
+
+IMPORT_EXPORT_VMM VOID
+SnapshotSetEvasionMode(UINT32 Mode);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotMapShmRingBuffer(PDEBUGGER_FUZZ_MAP_SHM_REQUEST Request, PVOID * OutUserVa);
+
+IMPORT_EXPORT_VMM NTSTATUS
+SnapshotSignalAflForkserver(PDEBUGGER_FUZZ_AFL_SIGNAL_REQUEST Request);

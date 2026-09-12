@@ -125,6 +125,11 @@ NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
 void
 RemoveToken(PSCRIPT_ENGINE_TOKEN * Token)
 {
+    if (Token == NULL || *Token == NULL)
+    {
+        return;
+    }
+
     free((*Token)->Value);
     free(*Token);
     *Token = NULL;
@@ -459,6 +464,11 @@ NewTokenList(void)
 void
 RemoveTokenList(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 {
+    if (TokenList == NULL)
+    {
+        return;
+    }
+
     PSCRIPT_ENGINE_TOKEN Token;
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
@@ -559,11 +569,12 @@ Push(PSCRIPT_ENGINE_TOKEN_LIST TokenList, PSCRIPT_ENGINE_TOKEN Token)
 PSCRIPT_ENGINE_TOKEN
 Pop(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 {
-    //
-    // Calculate address to read most recent token
-    //
-    if (TokenList->Pointer > 0)
-        TokenList->Pointer--; // not consider what if the token's type is string or wstring
+    if (TokenList == NULL || TokenList->Pointer == 0)
+    {
+        return NULL;
+    }
+
+    TokenList->Pointer--;
     uintptr_t              Head     = (uintptr_t)TokenList->Head;
     uintptr_t              Pointer  = (uintptr_t)TokenList->Pointer;
     PSCRIPT_ENGINE_TOKEN * ReadAddr = (PSCRIPT_ENGINE_TOKEN *)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));
@@ -580,9 +591,11 @@ Pop(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 PSCRIPT_ENGINE_TOKEN
 Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 {
-    //
-    // Calculate address to read most recent pushed token
-    //
+    if (TokenList == NULL || TokenList->Pointer == 0)
+    {
+        return NULL;
+    }
+
     uintptr_t              Head     = (uintptr_t)TokenList->Head;
     uintptr_t              Pointer  = (uintptr_t)TokenList->Pointer - 1;
     PSCRIPT_ENGINE_TOKEN * ReadAddr = (PSCRIPT_ENGINE_TOKEN *)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));
@@ -600,6 +613,11 @@ Top(PSCRIPT_ENGINE_TOKEN_LIST TokenList)
 PSCRIPT_ENGINE_TOKEN
 TopIndexed(PSCRIPT_ENGINE_TOKEN_LIST TokenList, int Index)
 {
+    if (TokenList == NULL || Index < 0 || (uintptr_t)Index >= TokenList->Pointer)
+    {
+        return NULL;
+    }
+
     uintptr_t              Head     = (uintptr_t)TokenList->Head;
     uintptr_t              Pointer  = (uintptr_t)TokenList->Pointer - 1 - Index;
     PSCRIPT_ENGINE_TOKEN * ReadAddr = (PSCRIPT_ENGINE_TOKEN *)(Head + Pointer * sizeof(PSCRIPT_ENGINE_TOKEN));

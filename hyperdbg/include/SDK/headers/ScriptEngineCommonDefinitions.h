@@ -279,6 +279,11 @@ static const char *const SymbolTypeNames[] = {
 #define FUNC_BITWISE_NOT_TYPED 160
 #define FUNC_LOGICAL_NOT_TYPED 161
 #define FUNC_POINTER_DIFF 162
+#define FUNC_SNAPSHOT_TAKE 163
+#define FUNC_SNAPSHOT_RESTORE 164
+#define FUNC_SNAPSHOT_CLEAR 165
+#define FUNC_FUZZ_MUTATE 166
+#define FUNC_EVASION_SET_MODE 167
 
 static const char *const FunctionNames[] = {
 "FUNC_UNDEFINED",
@@ -444,6 +449,11 @@ static const char *const FunctionNames[] = {
 "FUNC_BITWISE_NOT_TYPED",
 "FUNC_LOGICAL_NOT_TYPED",
 "FUNC_POINTER_DIFF",
+"FUNC_SNAPSHOT_TAKE",
+"FUNC_SNAPSHOT_RESTORE",
+"FUNC_SNAPSHOT_CLEAR",
+"FUNC_FUZZ_MUTATE",
+"FUNC_EVASION_SET_MODE",
 };
 
 typedef enum REGS_ENUM {

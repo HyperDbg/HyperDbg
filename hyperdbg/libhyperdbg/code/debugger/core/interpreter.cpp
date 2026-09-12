@@ -1643,6 +1643,10 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!pt"] = {&CommandPt, &CommandPtHelp, DEBUGGER_COMMAND_PT_ATTRIBUTES};
 
+    g_CommandsList["!snapshot"] = {&CommandSnapshot, &CommandSnapshotHelp, DEBUGGER_COMMAND_SNAPSHOT_ATTRIBUTES};
+    g_CommandsList["!fuzz"]     = {&CommandFuzz, &CommandFuzzHelp, DEBUGGER_COMMAND_FUZZ_ATTRIBUTES};
+    g_CommandsList["!crash"]    = {&CommandCrash, &CommandCrashHelp, DEBUGGER_COMMAND_CRASH_ATTRIBUTES};
+
     //
     // hwdbg commands
     //

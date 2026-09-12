@@ -1210,6 +1210,9 @@ SymSearchSymbolForMask(const char * SearchMask)
         //
         // Module not found or there was an error
         //
+        ShowMessages("err, module not found or symbols not loaded for '%s'\n"
+                     "hint: use '.sym reload' or '.sym reload pid <PID>' to load user-mode modules\n",
+                     SearchMask);
         return -1;
     }
 

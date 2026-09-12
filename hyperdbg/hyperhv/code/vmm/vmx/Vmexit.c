@@ -42,6 +42,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     VCpu->IsOnVmxRootMode = TRUE;
 
     //
+    // Record VM-exit entry cycle timestamp for anti-detection timing compensation
+    //
+    VCpu->TransparencyState.VmExitTscEntry = __rdtsc();
+
+    //
     // read the exit reason and exit qualification
     //
     VmxVmread32P(VMCS_EXIT_REASON, &ExitReason);
@@ -362,6 +367,18 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // Set indicator of Vmx non root mode to false
     //
     VCpu->IsOnVmxRootMode = FALSE;
+
+    //
+    // Deduct VM-exit execution cost from virtualized guest timeline
+    //
+    if (!Result)
+    {
+        UINT64 ExitTsc = __rdtsc();
+        if (ExitTsc > VCpu->TransparencyState.VmExitTscEntry && VCpu->TransparencyState.VmExitTscEntry != 0)
+        {
+            VCpu->TransparencyState.CumulativeVmExitCycles += (ExitTsc - VCpu->TransparencyState.VmExitTscEntry);
+        }
+    }
 
     //
     // By default it's FALSE, if we want to exit vmx then it's TRUE

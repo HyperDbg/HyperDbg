@@ -45,7 +45,7 @@ CommandHwHelp()
 VOID
 CommandHw(vector<CommandToken> CommandTokens, string Command)
 {
-    if (CommandTokens.size() >= 2 && CompareLowerCaseStrings(CommandTokens.at(1), "script"))
+    if (CommandTokens.size() >= 3 && CompareLowerCaseStrings(CommandTokens.at(1), "script"))
     {
         //
         // Perform test with default file path and initial BRAM buffer size
@@ -55,7 +55,7 @@ CommandHw(vector<CommandToken> CommandTokens, string Command)
                              HWDBG_TEST_WRITE_SCRIPT_BUFFER_PATH,
                              DEFAULT_INITIAL_BRAM_BUFFER_SIZE);
     }
-    else if (CommandTokens.size() >= 2 &&
+    else if (CommandTokens.size() >= 3 &&
              (CompareLowerCaseStrings(CommandTokens.at(1), "eval") || CompareLowerCaseStrings(CommandTokens.at(1), "evaluation")))
     {
         //

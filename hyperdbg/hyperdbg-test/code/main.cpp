@@ -133,6 +133,18 @@ main(int argc, char * argv[])
             printf("\n[x] The script variable-type test cases failed\n");
         }
     }
+    else if (!strcmp(argv[1], TEST_CASE_PARAMETER_FOR_SNAPSHOT_FUZZING))
+    {
+        if (TestSnapshotFuzzingEngine())
+        {
+            printf("\n[*] The snapshot fuzzing engine test cases passed successfully\n");
+            TestResult = TRUE;
+        }
+        else
+        {
+            printf("\n[x] The snapshot fuzzing engine test cases failed\n");
+        }
+    }
     else
     {
         printf("unknown test case\n");

@@ -496,6 +496,15 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_PT_ATTRIBUTES \
     NULL
 
+#define DEBUGGER_COMMAND_SNAPSHOT_ATTRIBUTES \
+    NULL
+
+#define DEBUGGER_COMMAND_FUZZ_ATTRIBUTES \
+    NULL
+
+#define DEBUGGER_COMMAND_CRASH_ATTRIBUTES \
+    NULL
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -793,6 +802,24 @@ CommandLbrdump(vector<CommandToken> CommandTokens, string Command);
 
 VOID
 CommandPt(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandSnapshot(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandSnapshotHelp();
+
+VOID
+CommandFuzz(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandFuzzHelp();
+
+VOID
+CommandCrash(vector<CommandToken> CommandTokens, string Command);
+
+VOID
+CommandCrashHelp();
 
 //
 // hwdbg commands

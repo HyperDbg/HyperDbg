@@ -33,7 +33,8 @@ DrvValidateAndAdjustIoctlParameter(UINT32             BufferSize,
     //
     // First validate the parameters
     //
-    if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < BufferSize || Irp->AssociatedIrp.SystemBuffer == NULL)
+    if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < BufferSize ||
+        Irp->AssociatedIrp.SystemBuffer == NULL)
     {
         LogError("Err, invalid parameter to IOCTL dispatcher");
         return FALSE;
@@ -42,7 +43,7 @@ DrvValidateAndAdjustIoctlParameter(UINT32             BufferSize,
     *InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
     *OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
 
-    if (!*InBuffLength || !*OutBuffLength)
+    if (!*InBuffLength)
     {
         return FALSE;
     }
@@ -74,13 +75,34 @@ DrvAdjustStatusAndSetOutputSize(UINT32     ExpectedOutputBufferSize,
                                 PIRP       Irp,
                                 NTSTATUS * Status)
 {
-    Irp->IoStatus.Information = ExpectedOutputBufferSize;
-    *Status                   = STATUS_SUCCESS;
+    PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
-    //
-    // Avoid zeroing it
-    //
-    *DoNotChangeInformation = TRUE;
+    if (NT_SUCCESS(*Status))
+    {
+        if (IrpStack->Parameters.DeviceIoControl.OutputBufferLength < ExpectedOutputBufferSize)
+        {
+            *Status                   = STATUS_BUFFER_TOO_SMALL;
+            Irp->IoStatus.Information = 0;
+            *DoNotChangeInformation   = FALSE;
+            return;
+        }
+
+        Irp->IoStatus.Information = ExpectedOutputBufferSize;
+        *Status                   = STATUS_SUCCESS;
+
+        //
+        // Avoid zeroing it on success
+        //
+        *DoNotChangeInformation = TRUE;
+    }
+    else
+    {
+        //
+        // On error, do not return uninitialized kernel buffer bytes
+        //
+        Irp->IoStatus.Information = 0;
+        *DoNotChangeInformation   = FALSE;
+    }
 }
 
 /**
@@ -124,6 +146,13 @@ IoctlCheckIoctlAllowed(ULONG Ioctl)
         // Allow if the HyperTrace module is initialized
         //
         return g_HyperTraceInitialized;
+    }
+    else if (IoctlFunction > IOCTL_FUZZER_IOCTL && IoctlFunction <= IOCTL_FUZZER_IOCTL + 0x100)
+    {
+        //
+        // Allow if the VMM module is initialized (snapshot & fuzzing require hypervisor)
+        //
+        return g_VmmInitialized;
     }
     else
     {
@@ -1758,6 +1787,232 @@ DrvDispatchHyperTraceIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * 
 }
 
 /**
+ * @brief IOCTL Dispatcher for Fuzzing & Snapshot IOCTLs
+ *
+ * @param Irp
+ * @param IrpStack
+ * @param DoNotChangeInformation
+ * @return NTSTATUS
+ */
+NTSTATUS
+DrvDispatchFuzzerIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotChangeInformation)
+{
+    NTSTATUS Status        = STATUS_SUCCESS;
+    UINT32   Ioctl         = IrpStack->Parameters.DeviceIoControl.IoControlCode;
+    ULONG    InBuffLength  = 0;
+    ULONG    OutBuffLength = 0;
+
+    PDEBUGGER_SNAPSHOT_TAKE_REQUEST    SnapshotTakeRequest    = NULL;
+    PDEBUGGER_SNAPSHOT_RESTORE_REQUEST SnapshotRestoreRequest = NULL;
+    PUINT32                            SnapshotClearRequest   = NULL;
+    PDEBUGGER_FUZZ_ITERATE_REQUEST     FuzzIterateRequest     = NULL;
+    PFUZZ_AFL_COVERAGE_MAP             FuzzMapRequest         = NULL;
+    PFUZZ_CRASH_REPORT                  FuzzCrashReportRequest = NULL;
+    PDEBUGGER_FUZZ_RUN_BATCH_REQUEST    FuzzBatchRequest       = NULL;
+    PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST FuzzGetPtStreamRequest = NULL;
+    PDEBUGGER_FUZZ_MAP_SHM_REQUEST       FuzzMapShmRequest      = NULL;
+    PDEBUGGER_FUZZ_AFL_SIGNAL_REQUEST    FuzzAflSignalRequest   = NULL;
+
+    switch (Ioctl)
+    {
+    case IOCTL_SNAPSHOT_TAKE:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_SNAPSHOT_TAKE_REQUEST),
+                                                (PVOID *)&SnapshotTakeRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotTake(SnapshotTakeRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_SNAPSHOT_TAKE_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_SNAPSHOT_RESTORE:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_SNAPSHOT_RESTORE_REQUEST),
+                                                (PVOID *)&SnapshotRestoreRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotRestore(SnapshotRestoreRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_SNAPSHOT_RESTORE_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_SNAPSHOT_CLEAR:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(UINT32),
+                                                (PVOID *)&SnapshotClearRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotClear(SnapshotClearRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(UINT32), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_ITERATE:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_FUZZ_ITERATE_REQUEST),
+                                                (PVOID *)&FuzzIterateRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotFuzzIterate(FuzzIterateRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_ITERATE_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_MAP_COVERAGE:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(FUZZ_AFL_COVERAGE_MAP),
+                                                (PVOID *)&FuzzMapRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotMapCoverage(FuzzMapRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(FUZZ_AFL_COVERAGE_MAP), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_GET_CRASH_REPORT:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(FUZZ_CRASH_REPORT),
+                                                (PVOID *)&FuzzCrashReportRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotGetCrashReport(FuzzCrashReportRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(FUZZ_CRASH_REPORT), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_RUN_BATCH:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_FUZZ_RUN_BATCH_REQUEST),
+                                                (PVOID *)&FuzzBatchRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotRunBatch(FuzzBatchRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_RUN_BATCH_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_CLEAR_CRASH_REPORT:
+
+        Status = SnapshotClearCrashReport();
+
+        DrvAdjustStatusAndSetOutputSize(0, DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_GET_PT_STREAM:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST),
+                                                (PVOID *)&FuzzGetPtStreamRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotGetPtStream(FuzzGetPtStreamRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_MAP_SHM_RING_BUFFER:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_FUZZ_MAP_SHM_REQUEST),
+                                                (PVOID *)&FuzzMapShmRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotMapShmRingBuffer(FuzzMapShmRequest, NULL);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_MAP_SHM_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_AFL_FORKSERVER_SIGNAL:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_FUZZ_AFL_SIGNAL_REQUEST),
+                                                (PVOID *)&FuzzAflSignalRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotSignalAflForkserver(FuzzAflSignalRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_AFL_SIGNAL_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+
+    default:
+        LogError("Err, unknown fuzzer IOCTL (0x%x)", Ioctl);
+        Status = STATUS_NOT_IMPLEMENTED;
+        break;
+    }
+
+    return Status;
+}
+
+/**
  * @brief Driver IOCTL Dispatcher
  *
  * @param DeviceObject
@@ -1823,6 +2078,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     else if (IoctlFunction > IOCTL_HYPERTRACE_IOCTL && IoctlFunction <= IOCTL_HYPERTRACE_IOCTL + 0x100)
     {
         Status = DrvDispatchHyperTraceIoControl(Irp, IrpStack, &DoNotChangeInformation);
+    }
+    else if (IoctlFunction > IOCTL_FUZZER_IOCTL && IoctlFunction <= IOCTL_FUZZER_IOCTL + 0x100)
+    {
+        Status = DrvDispatchFuzzerIoControl(Irp, IrpStack, &DoNotChangeInformation);
     }
     else
     {

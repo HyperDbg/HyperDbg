@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Counters.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The functions for emulating counters
@@ -20,13 +20,42 @@
 VOID
 CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    //
-    // I realized that if you log anything here (LogInfo) then
-    // the system-halts, currently don't have any idea of how
-    // to solve it, in the future we solve it using tsc offsetting
-    // or tsc scalling (The reason is because of that fucking patchguard :( )
-    //
-    UINT64      Tsc       = CpuReadTsc();
+    UINT64 Tsc;
+
+    if (SnapshotIsActive())
+    {
+        Tsc = SnapshotGetVirtualizedTsc(VCpu);
+    }
+    else
+    {
+        UINT64 RawHardwareTsc = CpuReadTsc();
+        Tsc                   = RawHardwareTsc;
+
+        //
+        // Anti-detection stealth: deduct cumulative VM-exit tax to mask hypervisor presence
+        //
+        if (VCpu->TransparencyState.CumulativeVmExitCycles > 0 &&
+            Tsc > VCpu->TransparencyState.CumulativeVmExitCycles)
+        {
+            Tsc -= VCpu->TransparencyState.CumulativeVmExitCycles;
+        }
+
+        //
+        // Sliding-window paired RDTSC clamping:
+        // If consecutive RDTSCs occur within a tight threshold (< 2,000 cycles),
+        // clamp the delta to authentic instruction latency (32-64 cycles).
+        //
+        if (VCpu->TransparencyState.LastRdtscInstructionTsc != 0 &&
+            RawHardwareTsc >= VCpu->TransparencyState.LastRdtscInstructionTsc &&
+            (RawHardwareTsc - VCpu->TransparencyState.LastRdtscInstructionTsc) < 2000)
+        {
+            Tsc = VCpu->TransparencyState.LastRdtscValue + 42;
+        }
+
+        VCpu->TransparencyState.LastRdtscValue          = Tsc;
+        VCpu->TransparencyState.LastRdtscInstructionTsc = RawHardwareTsc;
+    }
+
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     GuestRegs->rax = 0x00000000ffffffff & Tsc;
@@ -42,8 +71,36 @@ CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UINT32      Aux       = 0;
-    UINT64      Tsc       = CpuReadTscp(&Aux);
+    UINT32 Aux = 0;
+    UINT64 Tsc;
+
+    if (SnapshotIsActive())
+    {
+        Tsc = SnapshotGetVirtualizedTsc(VCpu);
+        Aux = VCpu->CoreId;
+    }
+    else
+    {
+        UINT64 RawHardwareTsc = CpuReadTscp(&Aux);
+        Tsc                   = RawHardwareTsc;
+
+        if (VCpu->TransparencyState.CumulativeVmExitCycles > 0 &&
+            Tsc > VCpu->TransparencyState.CumulativeVmExitCycles)
+        {
+            Tsc -= VCpu->TransparencyState.CumulativeVmExitCycles;
+        }
+
+        if (VCpu->TransparencyState.LastRdtscInstructionTsc != 0 &&
+            RawHardwareTsc >= VCpu->TransparencyState.LastRdtscInstructionTsc &&
+            (RawHardwareTsc - VCpu->TransparencyState.LastRdtscInstructionTsc) < 2000)
+        {
+            Tsc = VCpu->TransparencyState.LastRdtscValue + 42;
+        }
+
+        VCpu->TransparencyState.LastRdtscValue          = Tsc;
+        VCpu->TransparencyState.LastRdtscInstructionTsc = RawHardwareTsc;
+    }
+
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     GuestRegs->rax = 0x00000000ffffffff & Tsc;

@@ -20,6 +20,14 @@
  */
 #define MSR_LEGACY_LBR_SELECT 0x000001C8
 
+#ifndef MSR_LASTBRANCH_0_FROM_IP
+#    define MSR_LASTBRANCH_0_FROM_IP 0x00000680
+#endif
+
+#ifndef MSR_LASTBRANCH_0_TO_IP
+#    define MSR_LASTBRANCH_0_TO_IP 0x000006C0
+#endif
+
 /**
  * @brief Maximum LBR capacity that is supported by processors
  *
@@ -156,7 +164,7 @@ typedef struct _LBR_BRANCH_ENTRY
     ULONGLONG From;
     ULONGLONG To;
 
-} LBR_BRANCH_ENTRY, PLBR_BRANCH_ENTRY;
+} LBR_BRANCH_ENTRY, *PLBR_BRANCH_ENTRY;
 
 /**
  * @brief The structure to hold the LBR stack for a single processor core, including the branch entries and the TOS index

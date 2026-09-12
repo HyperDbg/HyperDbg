@@ -2439,3 +2439,162 @@ ScriptEngineFunctionLbrRestoreByFilter(UINT64 FilterOptions)
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
+
+/**
+ * @brief Implementation of snapshot_take function in script engine
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFunctionSnapshotTake()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call snapshot_take function in the user-mode\n");
+    return FALSE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    DEBUGGER_SNAPSHOT_TAKE_REQUEST Request = {0};
+    Request.TargetProcessId = (UINT32)(ULONG_PTR)PsGetCurrentProcessId();
+    Request.ExecutionMode   = SNAPSHOT_MODE_USER_APPLICATION;
+
+    return (SnapshotTake(&Request) == STATUS_SUCCESS);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of snapshot_restore function in script engine
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFunctionSnapshotRestore()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call snapshot_restore function in the user-mode\n");
+    return FALSE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    DEBUGGER_SNAPSHOT_RESTORE_REQUEST Request = {0};
+
+    return (SnapshotRestore(&Request) == STATUS_SUCCESS);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of snapshot_clear function in script engine
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFunctionSnapshotClear()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call snapshot_clear function in the user-mode\n");
+    return FALSE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    UINT32 Status = 0;
+    return (SnapshotClear(&Status) == STATUS_SUCCESS);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of fuzz_mutate function in script engine
+ *
+ * @param Address Virtual address of buffer to mutate
+ * @param Size Size of buffer in bytes
+ * @param MutateType Bitmask of mutation operations
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFunctionFuzzMutate(UINT64 Address, UINT64 Size, UINT32 MutateType)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call fuzz_mutate function in the user-mode\n");
+    return FALSE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    if (Address == 0 || Size == 0 || Size > 0x100000)
+    {
+        return FALSE;
+    }
+
+    if (!CheckAccessValidityAndSafety(Address, (UINT32)Size))
+    {
+        return FALSE;
+    }
+
+    BYTE   MovingBuffer[DebuggerScriptEngineMemcpyMovingBufferSize] = {0};
+    UINT64 Remaining                                                = Size;
+    UINT64 Offset                                                   = 0;
+
+    while (Remaining > 0)
+    {
+        UINT32 ChunkSize = (Remaining > DebuggerScriptEngineMemcpyMovingBufferSize) ?
+                               DebuggerScriptEngineMemcpyMovingBufferSize :
+                               (UINT32)Remaining;
+
+        if (!MemoryMapperReadMemorySafeOnTargetProcess(Address + Offset, MovingBuffer, ChunkSize))
+        {
+            return FALSE;
+        }
+
+        for (UINT32 i = 0; i < ChunkSize; i++)
+        {
+            UINT64 GlobalIdx = Offset + i;
+            if (MutateType & 0x1)
+            {
+                MovingBuffer[i] ^= (1 << (GlobalIdx % 8));
+            }
+            if (MutateType & 0x2)
+            {
+                MovingBuffer[i] = (UCHAR)(MovingBuffer[i] + ((GlobalIdx % 2 == 0) ? 1 : (UCHAR)-1));
+            }
+            if (MutateType & 0x4)
+            {
+                static const UCHAR InterestingValues[] = {0x00, 0xFF, 0x7F, 0x80, 0x01, 0xFE};
+                MovingBuffer[i]                        = InterestingValues[GlobalIdx % (sizeof(InterestingValues) / sizeof(InterestingValues[0]))];
+            }
+        }
+
+        if (!MemoryMapperWriteMemorySafeOnTargetProcess(Address + Offset, MovingBuffer, ChunkSize))
+        {
+            return FALSE;
+        }
+
+        Offset += ChunkSize;
+        Remaining -= ChunkSize;
+    }
+
+    return TRUE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of evasion_set_mode function in script engine
+ *
+ * @param ModeMask Evasion feature bitmask
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineFunctionEvasionSetMode(UINT32 ModeMask)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to call evasion_set_mode function in the user-mode\n");
+    return FALSE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    SnapshotSetEvasionMode(ModeMask);
+    return TRUE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
