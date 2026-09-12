@@ -103,7 +103,22 @@ CommandListen(vector<CommandToken> CommandTokens, string Command)
         // on a specific port, let's see if the
         // port is valid or not
         //
-        if (!IsNumber(Port) || stoi(Port) > 65535 || stoi(Port) < 0)
+        if (!IsNumber(Port))
+        {
+            ShowMessages("incorrect port\n");
+            return;
+        }
+
+        try
+        {
+            unsigned long ParsedPort = std::stoul(Port);
+            if (ParsedPort > 65535)
+            {
+                ShowMessages("incorrect port\n");
+                return;
+            }
+        }
+        catch (...)
         {
             ShowMessages("incorrect port\n");
             return;

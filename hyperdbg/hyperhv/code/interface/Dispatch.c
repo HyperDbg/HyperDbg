@@ -859,6 +859,29 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     //
 
     //
+    // Check if snapshot fuzzing is currently active and an unhandled crash exception occurred
+    //
+    if (SnapshotIsActive())
+    {
+        if (InterruptExit.Vector == EXCEPTION_VECTOR_GENERAL_PROTECTION_FAULT ||
+            InterruptExit.Vector == EXCEPTION_VECTOR_PAGE_FAULT ||
+            InterruptExit.Vector == EXCEPTION_VECTOR_DIVIDE_ERROR ||
+            InterruptExit.Vector == EXCEPTION_VECTOR_DOUBLE_FAULT)
+        {
+            FUZZ_CRASH_REPORT CrashReport = {0};
+            SnapshotCaptureCrash(VCpu, InterruptExit.Vector, &CrashReport);
+
+            //
+            // Automatically roll back guest state to baseline snapshot
+            // This prevents Windows from bugchecking (BSOD) or halting the core!
+            //
+            DEBUGGER_SNAPSHOT_RESTORE_REQUEST RestoreReq = {0};
+            SnapshotRestore(&RestoreReq);
+            return;
+        }
+    }
+
+    //
     // Triggering the pre-event
     // As the context to event trigger, we send the vector or IDT Index
     //

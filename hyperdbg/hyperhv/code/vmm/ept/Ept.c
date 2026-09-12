@@ -964,6 +964,25 @@ EptHandlePageHookExit(VIRTUAL_MACHINE_STATE *              VCpu,
         if (HookedEntry->PhysicalBaseAddress == (SIZE_T)PAGE_ALIGN(GuestPhysicalAddr))
         {
             //
+            // Process-scoped CR3 isolation check:
+            // If TargetCr3 is set on this hook, and current guest CR3 does not match,
+            // this access originates from an external context (e.g. anti-cheat memory scanner).
+            // Transparently provide the original pristine page under MTF with zero event triggers.
+            //
+            UINT64 GuestCr3 = GetGuestCr3();
+            if (HookedEntry->TargetCr3 != 0 && (GuestCr3 & ~0xFFFULL) != (HookedEntry->TargetCr3 & ~0xFFFULL))
+            {
+                TargetPage = EptGetPml1Entry(VCpu->EptPageTable, HookedEntry->PhysicalBaseAddress);
+                EptSetPML1AndInvalidateTLB(VCpu,
+                                           TargetPage,
+                                           HookedEntry->OriginalEntry,
+                                           InveptSingleContext);
+                VCpu->MtfEptHookRestorePoint = HookedEntry;
+                HvSetMonitorTrapFlag(TRUE);
+                return TRUE;
+            }
+
+            //
             // *** We found an address that matches the details ***
             //
 

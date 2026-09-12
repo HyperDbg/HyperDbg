@@ -21,7 +21,7 @@
  * @return PEPT_HOOKED_PAGE_DETAIL  if the address was already hooked, or FALSE
  */
 _Must_inspect_result_
-_Success_(return == TRUE)
+_Success_(return != NULL)
 static EPT_HOOKED_PAGE_DETAIL *
 EptHookFindByPhysAddress(_In_ UINT64 PhysicalBaseAddress)
 {
@@ -206,6 +206,13 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
         VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
+
+    RtlZeroMemory(HookedPage, sizeof(EPT_HOOKED_PAGE_DETAIL));
+
+    //
+    // Set TargetCr3 for process-scoped CR3 selective EPT isolation
+    //
+    HookedPage->TargetCr3 = ProcessCr3.Flags;
 
     //
     // This is a hidden breakpoint
@@ -559,12 +566,20 @@ EptHookPerformHook(PVOID   TargetAddress,
         DirectVmcallOptions.OptionalParam1 = (UINT64)TargetAddress;
         DirectVmcallOptions.OptionalParam2 = LayoutGetCurrentProcessCr3().Flags;
 
+        UINT32 CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+
         //
         // Perform the direct VMCALL
         //
-        if (DirectVmcallSetHiddenBreakpointHook(KeGetCurrentProcessorNumberEx(NULL), &DirectVmcallOptions) == STATUS_SUCCESS)
+        if (DirectVmcallSetHiddenBreakpointHook(CurrentCore, &DirectVmcallOptions) == STATUS_SUCCESS)
         {
             LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
+
+            //
+            // Invalidate EPT on current core and broadcast to sibling cores
+            //
+            DirectVmcallInvalidateEptAllContexts(CurrentCore, &DirectVmcallOptions);
+            VmxBroadcastNmi(&g_GuestState[CurrentCore], NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS);
 
             return TRUE;
         }
@@ -957,6 +972,13 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     // function then we probably see BSOD on other cores
     //
     DetourHookDetails                        = (HIDDEN_HOOKS_DETOUR_DETAILS *)PoolManagerCallbackRequestPool(DETOUR_HOOK_DETAILS, TRUE, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
+    if (!DetourHookDetails)
+    {
+        LogError("Err, could not allocate detour hook details");
+        return FALSE;
+    }
+
+    RtlZeroMemory(DetourHookDetails, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
     DetourHookDetails->HookedFunctionAddress = TargetFunction;
     DetourHookDetails->ReturnAddress         = Hook->Trampoline;
 
@@ -1111,6 +1133,13 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
+
+    RtlZeroMemory(HookedPage, sizeof(EPT_HOOKED_PAGE_DETAIL));
+
+    //
+    // Set TargetCr3 for process-scoped CR3 selective EPT isolation
+    //
+    HookedPage->TargetCr3 = ProcessCr3.Flags;
 
     //
     // Save the virtual address
@@ -1483,6 +1512,12 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
 
         if (DirectVmcallPerformVmcall(VCpu->CoreId, VMCALL_CHANGE_PAGE_ATTRIB, &DirectVmcallOptions) == STATUS_SUCCESS)
         {
+            //
+            // Invalidate EPT on current core and broadcast to sibling cores
+            //
+            DirectVmcallInvalidateEptAllContexts(VCpu->CoreId, &DirectVmcallOptions);
+            VmxBroadcastNmi(VCpu, NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS);
+
             return TRUE;
         }
         else
@@ -1514,9 +1549,14 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
                 }
                 else
                 {
-                    LogInfo("Err, unable to notify all cores to invalidate their TLB "
-                            "caches as you called hook on vmx-root mode, however, the "
-                            "hook is still works");
+                    //
+                    // We are in VMX root mode: invalidate local EPT and broadcast NMI to all sibling cores
+                    //
+                    UINT32                   CurrentCore         = KeGetCurrentProcessorNumberEx(NULL);
+                    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+
+                    DirectVmcallInvalidateEptAllContexts(CurrentCore, &DirectVmcallOptions);
+                    VmxBroadcastNmi(&g_GuestState[CurrentCore], NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS);
                 }
 
                 return TRUE;

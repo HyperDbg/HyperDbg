@@ -95,6 +95,7 @@
 #define TEST_CASE_PARAMETER_FOR_SCRIPT_SEMANTIC_TEST_CASES "test-script-semantic-test-cases"
 #define TEST_CASE_PARAMETER_FOR_SCRIPT_FLOATING_POINT "test-script-floating-point"
 #define TEST_CASE_PARAMETER_FOR_SCRIPT_VARIABLE_TYPES "test-script-variable-types"
+#define TEST_CASE_PARAMETER_FOR_SNAPSHOT_FUZZING "test-snapshot-fuzzing"
 
 /**
  * @brief Test cases file name

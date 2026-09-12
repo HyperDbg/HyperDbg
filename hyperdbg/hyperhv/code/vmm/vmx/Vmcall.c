@@ -82,6 +82,18 @@ VmxHandleVmcallVmExit(VIRTUAL_MACHINE_STATE * VCpu)
     //
     if (IsHyperDbgVmcall)
     {
+        //
+        // Security check: HyperDbg VMCALLs MUST ONLY be invoked from Kernel Mode (CPL == 0).
+        // If invoked from user mode (CPL == 3), reject and inject #UD
+        // to prevent unprivileged guest code from turning off the hypervisor, manipulating EPT,
+        // or modifying CR3/MSRs.
+        //
+        if ((HvGetCsSelector() & 3) != 0)
+        {
+            EventInjectUndefinedOpcode(VCpu);
+            return STATUS_SUCCESS;
+        }
+
         GuestRegs->rax = VmxVmcallHandler(VCpu,
                                           GuestRegs->rcx,
                                           GuestRegs->rdx,

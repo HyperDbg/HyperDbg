@@ -292,3 +292,19 @@ ScriptEngineFunctionWcsncmp(const wchar_t * Address1, const wchar_t * Address2, 
 
 UINT64
 ScriptEngineFunctionMemcmp(const char * Address1, const char * Address2, size_t Count);
+
+BOOLEAN
+ScriptEngineFunctionSnapshotTake();
+
+BOOLEAN
+ScriptEngineFunctionSnapshotRestore();
+
+BOOLEAN
+ScriptEngineFunctionSnapshotClear();
+
+BOOLEAN
+ScriptEngineFunctionFuzzMutate(UINT64 Address, UINT64 Size, UINT32 MutateType);
+
+BOOLEAN
+ScriptEngineFunctionEvasionSetMode(UINT32 ModeMask);
+

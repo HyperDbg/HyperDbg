@@ -162,10 +162,20 @@ CheckAccessValidityAndSafetyWrapper(UINT64 TargetAddress, UINT32 Size, UINT32 Pr
     BOOLEAN  Result = FALSE;
 
     //
-    // First, we check if the address is canonical based
+    // Validate non-zero size and prevent integer overflow wrap-around
+    //
+    if (Size == 0 || (TargetAddress + Size) < TargetAddress)
+    {
+        Result = FALSE;
+        goto Return;
+    }
+
+    //
+    // First, we check if the start and end addresses are canonical based
     // on Intel processor's virtual address width
     //
-    if (!CheckAddressCanonicality(TargetAddress, &IsKernelAddress))
+    if (!CheckAddressCanonicality(TargetAddress, &IsKernelAddress) ||
+        !CheckAddressCanonicality(TargetAddress + Size - 1, &IsKernelAddress))
     {
         //
         // No need for further check, address is invalid
@@ -362,7 +372,8 @@ CheckAddressMaximumInstructionLength(PVOID Address)
         // to make sure that the instruction is not continued into two pages, we'll
         // check the validity of the next page
         //
-        if (CheckAccessValidityAndSafety((UINT64)Address + PAGE_SIZE, sizeof(CHAR)))
+        if ((UINT64)Address <= ~0ULL - PAGE_SIZE &&
+            CheckAccessValidityAndSafety((UINT64)Address + PAGE_SIZE, sizeof(CHAR)))
         {
             //
             // Address is safe to be read from the next page, so we just extend it

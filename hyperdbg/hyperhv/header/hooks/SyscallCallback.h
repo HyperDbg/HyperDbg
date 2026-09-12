@@ -99,3 +99,7 @@ SyscallCallbackCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
 
 VOID
 SyscallCallbackHandleSystemCallHook(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
+SyscallCallbackSetStealthMtf(BOOLEAN EnableMtf);
+

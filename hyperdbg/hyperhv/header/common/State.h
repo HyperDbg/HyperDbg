@@ -151,11 +151,15 @@ typedef struct _VMM_EPT_PAGE_TABLE
  */
 typedef struct _VM_EXIT_TRANSPARENCY
 {
-    UINT64 PreviousTimeStampCounter;
-
+    UINT64  PreviousTimeStampCounter;
+    UINT64  VmExitTscEntry;
+    UINT64  CumulativeVmExitCycles;
+    UINT64  LastRdtscValue;
+    UINT64  LastRdtscInstructionTsc;
     HANDLE  ThreadId;
     UINT64  RevealedTimeStampCounterByRdtsc;
     BOOLEAN CpuidAfterRdtscDetected;
+    BOOLEAN IsStealthTscActive;
 
 } VM_EXIT_TRANSPARENCY, *PVM_EXIT_TRANSPARENCY;
 
@@ -254,6 +258,11 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
      * @brief This field shows whether the hook is for MMIO shadowing or not
      */
     BOOLEAN IsMmioShadowing;
+
+    /**
+     * @brief Target process CR3 for process-scoped hook isolation (0 for global)
+     */
+    UINT64 TargetCr3;
 
     /**
      * @brief Temporary context for the post event monitors
