@@ -559,12 +559,20 @@ EptHookPerformHook(PVOID   TargetAddress,
         DirectVmcallOptions.OptionalParam1 = (UINT64)TargetAddress;
         DirectVmcallOptions.OptionalParam2 = LayoutGetCurrentProcessCr3().Flags;
 
+        UINT32 CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+
         //
         // Perform the direct VMCALL
         //
-        if (DirectVmcallSetHiddenBreakpointHook(KeGetCurrentProcessorNumberEx(NULL), &DirectVmcallOptions) == STATUS_SUCCESS)
+        if (DirectVmcallSetHiddenBreakpointHook(CurrentCore, &DirectVmcallOptions) == STATUS_SUCCESS)
         {
             LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
+
+            //
+            // Invalidate EPT on current core and broadcast to sibling cores
+            //
+            DirectVmcallInvalidateEptAllContexts(CurrentCore, &DirectVmcallOptions);
+            VmxBroadcastNmi(&g_GuestState[CurrentCore], NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS);
 
             return TRUE;
         }
@@ -1483,6 +1491,12 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
 
         if (DirectVmcallPerformVmcall(VCpu->CoreId, VMCALL_CHANGE_PAGE_ATTRIB, &DirectVmcallOptions) == STATUS_SUCCESS)
         {
+            //
+            // Invalidate EPT on current core and broadcast to sibling cores
+            //
+            DirectVmcallInvalidateEptAllContexts(VCpu->CoreId, &DirectVmcallOptions);
+            VmxBroadcastNmi(VCpu, NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS);
+
             return TRUE;
         }
         else
@@ -1514,9 +1528,14 @@ EptHookPerformMemoryOrInlineHook(VIRTUAL_MACHINE_STATE *                        
                 }
                 else
                 {
-                    LogInfo("Err, unable to notify all cores to invalidate their TLB "
-                            "caches as you called hook on vmx-root mode, however, the "
-                            "hook is still works");
+                    //
+                    // We are in VMX root mode: invalidate local EPT and broadcast NMI to all sibling cores
+                    //
+                    UINT32                   CurrentCore         = KeGetCurrentProcessorNumberEx(NULL);
+                    DIRECT_VMCALL_PARAMETERS DirectVmcallOptions = {0};
+
+                    DirectVmcallInvalidateEptAllContexts(CurrentCore, &DirectVmcallOptions);
+                    VmxBroadcastNmi(&g_GuestState[CurrentCore], NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_ALL_CONTEXTS);
                 }
 
                 return TRUE;

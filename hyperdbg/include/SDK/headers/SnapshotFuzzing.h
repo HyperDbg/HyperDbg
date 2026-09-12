@@ -400,21 +400,3 @@ typedef struct _DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST
 
 } DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST, *PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * @brief Parses Intel PT ToPA packet stream and updates the 64KB AFL-compatible coverage map.
- */
-VOID
-SnapshotParsePtCoverage(
-    PUINT8                 PtBuffer,
-    SIZE_T                 PtSize,
-    PFUZZ_AFL_COVERAGE_MAP AflMap
-);
-
-#ifdef __cplusplus
-}
-#endif
-

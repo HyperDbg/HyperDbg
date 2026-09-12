@@ -81,7 +81,7 @@ SnapshotGetVirtualizedTsc(VIRTUAL_MACHINE_STATE * VCpu);
 VOID
 SnapshotCaptureCrash(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExceptionVector, PFUZZ_CRASH_REPORT Report);
 
-VOID
+IMPORT_EXPORT_VMM VOID
 SnapshotSetEvasionMode(UINT32 Mode);
 
 NTSTATUS

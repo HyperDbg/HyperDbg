@@ -96,6 +96,16 @@ CommandHwClkPerformTest(vector<CommandToken> CommandTokens,
     }
 
     //
+    // Check if script action was successfully created
+    //
+    if (ActionScript == NULL)
+    {
+        ShowMessages("err, no script action was specified for !hw_clk\n");
+        Result = FALSE;
+        goto FreeAndReturnResult;
+    }
+
+    //
     // Print the actual script
     //
     ScriptBuffer = (CHAR *)((UINT64)ActionScript + sizeof(DEBUGGER_GENERAL_ACTION));

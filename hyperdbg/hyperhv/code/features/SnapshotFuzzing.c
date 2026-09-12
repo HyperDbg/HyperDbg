@@ -17,18 +17,18 @@
 //              Global Engine State             //
 //////////////////////////////////////////////////
 
-static BOOLEAN                   g_FuzzerActive           = FALSE;
-static SNAPSHOT_VCPU_CONTEXT     g_VcpuBaselineContext    = {0};
-static SNAPSHOT_MEMORY_TRACKER   g_SnapshotMemoryTracker  = {0};
-static PFUZZ_AFL_COVERAGE_MAP    g_AflCoverageMap         = NULL;
-static PMDL                      g_AflCoverageMdl         = NULL;
-static PVOID                     g_AflCoverageUserVa      = NULL;
-static FUZZ_CRASH_REPORT         g_LastCrashReport        = {0};
-static UINT64                    g_SnapshotBaselineTsc    = 0;
-static UINT64                    g_VirtualTscDelta        = 0;
-static UINT32                    g_EvasionMode            = EVASION_MODE_FIXED_DELTA;
-static UINT8                     g_LastPtStreamBuffer[SNAPSHOT_MAX_INPUT_SIZE] = {0};
-static UINT32                    g_LastPtStreamSize       = 0;
+static BOOLEAN                 g_FuzzerActive                                = FALSE;
+static SNAPSHOT_VCPU_CONTEXT   g_VcpuBaselineContext                         = {0};
+static SNAPSHOT_MEMORY_TRACKER g_SnapshotMemoryTracker                       = {0};
+static PFUZZ_AFL_COVERAGE_MAP  g_AflCoverageMap                              = NULL;
+static PMDL                    g_AflCoverageMdl                              = NULL;
+static PVOID                   g_AflCoverageUserVa                           = NULL;
+static FUZZ_CRASH_REPORT       g_LastCrashReport                             = {0};
+static UINT64                  g_SnapshotBaselineTsc                         = 0;
+static UINT64                  g_VirtualTscDelta                             = 0;
+static UINT32                  g_EvasionMode                                 = EVASION_MODE_FIXED_DELTA;
+static UINT8                   g_LastPtStreamBuffer[SNAPSHOT_MAX_INPUT_SIZE] = {0};
+static UINT32                  g_LastPtStreamSize                            = 0;
 
 //////////////////////////////////////////////////
 //         Anti-Tamper Synthetic TSC State      //
@@ -166,40 +166,40 @@ SnapshotSaveVcpuContext(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_VCPU_CONTEXT Con
     // 5. Segment Selectors, Bases, Limits and Attributes
     //
     VMX_SEGMENT_SELECTOR Cs = GetGuestCs();
-    Context->Cs.Selector   = Cs.Selector;
-    Context->Cs.Base       = Cs.Base;
-    Context->Cs.Limit      = Cs.Limit;
-    Context->Cs.Attributes = (UINT16)Cs.Attributes.AsUInt;
+    Context->Cs.Selector    = Cs.Selector;
+    Context->Cs.Base        = Cs.Base;
+    Context->Cs.Limit       = Cs.Limit;
+    Context->Cs.Attributes  = (UINT16)Cs.Attributes.AsUInt;
 
     VMX_SEGMENT_SELECTOR Ss = GetGuestSs();
-    Context->Ss.Selector   = Ss.Selector;
-    Context->Ss.Base       = Ss.Base;
-    Context->Ss.Limit      = Ss.Limit;
-    Context->Ss.Attributes = (UINT16)Ss.Attributes.AsUInt;
+    Context->Ss.Selector    = Ss.Selector;
+    Context->Ss.Base        = Ss.Base;
+    Context->Ss.Limit       = Ss.Limit;
+    Context->Ss.Attributes  = (UINT16)Ss.Attributes.AsUInt;
 
     VMX_SEGMENT_SELECTOR Ds = GetGuestDs();
-    Context->Ds.Selector   = Ds.Selector;
-    Context->Ds.Base       = Ds.Base;
-    Context->Ds.Limit      = Ds.Limit;
-    Context->Ds.Attributes = (UINT16)Ds.Attributes.AsUInt;
+    Context->Ds.Selector    = Ds.Selector;
+    Context->Ds.Base        = Ds.Base;
+    Context->Ds.Limit       = Ds.Limit;
+    Context->Ds.Attributes  = (UINT16)Ds.Attributes.AsUInt;
 
     VMX_SEGMENT_SELECTOR Es = GetGuestEs();
-    Context->Es.Selector   = Es.Selector;
-    Context->Es.Base       = Es.Base;
-    Context->Es.Limit      = Es.Limit;
-    Context->Es.Attributes = (UINT16)Es.Attributes.AsUInt;
+    Context->Es.Selector    = Es.Selector;
+    Context->Es.Base        = Es.Base;
+    Context->Es.Limit       = Es.Limit;
+    Context->Es.Attributes  = (UINT16)Es.Attributes.AsUInt;
 
     VMX_SEGMENT_SELECTOR Fs = GetGuestFs();
-    Context->Fs.Selector   = Fs.Selector;
-    Context->Fs.Base       = Fs.Base;
-    Context->Fs.Limit      = Fs.Limit;
-    Context->Fs.Attributes = (UINT16)Fs.Attributes.AsUInt;
+    Context->Fs.Selector    = Fs.Selector;
+    Context->Fs.Base        = Fs.Base;
+    Context->Fs.Limit       = Fs.Limit;
+    Context->Fs.Attributes  = (UINT16)Fs.Attributes.AsUInt;
 
     VMX_SEGMENT_SELECTOR Gs = GetGuestGs();
-    Context->Gs.Selector   = Gs.Selector;
-    Context->Gs.Base       = Gs.Base;
-    Context->Gs.Limit      = Gs.Limit;
-    Context->Gs.Attributes = (UINT16)Gs.Attributes.AsUInt;
+    Context->Gs.Selector    = Gs.Selector;
+    Context->Gs.Base        = Gs.Base;
+    Context->Gs.Limit       = Gs.Limit;
+    Context->Gs.Attributes  = (UINT16)Gs.Attributes.AsUInt;
 
     Context->Tr.Base   = GetGuestTr();
     Context->Ldtr.Base = GetGuestLdtr();
@@ -287,45 +287,45 @@ SnapshotRestoreVcpuContext(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_VCPU_CONTEXT 
     // 5. Segment Selectors, Bases, Limits and Attributes
     //
     VMX_SEGMENT_SELECTOR Cs = {0};
-    Cs.Selector          = Context->Cs.Selector;
-    Cs.Base              = Context->Cs.Base;
-    Cs.Limit             = Context->Cs.Limit;
-    Cs.Attributes.AsUInt = Context->Cs.Attributes;
+    Cs.Selector             = Context->Cs.Selector;
+    Cs.Base                 = Context->Cs.Base;
+    Cs.Limit                = Context->Cs.Limit;
+    Cs.Attributes.AsUInt    = Context->Cs.Attributes;
     SetGuestCs(&Cs);
 
     VMX_SEGMENT_SELECTOR Ss = {0};
-    Ss.Selector          = Context->Ss.Selector;
-    Ss.Base              = Context->Ss.Base;
-    Ss.Limit             = Context->Ss.Limit;
-    Ss.Attributes.AsUInt = Context->Ss.Attributes;
+    Ss.Selector             = Context->Ss.Selector;
+    Ss.Base                 = Context->Ss.Base;
+    Ss.Limit                = Context->Ss.Limit;
+    Ss.Attributes.AsUInt    = Context->Ss.Attributes;
     SetGuestSs(&Ss);
 
     VMX_SEGMENT_SELECTOR Ds = {0};
-    Ds.Selector          = Context->Ds.Selector;
-    Ds.Base              = Context->Ds.Base;
-    Ds.Limit             = Context->Ds.Limit;
-    Ds.Attributes.AsUInt = Context->Ds.Attributes;
+    Ds.Selector             = Context->Ds.Selector;
+    Ds.Base                 = Context->Ds.Base;
+    Ds.Limit                = Context->Ds.Limit;
+    Ds.Attributes.AsUInt    = Context->Ds.Attributes;
     SetGuestDs(&Ds);
 
     VMX_SEGMENT_SELECTOR Es = {0};
-    Es.Selector          = Context->Es.Selector;
-    Es.Base              = Context->Es.Base;
-    Es.Limit             = Context->Es.Limit;
-    Es.Attributes.AsUInt = Context->Es.Attributes;
+    Es.Selector             = Context->Es.Selector;
+    Es.Base                 = Context->Es.Base;
+    Es.Limit                = Context->Es.Limit;
+    Es.Attributes.AsUInt    = Context->Es.Attributes;
     SetGuestEs(&Es);
 
     VMX_SEGMENT_SELECTOR Fs = {0};
-    Fs.Selector          = Context->Fs.Selector;
-    Fs.Base              = Context->Fs.Base;
-    Fs.Limit             = Context->Fs.Limit;
-    Fs.Attributes.AsUInt = Context->Fs.Attributes;
+    Fs.Selector             = Context->Fs.Selector;
+    Fs.Base                 = Context->Fs.Base;
+    Fs.Limit                = Context->Fs.Limit;
+    Fs.Attributes.AsUInt    = Context->Fs.Attributes;
     SetGuestFs(&Fs);
 
     VMX_SEGMENT_SELECTOR Gs = {0};
-    Gs.Selector          = Context->Gs.Selector;
-    Gs.Base              = Context->Gs.Base;
-    Gs.Limit             = Context->Gs.Limit;
-    Gs.Attributes.AsUInt = Context->Gs.Attributes;
+    Gs.Selector             = Context->Gs.Selector;
+    Gs.Base                 = Context->Gs.Base;
+    Gs.Limit                = Context->Gs.Limit;
+    Gs.Attributes.AsUInt    = Context->Gs.Attributes;
     SetGuestGs(&Gs);
 
     SetGuestTr(Context->Tr.Base);
@@ -418,12 +418,16 @@ SnapshotRecordPristinePage(PSNAPSHOT_MEMORY_TRACKER Tracker, UINT64 PhysicalAddr
     // Map physical frame and create backup
     //
     PVOID SourceVa = (PVOID)PhysicalAddressToVirtualAddress(AlignedGpa);
-    if (SourceVa != NULL)
+    if (SourceVa == NULL)
     {
-        RtlCopyMemory(ShadowFrame, SourceVa, PAGE_SIZE);
+        PlatformMemFreePool(ShadowFrame);
+        LogError("Err, failed to map physical address to virtual address!");
+        return FALSE;
     }
 
-    UINT32 Index = Tracker->DirtyCount++;
+    RtlCopyMemory(ShadowFrame, SourceVa, PAGE_SIZE);
+
+    UINT32 Index                                = Tracker->DirtyCount++;
     Tracker->DirtyPages[Index].PhysicalAddress  = AlignedGpa;
     Tracker->DirtyPages[Index].PristineShadowVa = ShadowFrame;
 
@@ -440,9 +444,9 @@ SnapshotRecordPristinePage(PSNAPSHOT_MEMORY_TRACKER Tracker, UINT64 PhysicalAddr
 BOOLEAN
 SnapshotRestoreDirtyPages(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_MEMORY_TRACKER Tracker)
 {
-    UINT16   PmlIdx;
-    BOOLEAN  IsLargePage;
-    PVOID    PmlEntry;
+    UINT16  PmlIdx;
+    BOOLEAN IsLargePage;
+    PVOID   PmlEntry;
 
     //
     // 1. Hardware PML Mode: Read logged GPAs directly from hardware PML buffer
@@ -498,8 +502,8 @@ SnapshotRestoreDirtyPages(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_MEMORY_TRACKER
         //
         for (UINT32 i = 0; i < Tracker->DirtyCount; i++)
         {
-            UINT64 Gpa = Tracker->DirtyPages[i].PhysicalAddress;
-            PVOID TargetVa = (PVOID)PhysicalAddressToVirtualAddress(Gpa);
+            UINT64 Gpa      = Tracker->DirtyPages[i].PhysicalAddress;
+            PVOID  TargetVa = (PVOID)PhysicalAddressToVirtualAddress(Gpa);
             if (TargetVa != NULL)
             {
                 RtlCopyMemory(TargetVa, Tracker->DirtyPages[i].PristineShadowVa, PAGE_SIZE);
@@ -519,9 +523,7 @@ SnapshotRestoreDirtyPages(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_MEMORY_TRACKER
     //
     // 3. Flush EPT TLB on current CPU (Single-Context Invalidation)
     //
-    INVEPT_DESCRIPTOR InveptDesc = {0};
-    InveptDesc.EptPointer        = VCpu->EptPointer.Flags;
-    __vmx_invept(INVEPT_SINGLE_CONTEXT, &InveptDesc);
+    EptInveptSingleContext(VCpu->EptPointer.AsUInt);
 
     return TRUE;
 }
@@ -540,6 +542,11 @@ SnapshotRestoreDirtyPages(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_MEMORY_TRACKER
 VOID
 SnapshotParsePtCoverage(UINT8 * PtBuffer, SIZE_T PtSize, PFUZZ_AFL_COVERAGE_MAP AflMap)
 {
+    if (PtBuffer == NULL || AflMap == NULL || PtSize == 0)
+    {
+        return;
+    }
+
     SIZE_T Offset = 0;
     UINT64 PrevIp = AflMap->PreviousIp;
 
@@ -664,10 +671,6 @@ SnapshotParsePtCoverage(UINT8 * PtBuffer, SIZE_T PtSize, PFUZZ_AFL_COVERAGE_MAP 
 }
 
 //////////////////////////////////////////////////
-//       Synthetic TSC Time Dilation Engine     //
-//////////////////////////////////////////////////
-
-//////////////////////////////////////////////////
 //         Automated Crash Triage Engine        //
 //////////////////////////////////////////////////
 
@@ -681,10 +684,13 @@ SnapshotParsePtCoverage(UINT8 * PtBuffer, SIZE_T PtSize, PFUZZ_AFL_COVERAGE_MAP 
 VOID
 SnapshotCaptureCrash(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExceptionVector, PFUZZ_CRASH_REPORT Report)
 {
-    Report->ExceptionVector   = ExceptionVector;
-    Report->HardwareErrorCode = (UINT32)VmxVmread64(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE);
-    Report->FaultingRip       = VmxVmread64(VMCS_GUEST_RIP);
-    Report->FaultingAddress   = (ExceptionVector == 14) ? CpuReadCr2() : 0;
+    UINT64 ErrorCode = 0;
+
+    Report->ExceptionVector = ExceptionVector;
+    VmxVmread64P(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
+    Report->HardwareErrorCode = (UINT32)ErrorCode;
+    VmxVmread64P(VMCS_GUEST_RIP, &Report->FaultingRip);
+    Report->FaultingAddress = (ExceptionVector == 14) ? CpuReadCr2() : 0;
 
     SnapshotSaveVcpuContext(VCpu, &Report->RegistersAtCrash);
 
@@ -770,8 +776,8 @@ SnapshotUninitialize()
 NTSTATUS
 SnapshotTake(PDEBUGGER_SNAPSHOT_TAKE_REQUEST Request)
 {
-    UINT32 CoreId = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CoreId];
+    UINT32                  CoreId = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * VCpu   = &g_GuestState[CoreId];
 
     //
     // Initialize coverage map if needed
@@ -819,8 +825,8 @@ SnapshotTake(PDEBUGGER_SNAPSHOT_TAKE_REQUEST Request)
     //
     if (Request != NULL)
     {
-        Request->SnapshotRip   = g_VcpuBaselineContext.Rip;
-        Request->KernelStatus  = 0;
+        Request->SnapshotRip  = g_VcpuBaselineContext.Rip;
+        Request->KernelStatus = 0;
     }
     g_FuzzerActive = TRUE;
 
@@ -843,8 +849,8 @@ SnapshotRestore(PDEBUGGER_SNAPSHOT_RESTORE_REQUEST Request)
         return STATUS_INVALID_DEVICE_STATE;
     }
 
-    UINT32 CoreId = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CoreId];
+    UINT32                  CoreId = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * VCpu   = &g_GuestState[CoreId];
 
     //
     // 1. Freeze TSC cycle advancement during restore
@@ -883,8 +889,8 @@ SnapshotRestore(PDEBUGGER_SNAPSHOT_RESTORE_REQUEST Request)
 NTSTATUS
 SnapshotClear(PUINT32 Status)
 {
-    UINT32 CoreId = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CoreId];
+    UINT32                  CoreId = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * VCpu   = &g_GuestState[CoreId];
 
     if (g_FuzzerActive)
     {
@@ -958,8 +964,8 @@ SnapshotFuzzIterate(PDEBUGGER_FUZZ_ITERATE_REQUEST Request)
                 }
             }
             RemainingSize -= BytesInThisPage;
-            CurrentVa     += BytesInThisPage;
-            InputPtr      += BytesInThisPage;
+            CurrentVa += BytesInThisPage;
+            InputPtr += BytesInThisPage;
         }
     }
 
@@ -1046,7 +1052,6 @@ SnapshotClearCrashReport(VOID)
     return STATUS_SUCCESS;
 }
 
-
 /**
  * @brief Sets the stealth evasion mode for timing and isolation.
  *
@@ -1116,8 +1121,8 @@ SnapshotRunBatch(PDEBUGGER_FUZZ_RUN_BATCH_REQUEST Request)
         return STATUS_INVALID_DEVICE_STATE;
     }
 
-    UINT64 StartBatchCycles = __rdtsc();
-    Request->ExecutedCount = 0;
+    UINT64 StartBatchCycles  = __rdtsc();
+    Request->ExecutedCount   = 0;
     Request->ExecutionStatus = FUZZ_STATUS_SUCCESS;
 
     // Mutated payload scratch buffer (allocated from pool to protect kernel stack)
@@ -1160,7 +1165,7 @@ SnapshotRunBatch(PDEBUGGER_FUZZ_RUN_BATCH_REQUEST Request)
             {
                 UINT64 OffsetInPage    = CurrentVa & (PAGE_SIZE - 1);
                 UINT32 BytesInThisPage = (UINT32)min((UINT64)RemainingSize, (UINT64)(PAGE_SIZE - OffsetInPage));
-                UINT64 TargetGpa = VirtualAddressToPhysicalAddress((PVOID)CurrentVa);
+                UINT64 TargetGpa       = VirtualAddressToPhysicalAddress((PVOID)CurrentVa);
                 if (TargetGpa != 0)
                 {
                     UINT64 AlignedGpa = TargetGpa & ~(PAGE_SIZE - 1);
@@ -1172,8 +1177,8 @@ SnapshotRunBatch(PDEBUGGER_FUZZ_RUN_BATCH_REQUEST Request)
                     }
                 }
                 RemainingSize -= BytesInThisPage;
-                CurrentVa     += BytesInThisPage;
-                InputPtr      += BytesInThisPage;
+                CurrentVa += BytesInThisPage;
+                InputPtr += BytesInThisPage;
             }
         }
 
@@ -1233,5 +1238,3 @@ SnapshotGetPtStream(PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST Request)
     Request->KernelStatus = 0;
     return STATUS_SUCCESS;
 }
-
-

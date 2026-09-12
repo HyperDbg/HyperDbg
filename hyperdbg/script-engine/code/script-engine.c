@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file script-engine.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @author Sina Karvandi (sina@hyperdbg.org)
@@ -1476,7 +1476,13 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             UINT64         DestinationTypeId;
             PSYMBOL        TypeSymbol;
 
-            Op0               = Pop(MatchedStack);
+            Op0 = Pop(MatchedStack);
+            if (!Op0)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+
             DestinationType   = ResolveTypeNameFromStack(MatchedStack, Error);
             SourceType        = (PVARIABLE_TYPE)Op0->VariableType;
             SourceTypeId      = GetScriptScalarTypeId(SourceType);
@@ -1530,7 +1536,13 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
         else if (!strcmp(Operator->Value, "@LOGICAL_NOT_TYPED"))
         {
             PSYMBOL TypeSymbol;
-            Op0          = Pop(MatchedStack);
+            Op0 = Pop(MatchedStack);
+            if (!Op0)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                break;
+            }
+
             VariableType = (PVARIABLE_TYPE)Op0->VariableType;
             if (GetScriptScalarTypeId(VariableType) == SCRIPT_SCALAR_TYPE_INVALID || VariableType->Kind == TY_LDOUBLE)
             {
@@ -2950,7 +2962,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                       Op0Symbol->Value == 0))
                     PointerConversionAllowed = FALSE;
 
-                if (SourceTypeId != SCRIPT_SCALAR_TYPE_INVALID && DestinationTypeId != SCRIPT_SCALAR_TYPE_INVALID &&
+                if (!g_HwdbgInstanceInfoIsValid &&
+                    SourceTypeId != SCRIPT_SCALAR_TYPE_INVALID && DestinationTypeId != SCRIPT_SCALAR_TYPE_INVALID &&
                     SourceTypeId != SCRIPT_SCALAR_TYPE_F80 && DestinationTypeId != SCRIPT_SCALAR_TYPE_F80 &&
                     PointerConversionAllowed && SourceTypeId != DestinationTypeId &&
                     !(Op0->Type == FLOAT_LITERAL && IsFloatingVariableType((PVARIABLE_TYPE)Op1->VariableType)))
@@ -3911,7 +3924,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 Op0Symbol   = ToSymbol(Op0, Error);
                 Op1Symbol   = ToSymbol(Op1, Error);
 
-                if (IsIntegerVariableType(CommonType) && TypedOpcode != FUNC_UNDEFINED &&
+                if (!g_HwdbgInstanceInfoIsValid &&
+                    IsIntegerVariableType(CommonType) && TypedOpcode != FUNC_UNDEFINED &&
                     IsIntegerVariableType(LValueType))
                 {
                     PSCRIPT_ENGINE_TOKEN OperationTemp = NewTemp(Error);
@@ -4103,7 +4117,8 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                                                     (PVARIABLE_TYPE)Op1->VariableType);
                 TypedOpcode = GetTypedAssignmentOpcode(Operator->Value);
 
-                if (IsIntegerVariableType(CommonType) && TypedOpcode != FUNC_UNDEFINED &&
+                if (!g_HwdbgInstanceInfoIsValid &&
+                    IsIntegerVariableType(CommonType) && TypedOpcode != FUNC_UNDEFINED &&
                     IsIntegerVariableType((PVARIABLE_TYPE)Op1->VariableType))
                 {
                     PSCRIPT_ENGINE_TOKEN OperationTemp = NewTemp(Error);
@@ -4205,7 +4220,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                     Op0Symbol = ToSymbol(Op0, Error);
                     Op1Symbol = ToSymbol(Op1, Error);
 
-                    if ((PVARIABLE_TYPE)Op0->VariableType != ResultType)
+                    if (!g_HwdbgInstanceInfoIsValid && (PVARIABLE_TYPE)Op0->VariableType != ResultType)
                     {
                         ConvertedOp0               = NewTemp(Error);
                         ConvertedOp0->VariableType = ResultType;
@@ -4224,7 +4239,7 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                         RemoveSymbol(&Symbol);
                         Op0Symbol = ConvertedSymbol;
                     }
-                    if ((PVARIABLE_TYPE)Op1->VariableType != ResultType)
+                    if (!g_HwdbgInstanceInfoIsValid && (PVARIABLE_TYPE)Op1->VariableType != ResultType)
                     {
                         ConvertedOp1               = NewTemp(Error);
                         ConvertedOp1->VariableType = ResultType;
@@ -4585,7 +4600,9 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
                 PVARIABLE_TYPE CommonType            = GetCommonVariableType((PVARIABLE_TYPE)Op0->VariableType,
                                                                              (PVARIABLE_TYPE)Op1->VariableType);
                 UINT64         TypedOpcode           = GetTypedBinaryOpcode(Operator->Value);
-                BOOLEAN        TypedIntegerOperation = IsIntegerVariableType(CommonType) && TypedOpcode != FUNC_UNDEFINED;
+                BOOLEAN        TypedIntegerOperation = !g_HwdbgInstanceInfoIsValid &&
+                                                       IsIntegerVariableType(CommonType) &&
+                                                       TypedOpcode != FUNC_UNDEFINED;
                 if (TypedIntegerOperation)
                     OperatorSymbol->Value = TypedOpcode;
                 PushSymbol(CodeBuffer, OperatorSymbol);
@@ -5857,6 +5874,11 @@ GetSymbolHeapSize(PSYMBOL Symbol)
 void
 RemoveSymbol(PSYMBOL * Symbol)
 {
+    if (Symbol == NULL || *Symbol == NULL)
+    {
+        return;
+    }
+
     free(*Symbol);
     *Symbol = NULL;
     return;

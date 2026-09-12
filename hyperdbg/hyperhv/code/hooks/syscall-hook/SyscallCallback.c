@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file SyscallCallback.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author jtaw5649
@@ -54,6 +54,13 @@ SyscallCallbackInitialize()
         // Allocate buffer for the syscall callback trap flag state
         //
         g_SyscallCallbackTrapFlagState = (SYSCALL_CALLBACK_TRAP_FLAG_STATE *)PlatformMemAllocateZeroedNonPagedPool(sizeof(SYSCALL_CALLBACK_TRAP_FLAG_STATE));
+
+        if (g_SyscallCallbackTrapFlagState == NULL)
+        {
+            ConfigureEptHookUnHookSingleAddress((UINT64)g_SystemCallHookAddress, (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId());
+            g_SystemCallHookAddress = NULL;
+            return FALSE;
+        }
 
         //
         // Intercept trap flags #DBs and #BPs for the syscall callback
@@ -155,6 +162,14 @@ SyscallCallbackStoreProcessInformation(UINT32                            Process
     //
     ProcThrdInfo.Fields.ProcessId = ProcessId;
     ProcThrdInfo.Fields.ThreadId  = ThreadId;
+
+    //
+    // Ensure trap flag state buffer is valid
+    //
+    if (g_SyscallCallbackTrapFlagState == NULL)
+    {
+        return FALSE;
+    }
 
     //
     // Make sure, nobody is in the middle of modifying the list
@@ -328,6 +343,14 @@ SyscallCallbackCheckAndHandleAfterSyscallTrapFlags(VIRTUAL_MACHINE_STATE * VCpu,
     //
     ProcThrdInfo.Fields.ProcessId = ProcessId;
     ProcThrdInfo.Fields.ThreadId  = ThreadId;
+
+    //
+    // Ensure trap flag state buffer is valid
+    //
+    if (g_SyscallCallbackTrapFlagState == NULL)
+    {
+        return FALSE;
+    }
 
     //
     // Make sure, nobody is in the middle of modifying the list

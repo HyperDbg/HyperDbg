@@ -178,12 +178,14 @@ HyperFuzzRunBatch(
 /**
  * @brief Parses Intel PT ToPA packet stream and updates the 64KB AFL-compatible coverage map.
  */
+#ifndef _KERNEL_MODE
 IMPORT_EXPORT_LIBHYPERDBG VOID
 SnapshotParsePtCoverage(
     PUINT8                 PtBuffer,
     SIZE_T                 PtSize,
     PFUZZ_AFL_COVERAGE_MAP AflMap
 );
+#endif
 
 #ifdef __cplusplus
 }

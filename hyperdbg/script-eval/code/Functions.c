@@ -2462,8 +2462,6 @@ ScriptEngineFunctionSnapshotTake()
     return (SnapshotTake(&Request) == STATUS_SUCCESS);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
-
-    return FALSE;
 }
 
 /**
@@ -2486,8 +2484,6 @@ ScriptEngineFunctionSnapshotRestore()
     return (SnapshotRestore(&Request) == STATUS_SUCCESS);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
-
-    return FALSE;
 }
 
 /**
@@ -2507,8 +2503,6 @@ ScriptEngineFunctionSnapshotClear()
     UINT32 Status = 0;
     return (SnapshotClear(&Status) == STATUS_SUCCESS);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
-
-    return FALSE;
 }
 
 /**
@@ -2533,27 +2527,55 @@ ScriptEngineFunctionFuzzMutate(UINT64 Address, UINT64 Size, UINT32 MutateType)
         return FALSE;
     }
 
-    PUCHAR Buffer = (PUCHAR)Address;
-    for (UINT64 i = 0; i < Size; i++)
+    if (!CheckAccessValidityAndSafety(Address, (UINT32)Size))
     {
-        if (MutateType & 0x1)
-        {
-            Buffer[i] ^= (1 << (i % 8));
-        }
-        if (MutateType & 0x2)
-        {
-            Buffer[i] = (UCHAR)(Buffer[i] + ((i % 2 == 0) ? 1 : (UCHAR)-1));
-        }
-        if (MutateType & 0x4)
-        {
-            static const UCHAR InterestingValues[] = {0x00, 0xFF, 0x7F, 0x80, 0x01, 0xFE};
-            Buffer[i] = InterestingValues[i % (sizeof(InterestingValues) / sizeof(InterestingValues[0]))];
-        }
+        return FALSE;
     }
+
+    BYTE   MovingBuffer[DebuggerScriptEngineMemcpyMovingBufferSize] = {0};
+    UINT64 Remaining                                                = Size;
+    UINT64 Offset                                                   = 0;
+
+    while (Remaining > 0)
+    {
+        UINT32 ChunkSize = (Remaining > DebuggerScriptEngineMemcpyMovingBufferSize) ?
+                               DebuggerScriptEngineMemcpyMovingBufferSize :
+                               (UINT32)Remaining;
+
+        if (!MemoryMapperReadMemorySafeOnTargetProcess(Address + Offset, MovingBuffer, ChunkSize))
+        {
+            return FALSE;
+        }
+
+        for (UINT32 i = 0; i < ChunkSize; i++)
+        {
+            UINT64 GlobalIdx = Offset + i;
+            if (MutateType & 0x1)
+            {
+                MovingBuffer[i] ^= (1 << (GlobalIdx % 8));
+            }
+            if (MutateType & 0x2)
+            {
+                MovingBuffer[i] = (UCHAR)(MovingBuffer[i] + ((GlobalIdx % 2 == 0) ? 1 : (UCHAR)-1));
+            }
+            if (MutateType & 0x4)
+            {
+                static const UCHAR InterestingValues[] = {0x00, 0xFF, 0x7F, 0x80, 0x01, 0xFE};
+                MovingBuffer[i]                        = InterestingValues[GlobalIdx % (sizeof(InterestingValues) / sizeof(InterestingValues[0]))];
+            }
+        }
+
+        if (!MemoryMapperWriteMemorySafeOnTargetProcess(Address + Offset, MovingBuffer, ChunkSize))
+        {
+            return FALSE;
+        }
+
+        Offset += ChunkSize;
+        Remaining -= ChunkSize;
+    }
+
     return TRUE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
-
-    return FALSE;
 }
 
 /**
@@ -2574,7 +2596,5 @@ ScriptEngineFunctionEvasionSetMode(UINT32 ModeMask)
     SnapshotSetEvasionMode(ModeMask);
     return TRUE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
-
-    return FALSE;
 }
 

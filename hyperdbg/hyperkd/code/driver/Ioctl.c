@@ -33,7 +33,8 @@ DrvValidateAndAdjustIoctlParameter(UINT32             BufferSize,
     //
     // First validate the parameters
     //
-    if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < BufferSize || Irp->AssociatedIrp.SystemBuffer == NULL)
+    if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < BufferSize ||
+        Irp->AssociatedIrp.SystemBuffer == NULL)
     {
         LogError("Err, invalid parameter to IOCTL dispatcher");
         return FALSE;
@@ -42,7 +43,7 @@ DrvValidateAndAdjustIoctlParameter(UINT32             BufferSize,
     *InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
     *OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
 
-    if (!*InBuffLength || !*OutBuffLength)
+    if (!*InBuffLength)
     {
         return FALSE;
     }
@@ -74,13 +75,34 @@ DrvAdjustStatusAndSetOutputSize(UINT32     ExpectedOutputBufferSize,
                                 PIRP       Irp,
                                 NTSTATUS * Status)
 {
-    Irp->IoStatus.Information = ExpectedOutputBufferSize;
-    *Status                   = STATUS_SUCCESS;
+    PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
-    //
-    // Avoid zeroing it
-    //
-    *DoNotChangeInformation = TRUE;
+    if (NT_SUCCESS(*Status))
+    {
+        if (IrpStack->Parameters.DeviceIoControl.OutputBufferLength < ExpectedOutputBufferSize)
+        {
+            *Status                   = STATUS_BUFFER_TOO_SMALL;
+            Irp->IoStatus.Information = 0;
+            *DoNotChangeInformation   = FALSE;
+            return;
+        }
+
+        Irp->IoStatus.Information = ExpectedOutputBufferSize;
+        *Status                   = STATUS_SUCCESS;
+
+        //
+        // Avoid zeroing it on success
+        //
+        *DoNotChangeInformation = TRUE;
+    }
+    else
+    {
+        //
+        // On error, do not return uninitialized kernel buffer bytes
+        //
+        Irp->IoStatus.Information = 0;
+        *DoNotChangeInformation   = FALSE;
+    }
 }
 
 /**
