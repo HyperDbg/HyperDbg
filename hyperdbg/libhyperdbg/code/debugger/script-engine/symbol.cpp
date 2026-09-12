@@ -21,6 +21,7 @@ extern UINT32                                       g_SymbolTableCurrentIndex;
 extern BOOLEAN                                      g_IsExecutingSymbolLoadingRoutines;
 extern BOOLEAN                                      g_AddressConversion;
 extern std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION> g_DisassemblerSymbolMap;
+extern ACTIVE_DEBUGGING_PROCESS                     g_ActiveProcessDebuggingState;
 
 using namespace std;
 
@@ -834,6 +835,23 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
         if (!g_DeviceHandle)
         {
             break;
+        }
+
+        //
+        // If the process ID is not explicitly specified (0), check if there is an
+        // active user-mode debugging session; otherwise, use the current process ID
+        // so user-mode modules (e.g., kernel32.dll, ntdll.dll) can be loaded.
+        //
+        if (UserProcessId == 0)
+        {
+            if (g_ActiveProcessDebuggingState.IsActive)
+            {
+                UserProcessId = g_ActiveProcessDebuggingState.ProcessId;
+            }
+            else
+            {
+                UserProcessId = PlatformGetCurrentProcessId();
+            }
         }
 
         //
