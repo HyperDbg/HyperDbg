@@ -18,6 +18,16 @@
 #include "Ioctls.h"
 #include "LbrDefinitions.h"
 
+#ifndef DECLSPEC_ALIGN
+#    if defined(_MSC_VER)
+#        define DECLSPEC_ALIGN(x) __declspec(align(x))
+#    elif defined(__GNUC__) || defined(__clang__)
+#        define DECLSPEC_ALIGN(x) __attribute__((aligned(x)))
+#    else
+#        define DECLSPEC_ALIGN(x)
+#    endif
+#endif
+
 typedef LBR_BRANCH_ENTRY LBR_ENTRY, *PLBR_ENTRY;
 
 //////////////////////////////////////////////////
@@ -233,9 +243,15 @@ typedef struct _SNAPSHOT_VCPU_CONTEXT
     UINT64 TscOffset;
 
     //
-    // Extended State (AVX/SSE/FPU)
+    // Reserved padding to ensure strict 64-byte hardware alignment for XSAVE/XRSTOR
+    // (Total offset prior to padding: 488 bytes; 488 + 24 = 512 bytes = 8 * 64)
     //
-    UINT8 XsaveArea[SNAPSHOT_XSAVE_AREA_SIZE];
+    UINT8 ReservedAlignmentPadding[24];
+
+    //
+    // Extended State (AVX/SSE/FPU) - Strictly 64-byte aligned
+    //
+    DECLSPEC_ALIGN(64) UINT8 XsaveArea[SNAPSHOT_XSAVE_AREA_SIZE];
 
 } SNAPSHOT_VCPU_CONTEXT, *PSNAPSHOT_VCPU_CONTEXT;
 
@@ -383,4 +399,22 @@ typedef struct _DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST
     UINT32 KernelStatus;
 
 } DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST, *PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @brief Parses Intel PT ToPA packet stream and updates the 64KB AFL-compatible coverage map.
+ */
+VOID
+SnapshotParsePtCoverage(
+    PUINT8                 PtBuffer,
+    SIZE_T                 PtSize,
+    PFUZZ_AFL_COVERAGE_MAP AflMap
+);
+
+#ifdef __cplusplus
+}
+#endif
 

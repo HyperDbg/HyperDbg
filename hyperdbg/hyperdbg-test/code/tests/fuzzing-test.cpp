@@ -351,34 +351,6 @@ TestMtfStealthInterception()
 }
 
 /**
- * @brief Master test runner for snapshot fuzzing engine testcases.
- */
-BOOLEAN
-TestSnapshotFuzzingEngine()
-{
-    printf("\n=== Running HyperDbg Snapshot Fuzzing Engine Tests ===\n");
-
-    if (!TestSnapshotContextLayout())
-    {
-        return FALSE;
-    }
-
-    if (!TestAflEdgeCoverageHashing())
-    {
-        return FALSE;
-    }
-
-    if (!TestCrashDeduplicationHashing())
-    {
-        return FALSE;
-    }
-
-    if (!TestMutatorSafety())
-    {
-        return FALSE;
-    }
-
-/**
  * @brief Unit Test 8: Validates MSR latency compensation and timing smoothing math.
  */
 static BOOLEAN

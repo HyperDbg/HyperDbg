@@ -44,7 +44,7 @@ SnapshotIsActive(VOID)
 }
 
 /**
- * @brief Freezes or resets baseline TSC cycle counter.
+ * @brief Freezes or resets baseline TSC cycle counter and virtualizes guest VMCS offset.
  */
 VOID
 SnapshotFreezeTsc(VIRTUAL_MACHINE_STATE * VCpu, UINT64 FrozenTsc)
@@ -52,6 +52,11 @@ SnapshotFreezeTsc(VIRTUAL_MACHINE_STATE * VCpu, UINT64 FrozenTsc)
     UNREFERENCED_PARAMETER(VCpu);
     g_SnapshotBaselineTsc = FrozenTsc;
     g_VirtualTscDelta     = 0;
+
+    UINT64 HardwareTsc  = __rdtsc();
+    UINT64 TargetOffset = FrozenTsc - HardwareTsc;
+
+    VmxVmwrite64(VMCS_CTRL_TSC_OFFSET, TargetOffset);
 }
 
 /**
@@ -218,7 +223,9 @@ SnapshotSaveVcpuContext(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_VCPU_CONTEXT Con
     //
     // 7. Extended Processor State (FPU / SSE / AVX / AVX-512)
     //
-    _xsave((PVOID)Context->XsaveArea, 0xFFFFFFFFFFFFFFFFULL);
+    PVOID  XsavePtr = (PVOID)(((ULONG_PTR)Context->XsaveArea + 63) & ~63ULL);
+    UINT64 Xcr0     = _xgetbv(0);
+    _xsave(XsavePtr, Xcr0);
 }
 
 /**
@@ -343,7 +350,9 @@ SnapshotRestoreVcpuContext(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_VCPU_CONTEXT 
     //
     // 7. Extended Processor State (FPU / SSE / AVX / AVX-512)
     //
-    _xrstor((PVOID)Context->XsaveArea, 0xFFFFFFFFFFFFFFFFULL);
+    PVOID  XsavePtr = (PVOID)(((ULONG_PTR)Context->XsaveArea + 63) & ~63ULL);
+    UINT64 Xcr0     = _xgetbv(0);
+    _xrstor(XsavePtr, Xcr0);
 }
 
 //////////////////////////////////////////////////
@@ -408,11 +417,10 @@ SnapshotRecordPristinePage(PSNAPSHOT_MEMORY_TRACKER Tracker, UINT64 PhysicalAddr
     //
     // Map physical frame and create backup
     //
-    PVOID SourceVa = PlatformMemMapPhysicalMemory(AlignedGpa, PAGE_SIZE);
+    PVOID SourceVa = (PVOID)PhysicalAddressToVirtualAddress(AlignedGpa);
     if (SourceVa != NULL)
     {
         RtlCopyMemory(ShadowFrame, SourceVa, PAGE_SIZE);
-        PlatformMemUnmapPhysicalMemory(SourceVa, PAGE_SIZE);
     }
 
     UINT32 Index = Tracker->DirtyCount++;
@@ -458,11 +466,10 @@ SnapshotRestoreDirtyPages(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_MEMORY_TRACKER
                 {
                     if (Tracker->DirtyPages[j].PhysicalAddress == WrittenPhysAddr)
                     {
-                        PVOID TargetVa = PlatformMemMapPhysicalMemory(WrittenPhysAddr, PAGE_SIZE);
+                        PVOID TargetVa = (PVOID)PhysicalAddressToVirtualAddress(WrittenPhysAddr);
                         if (TargetVa != NULL)
                         {
                             RtlCopyMemory(TargetVa, Tracker->DirtyPages[j].PristineShadowVa, PAGE_SIZE);
-                            PlatformMemUnmapPhysicalMemory(TargetVa, PAGE_SIZE);
                         }
                         break;
                     }
@@ -492,11 +499,10 @@ SnapshotRestoreDirtyPages(VIRTUAL_MACHINE_STATE * VCpu, PSNAPSHOT_MEMORY_TRACKER
         for (UINT32 i = 0; i < Tracker->DirtyCount; i++)
         {
             UINT64 Gpa = Tracker->DirtyPages[i].PhysicalAddress;
-            PVOID TargetVa = PlatformMemMapPhysicalMemory(Gpa, PAGE_SIZE);
+            PVOID TargetVa = (PVOID)PhysicalAddressToVirtualAddress(Gpa);
             if (TargetVa != NULL)
             {
                 RtlCopyMemory(TargetVa, Tracker->DirtyPages[i].PristineShadowVa, PAGE_SIZE);
-                PlatformMemUnmapPhysicalMemory(TargetVa, PAGE_SIZE);
             }
 
             //
@@ -551,7 +557,7 @@ SnapshotParsePtCoverage(UINT8 * PtBuffer, SIZE_T PtSize, PFUZZ_AFL_COVERAGE_MAP 
         //
         // 1. Packet Stream Boundary (PSB): 02 82 02 82 02 82 02 82 ... (16 bytes)
         //
-        if (Byte0 == 0x02 && Offset + 1 < PtSize && PtBuffer[Offset + 1] == 0x82)
+        if (Byte0 == 0x02 && Offset + 16 <= PtSize && PtBuffer[Offset + 1] == 0x82)
         {
             Offset += 16;
             continue;
@@ -589,7 +595,12 @@ SnapshotParsePtCoverage(UINT8 * PtBuffer, SIZE_T PtSize, PFUZZ_AFL_COVERAGE_MAP 
             }
             else if (IpBytes == 3 && Offset + 6 <= PtSize)
             {
-                CurrentIp = *(UINT64 *)(PtBuffer + Offset) & 0xFFFFFFFFFFFFULL;
+                CurrentIp = (UINT64)PtBuffer[Offset] |
+                            ((UINT64)PtBuffer[Offset + 1] << 8) |
+                            ((UINT64)PtBuffer[Offset + 2] << 16) |
+                            ((UINT64)PtBuffer[Offset + 3] << 24) |
+                            ((UINT64)PtBuffer[Offset + 4] << 32) |
+                            ((UINT64)PtBuffer[Offset + 5] << 40);
                 Offset += 6;
             }
             else if (IpBytes == 4 && Offset + 8 <= PtSize)
@@ -655,21 +666,6 @@ SnapshotParsePtCoverage(UINT8 * PtBuffer, SIZE_T PtSize, PFUZZ_AFL_COVERAGE_MAP 
 //////////////////////////////////////////////////
 //       Synthetic TSC Time Dilation Engine     //
 //////////////////////////////////////////////////
-
-/**
- * @brief Compensates the virtual guest TSC offset to freeze cycle counter advances during iteration setup.
- *
- * @param VCpu Virtual processor state.
- * @param FrozenTsc Target baseline timestamp counter value.
- */
-VOID
-SnapshotFreezeTsc(VIRTUAL_MACHINE_STATE * VCpu, UINT64 FrozenTsc)
-{
-    UINT64 HardwareTsc  = __rdtsc();
-    UINT64 TargetOffset = FrozenTsc - HardwareTsc;
-
-    VmxVmwrite64(VMCS_CTRL_TSC_OFFSET, TargetOffset);
-}
 
 //////////////////////////////////////////////////
 //         Automated Crash Triage Engine        //
@@ -792,7 +788,16 @@ SnapshotTake(PDEBUGGER_SNAPSHOT_TAKE_REQUEST Request)
 
     //
     // 2. Initialize memory tracker and arm hardware PML / EPT A/D tracking
+    // Free existing shadow frames if snapshot is re-taken without a prior clear
     //
+    for (UINT32 i = 0; i < g_SnapshotMemoryTracker.DirtyCount; i++)
+    {
+        if (g_SnapshotMemoryTracker.DirtyPages[i].PristineShadowVa != NULL)
+        {
+            PlatformMemFreePool(g_SnapshotMemoryTracker.DirtyPages[i].PristineShadowVa);
+            g_SnapshotMemoryTracker.DirtyPages[i].PristineShadowVa = NULL;
+        }
+    }
     SnapshotInitializeMemoryTracker(&g_SnapshotMemoryTracker);
     DirtyLoggingEnable(VCpu);
 
@@ -812,11 +817,14 @@ SnapshotTake(PDEBUGGER_SNAPSHOT_TAKE_REQUEST Request)
     //
     // 4. Fill output telemetry
     //
-    Request->SnapshotRip   = g_VcpuBaselineContext.Rip;
-    Request->KernelStatus  = 0;
-    g_FuzzerActive         = TRUE;
+    if (Request != NULL)
+    {
+        Request->SnapshotRip   = g_VcpuBaselineContext.Rip;
+        Request->KernelStatus  = 0;
+    }
+    g_FuzzerActive = TRUE;
 
-    LogInfo("Snapshot successfully created at RIP: 0x%llx", Request->SnapshotRip);
+    LogInfo("Snapshot successfully created at RIP: 0x%llx", g_VcpuBaselineContext.Rip);
 
     return STATUS_SUCCESS;
 }
@@ -856,9 +864,12 @@ SnapshotRestore(PDEBUGGER_SNAPSHOT_RESTORE_REQUEST Request)
     //
     // 4. Report metrics
     //
-    Request->RestoredPageCount = g_SnapshotMemoryTracker.DirtyCount;
-    Request->RestoredRip       = g_VcpuBaselineContext.Rip;
-    Request->KernelStatus      = 0;
+    if (Request != NULL)
+    {
+        Request->RestoredPageCount = g_SnapshotMemoryTracker.DirtyCount;
+        Request->RestoredRip       = g_VcpuBaselineContext.Rip;
+        Request->KernelStatus      = 0;
+    }
 
     return STATUS_SUCCESS;
 }
@@ -927,18 +938,28 @@ SnapshotFuzzIterate(PDEBUGGER_FUZZ_ITERATE_REQUEST Request)
     //
     if (Request->TargetVirtualAddress != 0 && Request->InputSize > 0)
     {
-        // Record GPA for rollback prior to writing
-        UINT64 TargetGpa = VirtualAddressToPhysicalAddress((PVOID)Request->TargetVirtualAddress);
-        if (TargetGpa != 0)
+        UINT32 RemainingSize = min(Request->InputSize, (UINT32)SNAPSHOT_MAX_INPUT_SIZE);
+        UINT64 CurrentVa     = Request->TargetVirtualAddress;
+        PUCHAR InputPtr      = Request->InputBuffer;
+
+        while (RemainingSize > 0)
         {
-            SnapshotRecordPristinePage(&g_SnapshotMemoryTracker, TargetGpa);
-            PVOID TargetVa = PlatformMemMapPhysicalMemory(TargetGpa, PAGE_SIZE);
-            if (TargetVa != NULL)
+            UINT64 OffsetInPage    = CurrentVa & (PAGE_SIZE - 1);
+            UINT32 BytesInThisPage = (UINT32)min((UINT64)RemainingSize, (UINT64)(PAGE_SIZE - OffsetInPage));
+            UINT64 TargetGpa       = VirtualAddressToPhysicalAddress((PVOID)CurrentVa);
+            if (TargetGpa != 0)
             {
-                UINT32 CopyLen = min(Request->InputSize, (UINT32)PAGE_SIZE);
-                RtlCopyMemory(TargetVa, Request->InputBuffer, CopyLen);
-                PlatformMemUnmapPhysicalMemory(TargetVa, PAGE_SIZE);
+                UINT64 AlignedGpa = TargetGpa & ~(PAGE_SIZE - 1);
+                SnapshotRecordPristinePage(&g_SnapshotMemoryTracker, AlignedGpa);
+                PVOID MappedVa = (PVOID)PhysicalAddressToVirtualAddress(AlignedGpa);
+                if (MappedVa != NULL)
+                {
+                    RtlCopyMemory((PUCHAR)MappedVa + OffsetInPage, InputPtr, BytesInThisPage);
+                }
             }
+            RemainingSize -= BytesInThisPage;
+            CurrentVa     += BytesInThisPage;
+            InputPtr      += BytesInThisPage;
         }
     }
 
@@ -1099,11 +1120,16 @@ SnapshotRunBatch(PDEBUGGER_FUZZ_RUN_BATCH_REQUEST Request)
     Request->ExecutedCount = 0;
     Request->ExecutionStatus = FUZZ_STATUS_SUCCESS;
 
-    // Mutated payload scratch buffer
-    UCHAR MutatedInput[SNAPSHOT_MAX_INPUT_SIZE];
-    UINT32 InputSize = min(Request->InputSize, (UINT32)SNAPSHOT_MAX_INPUT_SIZE);
+    // Mutated payload scratch buffer (allocated from pool to protect kernel stack)
+    PUCHAR MutatedInput = NULL;
+    UINT32 InputSize    = min(Request->InputSize, (UINT32)SNAPSHOT_MAX_INPUT_SIZE);
     if (InputSize > 0)
     {
+        MutatedInput = (PUCHAR)PlatformMemAllocateNonPagedPool(InputSize);
+        if (MutatedInput == NULL)
+        {
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
         RtlCopyMemory(MutatedInput, Request->InputBuffer, InputSize);
     }
 
@@ -1134,15 +1160,15 @@ SnapshotRunBatch(PDEBUGGER_FUZZ_RUN_BATCH_REQUEST Request)
             {
                 UINT64 OffsetInPage    = CurrentVa & (PAGE_SIZE - 1);
                 UINT32 BytesInThisPage = (UINT32)min((UINT64)RemainingSize, (UINT64)(PAGE_SIZE - OffsetInPage));
-                UINT64 TargetGpa       = VirtualAddressToPhysicalAddress((PVOID)CurrentVa);
+                UINT64 TargetGpa = VirtualAddressToPhysicalAddress((PVOID)CurrentVa);
                 if (TargetGpa != 0)
                 {
-                    SnapshotRecordPristinePage(&g_SnapshotMemoryTracker, TargetGpa & ~(PAGE_SIZE - 1));
-                    PVOID MappedVa = PlatformMemMapPhysicalMemory(TargetGpa, PAGE_SIZE);
+                    UINT64 AlignedGpa = TargetGpa & ~(PAGE_SIZE - 1);
+                    SnapshotRecordPristinePage(&g_SnapshotMemoryTracker, AlignedGpa);
+                    PVOID MappedVa = (PVOID)PhysicalAddressToVirtualAddress(AlignedGpa);
                     if (MappedVa != NULL)
                     {
                         RtlCopyMemory((PUCHAR)MappedVa + OffsetInPage, InputPtr, BytesInThisPage);
-                        PlatformMemUnmapPhysicalMemory(MappedVa, PAGE_SIZE);
                     }
                 }
                 RemainingSize -= BytesInThisPage;
@@ -1175,18 +1201,14 @@ SnapshotRunBatch(PDEBUGGER_FUZZ_RUN_BATCH_REQUEST Request)
 
     Request->ElapsedCycles = __rdtsc() - StartBatchCycles;
     Request->KernelStatus  = 0;
-    return STATUS_SUCCESS;
-}
 
-/**
- * @brief Configures stealth and anti-cheat evasion modes for snapshot engine.
- *
- * @param Mode Bitmask of EVASION_MODE_* flags.
- */
-VOID
-SnapshotSetEvasionMode(UINT32 Mode)
-{
-    g_EvasionMode = Mode;
+    if (MutatedInput != NULL)
+    {
+        PlatformMemFreePool(MutatedInput);
+        MutatedInput = NULL;
+    }
+
+    return STATUS_SUCCESS;
 }
 
 /**

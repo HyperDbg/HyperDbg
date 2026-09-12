@@ -286,29 +286,29 @@ HyperFuzzRunIteration(
     PUINT32 OutStatus,
     PUINT64 OutElapsedCycles)
 {
-    DEBUGGER_FUZZ_ITERATE_REQUEST Request = {0};
-    Request.TargetVirtualAddress  = TargetVa;
-    Request.ExitBreakpointAddress = ExitVa;
-    Request.MaxInstructionCount   = MaxInstructions ? MaxInstructions : 1000000;
-    Request.InputSize             = min(InputSize, (UINT32)SNAPSHOT_MAX_INPUT_SIZE);
+    auto Request = std::make_unique<DEBUGGER_FUZZ_ITERATE_REQUEST>();
+    Request->TargetVirtualAddress  = TargetVa;
+    Request->ExitBreakpointAddress = ExitVa;
+    Request->MaxInstructionCount   = MaxInstructions ? MaxInstructions : 1000000;
+    Request->InputSize             = min(InputSize, (UINT32)SNAPSHOT_MAX_INPUT_SIZE);
 
-    if (InputBuffer != NULL && Request.InputSize > 0)
+    if (InputBuffer != NULL && Request->InputSize > 0)
     {
-        RtlCopyMemory(Request.InputBuffer, InputBuffer, Request.InputSize);
+        RtlCopyMemory(Request->InputBuffer, InputBuffer, Request->InputSize);
     }
 
-    if (!CommandSnapshotSendRequest(IOCTL_FUZZ_ITERATE, &Request, sizeof(Request)))
+    if (!CommandSnapshotSendRequest(IOCTL_FUZZ_ITERATE, Request.get(), sizeof(DEBUGGER_FUZZ_ITERATE_REQUEST)))
     {
         return FALSE;
     }
 
     if (OutStatus != NULL)
     {
-        *OutStatus = Request.ExecutionStatus;
+        *OutStatus = Request->ExecutionStatus;
     }
     if (OutElapsedCycles != NULL)
     {
-        *OutElapsedCycles = Request.ElapsedCycles;
+        *OutElapsedCycles = Request->ElapsedCycles;
     }
 
     return TRUE;
@@ -359,24 +359,158 @@ HyperFuzzRunBatch(
     PFUZZ_CRASH_REPORT OutCrashReport,
     PUINT32            OutExecutedCount)
 {
-    DEBUGGER_FUZZ_RUN_BATCH_REQUEST Request = {0};
-    Request.IterationCount = IterationCount;
+    auto Request = std::make_unique<DEBUGGER_FUZZ_RUN_BATCH_REQUEST>();
+    Request->IterationCount = IterationCount;
 
-    if (!CommandSnapshotSendRequest(IOCTL_FUZZ_RUN_BATCH, &Request, sizeof(Request)))
+    if (!CommandSnapshotSendRequest(IOCTL_FUZZ_RUN_BATCH, Request.get(), sizeof(DEBUGGER_FUZZ_RUN_BATCH_REQUEST)))
     {
         return FALSE;
     }
 
     if (OutExecutedCount != NULL)
     {
-        *OutExecutedCount = Request.ExecutedCount;
+        *OutExecutedCount = Request->ExecutedCount;
     }
-    if (OutCrashReport != NULL && Request.ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION)
+    if (OutCrashReport != NULL && Request->ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION)
     {
-        RtlCopyMemory(OutCrashReport, &Request.CrashReport, sizeof(FUZZ_CRASH_REPORT));
+        RtlCopyMemory(OutCrashReport, &Request->CrashReport, sizeof(FUZZ_CRASH_REPORT));
     }
 
     return TRUE;
+}
+
+/**
+ * @brief Parses Intel PT ToPA packet stream and updates the 64KB AFL-compatible coverage map.
+ *
+ * @param PtBuffer Raw binary packet buffer produced by Intel PT hardware.
+ * @param PtSize Length of PT packet data in bytes.
+ * @param AflMap Pointer to shared AFL coverage structure.
+ */
+VOID
+SnapshotParsePtCoverage(
+    PUINT8                 PtBuffer,
+    SIZE_T                 PtSize,
+    PFUZZ_AFL_COVERAGE_MAP AflMap)
+{
+    SIZE_T Offset = 0;
+    UINT64 PrevIp = AflMap ? AflMap->PreviousIp : 0;
+
+    if (PtBuffer == NULL || PtSize == 0 || AflMap == NULL)
+    {
+        return;
+    }
+
+    while (Offset < PtSize)
+    {
+        UINT8 Byte0 = PtBuffer[Offset];
+
+        //
+        // 1. Packet Stream Boundary (PSB): 02 82 02 82 02 82 02 82 ... (16 bytes)
+        //
+        if (Byte0 == 0x02 && Offset + 16 <= PtSize && PtBuffer[Offset + 1] == 0x82)
+        {
+            Offset += 16;
+            continue;
+        }
+
+        //
+        // 2. Padding (PAD): 00
+        //
+        if (Byte0 == 0x00)
+        {
+            Offset++;
+            continue;
+        }
+
+        //
+        // 3. Target IP (TIP) Packet: 00001101 (0x0D)
+        //    TIP.PGE: 00010001 (0x11), TIP.PGD: 00000001 (0x01), FUP: 00011101 (0x1D)
+        //
+        if ((Byte0 & 0x1F) == 0x0D || (Byte0 & 0x1F) == 0x11 ||
+            (Byte0 & 0x1F) == 0x01 || (Byte0 & 0x1F) == 0x1D)
+        {
+            UINT8  IpBytes   = (Byte0 >> 5) & 0x07;
+            UINT64 CurrentIp = 0;
+            Offset++;
+
+            if (IpBytes == 1 && Offset + 2 <= PtSize)
+            {
+                CurrentIp = *(UINT16 *)(PtBuffer + Offset);
+                Offset += 2;
+            }
+            else if (IpBytes == 2 && Offset + 4 <= PtSize)
+            {
+                CurrentIp = *(UINT32 *)(PtBuffer + Offset);
+                Offset += 4;
+            }
+            else if (IpBytes == 3 && Offset + 6 <= PtSize)
+            {
+                CurrentIp = (UINT64)PtBuffer[Offset] |
+                            ((UINT64)PtBuffer[Offset + 1] << 8) |
+                            ((UINT64)PtBuffer[Offset + 2] << 16) |
+                            ((UINT64)PtBuffer[Offset + 3] << 24) |
+                            ((UINT64)PtBuffer[Offset + 4] << 32) |
+                            ((UINT64)PtBuffer[Offset + 5] << 40);
+                Offset += 6;
+            }
+            else if (IpBytes == 4 && Offset + 8 <= PtSize)
+            {
+                CurrentIp = *(UINT64 *)(PtBuffer + Offset);
+                Offset += 8;
+            }
+
+            if (PrevIp != 0 && CurrentIp != 0)
+            {
+                //
+                // AFL Canonical Edge Hash: (PrevIP ^ (CurrentIP >> 1)) & 0xFFFF
+                //
+                UINT16 EdgeHash = (UINT16)((PrevIp ^ (CurrentIp >> 1)) & (SNAPSHOT_AFL_MAP_SIZE - 1));
+
+                if (AflMap->TraceBits[EdgeHash] == 0)
+                {
+                    AflMap->TotalEdgesCovered++;
+                }
+                AflMap->TraceBits[EdgeHash]++;
+            }
+
+            PrevIp = CurrentIp;
+            continue;
+        }
+
+        //
+        // 4. Taken / Not-Taken (TNT) Short Packet: 0000001B (Bit 0=0, Bit 1=1)
+        //
+        if ((Byte0 & 0x01) == 0 && (Byte0 & 0x02) != 0)
+        {
+            Offset++;
+            continue;
+        }
+
+        //
+        // 5. Two-byte escape packets (e.g. TNT Long 02 A3, OVF 02 43, PSBEND 02 23)
+        //
+        if (Byte0 == 0x02 && Offset + 1 < PtSize)
+        {
+            UINT8 Byte1 = PtBuffer[Offset + 1];
+
+            if (Byte1 == 0xA3)
+            {
+                // TNT Long: 8 bytes total
+                Offset += 8;
+                continue;
+            }
+            else if (Byte1 == 0x43 || Byte1 == 0x23)
+            {
+                // OVF or PSBEND: 2 bytes
+                Offset += 2;
+                continue;
+            }
+        }
+
+        Offset++;
+    }
+
+    AflMap->PreviousIp = PrevIp;
 }
 
 
@@ -504,36 +638,36 @@ CommandFuzz(vector<CommandToken> CommandTokens, string Command)
     }
     else if (SubCommand == "run" || SubCommand == "iterate")
     {
-        DEBUGGER_FUZZ_ITERATE_REQUEST Request = {0};
-        Request.MaxInstructionCount = 1000000; // Default 1M instructions timeout
+        auto Request = std::make_unique<DEBUGGER_FUZZ_ITERATE_REQUEST>();
+        Request->MaxInstructionCount = 1000000; // Default 1M instructions timeout
 
         for (size_t i = 2; i < CommandTokens.size(); i++)
         {
             if (GetLowerStringFromCommandToken(CommandTokens.at(i)) == "target" && i + 1 < CommandTokens.size())
             {
-                ConvertTokenToUInt64(CommandTokens.at(i + 1), &Request.TargetVirtualAddress);
+                ConvertTokenToUInt64(CommandTokens.at(i + 1), &Request->TargetVirtualAddress);
                 i++;
             }
             else if (GetLowerStringFromCommandToken(CommandTokens.at(i)) == "exit" && i + 1 < CommandTokens.size())
             {
-                ConvertTokenToUInt64(CommandTokens.at(i + 1), &Request.ExitBreakpointAddress);
+                ConvertTokenToUInt64(CommandTokens.at(i + 1), &Request->ExitBreakpointAddress);
                 i++;
             }
             else if (GetLowerStringFromCommandToken(CommandTokens.at(i)) == "max" && i + 1 < CommandTokens.size())
             {
-                ConvertTokenToUInt64(CommandTokens.at(i + 1), &Request.MaxInstructionCount);
+                ConvertTokenToUInt64(CommandTokens.at(i + 1), &Request->MaxInstructionCount);
                 i++;
             }
             else if (GetLowerStringFromCommandToken(CommandTokens.at(i)) == "hex" && i + 1 < CommandTokens.size())
             {
                 vector<CHAR> Bytes = HexToBytes(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(i + 1)));
-                Request.InputSize = (UINT32)min(Bytes.size(), (size_t)SNAPSHOT_MAX_INPUT_SIZE);
-                memcpy(Request.InputBuffer, Bytes.data(), Request.InputSize);
+                Request->InputSize = (UINT32)min(Bytes.size(), (size_t)SNAPSHOT_MAX_INPUT_SIZE);
+                memcpy(Request->InputBuffer, Bytes.data(), Request->InputSize);
                 i++;
             }
         }
 
-        if (Request.TargetVirtualAddress == 0 || Request.ExitBreakpointAddress == 0)
+        if (Request->TargetVirtualAddress == 0 || Request->ExitBreakpointAddress == 0)
         {
             ShowMessages("err, missing required arguments 'target <VA>' or 'exit <VA>'\n\n");
             CommandFuzzHelp();
@@ -541,12 +675,12 @@ CommandFuzz(vector<CommandToken> CommandTokens, string Command)
         }
 
         ShowMessages("[*] Executing snapshot fuzzing iteration (Target: 0x%llx, Exit: 0x%llx, Input: %u bytes)...\n",
-                     Request.TargetVirtualAddress, Request.ExitBreakpointAddress, Request.InputSize);
+                     Request->TargetVirtualAddress, Request->ExitBreakpointAddress, Request->InputSize);
 
-        if (CommandSnapshotSendRequest(IOCTL_FUZZ_ITERATE, &Request, sizeof(Request)))
+        if (CommandSnapshotSendRequest(IOCTL_FUZZ_ITERATE, Request.get(), sizeof(DEBUGGER_FUZZ_ITERATE_REQUEST)))
         {
             const CHAR * StatusStr = "UNKNOWN";
-            switch (Request.ExecutionStatus)
+            switch (Request->ExecutionStatus)
             {
             case FUZZ_STATUS_SUCCESS:
                 StatusStr = "SUCCESS (Exit reached)";
@@ -565,9 +699,9 @@ CommandFuzz(vector<CommandToken> CommandTokens, string Command)
             }
 
             ShowMessages("[+] Iteration Finished: %s\n", StatusStr);
-            ShowMessages("\t Elapsed Cycles: %llu\n", Request.ElapsedCycles);
+            ShowMessages("\t Elapsed Cycles: %llu\n", Request->ElapsedCycles);
 
-            if (Request.ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION)
+            if (Request->ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION)
             {
                 ShowMessages("[!] Target crashed! Run '!fuzz crash' or '!crash triage' to inspect triage report.\n");
             }
@@ -581,38 +715,38 @@ CommandFuzz(vector<CommandToken> CommandTokens, string Command)
             ConvertTokenToUInt32(CommandTokens.at(2), &TotalIterations);
         }
 
-        DEBUGGER_FUZZ_ITERATE_REQUEST BaseRequest = {0};
-        BaseRequest.MaxInstructionCount = 1000000;
-        BaseRequest.InputSize = 4;
-        memcpy(BaseRequest.InputBuffer, "FUZZ", 4);
+        auto BaseRequest = std::make_unique<DEBUGGER_FUZZ_ITERATE_REQUEST>();
+        BaseRequest->MaxInstructionCount = 1000000;
+        BaseRequest->InputSize = 4;
+        memcpy(BaseRequest->InputBuffer, "FUZZ", 4);
 
         for (size_t i = 3; i < CommandTokens.size(); i++)
         {
             if (GetLowerStringFromCommandToken(CommandTokens.at(i)) == "target" && i + 1 < CommandTokens.size())
             {
-                ConvertTokenToUInt64(CommandTokens.at(i + 1), &BaseRequest.TargetVirtualAddress);
+                ConvertTokenToUInt64(CommandTokens.at(i + 1), &BaseRequest->TargetVirtualAddress);
                 i++;
             }
             else if (GetLowerStringFromCommandToken(CommandTokens.at(i)) == "exit" && i + 1 < CommandTokens.size())
             {
-                ConvertTokenToUInt64(CommandTokens.at(i + 1), &BaseRequest.ExitBreakpointAddress);
+                ConvertTokenToUInt64(CommandTokens.at(i + 1), &BaseRequest->ExitBreakpointAddress);
                 i++;
             }
             else if (GetLowerStringFromCommandToken(CommandTokens.at(i)) == "max" && i + 1 < CommandTokens.size())
             {
-                ConvertTokenToUInt64(CommandTokens.at(i + 1), &BaseRequest.MaxInstructionCount);
+                ConvertTokenToUInt64(CommandTokens.at(i + 1), &BaseRequest->MaxInstructionCount);
                 i++;
             }
             else if (GetLowerStringFromCommandToken(CommandTokens.at(i)) == "hex" && i + 1 < CommandTokens.size())
             {
                 vector<CHAR> Bytes = HexToBytes(GetCaseSensitiveStringFromCommandToken(CommandTokens.at(i + 1)));
-                BaseRequest.InputSize = (UINT32)min(Bytes.size(), (size_t)SNAPSHOT_MAX_INPUT_SIZE);
-                memcpy(BaseRequest.InputBuffer, Bytes.data(), BaseRequest.InputSize);
+                BaseRequest->InputSize = (UINT32)min(Bytes.size(), (size_t)SNAPSHOT_MAX_INPUT_SIZE);
+                memcpy(BaseRequest->InputBuffer, Bytes.data(), BaseRequest->InputSize);
                 i++;
             }
         }
 
-        if (BaseRequest.TargetVirtualAddress == 0 || BaseRequest.ExitBreakpointAddress == 0)
+        if (BaseRequest->TargetVirtualAddress == 0 || BaseRequest->ExitBreakpointAddress == 0)
         {
             ShowMessages("err, missing required arguments 'target <VA>' or 'exit <VA>'\n\n");
             CommandFuzzHelp();
@@ -620,47 +754,47 @@ CommandFuzz(vector<CommandToken> CommandTokens, string Command)
         }
 
         ShowMessages("[*] Launching high-speed snapshot fuzzing batch: %u iterations (Target: 0x%llx, Exit: 0x%llx)...\n",
-                     TotalIterations, BaseRequest.TargetVirtualAddress, BaseRequest.ExitBreakpointAddress);
+                     TotalIterations, BaseRequest->TargetVirtualAddress, BaseRequest->ExitBreakpointAddress);
 
         UINT32 CrashesDetected  = 0;
         UINT32 TimeoutsDetected = 0;
         UINT32 SuccessCount     = 0;
         UINT64 TotalCycles      = 0;
 
-        DEBUGGER_FUZZ_RUN_BATCH_REQUEST BatchReq = {0};
-        BatchReq.IterationCount        = TotalIterations;
-        BatchReq.TargetVirtualAddress  = BaseRequest.TargetVirtualAddress;
-        BatchReq.InputSize             = BaseRequest.InputSize;
-        if (BaseRequest.InputSize > 0)
+        auto BatchReq = std::make_unique<DEBUGGER_FUZZ_RUN_BATCH_REQUEST>();
+        BatchReq->IterationCount        = TotalIterations;
+        BatchReq->TargetVirtualAddress  = BaseRequest->TargetVirtualAddress;
+        BatchReq->InputSize             = BaseRequest->InputSize;
+        if (BaseRequest->InputSize > 0)
         {
-            RtlCopyMemory(BatchReq.InputBuffer, BaseRequest.InputBuffer, BaseRequest.InputSize);
+            RtlCopyMemory(BatchReq->InputBuffer, BaseRequest->InputBuffer, BaseRequest->InputSize);
         }
 
         //
         // Try executing batch autonomously in kernel/hypervisor mode
         //
-        if (CommandSnapshotSendRequest(IOCTL_FUZZ_RUN_BATCH, &BatchReq, sizeof(BatchReq)))
+        if (CommandSnapshotSendRequest(IOCTL_FUZZ_RUN_BATCH, BatchReq.get(), sizeof(DEBUGGER_FUZZ_RUN_BATCH_REQUEST)))
         {
-            SuccessCount    = (BatchReq.ExecutionStatus == FUZZ_STATUS_SUCCESS) ? BatchReq.ExecutedCount : (BatchReq.ExecutedCount > 0 ? BatchReq.ExecutedCount - 1 : 0);
-            CrashesDetected = (BatchReq.ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION) ? 1 : 0;
-            TotalCycles     = BatchReq.ElapsedCycles;
+            SuccessCount    = (BatchReq->ExecutionStatus == FUZZ_STATUS_SUCCESS) ? BatchReq->ExecutedCount : (BatchReq->ExecutedCount > 0 ? BatchReq->ExecutedCount - 1 : 0);
+            CrashesDetected = (BatchReq->ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION) ? 1 : 0;
+            TotalCycles     = BatchReq->ElapsedCycles;
 
             if (CrashesDetected > 0)
             {
-                ShowMessages("\n[!] CRASH DETECTED during autonomous in-kernel batch on iteration %u!\n", BatchReq.ExecutedCount);
+                ShowMessages("\n[!] CRASH DETECTED during autonomous in-kernel batch on iteration %u!\n", BatchReq->ExecutedCount);
                 ShowMessages("    Crash Hash: 0x%llx, Vector: %u, Faulting RIP: 0x%llx\n",
-                             BatchReq.CrashReport.CrashHash, BatchReq.CrashReport.ExceptionVector, BatchReq.CrashReport.FaultingRip);
+                             BatchReq->CrashReport.CrashHash, BatchReq->CrashReport.ExceptionVector, BatchReq->CrashReport.FaultingRip);
                 ShowMessages("    Run '!crash triage' or '!crash lbr' to inspect detailed crash telemetry.\n");
             }
 
             ShowMessages("\n[+] In-Kernel Autonomous Fuzzing Batch Completed:\n");
-            ShowMessages("\t Iterations Executed: %u / %u\n", BatchReq.ExecutedCount, TotalIterations);
+            ShowMessages("\t Iterations Executed: %u / %u\n", BatchReq->ExecutedCount, TotalIterations);
             ShowMessages("\t Successful Exits   : %u\n", SuccessCount);
             ShowMessages("\t Crashes Intercepted: %u\n", CrashesDetected);
             ShowMessages("\t Total CPU Cycles   : %llu\n", TotalCycles);
-            if (BatchReq.ExecutedCount > 0)
+            if (BatchReq->ExecutedCount > 0)
             {
-                ShowMessages("\t Average Cycles/Exec: %llu\n", TotalCycles / (UINT64)BatchReq.ExecutedCount);
+                ShowMessages("\t Average Cycles/Exec: %llu\n", TotalCycles / (UINT64)BatchReq->ExecutedCount);
             }
             return;
         }
@@ -668,32 +802,32 @@ CommandFuzz(vector<CommandToken> CommandTokens, string Command)
         //
         // Fallback: User-mode iterative loop
         //
-        DEBUGGER_FUZZ_ITERATE_REQUEST CurrentRequest = BaseRequest;
+        auto CurrentRequest = std::make_unique<DEBUGGER_FUZZ_ITERATE_REQUEST>(*BaseRequest);
 
         for (UINT32 iter = 1; iter <= TotalIterations; iter++)
         {
-            HyperFuzzMutateBuffer(CurrentRequest.InputBuffer, CurrentRequest.InputSize, SNAPSHOT_MAX_INPUT_SIZE, 0);
+            HyperFuzzMutateBuffer(CurrentRequest->InputBuffer, CurrentRequest->InputSize, (UINT32)SNAPSHOT_MAX_INPUT_SIZE, 0);
 
-            if (!CommandSnapshotSendRequest(IOCTL_FUZZ_ITERATE, &CurrentRequest, sizeof(CurrentRequest)))
+            if (!CommandSnapshotSendRequest(IOCTL_FUZZ_ITERATE, CurrentRequest.get(), sizeof(DEBUGGER_FUZZ_ITERATE_REQUEST)))
             {
                 ShowMessages("err, fuzz iteration %u failed communication with driver\n", iter);
                 break;
             }
 
-            TotalCycles += CurrentRequest.ElapsedCycles;
+            TotalCycles += CurrentRequest->ElapsedCycles;
 
-            if (CurrentRequest.ExecutionStatus == FUZZ_STATUS_SUCCESS)
+            if (CurrentRequest->ExecutionStatus == FUZZ_STATUS_SUCCESS)
             {
                 SuccessCount++;
             }
-            else if (CurrentRequest.ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION)
+            else if (CurrentRequest->ExecutionStatus == FUZZ_STATUS_CRASH_EXCEPTION)
             {
                 CrashesDetected++;
                 ShowMessages("\n[!] CRASH DETECTED on iteration %u!\n", iter);
                 ShowMessages("    Run '!crash triage' or '!crash lbr' to inspect crash telemetry.\n");
                 break;
             }
-            else if (CurrentRequest.ExecutionStatus == FUZZ_STATUS_TIMEOUT_EXCEEDED)
+            else if (CurrentRequest->ExecutionStatus == FUZZ_STATUS_TIMEOUT_EXCEEDED)
             {
                 TimeoutsDetected++;
             }
