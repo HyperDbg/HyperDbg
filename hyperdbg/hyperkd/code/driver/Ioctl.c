@@ -1810,6 +1810,8 @@ DrvDispatchFuzzerIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNo
     PFUZZ_CRASH_REPORT                  FuzzCrashReportRequest = NULL;
     PDEBUGGER_FUZZ_RUN_BATCH_REQUEST    FuzzBatchRequest       = NULL;
     PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST FuzzGetPtStreamRequest = NULL;
+    PDEBUGGER_FUZZ_MAP_SHM_REQUEST       FuzzMapShmRequest      = NULL;
+    PDEBUGGER_FUZZ_AFL_SIGNAL_REQUEST    FuzzAflSignalRequest   = NULL;
 
     switch (Ioctl)
     {
@@ -1962,6 +1964,42 @@ DrvDispatchFuzzerIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNo
         Status = SnapshotGetPtStream(FuzzGetPtStreamRequest);
 
         DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_MAP_SHM_RING_BUFFER:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_FUZZ_MAP_SHM_REQUEST),
+                                                (PVOID *)&FuzzMapShmRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotMapShmRingBuffer(FuzzMapShmRequest, NULL);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_MAP_SHM_REQUEST), DoNotChangeInformation, Irp, &Status);
+        break;
+
+    case IOCTL_FUZZ_AFL_FORKSERVER_SIGNAL:
+
+        if (!DrvValidateAndAdjustIoctlParameter(sizeof(DEBUGGER_FUZZ_AFL_SIGNAL_REQUEST),
+                                                (PVOID *)&FuzzAflSignalRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = SnapshotSignalAflForkserver(FuzzAflSignalRequest);
+
+        DrvAdjustStatusAndSetOutputSize(sizeof(DEBUGGER_FUZZ_AFL_SIGNAL_REQUEST), DoNotChangeInformation, Irp, &Status);
         break;
 
 

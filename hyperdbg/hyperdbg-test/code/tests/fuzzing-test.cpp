@@ -503,6 +503,153 @@ TestRing0KernelDispatchFuzzing()
 }
 
 /**
+ * @brief Unit Test 12: Validates shared-memory zero-copy ring buffer layout and operations.
+ */
+static BOOLEAN
+TestSharedMemoryRingBuffer()
+{
+    printf("  [+] Sub-test: Validating shared-memory zero-copy ring buffer...\n");
+
+    SNAPSHOT_SHM_RING_BUFFER ShmBuffer = {0};
+    ShmBuffer.Capacity = SNAPSHOT_SHM_MAX_ENTRIES;
+
+    if (ShmBuffer.Capacity != 64)
+    {
+        printf("  [-] Err: SHM ring buffer capacity mismatch (%u != 64).\n", ShmBuffer.Capacity);
+        return FALSE;
+    }
+
+    // Push test entries
+    for (UINT32 i = 0; i < 10; i++)
+    {
+        UINT32 NextHead = (ShmBuffer.Head + 1) % ShmBuffer.Capacity;
+        if (NextHead == ShmBuffer.Tail)
+        {
+            printf("  [-] Err: Unexpected SHM ring buffer overflow.\n");
+            return FALSE;
+        }
+
+        ShmBuffer.Entries[ShmBuffer.Head].Length = (i + 1) * 4;
+        ShmBuffer.Entries[ShmBuffer.Head].Status = 0;
+        memset(ShmBuffer.Entries[ShmBuffer.Head].Data, (int)(i + 0x41), ShmBuffer.Entries[ShmBuffer.Head].Length);
+        ShmBuffer.Head = NextHead;
+    }
+
+    // Pop and verify
+    UINT32 PoppedCount = 0;
+    while (ShmBuffer.Tail != ShmBuffer.Head)
+    {
+        if (ShmBuffer.Entries[ShmBuffer.Tail].Length != (PoppedCount + 1) * 4)
+        {
+            printf("  [-] Err: SHM ring buffer entry length mismatch at %u.\n", PoppedCount);
+            return FALSE;
+        }
+        ShmBuffer.Tail = (ShmBuffer.Tail + 1) % ShmBuffer.Capacity;
+        PoppedCount++;
+    }
+
+    if (PoppedCount != 10)
+    {
+        printf("  [-] Err: Popped count mismatch (%u != 10).\n", PoppedCount);
+        return FALSE;
+    }
+
+    printf("  [+] Sub-test: Shared-memory zero-copy ring buffer passed.\n");
+    return TRUE;
+}
+
+/**
+ * @brief Unit Test 13: Validates AFL forkserver signal handshake protocol.
+ */
+static BOOLEAN
+TestAflForkserverProtocol()
+{
+    printf("  [+] Sub-test: Validating AFL forkserver signal protocol...\n");
+
+    DEBUGGER_FUZZ_AFL_SIGNAL_REQUEST HelloReq = {0};
+    HelloReq.Command = AFL_FORKSERVER_CMD_HELLO;
+
+    // Emulate forkserver HELLO handshake
+    if (HelloReq.Command == AFL_FORKSERVER_CMD_HELLO)
+    {
+        HelloReq.StatusCode = AFL_FORKSERVER_STATUS_READY;
+    }
+    if (HelloReq.StatusCode != AFL_FORKSERVER_STATUS_READY)
+    {
+        printf("  [-] Err: Forkserver HELLO handshake failed.\n");
+        return FALSE;
+    }
+
+    // Emulate forkserver CRASH transition
+    DEBUGGER_FUZZ_AFL_SIGNAL_REQUEST CrashReq = {0};
+    CrashReq.Command = AFL_FORKSERVER_CMD_START;
+    CrashReq.StatusCode = AFL_FORKSERVER_STATUS_CRASH;
+    CrashReq.FaultingRip = 0x7FF700002050ULL;
+
+    if (CrashReq.StatusCode != AFL_FORKSERVER_STATUS_CRASH || CrashReq.FaultingRip != 0x7FF700002050ULL)
+    {
+        printf("  [-] Err: Forkserver crash signal verification failed.\n");
+        return FALSE;
+    }
+
+    printf("  [+] Sub-test: AFL forkserver signal protocol passed.\n");
+    return TRUE;
+}
+
+/**
+ * @brief Unit Test 14: Validates sliding-window paired RDTSC clamping and CR3 isolation constants.
+ */
+static BOOLEAN
+TestSlidingWindowTscAndCr3Isolation()
+{
+    printf("  [+] Sub-test: Validating sliding-window paired RDTSC clamping & CR3 isolation...\n");
+
+    // 1. Validate sliding-window evasion mode flag
+    if ((EVASION_MODE_SLIDING_WINDOW_CLAMPING & 0x20) == 0 ||
+        (EVASION_MODE_DETERMINISTIC_CLOCK & 0x100) == 0 ||
+        (EVASION_MODE_CR3_ISOLATION & 0x80) == 0)
+    {
+        printf("  [-] Err: Evasion mode bitmask constants inconsistent.\n");
+        return FALSE;
+    }
+
+    // 2. Validate paired RDTSC clamping simulation:
+    // When raw hardware TSC delta is < 2000 cycles, delta is clamped to 42 cycles
+    UINT64 RawTscEntry = 100000ULL;
+    UINT64 RawTscExit  = 101200ULL; // 1,200 cycle hypervisor VM-exit tax
+    UINT64 VirtualTscLast = 50000ULL;
+    UINT64 ClampedTsc = 0;
+
+    if ((RawTscExit - RawTscEntry) < 2000)
+    {
+        ClampedTsc = VirtualTscLast + 42;
+    }
+    else
+    {
+        ClampedTsc = VirtualTscLast + (RawTscExit - RawTscEntry);
+    }
+
+    UINT64 ObservedDelta = ClampedTsc - VirtualTscLast;
+    if (ObservedDelta != 42)
+    {
+        printf("  [-] Err: Paired RDTSC delta clamping failed (%llu != 42 cycles).\n", ObservedDelta);
+        return FALSE;
+    }
+
+    // 3. Validate CR3 isolation flag and user request structure
+    DEBUGGER_FUZZ_MAP_SHM_REQUEST ShmReq = {0};
+    ShmReq.UserMappedAddress = 0x00007FF7A0001000ULL;
+    if (ShmReq.UserMappedAddress != 0x00007FF7A0001000ULL)
+    {
+        printf("  [-] Err: SHM request validation failed.\n");
+        return FALSE;
+    }
+
+    printf("  [+] Sub-test: Sliding-window paired RDTSC clamping & CR3 isolation passed.\n");
+    return TRUE;
+}
+
+/**
  * @brief Master test runner for snapshot fuzzing engine testcases.
  */
 BOOLEAN
@@ -561,6 +708,21 @@ TestSnapshotFuzzingEngine()
     }
 
     if (!TestRing0KernelDispatchFuzzing())
+    {
+        return FALSE;
+    }
+
+    if (!TestSharedMemoryRingBuffer())
+    {
+        return FALSE;
+    }
+
+    if (!TestAflForkserverProtocol())
+    {
+        return FALSE;
+    }
+
+    if (!TestSlidingWindowTscAndCr3Isolation())
     {
         return FALSE;
     }

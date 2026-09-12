@@ -21,7 +21,7 @@
  * @return PEPT_HOOKED_PAGE_DETAIL  if the address was already hooked, or FALSE
  */
 _Must_inspect_result_
-_Success_(return == TRUE)
+_Success_(return != NULL)
 static EPT_HOOKED_PAGE_DETAIL *
 EptHookFindByPhysAddress(_In_ UINT64 PhysicalBaseAddress)
 {
@@ -206,6 +206,13 @@ EptHookCreateHookPage(_Inout_ VIRTUAL_MACHINE_STATE * VCpu,
         VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
+
+    RtlZeroMemory(HookedPage, sizeof(EPT_HOOKED_PAGE_DETAIL));
+
+    //
+    // Set TargetCr3 for process-scoped CR3 selective EPT isolation
+    //
+    HookedPage->TargetCr3 = ProcessCr3.Flags;
 
     //
     // This is a hidden breakpoint
@@ -965,6 +972,13 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook,
     // function then we probably see BSOD on other cores
     //
     DetourHookDetails                        = (HIDDEN_HOOKS_DETOUR_DETAILS *)PoolManagerCallbackRequestPool(DETOUR_HOOK_DETAILS, TRUE, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
+    if (!DetourHookDetails)
+    {
+        LogError("Err, could not allocate detour hook details");
+        return FALSE;
+    }
+
+    RtlZeroMemory(DetourHookDetails, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
     DetourHookDetails->HookedFunctionAddress = TargetFunction;
     DetourHookDetails->ReturnAddress         = Hook->Trampoline;
 
@@ -1119,6 +1133,13 @@ EptHookPerformPageHookMonitorAndInlineHook(VIRTUAL_MACHINE_STATE * VCpu,
         VmmCallbackSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
+
+    RtlZeroMemory(HookedPage, sizeof(EPT_HOOKED_PAGE_DETAIL));
+
+    //
+    // Set TargetCr3 for process-scoped CR3 selective EPT isolation
+    //
+    HookedPage->TargetCr3 = ProcessCr3.Flags;
 
     //
     // Save the virtual address

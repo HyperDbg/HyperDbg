@@ -73,70 +73,28 @@ typedef LBR_BRANCH_ENTRY LBR_ENTRY, *PLBR_ENTRY;
 #define EVASION_MODE_MSR_LATENCY_COMPENSATION 0x00000004
 #define EVASION_MODE_EPT_TIMING_SMOOTHING     0x00000008
 #define EVASION_MODE_KTRAP_FRAME_CLEANSE      0x00000010
+#define EVASION_MODE_SLIDING_WINDOW_CLAMPING  0x00000020
+#define EVASION_MODE_DUAL_EPTP                0x00000040
+#define EVASION_MODE_CR3_ISOLATION            0x00000080
+#define EVASION_MODE_DETERMINISTIC_CLOCK      0x00000100
+
+//
+// AFL Forkserver Command and Status Codes
+//
+#define AFL_FORKSERVER_CMD_HELLO              0x00000001
+#define AFL_FORKSERVER_CMD_START              0x00000002
+#define AFL_FORKSERVER_CMD_RESUME             0x00000003
+#define AFL_FORKSERVER_CMD_STOP               0x00000004
+
+#define AFL_FORKSERVER_STATUS_READY           0x00000000
+#define AFL_FORKSERVER_STATUS_CRASH           0x00000001
+#define AFL_FORKSERVER_STATUS_TIMEOUT         0x00000002
+#define AFL_FORKSERVER_STATUS_ERROR           0x00000003
 
 //////////////////////////////////////////////////
-//                 IOCTL Codes                  //
-//////////////////////////////////////////////////
-
-#ifndef IOCTL_FUZZER_BASE
-#    define IOCTL_FUZZER_BASE                  (IOCTL_START_CODE + 0x400)
-#endif
-
-#ifndef IOCTL_SNAPSHOT_TAKE
-/**
- * @brief IOCTL to create an in-memory execution snapshot at current state.
- */
-#define IOCTL_SNAPSHOT_TAKE \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x01, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief IOCTL to roll back system state to the baseline snapshot.
- */
-#define IOCTL_SNAPSHOT_RESTORE \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x02, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief IOCTL to clear and deallocate snapshot buffers.
- */
-#define IOCTL_SNAPSHOT_CLEAR \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x03, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief IOCTL to inject testcase input and execute a single fuzzing iteration.
- */
-#define IOCTL_FUZZ_ITERATE \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x04, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief IOCTL to map the shared AFL 64KB coverage bitmap into user-mode address space.
- */
-#define IOCTL_FUZZ_MAP_COVERAGE \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x05, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief IOCTL to retrieve the last crash report (registers, stack, LBR trace, exception code).
- */
-#define IOCTL_FUZZ_GET_CRASH_REPORT \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x06, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief IOCTL to execute an autonomous batch of fuzzing iterations directly in-kernel.
- */
-#define IOCTL_FUZZ_RUN_BATCH \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x07, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief IOCTL to clear the last captured crash telemetry report.
- */
-#define IOCTL_FUZZ_CLEAR_CRASH_REPORT \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x08, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief IOCTL to fetch the raw Intel PT ToPA packet stream buffer.
- */
-#define IOCTL_FUZZ_GET_PT_STREAM \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_BASE + 0x09, METHOD_BUFFERED, FILE_ANY_ACCESS)
-#endif
+//
+// All Snapshot & Fuzzing IOCTLs are canonically defined in Ioctls.h
+//
 
 
 
@@ -312,6 +270,8 @@ typedef struct _FUZZ_CRASH_REPORT
     UINT32                LbrEntryCount;        /* Number of valid LBR branches captured     */
     LBR_ENTRY             LbrStack[SNAPSHOT_MAX_LBR_DEPTH]; /* Hardware branch ring trace     */
     UINT64                CrashHash;            /* Unique callstack & fault location hash    */
+    UINT8                 InstructionBytes[16]; /* Instruction bytes at faulting RIP         */
+    UINT32                InstructionLength;    /* Decoded instruction length in bytes       */
 
 } FUZZ_CRASH_REPORT, *PFUZZ_CRASH_REPORT;
 
@@ -400,3 +360,52 @@ typedef struct _DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST
 
 } DEBUGGER_FUZZ_GET_PT_STREAM_REQUEST, *PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST;
 
+#define SNAPSHOT_SHM_ENTRY_MAX_SIZE   4096
+#define SNAPSHOT_SHM_MAX_ENTRIES      64
+
+/**
+ * @brief Single payload entry within shared memory ring buffer
+ */
+typedef struct _SNAPSHOT_SHM_ENTRY
+{
+    UINT32 Length;
+    UINT32 Status;
+    UINT8  Data[SNAPSHOT_SHM_ENTRY_MAX_SIZE];
+
+} SNAPSHOT_SHM_ENTRY, *PSNAPSHOT_SHM_ENTRY;
+
+/**
+ * @brief Shared-memory zero-copy ring buffer for autonomous batch fuzzing
+ */
+typedef struct _SNAPSHOT_SHM_RING_BUFFER
+{
+    volatile UINT32    Head;
+    volatile UINT32    Tail;
+    volatile UINT32    Capacity;
+    volatile UINT32    ActiveCrashes;
+    SNAPSHOT_SHM_ENTRY Entries[SNAPSHOT_SHM_MAX_ENTRIES];
+
+} SNAPSHOT_SHM_RING_BUFFER, *PSNAPSHOT_SHM_RING_BUFFER;
+
+/**
+ * @brief Request packet for IOCTL_FUZZ_MAP_SHM_RING_BUFFER
+ */
+typedef struct _DEBUGGER_FUZZ_MAP_SHM_REQUEST
+{
+    UINT32 ShmBufferSize;
+    UINT64 UserMappedAddress;
+    UINT32 KernelStatus;
+
+} DEBUGGER_FUZZ_MAP_SHM_REQUEST, *PDEBUGGER_FUZZ_MAP_SHM_REQUEST;
+
+/**
+ * @brief Request packet for IOCTL_FUZZ_AFL_FORKSERVER_SIGNAL
+ */
+typedef struct _DEBUGGER_FUZZ_AFL_SIGNAL_REQUEST
+{
+    UINT32 Command;
+    UINT32 StatusCode;
+    UINT64 FaultingRip;
+    UINT32 KernelStatus;
+
+} DEBUGGER_FUZZ_AFL_SIGNAL_REQUEST, *PDEBUGGER_FUZZ_AFL_SIGNAL_REQUEST;

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Counters.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The functions for emulating counters
@@ -28,7 +28,32 @@ CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
     }
     else
     {
-        Tsc = CpuReadTsc();
+        UINT64 RawHardwareTsc = CpuReadTsc();
+        Tsc                   = RawHardwareTsc;
+
+        //
+        // Anti-detection stealth: deduct cumulative VM-exit tax to mask hypervisor presence
+        //
+        if (VCpu->TransparencyState.CumulativeVmExitCycles > 0 &&
+            Tsc > VCpu->TransparencyState.CumulativeVmExitCycles)
+        {
+            Tsc -= VCpu->TransparencyState.CumulativeVmExitCycles;
+        }
+
+        //
+        // Sliding-window paired RDTSC clamping:
+        // If consecutive RDTSCs occur within a tight threshold (< 2,000 cycles),
+        // clamp the delta to authentic instruction latency (32-64 cycles).
+        //
+        if (VCpu->TransparencyState.LastRdtscInstructionTsc != 0 &&
+            RawHardwareTsc >= VCpu->TransparencyState.LastRdtscInstructionTsc &&
+            (RawHardwareTsc - VCpu->TransparencyState.LastRdtscInstructionTsc) < 2000)
+        {
+            Tsc = VCpu->TransparencyState.LastRdtscValue + 42;
+        }
+
+        VCpu->TransparencyState.LastRdtscValue          = Tsc;
+        VCpu->TransparencyState.LastRdtscInstructionTsc = RawHardwareTsc;
     }
 
     PGUEST_REGS GuestRegs = VCpu->Regs;
@@ -46,8 +71,8 @@ CounterEmulateRdtsc(VIRTUAL_MACHINE_STATE * VCpu)
 VOID
 CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
 {
-    UINT32      Aux = 0;
-    UINT64      Tsc;
+    UINT32 Aux = 0;
+    UINT64 Tsc;
 
     if (SnapshotIsActive())
     {
@@ -56,7 +81,24 @@ CounterEmulateRdtscp(VIRTUAL_MACHINE_STATE * VCpu)
     }
     else
     {
-        Tsc = CpuReadTscp(&Aux);
+        UINT64 RawHardwareTsc = CpuReadTscp(&Aux);
+        Tsc                   = RawHardwareTsc;
+
+        if (VCpu->TransparencyState.CumulativeVmExitCycles > 0 &&
+            Tsc > VCpu->TransparencyState.CumulativeVmExitCycles)
+        {
+            Tsc -= VCpu->TransparencyState.CumulativeVmExitCycles;
+        }
+
+        if (VCpu->TransparencyState.LastRdtscInstructionTsc != 0 &&
+            RawHardwareTsc >= VCpu->TransparencyState.LastRdtscInstructionTsc &&
+            (RawHardwareTsc - VCpu->TransparencyState.LastRdtscInstructionTsc) < 2000)
+        {
+            Tsc = VCpu->TransparencyState.LastRdtscValue + 42;
+        }
+
+        VCpu->TransparencyState.LastRdtscValue          = Tsc;
+        VCpu->TransparencyState.LastRdtscInstructionTsc = RawHardwareTsc;
     }
 
     PGUEST_REGS GuestRegs = VCpu->Regs;

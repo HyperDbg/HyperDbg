@@ -517,3 +517,20 @@
 #define IOCTL_FUZZ_GET_PT_STREAM \
     CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x09, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #endif
+
+#ifndef IOCTL_FUZZ_MAP_SHM_RING_BUFFER
+/**
+ * @brief IOCTL to map the shared-memory zero-copy ring buffer between user space and hypervisor.
+ */
+#define IOCTL_FUZZ_MAP_SHM_RING_BUFFER \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x0A, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_FUZZ_AFL_FORKSERVER_SIGNAL
+/**
+ * @brief IOCTL for AFL forkserver handshake signals (status, ready, run, stop).
+ */
+#define IOCTL_FUZZ_AFL_FORKSERVER_SIGNAL \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_FUZZER_IOCTL + 0x0B, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+

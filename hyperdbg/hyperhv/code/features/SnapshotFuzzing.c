@@ -21,14 +21,17 @@ static BOOLEAN                 g_FuzzerActive                                = F
 static SNAPSHOT_VCPU_CONTEXT   g_VcpuBaselineContext                         = {0};
 static SNAPSHOT_MEMORY_TRACKER g_SnapshotMemoryTracker                       = {0};
 static PFUZZ_AFL_COVERAGE_MAP  g_AflCoverageMap                              = NULL;
-static PMDL                    g_AflCoverageMdl                              = NULL;
-static PVOID                   g_AflCoverageUserVa                           = NULL;
-static FUZZ_CRASH_REPORT       g_LastCrashReport                             = {0};
-static UINT64                  g_SnapshotBaselineTsc                         = 0;
-static UINT64                  g_VirtualTscDelta                             = 0;
-static UINT32                  g_EvasionMode                                 = EVASION_MODE_FIXED_DELTA;
-static UINT8                   g_LastPtStreamBuffer[SNAPSHOT_MAX_INPUT_SIZE] = {0};
-static UINT32                  g_LastPtStreamSize                            = 0;
+static PMDL                      g_AflCoverageMdl                              = NULL;
+static PVOID                     g_AflCoverageUserVa                           = NULL;
+static PSNAPSHOT_SHM_RING_BUFFER g_FuzzShmRingBuffer                           = NULL;
+static PMDL                      g_FuzzShmRingBufferMdl                        = NULL;
+static PVOID                     g_FuzzShmUserVa                               = NULL;
+static FUZZ_CRASH_REPORT         g_LastCrashReport                             = {0};
+static UINT64                    g_SnapshotBaselineTsc                         = 0;
+static UINT64                    g_VirtualTscDelta                             = 0;
+static UINT32                    g_EvasionMode                                 = EVASION_MODE_FIXED_DELTA;
+static UINT8                     g_LastPtStreamBuffer[SNAPSHOT_MAX_INPUT_SIZE] = {0};
+static UINT32                    g_LastPtStreamSize                            = 0;
 
 //////////////////////////////////////////////////
 //         Anti-Tamper Synthetic TSC State      //
@@ -81,6 +84,16 @@ SnapshotGetVirtualizedTsc(VIRTUAL_MACHINE_STATE * VCpu)
     else if (g_EvasionMode & EVASION_MODE_INSTRUCTION_DILATION)
     {
         g_VirtualTscDelta += 0x100;
+    }
+    else if (g_EvasionMode & EVASION_MODE_DETERMINISTIC_CLOCK)
+    {
+        // Deterministic +32 cycle stepping per query for reproducible snapshot fuzzing
+        g_VirtualTscDelta += 0x20;
+    }
+    else if (g_EvasionMode & EVASION_MODE_SLIDING_WINDOW_CLAMPING)
+    {
+        // Clamp to authentic bare-metal instruction latency (42 cycles)
+        g_VirtualTscDelta += 0x2A;
     }
 
     //
@@ -675,56 +688,98 @@ SnapshotParsePtCoverage(UINT8 * PtBuffer, SIZE_T PtSize, PFUZZ_AFL_COVERAGE_MAP 
 //////////////////////////////////////////////////
 
 /**
- * @brief Captures exception state, faulting RIP/CR2, hardware LBR trace, and computes crash hash.
+ * @brief Captures crash telemetry (registers, LBR stack, instruction bytes, and crash hash).
  *
- * @param VCpu Virtual processor state.
- * @param ExceptionVector The triggered hardware exception (13=#GP, 14=#PF, 6=#UD).
- * @param Report Destination crash telemetry structure.
+ * @param VCpu Current virtual machine processor state.
+ * @param ExceptionVector Trapped exception vector (e.g. 13 for #GP, 14 for #PF).
+ * @param Report Destination crash report structure.
  */
 VOID
 SnapshotCaptureCrash(VIRTUAL_MACHINE_STATE * VCpu, UINT32 ExceptionVector, PFUZZ_CRASH_REPORT Report)
 {
-    UINT64 ErrorCode = 0;
+    if (Report == NULL || VCpu == NULL)
+    {
+        return;
+    }
 
     Report->ExceptionVector = ExceptionVector;
-    VmxVmread64P(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
-    Report->HardwareErrorCode = (UINT32)ErrorCode;
-    VmxVmread64P(VMCS_GUEST_RIP, &Report->FaultingRip);
-    Report->FaultingAddress = (ExceptionVector == 14) ? CpuReadCr2() : 0;
+    VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &Report->HardwareErrorCode);
+    Report->FaultingRip = GetGuestRIP();
 
+    if (ExceptionVector == EXCEPTION_VECTOR_PAGE_FAULT)
+    {
+        Report->FaultingAddress = GetGuestCr2();
+    }
+    else
+    {
+        Report->FaultingAddress = 0;
+    }
+
+    //
+    // Save full architectural vCPU state
+    //
     SnapshotSaveVcpuContext(VCpu, &Report->RegistersAtCrash);
 
     //
-    // Capture 32-entry Hardware Last Branch Record (LBR) callstack
+    // Capture hardware LBR callstack from MSRs
     //
     Report->LbrEntryCount = 0;
     for (UINT32 i = 0; i < SNAPSHOT_MAX_LBR_DEPTH; i++)
     {
-        Report->LbrStack[i].From = CpuReadMsr(MSR_LASTBRANCH_0_FROM_IP + i);
-        Report->LbrStack[i].To   = CpuReadMsr(MSR_LASTBRANCH_0_TO_IP + i);
+        UINT64 FromIp = CpuReadMsr(0x680 + i);
+        UINT64 ToIp   = CpuReadMsr(0x6C0 + i);
 
-        if (Report->LbrStack[i].From != 0)
+        Report->LbrStack[i].From = FromIp;
+        Report->LbrStack[i].To   = ToIp;
+
+        if (FromIp != 0 || ToIp != 0)
         {
             Report->LbrEntryCount++;
         }
     }
 
     //
-    // Calculate 64-bit Collision-Resistant Crash Hash (FNV-1a Variant)
+    // Capture faulting instruction bytes
+    //
+    Report->InstructionLength = 0;
+    RtlZeroMemory(Report->InstructionBytes, sizeof(Report->InstructionBytes));
+    if (Report->FaultingRip != 0)
+    {
+        UINT64 FaultGpa = VirtualAddressToPhysicalAddress((PVOID)Report->FaultingRip);
+        if (FaultGpa != 0)
+        {
+            PVOID MappedCode = (PVOID)PhysicalAddressToVirtualAddress(FaultGpa);
+            if (MappedCode != NULL)
+            {
+                RtlCopyMemory(Report->InstructionBytes, MappedCode, sizeof(Report->InstructionBytes));
+                Report->InstructionLength = 16;
+            }
+        }
+    }
+
+    //
+    // Compute 64-bit collision-resistant crash hash (FNV-1a variant)
     //
     UINT64 Hash = 0xCBF29CE484222325ULL;
+    Hash ^= (UINT64)Report->ExceptionVector;
+    Hash *= 0x100000001B3ULL;
     Hash ^= Report->FaultingRip;
     Hash *= 0x100000001B3ULL;
-    Hash ^= (UINT64)ExceptionVector;
+    Hash ^= Report->FaultingAddress;
     Hash *= 0x100000001B3ULL;
 
-    for (UINT32 i = 0; i < 4 && i < Report->LbrEntryCount; i++)
+    for (UINT32 i = 0; i < min(Report->LbrEntryCount, 8); i++)
     {
         Hash ^= Report->LbrStack[i].To;
         Hash *= 0x100000001B3ULL;
     }
 
     Report->CrashHash = Hash;
+
+    //
+    // Store in global crash report
+    //
+    RtlCopyMemory(&g_LastCrashReport, Report, sizeof(FUZZ_CRASH_REPORT));
 }
 
 //////////////////////////////////////////////////
@@ -764,6 +819,23 @@ SnapshotUninitialize()
     {
         PlatformMemFreePool(g_AflCoverageMap);
         g_AflCoverageMap = NULL;
+    }
+
+    if (g_FuzzShmRingBufferMdl != NULL)
+    {
+        if (g_FuzzShmUserVa != NULL)
+        {
+            MmUnmapLockedPages(g_FuzzShmUserVa, g_FuzzShmRingBufferMdl);
+            g_FuzzShmUserVa = NULL;
+        }
+        IoFreeMdl(g_FuzzShmRingBufferMdl);
+        g_FuzzShmRingBufferMdl = NULL;
+    }
+
+    if (g_FuzzShmRingBuffer != NULL)
+    {
+        PlatformMemFreePool(g_FuzzShmRingBuffer);
+        g_FuzzShmRingBuffer = NULL;
     }
 }
 
@@ -1238,3 +1310,119 @@ SnapshotGetPtStream(PDEBUGGER_FUZZ_GET_PT_STREAM_REQUEST Request)
     Request->KernelStatus = 0;
     return STATUS_SUCCESS;
 }
+
+/**
+ * @brief Maps shared-memory zero-copy ring buffer between user space and hypervisor.
+ *
+ * @param Request Request containing buffer size and receiving user VA.
+ * @param OutUserVa Returned user-mode address pointer.
+ * @return NTSTATUS STATUS_SUCCESS on success.
+ */
+NTSTATUS
+SnapshotMapShmRingBuffer(PDEBUGGER_FUZZ_MAP_SHM_REQUEST Request, PVOID * OutUserVa)
+{
+    if (Request == NULL)
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    if (g_FuzzShmRingBuffer == NULL)
+    {
+        g_FuzzShmRingBuffer = (PSNAPSHOT_SHM_RING_BUFFER)PlatformMemAllocateZeroedNonPagedPool(sizeof(SNAPSHOT_SHM_RING_BUFFER));
+        if (g_FuzzShmRingBuffer == NULL)
+        {
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
+        g_FuzzShmRingBuffer->Capacity = SNAPSHOT_SHM_MAX_ENTRIES;
+
+        g_FuzzShmRingBufferMdl = IoAllocateMdl(g_FuzzShmRingBuffer, sizeof(SNAPSHOT_SHM_RING_BUFFER), FALSE, FALSE, NULL);
+        if (g_FuzzShmRingBufferMdl == NULL)
+        {
+            PlatformMemFreePool(g_FuzzShmRingBuffer);
+            g_FuzzShmRingBuffer = NULL;
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
+
+        MmBuildMdlForNonPagedPool(g_FuzzShmRingBufferMdl);
+
+        __try
+        {
+            g_FuzzShmUserVa = MmMapLockedPagesSpecifyCache(g_FuzzShmRingBufferMdl,
+                                                           UserMode,
+                                                           MmCached,
+                                                           NULL,
+                                                           FALSE,
+                                                           NormalPagePriority | MdlMappingNoExecute);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            IoFreeMdl(g_FuzzShmRingBufferMdl);
+            PlatformMemFreePool(g_FuzzShmRingBuffer);
+            g_FuzzShmRingBufferMdl = NULL;
+            g_FuzzShmRingBuffer    = NULL;
+            return GetExceptionCode();
+        }
+    }
+
+    Request->ShmBufferSize     = sizeof(SNAPSHOT_SHM_RING_BUFFER);
+    Request->UserMappedAddress = (UINT64)g_FuzzShmUserVa;
+    Request->KernelStatus      = 0;
+
+    if (OutUserVa != NULL)
+    {
+        *OutUserVa = g_FuzzShmUserVa;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Signals AFL forkserver status transitions and command handshakes.
+ *
+ * @param Request Signal request containing command and status.
+ * @return NTSTATUS STATUS_SUCCESS on success.
+ */
+NTSTATUS
+SnapshotSignalAflForkserver(PDEBUGGER_FUZZ_AFL_SIGNAL_REQUEST Request)
+{
+    if (Request == NULL)
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    switch (Request->Command)
+    {
+    case AFL_FORKSERVER_CMD_HELLO:
+        Request->StatusCode   = AFL_FORKSERVER_STATUS_READY;
+        Request->KernelStatus = 0;
+        break;
+
+    case AFL_FORKSERVER_CMD_START:
+    case AFL_FORKSERVER_CMD_RESUME:
+        if (g_LastCrashReport.CrashHash != 0)
+        {
+            Request->StatusCode  = AFL_FORKSERVER_STATUS_CRASH;
+            Request->FaultingRip = g_LastCrashReport.FaultingRip;
+        }
+        else
+        {
+            Request->StatusCode  = AFL_FORKSERVER_STATUS_READY;
+            Request->FaultingRip = 0;
+        }
+        Request->KernelStatus = 0;
+        break;
+
+    case AFL_FORKSERVER_CMD_STOP:
+        Request->StatusCode   = AFL_FORKSERVER_STATUS_READY;
+        Request->KernelStatus = 0;
+        break;
+
+    default:
+        Request->StatusCode   = AFL_FORKSERVER_STATUS_ERROR;
+        Request->KernelStatus = 1;
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    return STATUS_SUCCESS;
+}
+
