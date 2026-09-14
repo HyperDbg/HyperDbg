@@ -109,6 +109,17 @@ typedef ULONG_PTR KAFFINITY;
 //
 typedef LARGE_INTEGER PHYSICAL_ADDRESS, *PPHYSICAL_ADDRESS;
 typedef WCHAR * PWSTR;
+typedef WCHAR * PWCH;
+typedef BYTE *  PBYTE;
+typedef ULONG_PTR DWORD_PTR;
+typedef ULONG_PTR UINT_PTR;
+
+//
+// Memory Descriptor List (ntddk MDL). hypertrace/hyperhv pass PMDL opaquely to
+// the Mm* mapping helpers; Linux has no MDL, so this is an opaque forward-decl
+// (its body is never dereferenced by the ported code).
+//
+typedef struct _MDL MDL, *PMDL;
 
 //
 // Processor mode discriminator (ntdef.h MODE). Passed to the object/handle
@@ -134,6 +145,25 @@ typedef enum _POOL_TYPE
     PagedPoolCacheAligned    = 5,
     NonPagedPoolNx           = 512
 } POOL_TYPE;
+
+//
+// Event type (ntdef.h EVENT_TYPE) passed to KeInitializeEvent: auto-reset
+// (SynchronizationEvent) vs manual-reset (NotificationEvent). Values match the WDK.
+//
+typedef enum _EVENT_TYPE
+{
+    NotificationEvent    = 0,
+    SynchronizationEvent = 1
+} EVENT_TYPE;
+
+//
+// Wait reason (ntddk KWAIT_REASON) passed to KeWaitForSingleObject. Only
+// Executive is ever named; the WDK enum's remaining reasons are unused here.
+//
+typedef enum _KWAIT_REASON
+{
+    Executive = 0
+} KWAIT_REASON;
 
 //////////////////////////////////////////////////
 //                Status codes                  //
@@ -186,6 +216,11 @@ typedef enum _POOL_TYPE
 // Element count (ntdef.h)
 //
 #    define RTL_NUMBER_OF(A) (sizeof(A) / sizeof((A)[0]))
+
+//
+// The winnt.h spelling of the same element count (it is RTL_NUMBER_OF_V2 there)
+//
+#    define ARRAYSIZE(A) RTL_NUMBER_OF(A)
 
 //
 // Element count of an ARRAY MEMBER of a struct type (ntdef.h)
@@ -258,6 +293,39 @@ typedef struct _UNICODE_STRING
     USHORT  MaximumLength;
     WCHAR * Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
+
+//
+// Rtl UNICODE_STRING helpers. On Windows the WDK provides these; on Linux they
+// are the same well-defined field arithmetic (Length/MaximumLength are byte
+// counts, Buffer is UTF-16 with -fshort-wchar), so a small inline is faithful.
+//
+static inline VOID
+RtlInitUnicodeString(PUNICODE_STRING DestinationString, const WCHAR * SourceString)
+{
+    USHORT Chars = 0;
+
+    if (SourceString != NULL)
+        while (SourceString[Chars] != 0)
+            Chars++;
+
+    DestinationString->Length        = (USHORT)(Chars * sizeof(WCHAR));
+    DestinationString->MaximumLength  = (USHORT)((Chars + 1) * sizeof(WCHAR));
+    DestinationString->Buffer         = (WCHAR *)SourceString;
+}
+
+static inline VOID
+RtlCopyUnicodeString(PUNICODE_STRING DestinationString, PUNICODE_STRING SourceString)
+{
+    USHORT CopyLength = SourceString->Length;
+
+    if (CopyLength > DestinationString->MaximumLength)
+        CopyLength = DestinationString->MaximumLength;
+
+    if (CopyLength != 0 && SourceString->Buffer != NULL && DestinationString->Buffer != NULL)
+        memcpy(DestinationString->Buffer, SourceString->Buffer, CopyLength);
+
+    DestinationString->Length = CopyLength;
+}
 
 //
 // 32-bit views of the same structures, used when the debugger walks a WoW64
@@ -467,5 +535,61 @@ typedef struct _IRP
     KPROCESSOR_MODE RequestorMode;
     PVOID           UserBuffer;
 } IRP, *PIRP;
+
+//////////////////////////////////////////////////
+//                Memory manager                //
+//////////////////////////////////////////////////
+
+//
+// Faithful: the WDK caching enum. Only the members shared code names are listed.
+// The raw Mm* wrappers that consume it are stubs (PlatformWdk.c), so the value
+// is not acted upon yet.
+//
+typedef enum _MEMORY_CACHING_TYPE
+{
+    MmNonCached      = 0,
+    MmCached         = 1,
+    MmWriteCombined  = 2,
+} MEMORY_CACHING_TYPE;
+
+//
+// Structural: member names match the WDK so MmCopyMemory-style call sites
+// compile. Nothing on Linux fills one in yet.
+//
+typedef struct _MM_COPY_ADDRESS
+{
+    union
+    {
+        PVOID            VirtualAddress;
+        PHYSICAL_ADDRESS PhysicalAddress;
+    };
+} MM_COPY_ADDRESS, *PMMPFN_IDENTITY;
+
+//
+// Flags for MmCopyMemory's source-address interpretation (WDK values).
+//
+#    define MM_COPY_MEMORY_PHYSICAL 0x1
+#    define MM_COPY_MEMORY_VIRTUAL  0x2
+
+//
+// Structural: one span returned by MmGetPhysicalMemoryRanges (a NULL-terminated
+// array). The wrapper is a stub, so no array is produced yet.
+//
+typedef struct _PHYSICAL_MEMORY_RANGE
+{
+    PHYSICAL_ADDRESS BaseAddress;
+    LARGE_INTEGER    NumberOfBytes;
+} PHYSICAL_MEMORY_RANGE, *PPHYSICAL_MEMORY_RANGE;
+
+//
+// Faithful: the WDK's (group, number) processor coordinate. Single-group on the
+// platforms we target, so Group is always 0.
+//
+typedef struct _PROCESSOR_NUMBER
+{
+    USHORT Group;
+    UCHAR  Number;
+    UCHAR  Reserved;
+} PROCESSOR_NUMBER, *PPROCESSOR_NUMBER;
 
 #endif // defined(__linux__)

@@ -69,3 +69,55 @@ PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes);
 
 PVOID
 PlatformMemFreePool(PVOID BufferAddress);
+
+//////////////////////////////////////////////////
+//   Cross-platform memory-manager / pool APIs  //
+//   (Windows -> WDK; Linux arm stubbed, see .c)//
+//////////////////////////////////////////////////
+
+PVOID
+PlatformMemMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, MEMORY_CACHING_TYPE CacheType);
+
+PVOID
+PlatformMemMapIoSpaceEx(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ULONG Protect);
+
+VOID
+PlatformMemUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes);
+
+PHYSICAL_ADDRESS
+PlatformMemGetPhysicalAddress(PVOID BaseAddress);
+
+PVOID
+PlatformMemGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress);
+
+PPHYSICAL_MEMORY_RANGE
+PlatformMemGetPhysicalMemoryRanges(VOID);
+
+PVOID
+PlatformMemAllocateMappingAddress(SIZE_T NumberOfBytes, ULONG PoolTag);
+
+VOID
+PlatformMemFreeMappingAddress(PVOID BaseAddress, ULONG PoolTag);
+
+VOID
+PlatformMemFreeContiguousMemory(PVOID BaseAddress);
+
+NTSTATUS
+PlatformMemCopyMemory(PVOID TargetAddress, MM_COPY_ADDRESS SourceAddress, SIZE_T NumberOfBytes, ULONG Flags, PSIZE_T NumberOfBytesTransferred);
+
+VOID
+PlatformMemFreePoolUntagged(PVOID P);
+
+NTSTATUS
+PlatformMemAllocateVirtualMemory(HANDLE    ProcessHandle,
+                                 PVOID *   BaseAddress,
+                                 ULONG_PTR ZeroBits,
+                                 PSIZE_T   RegionSize,
+                                 ULONG     AllocationType,
+                                 ULONG     Protect);
+
+NTSTATUS
+PlatformMemFreeVirtualMemory(HANDLE ProcessHandle, PVOID * BaseAddress, PSIZE_T RegionSize, ULONG FreeType);
+
+NTSTATUS
+PlatformMemUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress);

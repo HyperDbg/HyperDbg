@@ -11,6 +11,16 @@
  */
 #include "pch.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+//
+// KeGenericCallDpc()'s prototype is declared manually in PlatformBroadcast.h
+// (it is not exposed by ntifs.h/ntddk.h). PlatformDpc.c is compiled by hyperlog,
+// whose pch pulls in neither PlatformBroadcast.h nor Broadcast.c, so include it
+// explicitly here for the KeGenericCallDpc() call below. hyperhv/hyperkd already
+// compile both this file and PlatformBroadcast.h together, so there is no clash.
+#    include "../header/PlatformBroadcast.h"
+#endif
+
 #if defined(__linux__)
 #    include "../header/PlatformDpc.h"
 
@@ -145,6 +155,32 @@ PlatformDpcInsertQueueDpc(PRKDPC Dpc, PVOID SystemArgument1, PVOID SystemArgumen
     }
 
     return queue_work(system_bh_wq, &Dpc->Work) ? TRUE : FALSE;
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Run a DPC routine on every processor.
+ * @details Windows broadcasts the routine to all cores via KeGenericCallDpc().
+ *          Linux arm is a stub for now.
+ *
+ * TODO(Linux): drive on_each_cpu()/smp_call_function() through the KDPC
+ *              trampoline the way PlatformDpc already replays a single DPC.
+ */
+VOID
+PlatformDpcGenericCall(PKDEFERRED_ROUTINE Routine, PVOID Context)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    KeGenericCallDpc(Routine, Context);
+
+#elif defined(__linux__)
+
+    // no-op
 
 #else
 

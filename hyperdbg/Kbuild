@@ -64,12 +64,23 @@ ccflags-y += -I$(src)/dependencies
 # with these same defines (no libc, static), see hyperhv.vcxproj.
 ccflags-y += -I$(src)/dependencies/zydis/include
 ccflags-y += -I$(src)/dependencies/zydis/dependencies/zycore/include
+# zydis's own data tables are pulled with angle-bracket includes (<Generated/*.inc>),
+# so its src/ dir must be on the search path — zydis's CMake adds it as PRIVATE "src".
+ccflags-y += -I$(src)/dependencies/zydis/src
 ccflags-y += -DZYDIS_STATIC_BUILD -DZYCORE_STATIC_BUILD -DZYAN_NO_LIBC -DZYDIS_NO_LIBC
 
 # Windows-origin sources declare no-argument functions as `f()` rather than the
 # ISO C `f(void)`; the kernel builds with -Werror=strict-prototypes, so silence
 # it module-wide rather than editing every shared signature.
 ccflags-y += -Wno-strict-prototypes
+
+# hyperhv passes DPC routines of several shapes (VOID- and BOOLEAN-returning, and
+# some with a typed 2nd parameter) to KeGenericCallDpc(), whose prototype is the
+# WDK PKDEFERRED_ROUTINE. MSVC accepts this with a warning (C4113); GCC makes
+# incompatible-pointer-types a hard error. Rewriting the call sites would edit
+# shared Windows code, which the port forbids, so downgrade it to a WARNING
+# (-Wno-error=, not -Wno-) — the mismatch stays visible, exactly as on Windows.
+ccflags-y += -Wno-error=incompatible-pointer-types
 
 # Each module keeps its globals as bare tentative definitions in a header that
 # its pch pulls into EVERY TU (hyperkd/header/globals/Global.h: `KEVENT g_Foo;`).
@@ -130,120 +141,141 @@ HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
 # into the VMM (VmFunc*, MemoryMapper*, CheckAccessValidityAndSafety, ...), the
 # debugger (g_DbgState, Debugger*Event, Kd/Ud*, Tracing*) and hypertrace
 # (HyperTraceLbr*). Keep commented out until those modules land.
-# HyperDbg-objs += script-eval/code/Functions.o
-# HyperDbg-objs += script-eval/code/Keywords.o
-# HyperDbg-objs += script-eval/code/PseudoRegisters.o
-# HyperDbg-objs += script-eval/code/Regs.o
-# HyperDbg-objs += script-eval/code/ScriptEngineEval.o
+HyperDbg-objs += script-eval/code/Functions.o
+HyperDbg-objs += script-eval/code/Keywords.o
+HyperDbg-objs += script-eval/code/PseudoRegisters.o
+HyperDbg-objs += script-eval/code/Regs.o
+HyperDbg-objs += script-eval/code/ScriptEngineEval.o
 
 
 # --- hyperhv (hypervisor: VMX/EPT) -----------------------------------------
-# HyperDbg-objs += hyperhv/code/broadcast/Broadcast.o
-# HyperDbg-objs += hyperhv/code/broadcast/DpcRoutines.o
-# HyperDbg-objs += hyperhv/code/common/Bitwise.o
-# HyperDbg-objs += hyperhv/code/common/Common.o
+HyperDbg-objs += hyperhv/code/broadcast/Broadcast.o
+HyperDbg-objs += hyperhv/code/broadcast/DpcRoutines.o
+HyperDbg-objs += hyperhv/code/common/Bitwise.o
+HyperDbg-objs += hyperhv/code/common/Common.o
 # HyperDbg-objs += hyperhv/code/common/UnloadDll.o
-# HyperDbg-objs += hyperhv/code/components/registers/DebugRegisters.o
-# HyperDbg-objs += hyperhv/code/devices/Apic.o
-# HyperDbg-objs += hyperhv/code/devices/Pci.o
-# HyperDbg-objs += hyperhv/code/disassembler/Disassembler.o
-# HyperDbg-objs += hyperhv/code/disassembler/ZydisKernel.o
-# HyperDbg-objs += hyperhv/code/features/CompatibilityChecks.o
-# HyperDbg-objs += hyperhv/code/features/DirtyLogging.o
-# HyperDbg-objs += hyperhv/code/globals/GlobalVariableManagement.o
-# HyperDbg-objs += hyperhv/code/hooks/ept-hook/EptHook.o
-# HyperDbg-objs += hyperhv/code/hooks/ept-hook/ExecTrap.o
-# HyperDbg-objs += hyperhv/code/hooks/ept-hook/ModeBasedExecHook.o
-# HyperDbg-objs += hyperhv/code/hooks/syscall-hook/EferHook.o
-# HyperDbg-objs += hyperhv/code/hooks/syscall-hook/SyscallCallback.o
-# HyperDbg-objs += hyperhv/code/interface/Callback.o
-# HyperDbg-objs += hyperhv/code/interface/Configuration.o
-# HyperDbg-objs += hyperhv/code/interface/DirectVmcall.o
-# HyperDbg-objs += hyperhv/code/interface/Dispatch.o
-# HyperDbg-objs += hyperhv/code/interface/Export.o
-# HyperDbg-objs += hyperhv/code/interface/HyperEvade.o
-# HyperDbg-objs += hyperhv/code/memory/AddressCheck.o
-# HyperDbg-objs += hyperhv/code/memory/Conversion.o
-# HyperDbg-objs += hyperhv/code/memory/Layout.o
-# HyperDbg-objs += hyperhv/code/memory/MemoryManager.o
-# HyperDbg-objs += hyperhv/code/memory/MemoryMapper.o
-# HyperDbg-objs += hyperhv/code/memory/Segmentation.o
-# HyperDbg-objs += hyperhv/code/memory/SwitchLayout.o
-# HyperDbg-objs += hyperhv/code/mmio/MmioShadowing.o
-# HyperDbg-objs += hyperhv/code/processor/Idt.o
-# HyperDbg-objs += hyperhv/code/processor/Smm.o
-# HyperDbg-objs += hyperhv/code/vmm/ept/Ept.o
-# HyperDbg-objs += hyperhv/code/vmm/ept/Invept.o
-# HyperDbg-objs += hyperhv/code/vmm/ept/Vpid.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Counters.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmcalls.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmexits.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Events.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Hv.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/IdtEmulation.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/IoHandler.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/ManageRegs.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/MsrHandlers.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Mtf.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/ProtectedHv.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmcall.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmexit.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/Vmx.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxBroadcast.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxMechanisms.o
-# HyperDbg-objs += hyperhv/code/vmm/vmx/VmxRegions.o
-#   hyperhv assembly (MASM -> GAS/.S translation required; not just a build change)
-# HyperDbg-objs += hyperhv/code/assembly/AsmCommon.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmEpt.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmHooks.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmInterruptHandlers.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmSegmentRegs.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmVmexitHandler.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmVmxContextState.o
-# HyperDbg-objs += hyperhv/code/assembly/AsmVmxOperation.o
+HyperDbg-objs += hyperhv/code/components/registers/DebugRegisters.o
+HyperDbg-objs += hyperhv/code/devices/Apic.o
+HyperDbg-objs += hyperhv/code/devices/Pci.o
+HyperDbg-objs += hyperhv/code/disassembler/Disassembler.o
+# ZydisKernel.c is the Windows-only Zydis sample driver (dead code, WDK PE deps) —
+# Linux swaps the whole TU for an empty stub, ZydisKernel-linux.c (see that file).
+HyperDbg-objs += hyperhv/code/disassembler/ZydisKernel-linux.o
+HyperDbg-objs += hyperhv/code/features/CompatibilityChecks.o
+HyperDbg-objs += hyperhv/code/features/DirtyLogging.o
+HyperDbg-objs += hyperhv/code/globals/GlobalVariableManagement.o
+HyperDbg-objs += hyperhv/code/hooks/ept-hook/EptHook.o
+HyperDbg-objs += hyperhv/code/hooks/ept-hook/ExecTrap.o
+HyperDbg-objs += hyperhv/code/hooks/ept-hook/ModeBasedExecHook.o
+HyperDbg-objs += hyperhv/code/hooks/syscall-hook/EferHook.o
+HyperDbg-objs += hyperhv/code/hooks/syscall-hook/SyscallCallback.o
+HyperDbg-objs += hyperhv/code/interface/Callback.o
+HyperDbg-objs += hyperhv/code/interface/Configuration.o
+HyperDbg-objs += hyperhv/code/interface/DirectVmcall.o
+HyperDbg-objs += hyperhv/code/interface/Dispatch.o
+HyperDbg-objs += hyperhv/code/interface/Export.o
+HyperDbg-objs += hyperhv/code/interface/HyperEvade.o
+# hyperevade itself is Windows-only and dropped from this module (see below), but
+# hyperhv calls its Transparent* symbols unconditionally — this Linux-only TU
+# supplies them as no-ops so the .ko links.
+HyperDbg-objs += hyperhv/code/interface/HyperEvadeStubs-linux.o
+HyperDbg-objs += hyperhv/code/memory/AddressCheck.o
+HyperDbg-objs += hyperhv/code/memory/Conversion.o
+HyperDbg-objs += hyperhv/code/memory/Layout.o
+HyperDbg-objs += hyperhv/code/memory/MemoryManager.o
+HyperDbg-objs += hyperhv/code/memory/MemoryMapper.o
+HyperDbg-objs += hyperhv/code/memory/Segmentation.o
+HyperDbg-objs += hyperhv/code/memory/SwitchLayout.o
+HyperDbg-objs += hyperhv/code/mmio/MmioShadowing.o
+HyperDbg-objs += hyperhv/code/processor/Idt.o
+HyperDbg-objs += hyperhv/code/processor/Smm.o
+HyperDbg-objs += hyperhv/code/vmm/ept/Ept.o
+HyperDbg-objs += hyperhv/code/vmm/ept/Invept.o
+HyperDbg-objs += hyperhv/code/vmm/ept/Vpid.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Counters.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmcalls.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/CrossVmexits.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Events.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Hv.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/IdtEmulation.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/IoHandler.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/ManageRegs.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/MsrHandlers.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Mtf.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/ProtectedHv.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Vmcall.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Vmexit.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/Vmx.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/VmxBroadcast.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/VmxMechanisms.o
+HyperDbg-objs += hyperhv/code/vmm/vmx/VmxRegions.o
+#   hyperhv assembly: the *.asm (MASM) are ported to *.S (GAS) as EMPTY STUBS —
+#   every symbol is a bare `ret` placeholder so the module links; real bodies are
+#   still TODO(Linux) in each .S. Active because the stubs are self-contained
+#   (define symbols, reference nothing) so the module stays loadable.
+HyperDbg-objs += hyperhv/code/assembly/AsmCommon-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmEpt-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmHooks-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmInterruptHandlers-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmSegmentRegs-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmVmexitHandler-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmVmxContextState-linux.o
+HyperDbg-objs += hyperhv/code/assembly/AsmVmxOperation-linux.o
 
 # --- hyperkd (the driver: device/IOCTL + debugger core) --------------------
-# HyperDbg-objs += hyperkd/code/common/Common.o
-# HyperDbg-objs += hyperkd/code/common/Synchronization.o
-# HyperDbg-objs += hyperkd/code/debugger/broadcast/DpcRoutines.o
-# HyperDbg-objs += hyperkd/code/debugger/broadcast/HaltedBroadcast.o
-# HyperDbg-objs += hyperkd/code/debugger/broadcast/HaltedRoutines.o
-# HyperDbg-objs += hyperkd/code/debugger/commands/BreakpointCommands.o
-# HyperDbg-objs += hyperkd/code/debugger/commands/Callstack.o
-# HyperDbg-objs += hyperkd/code/debugger/commands/DebuggerCommands.o
-# HyperDbg-objs += hyperkd/code/debugger/commands/ExtensionCommands.o
-# HyperDbg-objs += hyperkd/code/debugger/communication/SerialConnection.o
-# HyperDbg-objs += hyperkd/code/debugger/core/Debugger.o
-# HyperDbg-objs += hyperkd/code/debugger/core/DebuggerVmcalls.o
-# HyperDbg-objs += hyperkd/code/debugger/core/HaltedCore.o
-# HyperDbg-objs += hyperkd/code/debugger/events/ApplyEvents.o
-# HyperDbg-objs += hyperkd/code/debugger/events/DebuggerEvents.o
-# HyperDbg-objs += hyperkd/code/debugger/events/Termination.o
-# HyperDbg-objs += hyperkd/code/debugger/events/ValidateEvents.o
-# HyperDbg-objs += hyperkd/code/debugger/kernel-level/Kd.o
-# HyperDbg-objs += hyperkd/code/debugger/memory/Allocations.o
-# HyperDbg-objs += hyperkd/code/debugger/memory/PoolManager.o
-# HyperDbg-objs += hyperkd/code/debugger/meta-events/MetaDispatch.o
-# HyperDbg-objs += hyperkd/code/debugger/meta-events/Tracing.o
-# HyperDbg-objs += hyperkd/code/debugger/objects/Process.o
-# HyperDbg-objs += hyperkd/code/debugger/objects/Thread.o
-# HyperDbg-objs += hyperkd/code/debugger/script-engine/ScriptEngine.o
-# HyperDbg-objs += hyperkd/code/debugger/tests/KernelTests.o
-# HyperDbg-objs += hyperkd/code/debugger/user-level/Attaching.o
-# HyperDbg-objs += hyperkd/code/debugger/user-level/ThreadHolder.o
-# HyperDbg-objs += hyperkd/code/debugger/user-level/Ud.o
-# HyperDbg-objs += hyperkd/code/debugger/user-level/UserAccess.o
-# HyperDbg-objs += hyperkd/code/driver/Driver.o
-# HyperDbg-objs += hyperkd/code/driver/Ioctl.o
-# HyperDbg-objs += hyperkd/code/driver/Loader.o
-#   hyperkd assembly (MASM -> GAS/.S translation required)
+HyperDbg-objs += hyperkd/code/common/Common.o
+HyperDbg-objs += hyperkd/code/common/Synchronization.o
+HyperDbg-objs += hyperkd/code/debugger/broadcast/DpcRoutines.o
+HyperDbg-objs += hyperkd/code/debugger/broadcast/HaltedBroadcast.o
+HyperDbg-objs += hyperkd/code/debugger/broadcast/HaltedRoutines.o
+HyperDbg-objs += hyperkd/code/debugger/commands/BreakpointCommands.o
+HyperDbg-objs += hyperkd/code/debugger/commands/Callstack.o
+HyperDbg-objs += hyperkd/code/debugger/commands/DebuggerCommands.o
+HyperDbg-objs += hyperkd/code/debugger/commands/ExtensionCommands.o
+HyperDbg-objs += hyperkd/code/debugger/communication/SerialConnection.o
+HyperDbg-objs += hyperkd/code/debugger/communication/KdSerial-linux.o
+HyperDbg-objs += hyperkd/code/debugger/core/Debugger.o
+HyperDbg-objs += hyperkd/code/debugger/core/DebuggerVmcalls.o
+HyperDbg-objs += hyperkd/code/debugger/core/HaltedCore.o
+HyperDbg-objs += hyperkd/code/debugger/events/ApplyEvents.o
+HyperDbg-objs += hyperkd/code/debugger/events/DebuggerEvents.o
+HyperDbg-objs += hyperkd/code/debugger/events/Termination.o
+HyperDbg-objs += hyperkd/code/debugger/events/ValidateEvents.o
+HyperDbg-objs += hyperkd/code/debugger/kernel-level/Kd.o
+HyperDbg-objs += hyperkd/code/debugger/memory/Allocations.o
+HyperDbg-objs += hyperkd/code/debugger/memory/PoolManager.o
+HyperDbg-objs += hyperkd/code/debugger/meta-events/MetaDispatch.o
+HyperDbg-objs += hyperkd/code/debugger/meta-events/Tracing.o
+HyperDbg-objs += hyperkd/code/debugger/objects/Process.o
+HyperDbg-objs += hyperkd/code/debugger/objects/Thread.o
+HyperDbg-objs += hyperkd/code/debugger/script-engine/ScriptEngine.o
+HyperDbg-objs += hyperkd/code/debugger/tests/KernelTests.o
+HyperDbg-objs += hyperkd/code/debugger/user-level/Attaching.o
+HyperDbg-objs += hyperkd/code/debugger/user-level/ThreadHolder.o
+HyperDbg-objs += hyperkd/code/debugger/user-level/Ud.o
+HyperDbg-objs += hyperkd/code/debugger/user-level/UserAccess.o
+# Driver.c is the Windows-only WDM bootstrap (DriverEntry/DRIVER_OBJECT/IRP_MJ
+# dispatch) — Linux swaps the whole TU for the Driver-linux.c skeleton (see that
+# file). The char-device layer (module_init/file_operations) is still TODO there.
+HyperDbg-objs += hyperkd/code/driver/Driver-linux.o
+HyperDbg-objs += hyperkd/code/driver/Ioctl.o
+HyperDbg-objs += hyperkd/code/driver/Loader.o
+#   hyperkd assembly: AsmDebugger.asm (MASM) is ported to AsmDebugger-linux.S (GAS)
+#   as EMPTY STUBS — every symbol is a bare `ret` placeholder so the module links;
+#   real bodies are still TODO(Linux). Matches the hyperhv Asm*-linux.S stubs.
+HyperDbg-objs += hyperkd/code/assembly/AsmDebugger-linux.o
 # HyperDbg-objs += hyperkd/code/assembly/AsmDebugger.o
 
 # --- hyperevade (transparency / anti-detection) ----------------------------
+# DROPPED from the Linux kernel module. hyperevade is Windows-only transparency/
+# anti-detection code (ActivateHyperEvadeProject is FALSE in
+# include/config/Configuration.h) and does not need to compile here. Its sources
+# stay on their Windows original — the port-mechanical platform swaps were
+# reverted — and it is left out of the build entirely.
 # HyperDbg-objs += hyperevade/code/SyscallFootprints.o
 # HyperDbg-objs += hyperevade/code/Transparency.o
-# HyperDbg-objs += hyperevade/code/UnloadDll.o
 # HyperDbg-objs += hyperevade/code/VmxFootprints.o
+# HyperDbg-objs += hyperevade/code/UnloadDll.o
 
 # --- hyperperf (PMU) -------------------------------------------------------
 # HyperDbg-objs += hyperperf/code/api/PerfApi.o
@@ -252,6 +284,12 @@ HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
 # HyperDbg-objs += hyperperf/code/common/UnloadDll.o
 
 # --- hypertrace (LBR / Intel PT) -------------------------------------------
+# DEFERRED, not dropped: real Intel LBR + Intel PT hardware tracing that Linux will
+# want (unlike hyperevade, which is Windows-only). ~4700 lines not ported yet; LBR is
+# the natural first milestone, Intel PT's ToPA output buffers are the hard part. Until
+# then, active TUs reference ~10 of its exported entry points, so this one Linux stub
+# TU defines them as no-ops purely so the .ko links (see TraceApi-linux.c).
+HyperDbg-objs += hypertrace/code/api/TraceApi-linux.o
 # HyperDbg-objs += hypertrace/code/api/LbrApi.o
 # HyperDbg-objs += hypertrace/code/api/PtApi.o
 # HyperDbg-objs += hypertrace/code/api/TraceApi.o
@@ -262,9 +300,39 @@ HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
 # HyperDbg-objs += hypertrace/code/pt/Pt.o
 
 # --- zydis (kernel disassembler, needed by hyperhv/disassembler) -----------
-# Built with ZYAN_NO_LIBC;ZYDIS_NO_LIBC;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD.
-# Enumerate dependencies/zydis/src/*.c + dependencies/zydis/.../zycore/*.c here,
-# or build them into a built-in.a. Deferred until hyperhv compiles.
+# Built with ZYAN_NO_LIBC;ZYDIS_NO_LIBC;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD
+# (defines + include paths in the ccflags-y block above). Self-contained: no
+# external symbols, so it links into the .ko on its own even before hyperhv
+# calls it. Windows builds zydis as a separate static lib; Linux has one module,
+# so the sources compile straight in.
+# zycore (zydis's support library)
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Allocator.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/ArgParse.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Bitset.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Format.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/List.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/String.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Vector.o
+HyperDbg-objs += dependencies/zydis/dependencies/zycore/src/Zycore.o
+# zydis proper
+HyperDbg-objs += dependencies/zydis/src/Decoder.o
+HyperDbg-objs += dependencies/zydis/src/DecoderData.o
+HyperDbg-objs += dependencies/zydis/src/Disassembler.o
+HyperDbg-objs += dependencies/zydis/src/Encoder.o
+HyperDbg-objs += dependencies/zydis/src/EncoderData.o
+HyperDbg-objs += dependencies/zydis/src/FormatterATT.o
+HyperDbg-objs += dependencies/zydis/src/FormatterBase.o
+HyperDbg-objs += dependencies/zydis/src/FormatterBuffer.o
+HyperDbg-objs += dependencies/zydis/src/Formatter.o
+HyperDbg-objs += dependencies/zydis/src/FormatterIntel.o
+HyperDbg-objs += dependencies/zydis/src/MetaInfo.o
+HyperDbg-objs += dependencies/zydis/src/Mnemonic.o
+HyperDbg-objs += dependencies/zydis/src/Register.o
+HyperDbg-objs += dependencies/zydis/src/Segment.o
+HyperDbg-objs += dependencies/zydis/src/SharedData.o
+HyperDbg-objs += dependencies/zydis/src/String.o
+HyperDbg-objs += dependencies/zydis/src/Utils.o
+HyperDbg-objs += dependencies/zydis/src/Zydis.o
 
 # ===========================================================================
 # PER-OBJECT INCLUDE ROOTS
@@ -277,9 +345,22 @@ HyperDbg-objs += include/components/optimizations/code/OptimizationsExamples.o
 # module of their own and use the unified linux/kernel/pch.h.
 
 hyperkd-roots    := -I$(src)/hyperkd/header -I$(src)/hyperkd
+
+# 7-into-1 collision fix: hyperkd and hyperhv each carry their OWN copy of a few
+# private helpers (same name, slightly different bodies — e.g. hyperkd's
+# CommonGetProcessNameFromProcessControlBlock calls PsGetProcessImageFileName while
+# hyperhv's calls PlatformProcessGetImageFileName). On Windows they live in separate
+# DLLs and never collide; in the single .ko they are duplicate definitions. None are
+# cross-module (absent from SDK/imports), so each module must keep its own. Rename
+# hyperkd's copies module-wide (definition + all its callers, script-eval included)
+# so the token stays self-consistent within hyperkd; hyperhv keeps the originals.
+# Linux/Kbuild-only — no source edits, Windows untouched.
+hyperkd-roots    += -DCommonGetProcessNameFromProcessControlBlock=Kd_CommonGetProcessNameFromProcessControlBlock
+hyperkd-roots    += -DCommonCpuidInstruction=Kd_CommonCpuidInstruction
+hyperkd-roots    += -DDpcRoutineRunTaskOnSingleCore=Kd_DpcRoutineRunTaskOnSingleCore
 hyperhv-roots    := -I$(src)/hyperhv -I$(src)/hyperhv/header -I$(src)/hyperhv/code
 hyperlog-roots   := -I$(src)/hyperlog/header
-hyperevade-roots := -I$(src)/hyperevade/header
+# hyperevade is dropped from the Linux module (Windows-only), so no roots for it.
 hypertrace-roots := -I$(src)/hypertrace/header
 hyperperf-roots  := -I$(src)/hyperperf/header
 shared-roots     := -I$(src)/linux/kernel
@@ -292,7 +373,6 @@ mod-sources = $(patsubst $(src)/%.c,%.o,$(shell find $(src)/$(1) -name '*.c' 2>/
 $(foreach o,$(call mod-sources,hyperkd),$(eval CFLAGS_$(o) += $(hyperkd-roots)))
 $(foreach o,$(call mod-sources,hyperhv),$(eval CFLAGS_$(o) += $(hyperhv-roots)))
 $(foreach o,$(call mod-sources,hyperlog),$(eval CFLAGS_$(o) += $(hyperlog-roots)))
-$(foreach o,$(call mod-sources,hyperevade),$(eval CFLAGS_$(o) += $(hyperevade-roots)))
 $(foreach o,$(call mod-sources,hypertrace),$(eval CFLAGS_$(o) += $(hypertrace-roots)))
 $(foreach o,$(call mod-sources,hyperperf),$(eval CFLAGS_$(o) += $(hyperperf-roots)))
 # script-eval is compiled INSIDE hyperkd on Windows, so it takes hyperkd's roots

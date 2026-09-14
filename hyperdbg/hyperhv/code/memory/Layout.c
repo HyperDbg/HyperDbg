@@ -26,7 +26,7 @@ LayoutGetCr3ByProcessId(UINT32 ProcessId)
     PEPROCESS TargetEprocess;
     CR3_TYPE  ProcessCr3 = {0};
 
-    if (PsLookupProcessByProcessId((HANDLE)ProcessId, &TargetEprocess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)ProcessId, &TargetEprocess) != STATUS_SUCCESS)
     {
         //
         // There was an error, probably the process id was not found
@@ -92,6 +92,6 @@ LayoutGetSystemDirectoryTableBase()
     //
     // Return CR3 of the system process.
     //
-    NT_KPROCESS * SystemProcess = (NT_KPROCESS *)(PsInitialSystemProcess);
+    NT_KPROCESS * SystemProcess = (NT_KPROCESS *)(PlatformProcessGetInitialSystemProcess());
     return SystemProcess->DirectoryTableBase;
 }

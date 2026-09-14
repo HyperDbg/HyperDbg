@@ -27,6 +27,7 @@ CheckAddressValidityUsingTsx(CHAR * Address)
     BOOLEAN Result = FALSE;
     CHAR    TempContent;
 
+#ifdef _WIN32
     if ((Status = _xbegin()) == _XBEGIN_STARTED)
     {
         //
@@ -47,6 +48,19 @@ CheckAddressValidityUsingTsx(CHAR * Address)
         //
         Result = FALSE;
     }
+#else
+    //
+    // TODO(Linux): Intel TSX (_xbegin/_xend) is not available here — it is not
+    // wired into the kernel build and is microcode-disabled on most CPUs. Port
+    // this readability probe to a Linux fault-safe primitive
+    // (copy_from_kernel_nofault, or an _ASM_EXTABLE fixup around the load).
+    // Until then, conservatively report the address as not-validated.
+    //
+    (void)Status;
+    (void)Address;
+    (void)TempContent;
+    Result = FALSE;
+#endif
 
     return Result;
 }

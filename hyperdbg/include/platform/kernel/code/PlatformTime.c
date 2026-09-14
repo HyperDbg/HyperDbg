@@ -124,3 +124,35 @@ PlatformTimeConvertToTimeFields(PLARGE_INTEGER Time, PTIME_FIELDS TimeFields)
 
 #endif
 }
+
+/**
+ * @brief Read the performance counter (and, optionally, its frequency).
+ * @details Windows: KeQueryPerformanceCounter(). Linux arm is a stub that
+ *          reports 0 for both counter and frequency.
+ *
+ * TODO(Linux): back with ktime_get_ns()/tsc so busy-wait loops using this
+ *              actually elapse.
+ */
+LARGE_INTEGER
+PlatformTimeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    return KeQueryPerformanceCounter(PerformanceFrequency);
+
+#elif defined(__linux__)
+
+    LARGE_INTEGER Counter;
+    Counter.QuadPart = 0;
+
+    if (PerformanceFrequency != NULL)
+        PerformanceFrequency->QuadPart = 0;
+
+    return Counter; // TODO(Linux)
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}

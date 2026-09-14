@@ -27,3 +27,10 @@ PlatformDpcSetTargetProcessor(PRKDPC Dpc, CCHAR Number);
 
 BOOLEAN
 PlatformDpcInsertQueueDpc(PRKDPC Dpc, PVOID SystemArgument1, PVOID SystemArgument2);
+
+//
+// Run a DPC routine on every processor. Windows: KeGenericCallDpc(). Linux:
+// stub (no-op) for now. See PlatformDpc.c.
+//
+VOID
+PlatformDpcGenericCall(PKDEFERRED_ROUTINE Routine, PVOID Context);

@@ -338,7 +338,7 @@ ExecTrapReadRamPhysicalRegions()
     //
     // Read the RAM regions (BIOS) gives these details to Windows
     //
-    PhysicalMemoryRanges = MmGetPhysicalMemoryRanges();
+    PhysicalMemoryRanges = PlatformMemGetPhysicalMemoryRanges();
 
     do
     {
@@ -357,7 +357,7 @@ ExecTrapReadRamPhysicalRegions()
 
     } while (++Count < MAX_PHYSICAL_RAM_RANGE_COUNT);
 
-    ExFreePool(PhysicalMemoryRanges);
+    PlatformMemFreePoolUntagged(PhysicalMemoryRanges);
 }
 
 /**

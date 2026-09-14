@@ -34,8 +34,18 @@ extern POBJECT_TYPE * ExEventObjectType;
 VOID
 PlatformObjectDereference(PVOID Object);
 
+VOID
+PlatformEventInitialize(PRKEVENT Event, EVENT_TYPE Type, BOOLEAN State);
+
 LONG
 PlatformEventSet(PKEVENT Event, KPRIORITY Increment, BOOLEAN Wait);
+
+NTSTATUS
+PlatformEventWait(PVOID           Object,
+                  KWAIT_REASON    WaitReason,
+                  KPROCESSOR_MODE WaitMode,
+                  BOOLEAN         Alertable,
+                  PLARGE_INTEGER  Timeout);
 
 NTSTATUS
 PlatformObjectReferenceByHandle(HANDLE                    Handle,

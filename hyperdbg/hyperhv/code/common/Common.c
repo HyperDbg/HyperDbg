@@ -25,7 +25,7 @@ CommonAffinityBroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc 
 {
     KIRQL OldIrql;
 
-    KeSetSystemAffinityThread((KAFFINITY)(1ULL << ProcessorNumber));
+    PlatformProcessSetSystemAffinity((KAFFINITY)(1ULL << ProcessorNumber));
 
     OldIrql = PlatformIrqlRaiseToDpcLevel();
 
@@ -33,7 +33,7 @@ CommonAffinityBroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc 
 
     PlatformIrqlLower(OldIrql);
 
-    KeRevertToUserAffinityThread();
+    PlatformProcessRevertToUserAffinity();
 
     return TRUE;
 }
@@ -50,10 +50,10 @@ CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess)
     PCHAR Result = 0;
 
     //
-    // We can't use PsLookupProcessByProcessId as in pageable and not
+    // We can't use PlatformProcessLookupByProcessId as in pageable and not
     // work on vmx-root
     //
-    Result = (CHAR *)PsGetProcessImageFileName(Eprocess);
+    Result = (CHAR *)PlatformProcessGetImageFileName(Eprocess);
 
     return Result;
 }

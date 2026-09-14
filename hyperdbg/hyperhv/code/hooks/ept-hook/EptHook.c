@@ -1943,7 +1943,7 @@ EptHookUnHookSingleAddressDetoursAndMonitor(PEPT_HOOKED_PAGE_DETAIL             
         // Remove it in all the cores
         //
         TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = FALSE;
-        KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, TargetUnhookingDetails);
+        PlatformDpcGenericCall(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, TargetUnhookingDetails);
     }
 
     //
@@ -2101,7 +2101,7 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL             H
                     // Remove the hook entirely on all cores
                     //
                     TargetUnhookingDetails->CallerNeedsToRestoreEntryAndInvalidateEpt = FALSE;
-                    KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, TargetUnhookingDetails);
+                    PlatformDpcGenericCall(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, TargetUnhookingDetails);
                 }
 
                 //
@@ -2461,7 +2461,7 @@ EptHookUnHookAll()
     //
     // Remove it in all the cores
     //
-    KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores, 0x0);
+    PlatformDpcGenericCall(DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores, 0x0);
 
     //
     // In the case of unhooking all pages, we remove the hooked

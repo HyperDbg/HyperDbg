@@ -90,6 +90,11 @@
 #include "platform/kernel/header/PlatformProcess.h"
 #include "platform/kernel/header/PlatformCpu.h"
 #include "platform/kernel/header/PlatformStr.h"
+#include "platform/kernel/header/PlatformDbg.h"
+#include "platform/kernel/header/PlatformDpc.h"
+#include "platform/kernel/header/PlatformEvent.h"
+#include "platform/kernel/header/PlatformTime.h"
+#include "platform/kernel/header/PlatformIo.h"
 
 //
 // Optimization algorithms
