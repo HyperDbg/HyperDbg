@@ -78,12 +78,12 @@ Shared, OS-neutral headers:
 |------|----------|---------------|-------------------|
 | `.../script-engine/symbol-linux.cpp` | `symbol.cpp` (DbgHelp + PDB) | All `Symbol*` functions. Only `SymbolConvertNameOrExprToAddress` does real work: parses a plain hex/decimal literal so numeric addresses work. | Real ELF/DWARF symbol parser (libdw / libelf / libbfd). |
 | `.../user-level/pe-parser-linux.cpp` | `pe-parser.cpp` (Windows PE format) | The 3 public fns: `PeShowSectionInformationAndDump`, `PeIsPE32BitOr64Bit` (→ FALSE), `PeGetSyscallNumber` (→ 0). | Recreate the Windows `IMAGE_*` headers for Linux, then port `pe-parser.cpp`. Only needed for Windows-target debugging on Linux. |
-| `.../driver-loader/install-linux.cpp` | `install.cpp` (SCM driver loader) | The 2 Linux-visible public fns: `ManageDriver` (→ FALSE) and `SetupPathForFileName` (→ FALSE). The 4 `SC_HANDLE` helpers (`InstallDriver`/`RemoveDriver`/`StartDriver`/`StopDriver`) are guarded out of `install.h` on Linux (never referenced there). | `ManageDriver`: load/unload a future HyperDbg Linux kernel module via `finit_module`/`delete_module` (needs CAP_SYS_MODULE). `SetupPathForFileName`: `readlink("/proc/self/exe")` + strip + append + `access()` (generic "find a file beside my binary"; also used by hwdbg). |
+| `.../driver-loader/install-linux.cpp` | `install.cpp` (SCM driver loader) | Only `ManageDriver` (→ FALSE) is still a stub; `SetupPathForFileName` is **implemented** (`readlink("/proc/self/exe")` + strip + append + `access()`). The 4 `SC_HANDLE` helpers (`InstallDriver`/`RemoveDriver`/`StartDriver`/`StopDriver`) are guarded out of `install.h` on Linux (never referenced there). | `ManageDriver`: load/unload a future HyperDbg Linux kernel module via `finit_module`/`delete_module` (needs CAP_SYS_MODULE). |
 | `.../communication/namedpipe-linux.cpp` | `namedpipe.cpp` (Win32 named-pipe IPC) | All 10 public `NamedPipeServer*`/`NamedPipeClient*` fns. `Create*` → `INVALID_HANDLE_VALUE` (print); send/read → 0/FALSE; close → no-op (quiet, unreachable once Create fails). The two internal `*Example()` demos are not in the Linux TU. | Back with a filesystem FIFO (`mkfifo`) or, better for framed bidirectional messages, an `AF_UNIX` socket derived from the `\\.\pipe\NAME` string; overlapped/event I/O collapses to blocking `read`/`write`. |
 
-All four self-guard with `#ifdef __linux__` and print
-`"... is not supported on Linux yet"` at runtime (named-pipe: only in the
-`Create*` entry points, to avoid per-loop spam).
+All four self-guard with `#ifdef __linux__`, and every function still stubbed in
+them prints `"... is not supported on Linux yet"` at runtime (named-pipe: only in
+the `Create*` entry points, to avoid per-loop spam).
 
 ---
 
@@ -186,8 +186,8 @@ equivalent, behavior-preserving.
   - Whole Windows-only bodies guarded `#ifdef _WIN32` with a Linux stub + TODO:
     `SetPrivilege` (token/LUID; no Linux callers → returns FALSE),
     `IsFileExistW` (`_wstat`; wide-char deferred → FALSE),
-    `GetConfigFilePath` (`GetModuleFileNameW`/shlwapi; wide-char deferred → empties path),
-    `ListDirectory` (`FindFirstFileA`; → empty vector, only caller is eval.cpp test harness).
+    `GetConfigFilePath` (`GetModuleFileNameW`/shlwapi; wide-char deferred → empties path).
+  - `ListDirectory` — **implemented** (2026-08-02), see the file-location section below.
   - `CheckAddressValidityUsingTsx` — TSX `_xbegin`/`_xend`/`_XBEGIN_STARTED` kept
     verbatim; they resolve on GCC via `<immintrin.h>` (included under `__linux__`)
     once `-mrtm` is set. Added `target_compile_options(libhyperdbg PRIVATE -mrtm)`
@@ -553,9 +553,14 @@ Windows-path-shaped in two places — the `'\\'` separator and the constant itse
 (`pci-id.h:44`, `"constants\\pci.ids"`) — so wrapping only the calls would leave
 `strrchr` returning NULL, silently overwriting the whole path and resolving
 against the cwd. That is a behaviour change, not a port, so the whole body is
-Windows-only and Linux returns NULL. `GetVendorByIdStr`, `GetDeviceFromVendor`,
+Windows-only and Linux returns NULL.
+**Resolved (2026-08-02)** — the Linux `#else` now calls `SetupPathForFileName`,
+which does the `readlink` walk *and* the separator normalization in one place, so
+neither of the two path-shape problems is left in `pci-id.cpp`. See the
+file-location section below. `GetVendorByIdStr`, `GetDeviceFromVendor`,
 `FreeVendor` and `FreePciIdDatabase` are plain C and compile unchanged.
-Consequence: `!pcitree` / `!pcicam` show no vendor or device names on Linux.
+Consequence: `!pcitree` / `!pcicam` now show vendor and device names on Linux
+too, as long as `constants/pci.ids` is deployed next to the binary.
 
 **Result: the CLI link is down from 23 undefined refs to 9**, and every
 "missing TU" bucket is now closed. What is left is both known and deliberate:
@@ -709,10 +714,9 @@ Grouped by subsystem. These are the shortcuts taken to reach compilation.
   keystone section above.
 
 ### PCI ID database
-- [ ] `pci-id.cpp::GetVendorById` — Linux returns NULL (whole body Windows-only).
-  Needs `readlink("/proc/self/exe")` **plus** a portable path separator and a
-  portable `PCI_ID_DATABASE_PATH` (`pci-id.h:44` is `"constants\\pci.ids"`).
-  Until then `!pcitree` / `!pcicam` print no vendor/device names on Linux.
+- [x] `pci-id.cpp::GetVendorById` — done (2026-08-02). The Linux branch resolves
+  the database through `SetupPathForFileName`, which normalizes the `'\\'` of
+  `PCI_ID_DATABASE_PATH` (`pci-id.h:44`), so the constant itself stays shared.
 
 ### PE parsing
 - [ ] Recreate Windows `IMAGE_*` headers for Linux and port `pe-parser.cpp`
@@ -723,6 +727,63 @@ Grouped by subsystem. These are the shortcuts taken to reach compilation.
 - [ ] `platform-serial.c` Linux branch — implement termios serial I/O (currently stub).
 - [ ] `platform-ioctl.c` Linux branch — needs a Linux kernel module + real ioctl
   (currently stub). This is the local driver interface used across many files.
+
+### File location on disk — DONE (2026-08-02)
+
+Three of the "find a file" stubs are now real. They are grouped here because the
+first one is what unblocks the other two.
+
+**`install-linux.cpp::SetupPathForFileName`** — the generic "find a file beside
+my binary" helper, used for the driver path (`libhyperdbg.cpp`), the hwdbg
+test/script files (`hwdbg-interpreter.cpp`, `hwdbg-scripts.cpp`), the exported
+`hyperdbg_u_setup_path_for_filename` and now the PCI ID database. A 1:1 port of
+the Windows body, call for call: `readlink("/proc/self/exe")` is the
+`GetModuleFileName(GetModuleHandle(NULL), ...)` counterpart, `strrchr(..., '/')`
+replaces `strrchr(..., '\\')`, and `access(path, F_OK)` replaces the
+`CreateFile(..., OPEN_EXISTING)` probe behind `CheckFileExists`.
+
+Two things the Windows version does not do:
+
+- **`BufferLength` is honoured on every write.** `readlink` truncates silently,
+  so a result that fills the buffer is rejected rather than handed back as a
+  valid-looking path to the wrong file, and the directory + `'/'` + name + NUL
+  total is checked before the append. (`install.cpp` gets the second half of
+  this from `StringCbCat`, but not the first: its `GetModuleFileName` truncation
+  is unchecked.)
+- **Windows-style separators in `FileName` are normalized to `'/'`.** The file
+  names come from shared headers and are spelled the Windows way —
+  `HWDBG_TEST_READ_INSTANCE_INFO_PATH` (`HardwareDebugger.h:42`) and
+  `PCI_ID_DATABASE_PATH` (`pci-id.h:44`). Doing it here keeps the constants
+  shared and keeps the `#ifdef` out of every call site. Only the appended part
+  is rewritten, so a `'\\'` inside a real Linux directory name survives.
+
+**`common.cpp::ListDirectory`** — `opendir`/`readdir` with `fnmatch` for the
+wildcard, mirroring how `FindFirstFileA` applies the pattern to the file name.
+No `fnmatch` flag is passed, so a leading `'.'` is unremarkable and `"."`/`".."`
+match a bare `"*"`, as they do in the Win32 walk. A missing directory throws the
+same `std::runtime_error` as the `INVALID_HANDLE_VALUE` branch. One deliberate
+difference: the result is sorted, because `readdir` returns entries in
+file-system order and the caller (eval.cpp's test harness) is easier to compare
+across runs when the order is stable.
+
+**`pci-id.cpp::GetVendorById`** — the Linux `#else` builds the database path with
+`SetupPathForFileName` and calls the same `GetVendorByIdStr` as Windows. This was
+previously left Windows-only because wrapping just the two Win32 calls would have
+left `strrchr` looking for a `'\\'`; the normalization above removes that
+objection. `!pcitree` / `!pcicam` now resolve vendor and device names on Linux
+whenever `constants/pci.ids` is deployed next to the binary.
+
+Verified by extracting `SetupPathForFileName` and the Linux `ListDirectory`
+branch into a standalone harness built with `-fsanitize=address,undefined`: 20
+probes covering the separator normalization, the `CheckFileExists` outcomes, the
+exact-fit and one-byte-short buffer boundaries, a buffer too small for the
+executable path itself, the NULL/zero-length arguments, and the four
+`ListDirectory` cases (filtering, sorting, empty match, missing directory). All
+pass with no sanitizer diagnostics. The three modified files were also compiled
+with the project's own Linux CMake build.
+
+Still open: `GetConfigFilePath` remains stubbed. It is the same walk, but its
+out-parameter is a `PWCHAR`, so it stays behind the wide-char item.
 
 ### Process control — `ud.cpp` DONE (2026-07-18)
 Mechanical wrapper sweep (bucket 1): `DeviceIoControl`×10→`PlatformDeviceIoControl`,
@@ -803,10 +864,11 @@ but out of scope for the port.
 - [ ] `$peb` pseudo-register — returns 0 on Linux (PEB is NT-only).
 - [ ] `DebuggerGetNtoskrnlBase` — returns NULL on Linux (NT system-module enum).
 - [ ] File I/O / user-debugger paths — stubbed (also blocked on wide-char above).
-- [ ] `common.cpp::ListDirectory` — Linux returns empty vector; reimplement with
-  `opendir`/`readdir` + `fnmatch` (only caller today is eval.cpp's test harness).
+- [x] `common.cpp::ListDirectory` — done (2026-08-02) with `opendir`/`readdir` +
+  `fnmatch`.
 - [ ] `common.cpp::GetConfigFilePath` — Linux empties the path; resolve via
-  `readlink("/proc/self/exe")` + append `CONFIG_FILE_NAME` (also blocked on wide-char).
+  `readlink("/proc/self/exe")` + append `CONFIG_FILE_NAME` (still blocked on
+  wide-char — `SetupPathForFileName` is the `CHAR` counterpart and is done).
 - [ ] `common.cpp::SetPrivilege` / `IsFileExistW` — Linux stubs (no callers /
   wide-char deferred respectively).
 - [x] `cpu.cpp:148` & `cpu.cpp:200` — same `CpuIdEx`→`CpuCpuIdEx` typo fix as

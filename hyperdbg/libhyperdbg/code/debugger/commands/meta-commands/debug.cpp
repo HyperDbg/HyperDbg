@@ -309,7 +309,7 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         else if (!IsComPortBaudrateKnown && IsSerial && IsNumber(GetCaseSensitiveStringFromCommandToken(Section)))
         {
             IsComPortBaudrateKnown = TRUE;
-            Baudrate               = stoi(GetCaseSensitiveStringFromCommandToken(Section));
+            Baudrate               = strtoul(GetCaseSensitiveStringFromCommandToken(Section).c_str(), NULL, 10);
 
             //
             // Check if baudrate is valid or not
