@@ -132,7 +132,7 @@ CommandUserOutRequest(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest)
 
         else
         {
-            ShowMessages("receiving OUT instruction result was not successful\n");
+            ShowMessages("err, receiving OUT instruction result was not successful\n");
 
             return FALSE;
         }

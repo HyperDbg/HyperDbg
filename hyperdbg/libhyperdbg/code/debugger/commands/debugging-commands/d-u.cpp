@@ -67,7 +67,7 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("\t\te.g : db fffff8077356f010\n");
     ShowMessages("\t\te.g : !dq 100000\n");
     ShowMessages("\t\te.g : !dq @rax+77\n");
-    ShowMessages("\t\te.g : dw nt!Kd_DEFAULT_Mask\n");
+    ShowMessages("\t\te.g : dw nt!Kd_DEFAULT_Mask l 4\n");
     ShowMessages("\t\te.g : dw @rax l 20\n");
     ShowMessages("\t\te.g : da @rax\n");
     ShowMessages("\t\te.g : da fffff8077356f010 l 100\n");
@@ -80,11 +80,10 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("\t\te.g : dl nt!PsActiveProcessHead\n");
     ShowMessages("\t\te.g : dl @rax o 8\n");
     ShowMessages("\t\te.g : dl fffff8077356f010 o 8 l 20 pid 4\n");
-    ShowMessages("\t\te.g : dds nt!KiServiceTable\n");
     ShowMessages("\t\te.g : dds @rax l 40\n");
     ShowMessages("\t\te.g : dps nt!KiServiceTable\n");
     ShowMessages("\t\te.g : dps fffff801deadb000 l 40 pid 4\n");
-    ShowMessages("\t\te.g : dqs nt!KiServiceTable\n");
+    ShowMessages("\t\te.g : dqs nt!ExpFirmwareTableResource\n");
     ShowMessages("\t\te.g : !dqs 100000\n");
 }
 
