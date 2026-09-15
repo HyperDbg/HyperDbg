@@ -64,9 +64,9 @@ CommandShowUserInMessage(USHORT UserChosenRegister,
         break;
     }
 
-    ShowMessages("  Port:     0x%04x (%d)\n", PortAddress, PortAddress);
-    ShowMessages("  Register: %s\n", RegisterName);
-    ShowMessages("  Result:   0x%08x\n", Data);
+    ShowMessages("  port:     0x%04x (%d)\n", PortAddress, PortAddress);
+    ShowMessages("  register: %s\n", RegisterName);
+    ShowMessages("  result:   0x%08x\n", Data);
 }
 
 /**
@@ -137,7 +137,7 @@ CommandUserInRequest(DEBUGGER_USER_IN_REQUEST_RESPONSE InRequest)
         }
         else
         {
-            ShowMessages("Receiving IN instruction result was not successful\n");
+            ShowMessages("err, receiving IN instruction result was not successful\n");
             return FALSE;
         }
     }
@@ -205,7 +205,7 @@ CommandUserIn(vector<CommandToken> CommandTokens, string Command)
             }
             else
             {
-                ShowMessages("invalid cpu register, please use `al`, `ax`, or `eax` (case-insensitive)\n\n");
+                ShowMessages("err, invalid cpu register, please use `al`, `ax`, or `eax`\n\n");
             }
 
             SetRegister = TRUE;
@@ -236,8 +236,7 @@ CommandUserIn(vector<CommandToken> CommandTokens, string Command)
     //
     if (!SetRegister || !SetPort)
     {
-        ShowMessages("missing required parameters\n");
-        ShowMessages("Usage: uin <register> <port>\n\n");
+        ShowMessages("err, missing required parameters\n");
         CommandUserInHelp();
         return;
     }

@@ -64,9 +64,9 @@ CommandShowUserOutMessage(USHORT UserChosenRegister,
         break;
     }
 
-    ShowMessages("  Port:          0x%04X (%d)\n", PortAddress, PortAddress);
-    ShowMessages("  Register:      %s\n", RegisterName);
-    ShowMessages("  Entered Value: 0x%08X\n", Value);
+    ShowMessages("  port:          0x%04x (%d)\n", PortAddress, PortAddress);
+    ShowMessages("  register:      %s\n", RegisterName);
+    ShowMessages("  entered value: 0x%08x\n", Value);
 }
 
 /**
@@ -132,7 +132,7 @@ CommandUserOutRequest(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest)
 
         else
         {
-            ShowMessages("Receiving OUT instruction result was not successful\n");
+            ShowMessages("receiving OUT instruction result was not successful\n");
 
             return FALSE;
         }
@@ -203,7 +203,7 @@ CommandUserOut(vector<CommandToken> CommandTokens, string Command)
             }
             else
             {
-                ShowMessages("invalid cpu register, please use `al`, `ax`, or `eax` (case-insensitive)\n\n");
+                ShowMessages("err, invalid cpu register, please use `al`, `ax`, or `eax` (case-insensitive)\n\n");
             }
 
             SetRegister = TRUE;
@@ -252,8 +252,7 @@ CommandUserOut(vector<CommandToken> CommandTokens, string Command)
     //
     if (!SetRegister || !SetPort || !SetValue)
     {
-        ShowMessages("missing required parameters\n");
-        ShowMessages("Usage: uout <register> <port> <value>\n\n");
+        ShowMessages("err, missing required parameters\n");
         CommandUserOutHelp();
         return;
     }
