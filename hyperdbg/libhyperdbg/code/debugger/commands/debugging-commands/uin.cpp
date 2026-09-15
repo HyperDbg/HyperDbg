@@ -25,16 +25,14 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandUserInHelp()
 {
-    ShowMessages(
-        "uin : Read from I/O port (User IN)\n\n"
-        "Syntax :    uin <register> <port>\n\n"
-        "Parameters :\n"
-        "    register : Destination register: AL, AX, or EAX (case-insensitive)\n"
-        "    port     : I/O port address (hex or decimal, 0x0000 - 0xFFFF)\n\n"
-        "Examples :\n"
-        "    uin al 0x60       Read a byte from keyboard port\n"
-        "    uin Ax 0x3F8      Read a word from COM1\n"
-        "    uin EAX 0xCF8     Read 32-bit from PCI config address\n");
+    ShowMessages("uin : reads I/O port (port mapped I/O).\n\n");
+
+    ShowMessages("syntax : \tuin [Register (string)] [Port (hex)]\n");
+
+    ShowMessages("\n");
+    ShowMessages("\t\te.g : uin al 0x60\n");
+    ShowMessages("\t\te.g : uin ax 0x3f8\n");
+    ShowMessages("\t\te.g : uin eax 0xcf8\n");
 }
 
 /**
@@ -56,19 +54,19 @@ CommandShowUserInMessage(USHORT UserChosenRegister,
     switch (UserChosenRegister)
     {
     case AL_8_BIT_REGISTER:
-        RegisterName = "AL";
+        RegisterName = "al";
         break;
     case AX_16_BIT_REGISTER:
-        RegisterName = "AX";
+        RegisterName = "ax";
         break;
     case EAX_32_BIT_REGISTER:
-        RegisterName = "EAX";
+        RegisterName = "eax";
         break;
     }
 
-    ShowMessages("  Port:     0x%04X (%d)\n", PortAddress, PortAddress);
+    ShowMessages("  Port:     0x%04x (%d)\n", PortAddress, PortAddress);
     ShowMessages("  Register: %s\n", RegisterName);
-    ShowMessages("  Result:   0x%08X\n", Data);
+    ShowMessages("  Result:   0x%08x\n", Data);
 }
 
 /**

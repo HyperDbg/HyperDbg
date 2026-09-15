@@ -25,17 +25,14 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandUserOutHelp()
 {
-    ShowMessages(
-        "uout : Write to I/O port (User OUT)\n\n"
-        "Syntax :    uout <register> <port> <value>\n\n"
-        "Parameters :\n"
-        "    register : Source register: AL, AX, or EAX (case-insensitive)\n"
-        "    port     : I/O port address (hex or decimal, 0x0000 - 0xFFFF)\n"
-        "    value    : Value to write (hex or decimal)\n\n"
-        "Examples :\n"
-        "    uout al 0x60 0xED      Write to keyboard controller\n"
-        "    uout AX 0x3F8 0x004D   Write word to COM1\n"
-        "    uout Eax 0xCF8 0x80000000  Write 32-bit to PCI config address\n");
+    ShowMessages("uout : writes I/O port (port mapped I/O).\n\n");
+
+    ShowMessages("syntax : \tuout [Register (string)] [Port (hex)] [Value (hex)]\n");
+
+    ShowMessages("\n");
+    ShowMessages("\t\te.g : uout al 0x60 0xed\n");
+    ShowMessages("\t\te.g : uout ax 0x3f8 0x004d\n");
+    ShowMessages("\t\te.g : uout eax 0xcf8 0x80000000\n");
 }
 
 /**
