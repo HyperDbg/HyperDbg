@@ -22,7 +22,8 @@
 #    include <strings.h>
 #    include <signal.h>
 #    include <dlfcn.h>
-#    include <time.h> // clock_gettime / CLOCK_MONOTONIC (PlatformQueryPerformanceCounter)
+#    include <sys/mman.h> // munmap (PlatformUnmapFile)
+#    include <time.h>     // clock_gettime / CLOCK_MONOTONIC (PlatformQueryPerformanceCounter)
 #endif // defined(__linux__)
 
 /**
@@ -944,19 +945,19 @@ PlatformReadFileAtOffset(HANDLE FileHandle, UINT64 Offset, VOID * Buffer, DWORD 
     return (BOOLEAN)ReadFile(FileHandle, Buffer, NumberOfBytes, BytesRead, NULL);
 #elif defined(__linux__)
     //
-    // TODO (linux): pread((int)(intptr_t)FileHandle, Buffer, NumberOfBytes, Offset)
-    //               once PlatformMapFileReadOnly wraps a real fd. Unreached today
-    //               because the map returns NULL on Linux, so callers bail first.
+    // pread() is the positioned read: it takes the offset directly instead of
+    // needing the SetFilePointerEx seek the Windows arm does first. Unreached
+    // today because PlatformMapFileReadOnly still returns NULL on Linux (it is
+    // blocked on the wide-char path), so callers bail before getting here.
     //
-    (void)FileHandle;
-    (void)Offset;
-    (void)Buffer;
-    (void)NumberOfBytes;
+    ssize_t ReadResult = pread((int)(intptr_t)FileHandle, Buffer, NumberOfBytes, (off_t)Offset);
+
     if (BytesRead != NULL)
     {
-        *BytesRead = 0;
+        *BytesRead = (ReadResult < 0) ? 0 : (DWORD)ReadResult;
     }
-    return FALSE;
+
+    return (BOOLEAN)(ReadResult >= 0);
 #else
 #    error "Unsupported platform"
 #endif
@@ -984,13 +985,18 @@ PlatformUnmapFile(VOID * BaseAddress, SIZE_T FileSize, HANDLE FileHandle)
     }
 #elif defined(__linux__)
     //
-    // TODO (linux): munmap(BaseAddress, FileSize) and close the fd behind
-    //               FileHandle once PlatformMapFileReadOnly is implemented.
-    //               No-op for now since the map always returns NULL.
+    // munmap() needs the length, which is why the size is passed back in here;
+    // the fd handed back by PlatformMapFileReadOnly is closed alongside it.
+    // Unreached today since the map still returns NULL on Linux.
     //
-    (void)BaseAddress;
-    (void)FileSize;
-    (void)FileHandle;
+    if (BaseAddress != NULL)
+    {
+        munmap(BaseAddress, FileSize);
+    }
+    if (FileHandle != INVALID_HANDLE_VALUE)
+    {
+        close((int)(intptr_t)FileHandle);
+    }
 #else
 #    error "Unsupported platform"
 #endif
