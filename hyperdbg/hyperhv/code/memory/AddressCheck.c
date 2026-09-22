@@ -111,7 +111,7 @@ CheckAddressCanonicality(UINT64 VAddr, PBOOLEAN IsKernelAddress)
     //
     // Set whether it's a kernel address or not
     //
-    if (MinVirtualAddressHighHalf < Addr)
+    if (MinVirtualAddressHighHalf <= Addr)
     {
         *IsKernelAddress = TRUE;
     }

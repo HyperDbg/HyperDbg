@@ -14,6 +14,8 @@
 #ifdef __linux__
 #    include <sys/stat.h>  // struct stat / stat() for IsFileExistA
 #    include <immintrin.h> // Intel TSX RTM intrinsics (_xbegin/_xend); requires -mrtm
+#    include <dirent.h>    // opendir()/readdir() for ListDirectory
+#    include <fnmatch.h>   // fnmatch() for the wildcard filter of ListDirectory
 #endif
 
 //
@@ -154,7 +156,7 @@ IsNumber(const string & str)
     // that does not match any of the characters specified in its arguments
     //
     return !str.empty() &&
-           (str.find_first_not_of("[0123456789]") == std::string::npos);
+           (str.find_first_not_of("0123456789") == std::string::npos);
 }
 
 /**
@@ -172,7 +174,11 @@ IsHexNotation(const string & s)
     {
         IsAnyThing = TRUE;
 
-        if (!isxdigit(CptrChar))
+        //
+        // The cast is needed as passing a negative 'char' to the <ctype.h>
+        // functions is undefined behavior
+        //
+        if (!isxdigit((UCHAR)CptrChar))
         {
             return FALSE;
         }
@@ -199,7 +205,11 @@ IsDecimalNotation(const string & s)
     {
         IsAnyThing = TRUE;
 
-        if (!isdigit(CptrChar))
+        //
+        // The cast is needed as passing a negative 'char' to the <ctype.h>
+        // functions is undefined behavior
+        //
+        if (!isdigit((UCHAR)CptrChar))
         {
             return FALSE;
         }
@@ -718,7 +728,12 @@ ValidateIP(const string & ip)
         // verify that string is number or not and the numbers
         // are in the valid range
         //
-        if (!IsNumber(str) || stoi(str) > 255 || stoi(str) < 0)
+        // 'IsNumber' guarantees a non-empty, digits-only string, so 'strtoul'
+        // cannot fail here; it saturates to ULONG_MAX on overflow, which the
+        // range check below rejects. 'std::stoi' is deliberately avoided as it
+        // throws on both non-numeric and out-of-range input
+        //
+        if (!IsNumber(str) || strtoul(str.c_str(), NULL, 10) > 255)
             return FALSE;
     }
 
@@ -810,7 +825,7 @@ SetPrivilege(HANDLE  Token,          // access token handle
 static inline VOID
 ltrim(std::string & s)
 {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](CHAR ch) { return !std::isspace((UCHAR)ch); }));
 }
 
 /**
@@ -821,7 +836,7 @@ ltrim(std::string & s)
 static inline VOID
 rtrim(std::string & s)
 {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); })
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](CHAR ch) { return !std::isspace((UCHAR)ch); })
                 .base(),
             s.end());
 }
@@ -1173,7 +1188,7 @@ CheckAddressCanonicality(UINT64 VAddr, PBOOLEAN IsKernelAddress)
     //
     // Set whether it's a kernel address or not
     //
-    if (MinVirtualAddressHighHalf < Addr)
+    if (MinVirtualAddressHighHalf <= Addr)
     {
         *IsKernelAddress = TRUE;
     }
