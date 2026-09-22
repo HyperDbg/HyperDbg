@@ -407,23 +407,15 @@ GetVendorById(UINT16 VendorId)
 
     return GetVendorByIdStr(ExecutablePath, ToLower(VendorIdAsStr));
 #else
-    CHAR VendorIdAsStr[5];
-    CHAR DatabasePath[MAX_PATH];
-
-    snprintf(VendorIdAsStr, sizeof(VendorIdAsStr), "%04X", VendorId);
-
     //
-    // The database ships next to the executable, which is what
-    // SetupPathForFileName resolves; it also normalizes the separators of
-    // PCI_ID_DATABASE_PATH ("constants\\pci.ids") on the way. The existence
-    // check is left to GetVendorByIdStr, which reports the missing database
+    // TODO(Linux): resolve the PCI ID database next to the executable via
+    // readlink("/proc/self/exe") once the path separator and
+    // PCI_ID_DATABASE_PATH ("constants\\pci.ids") are made portable. Until
+    // then no vendor/device names are available on Linux.
     //
-    if (!SetupPathForFileName(PCI_ID_DATABASE_PATH, DatabasePath, sizeof(DatabasePath), FALSE))
-    {
-        return NULL;
-    }
+    UNREFERENCED_PARAMETER(VendorId);
 
-    return GetVendorByIdStr(DatabasePath, ToLower(VendorIdAsStr));
+    return NULL;
 #endif
 }
 
