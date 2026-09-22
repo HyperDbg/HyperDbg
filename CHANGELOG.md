@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.24.0.0] - 2026-XX-XX
+## [0.24.0.0] - 2026-09-22
 New release of the HyperDbg Debugger.
 
 ### Added
@@ -16,6 +16,8 @@ New release of the HyperDbg Debugger.
 - Added the 'test script-semantic' CLI command for running script engine semantic test cases
 - Ported the hyperhv and hyperlog projects, along with core platform components (spinlocks, IRQL, process, time, and I/O), to the Linux kernel module ([link](https://github.com/HyperDbg/HyperDbg/pull/673))([link](https://github.com/HyperDbg/HyperDbg/pull/678))([link](https://github.com/HyperDbg/HyperDbg/pull/683))
 - Added GNU assembler (GAS) stub files to replace the MASM assembly files for the Linux kernel module build
+- Added arrays as function parameters in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/constants-and-functions#arrays-as-function-parameters))
+- Added 'char' and 'wide-char (wchar_t)' arrays in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/structures-and-arrays#char-and-wide-char-wchar_t-arrays))
 
 ### Changed
 - Refactored the 'dl', 'da', and 'dw' commands ([link](https://github.com/HyperDbg/HyperDbg/pull/676))
@@ -24,6 +26,9 @@ New release of the HyperDbg Debugger.
 - Fixed the problem with the user I/O ('uin'/'uout') instructions ([link](https://github.com/HyperDbg/HyperDbg/pull/677))
 - Changed the help messages and the result formatting of the 'uin' and 'uout' commands, and cleaned up the interpreter commands ([link](https://docs.hyperdbg.org/commands/debugging-commands/uin))([link](https://docs.hyperdbg.org/commands/debugging-commands/uout))
 - Preserve the original byte of the first hidden breakpoint on a page ([link](https://github.com/HyperDbg/HyperDbg/pull/680))([link](https://github.com/HyperDbg/HyperDbg/issues/637))
+- Improve error handling for malformed command arguments ([link](https://github.com/HyperDbg/HyperDbg/pull/669))
+- Size the PCI CAM config space buffer at its real 256 bytes ([link](https://github.com/HyperDbg/HyperDbg/pull/682))
+- Fixed CPUID SDK function to return the correct status results
 
 ## [0.23.0.0] - 2026-08-03
 New release of the HyperDbg Debugger.
