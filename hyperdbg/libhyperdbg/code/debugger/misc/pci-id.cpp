@@ -114,7 +114,7 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
 
         if (f == NULL)
         {
-            ShowMessages("Error: Cannot open file '%s': error %d\n", Filename, errno);
+            ShowMessages("err, cannot open file '%s' (error 0x%x)\n", Filename, errno);
             return NULL;
         }
 
@@ -124,7 +124,7 @@ GetVendorByIdStr(const CHAR * Filename, const CHAR * VendorId)
 
         if (FileSize < 0)
         {
-            ShowMessages("Error: Cannot determine the size of file '%s': error %d\n", Filename, errno);
+            ShowMessages("err, cannot determine the size of file '%s' (error: 0x%x)\n", Filename, errno);
             fclose(f);
             return NULL;
         }
@@ -407,23 +407,15 @@ GetVendorById(UINT16 VendorId)
 
     return GetVendorByIdStr(ExecutablePath, ToLower(VendorIdAsStr));
 #else
-    CHAR VendorIdAsStr[5];
-    CHAR DatabasePath[MAX_PATH];
-
-    snprintf(VendorIdAsStr, sizeof(VendorIdAsStr), "%04X", VendorId);
-
     //
-    // The database ships next to the executable, which is what
-    // SetupPathForFileName resolves; it also normalizes the separators of
-    // PCI_ID_DATABASE_PATH ("constants\\pci.ids") on the way. The existence
-    // check is left to GetVendorByIdStr, which reports the missing database
+    // TODO(Linux): resolve the PCI ID database next to the executable via
+    // readlink("/proc/self/exe") once the path separator and
+    // PCI_ID_DATABASE_PATH ("constants\\pci.ids") are made portable. Until
+    // then no vendor/device names are available on Linux.
     //
-    if (!SetupPathForFileName(PCI_ID_DATABASE_PATH, DatabasePath, sizeof(DatabasePath), FALSE))
-    {
-        return NULL;
-    }
+    UNREFERENCED_PARAMETER(VendorId);
 
-    return GetVendorByIdStr(DatabasePath, ToLower(VendorIdAsStr));
+    return NULL;
 #endif
 }
 
