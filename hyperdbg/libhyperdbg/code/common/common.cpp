@@ -875,52 +875,22 @@ ListDirectory(const std::string & Directory, const std::string & Extension)
     if (Find == INVALID_HANDLE_VALUE)
         throw std::runtime_error("invalid handle value! please check your path...");
 
-    //
-    // 'FindFirstFileA' already returned the first match in 'FindData', so it
-    // has to be consumed before asking for the next one; otherwise the first
-    // file of the directory is silently dropped from the list
-    //
-    do
+    while (FindNextFileA(Find, &FindData) != 0)
     {
         DirList.push_back(Directory + "\\" + std::string(FindData.cFileName));
-    } while (FindNextFileA(Find, &FindData) != 0);
+    }
 
     FindClose(Find);
 
     return DirList;
 #else
-    DIR *                    DirectoryHandle;
-    struct dirent *          DirectoryEntry;
-    std::vector<std::string> DirList;
-
-    DirectoryHandle = opendir(Directory.c_str());
-
-    if (DirectoryHandle == NULL)
-        throw std::runtime_error("invalid handle value! please check your path...");
-
-    while ((DirectoryEntry = readdir(DirectoryHandle)) != NULL)
-    {
-        //
-        // 'FindFirstFileA' applies the wildcard pattern to the file name, so
-        // the same is done here with 'fnmatch'. No flag is passed, which keeps
-        // a leading '.' unremarkable and lets "." and ".." match a bare "*",
-        // exactly like the Win32 walk does
-        //
-        if (fnmatch(Extension.c_str(), DirectoryEntry->d_name, 0) != 0)
-            continue;
-
-        DirList.push_back(Directory + "/" + std::string(DirectoryEntry->d_name));
-    }
-
-    closedir(DirectoryHandle);
-
     //
-    // 'readdir' hands the entries back in whatever order the file system stores
-    // them, so the list is sorted to keep the result reproducible across runs
+    // TODO(Linux): reimplement with opendir/readdir + fnmatch(Extension) over
+    // Directory. Only caller today is the script-engine test harness (eval.cpp).
     //
-    std::sort(DirList.begin(), DirList.end());
-
-    return DirList;
+    UNREFERENCED_PARAMETER(Directory);
+    UNREFERENCED_PARAMETER(Extension);
+    return std::vector<std::string>();
 #endif
 }
 
