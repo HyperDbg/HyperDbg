@@ -1041,9 +1041,7 @@ hyperdbg_u_request_cpuid(UINT32 FunctionId, UINT32 SubFunctionId)
     // Call the existing CPUID command handler
     // This handles both local and remote modes automatically
     //
-    CommandCpuidRequestCpuid(FunctionId, SubFunctionId);
-
-    return TRUE;
+    return CommandCpuidRequestCpuid(FunctionId, SubFunctionId);
 }
 
 /**
