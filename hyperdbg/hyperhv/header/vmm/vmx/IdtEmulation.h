@@ -52,7 +52,7 @@ typedef struct _KIDT_ENTRY
     ULONG Dpl : 2;
     ULONG Present : 1;
     ULONG HighPart : 16;
-#if defined _M_AMD64
+#if defined(_M_AMD64) || defined(__x86_64__) // _M_AMD64 is MSVC's spelling; GCC/Clang say __x86_64__
     ULONG HighestPart;
     ULONG Reserved;
 #endif

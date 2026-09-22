@@ -35,7 +35,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * VCpu)
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
-        KeRaiseIrqlToDpcLevel();
+        PlatformIrqlRaiseToDpcLevel();
 #endif // HYPERDBG_ENV_WINDOWS
 
     //
@@ -115,7 +115,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * VCpu)
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
-        KeRaiseIrqlToDpcLevel();
+        PlatformIrqlRaiseToDpcLevel();
 #endif // HYPERDBG_ENV_WINDOWS
 
     //
@@ -275,6 +275,7 @@ VmxAllocateInvalidMsrBimap()
 
     for (UINT32 i = 0; i < 0x1000; ++i)
     {
+#ifdef _WIN32
         __try
         {
             CpuReadMsr(i);
@@ -283,6 +284,14 @@ VmxAllocateInvalidMsrBimap()
         {
             SetBit(i, (ULONG *)InvalidMsrBitmap);
         }
+#else
+        //
+        // TODO(Linux): probe each MSR with rdmsr_safe() — a bare RDMSR on an
+        // invalid MSR raises #GP and there is no SEH here to catch it. Skip the
+        // probe for now; the bitmap stays zeroed (every MSR treated as valid)
+        // until this is ported.
+        //
+#endif
     }
 
     return InvalidMsrBitmap;

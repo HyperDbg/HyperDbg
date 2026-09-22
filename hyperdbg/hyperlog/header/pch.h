@@ -26,7 +26,10 @@
 //
 // Windows defined functions
 //
-#    include <ntddk.h>
+// ntifs.h (superset of ntddk.h) so the shared platform TUs compiled into this
+// driver see ZwAllocateVirtualMemory/ZwFreeVirtualMemory (PlatformMem.c) and
+// KeGenericCallDpc (PlatformDpc.c) — same header hyperkd/hyperhv already use.
+#    include <ntifs.h>
 #    include <ntstrsafe.h>
 #    include <Windef.h>
 
@@ -52,8 +55,10 @@
 #include "platform/kernel/header/PlatformDbg.h"
 #include "platform/kernel/header/PlatformDpc.h"
 #include "platform/kernel/header/PlatformEvent.h"
+#include "platform/kernel/header/PlatformIntrinsics.h"
 #include "platform/kernel/header/PlatformIo.h"
 #include "platform/kernel/header/PlatformIrql.h"
 #include "platform/kernel/header/PlatformMem.h"
 #include "platform/kernel/header/PlatformSpinlock.h"
+#include "platform/kernel/header/PlatformStr.h"
 #include "platform/kernel/header/PlatformTime.h"

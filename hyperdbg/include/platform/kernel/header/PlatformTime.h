@@ -19,8 +19,6 @@
 //                  Functions                   //
 //////////////////////////////////////////////////
 
-#if defined(_WIN32) || defined(_WIN64)
-
 VOID
 PlatformTimeQuerySystemTime(PLARGE_INTEGER SystemTime);
 
@@ -30,4 +28,9 @@ PlatformTimeConvertToLocalTime(PLARGE_INTEGER SystemTime, PLARGE_INTEGER LocalTi
 VOID
 PlatformTimeConvertToTimeFields(PLARGE_INTEGER Time, PTIME_FIELDS TimeFields);
 
-#endif // defined(_WIN32) || defined(_WIN64)
+//
+// Read the performance counter (and, optionally, its frequency). Windows:
+// KeQueryPerformanceCounter(). Linux: stub returning 0 for now. See PlatformTime.c.
+//
+LARGE_INTEGER
+PlatformTimeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency);

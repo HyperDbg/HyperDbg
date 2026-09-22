@@ -65,6 +65,9 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
     <ClCompile Include="code\api\LbrApi.c">
       <Filter>code\api</Filter>
     </ClCompile>
@@ -107,6 +110,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h">
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="header\api\LbrApi.h">

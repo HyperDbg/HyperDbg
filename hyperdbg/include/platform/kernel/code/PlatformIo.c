@@ -30,7 +30,13 @@ PlatformIoGetCurrentIrpStackLocation(PIRP Irp)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // STUB: no NT IRP on Linux. TODO(Linux): map the IRP onto the char-device
+    // read/ioctl request that carries the notify buffer.
+    //
+    UNREFERENCED_PARAMETER(Irp);
+
+    return NULL;
 
 #else
 
@@ -55,7 +61,11 @@ PlatformIoCompleteRequest(PIRP Irp, CCHAR PriorityBoost)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // STUB. TODO(Linux): complete the pending read/ioctl (copy out + wake waiter).
+    //
+    UNREFERENCED_PARAMETER(Irp);
+    UNREFERENCED_PARAMETER(PriorityBoost);
 
 #else
 
@@ -79,7 +89,10 @@ PlatformIoMarkIrpPending(PIRP Irp)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // STUB. TODO(Linux): mark the request pending (a blocking read parks itself).
+    //
+    UNREFERENCED_PARAMETER(Irp);
 
 #else
 

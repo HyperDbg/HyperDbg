@@ -362,7 +362,7 @@ HaltedCoreRunTaskOnSingleCore(UINT32  TargetCoreId,
     // Check if the task needs to be executed for the current
     // core or any other cores
     //
-    if (TargetCoreId == KeGetCurrentProcessorNumberEx(NULL))
+    if (TargetCoreId == PlatformCpuGetCurrentProcessorNumber())
     {
         //
         // *** Perform the task for the current core ***
@@ -404,7 +404,7 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
 {
     ULONG ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Synchronization is not possible when the locking after the task is

@@ -15,6 +15,18 @@
 #    include "../../../../include/SDK/HyperDbgSdk.h"
 #endif // defined(__linux__)
 
+#if defined(__linux__)
+
+//
+// NT's global event object-type pointer (ntddk). Shared code passes
+// *ExEventObjectType when referencing a user-mode event handle; Linux has no
+// object manager, so this is a placeholder token that the (fail-closed)
+// PlatformObjectReferenceByHandle stub ignores. Defined in PlatformEvent.c.
+//
+extern POBJECT_TYPE * ExEventObjectType;
+
+#endif // defined(__linux__)
+
 //////////////////////////////////////////////////
 //                  Functions                   //
 //////////////////////////////////////////////////
@@ -22,10 +34,18 @@
 VOID
 PlatformObjectDereference(PVOID Object);
 
-#if defined(_WIN32) || defined(_WIN64)
+VOID
+PlatformEventInitialize(PRKEVENT Event, EVENT_TYPE Type, BOOLEAN State);
 
 LONG
 PlatformEventSet(PKEVENT Event, KPRIORITY Increment, BOOLEAN Wait);
+
+NTSTATUS
+PlatformEventWait(PVOID           Object,
+                  KWAIT_REASON    WaitReason,
+                  KPROCESSOR_MODE WaitMode,
+                  BOOLEAN         Alertable,
+                  PLARGE_INTEGER  Timeout);
 
 NTSTATUS
 PlatformObjectReferenceByHandle(HANDLE                    Handle,
@@ -34,5 +54,3 @@ PlatformObjectReferenceByHandle(HANDLE                    Handle,
                                 KPROCESSOR_MODE           AccessMode,
                                 PVOID *                   Object,
                                 POBJECT_HANDLE_INFORMATION HandleInformation);
-
-#endif // defined(_WIN32) || defined(_WIN64)

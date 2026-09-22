@@ -40,7 +40,7 @@ VmxHandleXsetbv(VIRTUAL_MACHINE_STATE * VCpu)
         return;
     }
 
-    _xsetbv(XCrIndex, XCr0.AsUInt);
+    CpuXsetbv(XCrIndex, XCr0.AsUInt);
 }
 
 /**
@@ -79,5 +79,5 @@ VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // We won't further continue after this error
     //
-    DbgBreakPoint();
+    PlatformDbgBreakPoint();
 }

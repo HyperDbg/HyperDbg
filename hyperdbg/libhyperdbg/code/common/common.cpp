@@ -14,6 +14,8 @@
 #ifdef __linux__
 #    include <sys/stat.h>  // struct stat / stat() for IsFileExistA
 #    include <immintrin.h> // Intel TSX RTM intrinsics (_xbegin/_xend); requires -mrtm
+#    include <dirent.h>    // opendir()/readdir() for ListDirectory
+#    include <fnmatch.h>   // fnmatch() for the wildcard filter of ListDirectory
 #endif
 
 //
@@ -154,7 +156,7 @@ IsNumber(const string & str)
     // that does not match any of the characters specified in its arguments
     //
     return !str.empty() &&
-           (str.find_first_not_of("[0123456789]") == std::string::npos);
+           (str.find_first_not_of("0123456789") == std::string::npos);
 }
 
 /**
@@ -172,7 +174,11 @@ IsHexNotation(const string & s)
     {
         IsAnyThing = TRUE;
 
-        if (!isxdigit(CptrChar))
+        //
+        // The cast is needed as passing a negative 'char' to the <ctype.h>
+        // functions is undefined behavior
+        //
+        if (!isxdigit((UCHAR)CptrChar))
         {
             return FALSE;
         }
@@ -199,7 +205,11 @@ IsDecimalNotation(const string & s)
     {
         IsAnyThing = TRUE;
 
-        if (!isdigit(CptrChar))
+        //
+        // The cast is needed as passing a negative 'char' to the <ctype.h>
+        // functions is undefined behavior
+        //
+        if (!isdigit((UCHAR)CptrChar))
         {
             return FALSE;
         }
@@ -342,7 +352,7 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
 }
 
 /**
- * @brief check and convert string to a 32 bit unsigned it and also
+ * @brief check and convert string to a 32 bit unsigned int and also
  *  check for special notations like 0x etc.
  * @param TextToConvert the target string
  * @param Result result will be save to the pointer
@@ -415,6 +425,95 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
         }
 
         *Result = static_cast<UINT32>(ULL);
+        return TRUE;
+    }
+    catch (std::invalid_argument const &)
+    {
+        //
+        // Bad input: std::invalid_argument thrown
+        //
+        return FALSE;
+    }
+    catch (std::out_of_range const &)
+    {
+        //
+        // Integer overflow: std::out_of_range thrown
+        //
+        return FALSE;
+    }
+}
+
+/**
+ * @brief check and convert string to a 16 bit unsigned int and also
+ *  check for special notations like 0x etc.
+ * @param TextToConvert the target string
+ * @param Result result will be save to the pointer
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+ConvertStringToUInt16(string TextToConvert, PUINT16 Result)
+{
+    BOOLEAN IsDecimal = FALSE; // By default everything is hex
+
+    if (TextToConvert.rfind("0x", 0) == 0 || TextToConvert.rfind("0X", 0) == 0 ||
+        TextToConvert.rfind("\\x", 0) == 0 ||
+        TextToConvert.rfind("\\X", 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 2);
+    }
+    else if (TextToConvert.rfind('x', 0) == 0 ||
+             TextToConvert.rfind('X', 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 1);
+    }
+    else if (TextToConvert.rfind("0n", 0) == 0 || TextToConvert.rfind("0N", 0) == 0 ||
+             TextToConvert.rfind("\\n", 0) == 0 ||
+             TextToConvert.rfind("\\N", 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 2);
+        IsDecimal     = TRUE;
+    }
+    else if (TextToConvert.rfind('n', 0) == 0 ||
+             TextToConvert.rfind('N', 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 1);
+        IsDecimal     = TRUE;
+    }
+
+    TextToConvert.erase(remove(TextToConvert.begin(), TextToConvert.end(), '`'),
+                        TextToConvert.end());
+
+    int Base = IsDecimal ? 10 : 16;
+
+    if (IsDecimal)
+    {
+        if (!IsDecimalNotation(TextToConvert))
+        {
+            return FALSE;
+        }
+    }
+    else
+    {
+        if (!IsHexNotation(TextToConvert))
+        {
+            return FALSE;
+        }
+    }
+
+    try
+    {
+        size_t             Pos = 0;
+        unsigned long      UL  = std::stoul(TextToConvert, &Pos, Base); // use stoul (unsigned long) for 16-bit values
+        
+        //
+        // check for 16-bit overflow (0 - 65,535)
+        //
+        if (Pos != TextToConvert.size() || UL > (std::numeric_limits<UINT16>::max)())
+        {
+            return FALSE;
+        }
+
+        *Result = static_cast<UINT16>(UL);
         return TRUE;
     }
     catch (std::invalid_argument const &)
@@ -555,6 +654,28 @@ ConvertTokenToUInt32(CommandToken TargetToken, PUINT32 Result)
 }
 
 /**
+ * @brief check and convert command token to a 16 bit unsigned integer
+ *
+ * @param TargetToken the target command token
+ * @param Result result will be save to the pointer
+ *
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+ConvertTokenToUInt16(CommandToken TargetToken, PUINT16 Result)
+{
+    //
+    // Extract the token type and value from the tuple
+    //
+    std::string TargetTokenValue = std::get<1>(TargetToken);
+
+    //
+    // Convert the token value to 32 bit unsigned integer
+    //
+    return ConvertStringToUInt16(TargetTokenValue, Result);
+}
+
+/**
  * @brief checks whether the string ends with a special string or not
  *
  * @param fullString
@@ -607,7 +728,12 @@ ValidateIP(const string & ip)
         // verify that string is number or not and the numbers
         // are in the valid range
         //
-        if (!IsNumber(str) || stoi(str) > 255 || stoi(str) < 0)
+        // 'IsNumber' guarantees a non-empty, digits-only string, so 'strtoul'
+        // cannot fail here; it saturates to ULONG_MAX on overflow, which the
+        // range check below rejects. 'std::stoi' is deliberately avoided as it
+        // throws on both non-numeric and out-of-range input
+        //
+        if (!IsNumber(str) || strtoul(str.c_str(), NULL, 10) > 255)
             return FALSE;
     }
 
@@ -699,7 +825,7 @@ SetPrivilege(HANDLE  Token,          // access token handle
 static inline VOID
 ltrim(std::string & s)
 {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](CHAR ch) { return !std::isspace((UCHAR)ch); }));
 }
 
 /**
@@ -710,7 +836,7 @@ ltrim(std::string & s)
 static inline VOID
 rtrim(std::string & s)
 {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); })
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](CHAR ch) { return !std::isspace((UCHAR)ch); })
                 .base(),
             s.end());
 }
@@ -1062,7 +1188,7 @@ CheckAddressCanonicality(UINT64 VAddr, PBOOLEAN IsKernelAddress)
     //
     // Set whether it's a kernel address or not
     //
-    if (MinVirtualAddressHighHalf < Addr)
+    if (MinVirtualAddressHighHalf <= Addr)
     {
         *IsKernelAddress = TRUE;
     }

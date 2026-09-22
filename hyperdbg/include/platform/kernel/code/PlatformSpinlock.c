@@ -30,7 +30,7 @@ PlatformSpinlockInitialize(PKSPIN_LOCK SpinLock)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    spin_lock_init(SpinLock);
 
 #else
 
@@ -55,7 +55,17 @@ PlatformSpinlockAcquire(PKSPIN_LOCK SpinLock, PKIRQL OldIrql)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // KeAcquireSpinLock raises to DISPATCH_LEVEL (preempt off, HW interrupts on)
+    // then acquires — exactly spin_lock(). The OldIrql token is not needed on
+    // Linux (preempt is a nesting counter, restored by spin_unlock); report
+    // PASSIVE_LEVEL (0). (spin_lock_irqsave would additionally disable IRQs — a
+    // higher level than Windows takes here, and its `flags` would not fit in the
+    // 1-byte KIRQL — so plain spin_lock matches, consistent with PlatformIrql.)
+    //
+    spin_lock(SpinLock);
+
+    *OldIrql = 0;
 
 #else
 
@@ -80,7 +90,12 @@ PlatformSpinlockRelease(PKSPIN_LOCK SpinLock, KIRQL OldIrql)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // Pairs with the spin_lock() above; the saved token is unused (see acquire).
+    //
+    UNREFERENCED_PARAMETER(OldIrql);
+
+    spin_unlock(SpinLock);
 
 #else
 

@@ -199,6 +199,9 @@ msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="R
     <ClCompile Include="code\debugger\commands\debugging-commands\k.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\preactivate.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\prealloc.cpp" />
+    <ClCompile Include="code\debugger\commands\debugging-commands\ucpuid.cpp" />
+    <ClCompile Include="code\debugger\commands\debugging-commands\uin.cpp" />
+    <ClCompile Include="code\debugger\commands\debugging-commands\uout.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\apic.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\crwrite.cpp" />
     <ClCompile Include="code\debugger\commands\extension-commands\idt.cpp" />
@@ -247,7 +250,6 @@ msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="R
     <ClCompile Include="code\hwdbg\hwdbg-scripts.cpp" />
     <ClCompile Include="code\objects\objects.cpp" />
     <ClCompile Include="code\rev\rev-ctrl.cpp" />
-    <ClCompile Include="ucpuid.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release|x64'">Create</PrecompiledHeader>

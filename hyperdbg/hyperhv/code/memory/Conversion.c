@@ -24,7 +24,7 @@ PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
     PHYSICAL_ADDRESS PhysicalAddr;
     PhysicalAddr.QuadPart = PhysicalAddress;
 
-    return (UINT64)MmGetVirtualForPhysical(PhysicalAddr);
+    return (UINT64)PlatformMemGetVirtualForPhysical(PhysicalAddr);
 }
 
 /**
@@ -65,7 +65,7 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
     // Read the virtual address based on new cr3
     //
     PhysicalAddr.QuadPart = (LONGLONG)PhysicalAddress;
-    VirtualAddress        = (UINT64)MmGetVirtualForPhysical(PhysicalAddr);
+    VirtualAddress        = (UINT64)PlatformMemGetVirtualForPhysical(PhysicalAddr);
 
     //
     // Restore the original process
@@ -113,7 +113,7 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
     // Read the virtual address based on new cr3
     //
     PhysicalAddr.QuadPart = (LONGLONG)PhysicalAddress;
-    VirtualAddress        = (UINT64)MmGetVirtualForPhysical(PhysicalAddr);
+    VirtualAddress        = (UINT64)PlatformMemGetVirtualForPhysical(PhysicalAddr);
 
     //
     // Restore the original process
@@ -153,7 +153,7 @@ _Use_decl_annotations_
 UINT64
 VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
 {
-    return MmGetPhysicalAddress(VirtualAddress).QuadPart;
+    return PlatformMemGetPhysicalAddress(VirtualAddress).QuadPart;
 }
 
 /**
@@ -192,7 +192,7 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
     //
     // Read the physical address based on new cr3
     //
-    PhysicalAddress = MmGetPhysicalAddress(VirtualAddress).QuadPart;
+    PhysicalAddress = PlatformMemGetPhysicalAddress(VirtualAddress).QuadPart;
 
     //
     // Restore the original process
@@ -236,7 +236,7 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
     //
     // Read the physical address based on new cr3
     //
-    PhysicalAddress = MmGetPhysicalAddress(VirtualAddress).QuadPart;
+    PhysicalAddress = PlatformMemGetPhysicalAddress(VirtualAddress).QuadPart;
 
     //
     // Restore the original process
@@ -282,7 +282,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
     //
     // Read the physical address based on new cr3
     //
-    PhysicalAddress = MmGetPhysicalAddress(VirtualAddress).QuadPart;
+    PhysicalAddress = PlatformMemGetPhysicalAddress(VirtualAddress).QuadPart;
 
     //
     // Restore the original process

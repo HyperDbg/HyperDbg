@@ -58,11 +58,11 @@ VOID
 ScriptEngineUpdateTargetCoreDateTime(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
     LARGE_INTEGER SystemTime, LocalTime;
-    KeQuerySystemTime(&SystemTime);
-    ExSystemTimeToLocalTime(&SystemTime, &LocalTime);
-    RtlTimeToTimeFields(&LocalTime, &DbgState->DateTimeHolder.TimeFields);
+    PlatformTimeQuerySystemTime(&SystemTime);
+    PlatformTimeConvertToLocalTime(&SystemTime, &LocalTime);
+    PlatformTimeConvertToTimeFields(&LocalTime, &DbgState->DateTimeHolder.TimeFields);
 
-    sprintf_s(DbgState->DateTimeHolder.TimeBuffer,
+    PlatformSprintf(DbgState->DateTimeHolder.TimeBuffer,
               RTL_NUMBER_OF(DbgState->DateTimeHolder.TimeBuffer),
               "%02hd:%02hd:%02hd.%03hd",
               DbgState->DateTimeHolder.TimeFields.Hour,
@@ -70,7 +70,7 @@ ScriptEngineUpdateTargetCoreDateTime(PROCESSOR_DEBUGGING_STATE * DbgState)
               DbgState->DateTimeHolder.TimeFields.Second,
               DbgState->DateTimeHolder.TimeFields.Milliseconds);
 
-    sprintf_s(DbgState->DateTimeHolder.DateBuffer,
+    PlatformSprintf(DbgState->DateTimeHolder.DateBuffer,
               RTL_NUMBER_OF(DbgState->DateTimeHolder.DateBuffer),
               "%04hd-%02hd-%02hd",
               DbgState->DateTimeHolder.TimeFields.Year,
@@ -86,7 +86,7 @@ ScriptEngineUpdateTargetCoreDateTime(PROCESSOR_DEBUGGING_STATE * DbgState)
 UINT64
 ScriptEngineGetTargetCoreTime()
 {
-    ULONG                       CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG                       CurrentCore = PlatformCpuGetCurrentProcessorNumber();
     PROCESSOR_DEBUGGING_STATE * DbgState    = &g_DbgState[CurrentCore];
 
     //
@@ -108,7 +108,7 @@ ScriptEngineGetTargetCoreTime()
 UINT64
 ScriptEngineGetTargetCoreDate()
 {
-    ULONG                       CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG                       CurrentCore = PlatformCpuGetCurrentProcessorNumber();
     PROCESSOR_DEBUGGING_STATE * DbgState    = &g_DbgState[CurrentCore];
 
     //

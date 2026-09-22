@@ -19,12 +19,8 @@
 //                  Functions                   //
 //////////////////////////////////////////////////
 
-#if defined(_WIN32) || defined(_WIN64)
-
 KIRQL
 PlatformIrqlRaiseToDpcLevel(VOID);
 
 VOID
 PlatformIrqlLower(KIRQL OldIrql);
-
-#endif // defined(_WIN32) || defined(_WIN64)

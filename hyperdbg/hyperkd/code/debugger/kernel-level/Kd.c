@@ -71,7 +71,7 @@ KdUninitializeKernelDebugger()
 
     if (g_KernelDebuggerState)
     {
-        ProcessorsCount = KeQueryActiveProcessorCount(0);
+        ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
         //
         // Indicate that the kernel debugger is not active
@@ -188,11 +188,11 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
 VOID
 KdFireDpc(PVOID Routine, PVOID Parameter)
 {
-    ULONG CurrentCore = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG CurrentCore = PlatformCpuGetCurrentProcessorNumber();
 
-    KeInitializeDpc(g_DbgState[CurrentCore].KdDpcObject, (PKDEFERRED_ROUTINE)Routine, Parameter);
+    PlatformDpcInitialize(g_DbgState[CurrentCore].KdDpcObject, (PKDEFERRED_ROUTINE)Routine, Parameter);
 
-    KeInsertQueueDpc(g_DbgState[CurrentCore].KdDpcObject, NULL, NULL);
+    PlatformDpcInsertQueueDpc(g_DbgState[CurrentCore].KdDpcObject, NULL, NULL);
 }
 
 /**
@@ -448,15 +448,15 @@ KdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLen
         //
         NextAddressForHardwareDebugBp = LastRip + CallLength;
 
-        ProcessorsCount = KeQueryActiveProcessorCount(0);
+        ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
         //
         // Store the detail of the hardware debug register to avoid trigger
         // in other processes
         //
         g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
-        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
-        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
+        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
+        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId());
 
         //
         // Add hardware debug breakpoints on all core on vm-entry
@@ -516,8 +516,8 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                 //
                 if (LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
                 {
-                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()) &&
-                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == HANDLE_TO_UINT32(PsGetCurrentThreadId()))
+                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()) &&
+                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()))
                     {
                         //
                         // It's a step caused by a debug register breakpoint step-over
@@ -660,7 +660,7 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     //
     // Unlock all the cores
     //
-    ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ULONG ProcessorsCount = PlatformCpuGetActiveProcessorCount();
     for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         SpinlockUnlock(&g_DbgState[i].Lock);
@@ -699,7 +699,7 @@ BOOLEAN
 KdSwitchCore(PROCESSOR_DEBUGGING_STATE *   DbgState,
              DEBUGGEE_CHANGE_CORE_PACKET * ChangeCorePacket)
 {
-    ULONG ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ULONG ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     if (DbgState->CoreId == ChangeCorePacket->NewCore)
     {
@@ -1668,7 +1668,7 @@ KdCheckAllCoresAreLocked()
 {
     ULONG ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Query core debugging Lock info
@@ -1729,7 +1729,7 @@ KdQuerySystemState()
 {
     ULONG ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Query core debugging Lock info
@@ -1821,7 +1821,7 @@ KdBringPagein(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Unset the trap flag next time that it's triggered (on current thread/process)
     //
-    if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
+    if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()), HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId())))
     {
         //
         // Adjust the flags for showing there was error
@@ -2261,6 +2261,8 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
     PDEBUGGEE_STEP_PACKET                               SteppingPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
     PDEBUGGER_CPUID_REQUEST_RESPONSE                    CpuidPacket;
+    PDEBUGGER_USER_IN_REQUEST_RESPONSE                  InPacket;
+    PDEBUGGER_USER_OUT_REQUEST_RESPONSE                 OutPacket;
     PDEBUGGER_CALLSTACK_REQUEST                         CallstackPacket;
     PDEBUGGER_SINGLE_CALLSTACK_FRAME                    CallstackFrameBuffer;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER                TestQueryPacket;
@@ -2549,6 +2551,44 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_USER_CPUID,
                                            (CHAR *)CpuidPacket,
                                            sizeof(DEBUGGER_CPUID_REQUEST_RESPONSE));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_USER_IN_INSTRUCTION:
+
+                InPacket = (DEBUGGER_USER_IN_REQUEST_RESPONSE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Receieve IN instruction result
+                //
+                DebuggerCommandUserIn(InPacket);
+
+                //
+                // Send the result of IN instruction back to the debugger
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_USER_IN_INSTRUCTION,
+                                           (CHAR *)InPacket,
+                                           sizeof(DEBUGGER_USER_IN_REQUEST_RESPONSE));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_USER_OUT_INSTRUCTION:
+
+                OutPacket = (DEBUGGER_USER_OUT_REQUEST_RESPONSE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Receieve OUT instruction result
+                //
+                DebuggerCommandUserOut(OutPacket);
+
+                //
+                // Send the result of OUT instruction back to the debugger
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_USER_OUT_INSTRUCTION,
+                                           (CHAR *)OutPacket,
+                                           sizeof(DEBUGGER_USER_OUT_REQUEST_RESPONSE));
 
                 break;
 
@@ -3497,7 +3537,7 @@ KdBroadcastHaltOnAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineVmExitAndHaltSystemAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineVmExitAndHaltSystemAllCores, NULL);
 }
 
 /**

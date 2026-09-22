@@ -29,7 +29,9 @@ PlatformIrqlRaiseToDpcLevel(VOID)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    preempt_disable();
+
+    return 0;
 
 #else
 
@@ -53,7 +55,9 @@ PlatformIrqlLower(KIRQL OldIrql)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    UNREFERENCED_PARAMETER(OldIrql);
+
+    preempt_enable();
 
 #else
 

@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 23
+#define VERSION_MINOR 24
 #define VERSION_PATCH 0
 
 #define BETA_VERSION FALSE
@@ -527,6 +527,12 @@ const UCHAR BuildSignature[] = {
  *
  */
 #define DL_DEFAULT_MAX_NODES 0x100
+
+/**
+ * @brief default length for da command
+ *
+ */
+#define DA_DEFAULT_LENGTH 0x50
 
 //////////////////////////////////////////////////
 //                 Script Engine                //

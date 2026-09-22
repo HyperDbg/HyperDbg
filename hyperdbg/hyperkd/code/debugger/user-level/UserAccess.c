@@ -42,11 +42,11 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
     //
     PAGED_CODE();
 
-    Status = PsLookupProcessByProcessId(ProcessId, &EProcess);
+    Status = PlatformProcessLookupByProcessId(ProcessId, &EProcess);
 
     if (NT_SUCCESS(Status))
     {
-        Status = ObOpenObjectByPointer(EProcess, 0, NULL, 0, 0, KernelMode, &ProcessHandle);
+        Status = PlatformObjectOpenByPointer(EProcess, 0, NULL, 0, 0, KernelMode, &ProcessHandle);
 
         if (!NT_SUCCESS(Status))
         {
@@ -54,7 +54,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
             return FALSE;
         }
 
-        ObDereferenceObject(EProcess);
+        PlatformObjectDereference(EProcess);
     }
     else
     {
@@ -183,11 +183,11 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
     //
     PAGED_CODE();
 
-    Status = PsLookupProcessByProcessId(ProcessId, &EProcess);
+    Status = PlatformProcessLookupByProcessId(ProcessId, &EProcess);
 
     if (NT_SUCCESS(Status))
     {
-        Status = ObOpenObjectByPointer(EProcess, 0, NULL, 0, 0, KernelMode, &ProcessHandle);
+        Status = PlatformObjectOpenByPointer(EProcess, 0, NULL, 0, 0, KernelMode, &ProcessHandle);
 
         if (!NT_SUCCESS(Status))
         {
@@ -195,7 +195,7 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
             return FALSE;
         }
 
-        ObDereferenceObject(EProcess);
+        PlatformObjectDereference(EProcess);
     }
     else
     {
@@ -364,13 +364,13 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
         return FALSE;
     }
 
-    KeStackAttachProcess(Proc, &State);
+    PlatformProcessAttach(Proc, &State);
 
     Ldr = (PPEB_LDR_DATA)Peb->Ldr;
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -402,7 +402,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
 
         *ModulesCount = CountOfModules;
 
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return TRUE;
     }
     else
@@ -421,7 +421,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -443,7 +443,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
             // a module is just loaded and we didn't allocate enough
             // memory for it, so it's better to continue
             //
-            KeUnstackDetachProcess(&State);
+            PlatformProcessDetach(&State);
             return TRUE;
         }
 
@@ -468,7 +468,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
         CurrentSavedModules++;
     }
 
-    KeUnstackDetachProcess(&State);
+    PlatformProcessDetach(&State);
 
     return TRUE;
 }
@@ -513,13 +513,13 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
         return FALSE;
     }
 
-    KeStackAttachProcess(Proc, &State);
+    PlatformProcessAttach(Proc, &State);
 
     Ldr = (PPEB_LDR_DATA32)Peb->Ldr;
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -545,7 +545,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
 
         *ModulesCount = CountOfModules;
 
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return TRUE;
     }
     else
@@ -564,7 +564,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -586,7 +586,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
             // a module is just loaded and we didn't allocate enough
             // memory for it, so it's better to continue
             //
-            KeUnstackDetachProcess(&State);
+            PlatformProcessDetach(&State);
             return TRUE;
         }
 
@@ -611,7 +611,7 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
         CurrentSavedModules++;
     }
 
-    KeUnstackDetachProcess(&State);
+    PlatformProcessDetach(&State);
 
     return TRUE;
 }
@@ -645,13 +645,13 @@ UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
         return FALSE;
     }
 
-    KeStackAttachProcess(Proc, &State);
+    PlatformProcessAttach(Proc, &State);
 
     Ldr = (PPEB_LDR_DATA32)Peb->Ldr;
 
     if (!Ldr)
     {
-        KeUnstackDetachProcess(&State);
+        PlatformProcessDetach(&State);
         return FALSE;
     }
 
@@ -693,7 +693,7 @@ UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
             ModulePath.Buffer);
     }
 
-    KeUnstackDetachProcess(&State);
+    PlatformProcessDetach(&State);
 
     return TRUE;
 }
@@ -754,7 +754,7 @@ UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
 {
     PEPROCESS SourceProcess;
 
-    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -762,7 +762,7 @@ UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
         return FALSE;
     }
 
-    ObDereferenceObject(SourceProcess);
+    PlatformObjectDereference(SourceProcess);
 
     return UserAccessIsWow64ProcessByEprocess(SourceProcess, Is32Bit);
 }
@@ -781,7 +781,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
     PEPROCESS SourceProcess;
     BOOLEAN   Is32Bit;
 
-    if (PsLookupProcessByProcessId((HANDLE)ProcessLoadedModuleRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)ProcessLoadedModuleRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -790,7 +790,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
         return FALSE;
     }
 
-    ObDereferenceObject(SourceProcess);
+    PlatformObjectDereference(SourceProcess);
 
     //
     // check whether the target process is 32-bit or 64-bit
@@ -870,7 +870,7 @@ UserAccessCheckForLoadedModuleDetails(UINT32 CoreId)
     // Find the thread debugging detail structure
     //
     ProcessDebuggingDetail =
-        AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+        AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
 
     //
     // Check if we find the debugging detail of the thread or not

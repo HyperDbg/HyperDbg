@@ -109,7 +109,9 @@ BOOLEAN
 GetLocalIdentifierIsImplicitType(PSCRIPT_ENGINE_TOKEN Token);
 
 int
-NewFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token);
+NewFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token,
+                               VARIABLE_TYPE *     VariableType,
+                               unsigned int        SlotCount);
 
 int
 GetFunctionParameterIdentifier(PSCRIPT_ENGINE_TOKEN Token);
@@ -122,6 +124,15 @@ LalrIsOperandType(PSCRIPT_ENGINE_TOKEN PTOKEN);
 
 PUSER_DEFINED_FUNCTION_NODE
 GetUserDefinedFunctionNode(PSCRIPT_ENGINE_TOKEN Token);
+
+VARIABLE_TYPE *
+GetFunctionParameterVariableType(PSCRIPT_ENGINE_TOKEN Token);
+
+unsigned long long
+GetFunctionParameterMemoryIndex(PSCRIPT_ENGINE_TOKEN Token);
+
+unsigned int
+GetFunctionParameterSlotCount(PSCRIPT_ENGINE_TOKEN Token);
 
 BOOLEAN
 FuncGetNumberOfOperands(UINT64 FuncType, UINT32 * NumberOfGetOperands, UINT32 * NumberOfSetOperands);

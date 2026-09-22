@@ -24,8 +24,8 @@ ThreadHandleThreadChange(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Check if we reached to the target thread or not
     //
-    if ((g_ThreadSwitch.ThreadId != NULL_ZERO && g_ThreadSwitch.ThreadId == HANDLE_TO_UINT32(PsGetCurrentThreadId())) ||
-        (g_ThreadSwitch.Thread != NULL64_ZERO && g_ThreadSwitch.Thread == PsGetCurrentThread()))
+    if ((g_ThreadSwitch.ThreadId != NULL_ZERO && g_ThreadSwitch.ThreadId == HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId())) ||
+        (g_ThreadSwitch.Thread != NULL64_ZERO && g_ThreadSwitch.Thread == PlatformProcessGetCurrentThread()))
     {
         //
         // Halt the debuggee, we have found the target thread
@@ -182,8 +182,8 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
         //
         // Means that it's for the current process
         //
-        ThreadListSymbolInfo->Process = (UINT64)PsGetCurrentProcess();
-        ThreadListHead                = (UINT64)PsGetCurrentProcess() + ThreadListHeadOffset;
+        ThreadListSymbolInfo->Process = (UINT64)PlatformProcessGetCurrentProcess();
+        ThreadListHead                = (UINT64)PlatformProcessGetCurrentProcess() + ThreadListHeadOffset;
     }
     else
     {
@@ -332,11 +332,11 @@ ThreadInterpretThread(PROCESSOR_DEBUGGING_STATE *                DbgState,
         //
         // Debugger wants to know current tid, nt!_ETHREAD and process name, etc.
         //
-        TidRequest->ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
-        TidRequest->ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
-        TidRequest->Process   = (UINT64)PsGetCurrentProcess();
-        TidRequest->Thread    = (UINT64)PsGetCurrentThread();
-        MemoryMapperReadMemorySafe((UINT64)CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()), &TidRequest->ProcessName, 16);
+        TidRequest->ProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
+        TidRequest->ThreadId  = HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId());
+        TidRequest->Process   = (UINT64)PlatformProcessGetCurrentProcess();
+        TidRequest->Thread    = (UINT64)PlatformProcessGetCurrentThread();
+        MemoryMapperReadMemorySafe((UINT64)CommonGetProcessNameFromProcessControlBlock(PlatformProcessGetCurrentProcess()), &TidRequest->ProcessName, 16);
 
         //
         // Operation was successful
@@ -711,13 +711,13 @@ ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProc
 BOOLEAN
 ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThreadRequest)
 {
-    GetInformationThreadRequest->ProcessId = HANDLE_TO_UINT32(PsGetCurrentProcessId());
-    GetInformationThreadRequest->Process   = (UINT64)PsGetCurrentProcess();
-    GetInformationThreadRequest->Thread    = (UINT64)PsGetCurrentThread();
-    GetInformationThreadRequest->ThreadId  = HANDLE_TO_UINT32(PsGetCurrentThreadId());
+    GetInformationThreadRequest->ProcessId = HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId());
+    GetInformationThreadRequest->Process   = (UINT64)PlatformProcessGetCurrentProcess();
+    GetInformationThreadRequest->Thread    = (UINT64)PlatformProcessGetCurrentThread();
+    GetInformationThreadRequest->ThreadId  = HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId());
 
     RtlCopyMemory(&GetInformationThreadRequest->ProcessName,
-                  CommonGetProcessNameFromProcessControlBlock(PsGetCurrentProcess()),
+                  CommonGetProcessNameFromProcessControlBlock(PlatformProcessGetCurrentProcess()),
                   15);
 
     GetInformationThreadRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;

@@ -11,6 +11,20 @@
  */
 #include "pch.h"
 
+#if defined(__linux__)
+//
+// hyperlog-specific headers. On Windows these arrive via hyperlog/header/pch.h;
+// the unified Linux kernel pch.h stays module-agnostic, so this TU pulls in its
+// own SDK module + import + globals headers here (mirrors the platform layer's
+// `#include "../header/..."` pattern). Logging.h defines this module's globals,
+// so it is included ONLY by this .c — not by the shared pch.
+//
+#    define HYPERDBG_HYPER_LOG
+#    include "SDK/modules/HyperLog.h"
+#    include "SDK/imports/kernel/HyperDbgHyperLogImports.h"
+#    include "../header/Logging.h"
+#endif // __linux__
+
 /**
  * @brief Checks whether the message tracing operates on vmx-root mode or not
  *
@@ -1051,7 +1065,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         // We won't use this because we can't use in any IRQL
         // Status = RtlStringCchVPrintfA(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
         //
-        SprintfResult = vsprintf_s(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
+        SprintfResult = PlatformVsnprintf(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
 
         //
         // Check if the buffer passed the limit
@@ -1089,12 +1103,12 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         //
         // this function probably run without error, so there is no need to check the return value
         //
-        sprintf_s(TimeBuffer, RTL_NUMBER_OF(TimeBuffer), "%02hd:%02hd:%02hd.%03hd", TimeFields.Hour, TimeFields.Minute, TimeFields.Second, TimeFields.Milliseconds);
+        PlatformSprintf(TimeBuffer, RTL_NUMBER_OF(TimeBuffer), "%02hd:%02hd:%02hd.%03hd", TimeFields.Hour, TimeFields.Minute, TimeFields.Second, TimeFields.Milliseconds);
 
         //
         // Append time with previous message
         //
-        SprintfResult = sprintf_s(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, CurrentCore, IsVmxRootMode ? "yes" : "no", TempMessage);
+        SprintfResult = PlatformSprintf(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, CurrentCore, IsVmxRootMode ? "yes" : "no", TempMessage);
 
         //
         // Check if the buffer passed the limit
@@ -1118,7 +1132,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
         // We won't use this because we can't use in any IRQL
         // Status = RtlStringCchVPrintfA(LogMessage, PacketChunkSize - 1, Fmt, ArgList);
         //
-        SprintfResult = vsprintf_s(LogMessage, PacketChunkSize - 1, Fmt, ArgList);
+        SprintfResult = PlatformVsnprintf(LogMessage, PacketChunkSize - 1, Fmt, ArgList);
 
         //
         // Check if the buffer passed the limit
@@ -1136,7 +1150,7 @@ LogCallbackPrepareAndSendMessageToQueueWrapper(UINT32       OperationCode,
     // Use std function because they can be run in any IRQL
     // RtlStringCchLengthA(LogMessage, PacketChunkSize - 1, &WrittenSize);
     //
-    WrittenSize = strnlen_s(LogMessage, PacketChunkSize - 1);
+    WrittenSize = PlatformStrnlen(LogMessage, PacketChunkSize - 1);
 
     if (LogMessage[0] == '\0')
     {
@@ -1628,7 +1642,7 @@ LogRegisterEventBasedNotification(PVOID TargetIrp)
                                              SYNCHRONIZE | EVENT_MODIFY_STATE,
                                              *ExEventObjectType,
                                              Irp->RequestorMode,
-                                             &NotifyRecord->Message.Event,
+                                             (PVOID *)&NotifyRecord->Message.Event,
                                              NULL);
 
     if (!NT_SUCCESS(Status))

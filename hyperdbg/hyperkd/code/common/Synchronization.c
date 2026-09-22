@@ -23,7 +23,7 @@ SynchronizationInitializeEvent(PRKEVENT Event)
     //
     // Initialize an event
     //
-    KeInitializeEvent(Event, SynchronizationEvent, FALSE);
+    PlatformEventInitialize(Event, SynchronizationEvent, FALSE);
 }
 
 /**
@@ -38,7 +38,7 @@ SynchronizationSetEvent(PRKEVENT Event)
     //
     // Set (signal) an event
     //
-    KeSetEvent(Event, IO_NO_INCREMENT, FALSE);
+    PlatformEventSet(Event, IO_NO_INCREMENT, FALSE);
 }
 
 /**
@@ -53,7 +53,7 @@ SynchronizationWaitForEvent(PRKEVENT Event)
     //
     // Wait for an event
     //
-    KeWaitForSingleObject(Event,
+    PlatformEventWait(Event,
                           Executive,
                           KernelMode,
                           FALSE,

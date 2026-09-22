@@ -70,7 +70,7 @@ ConnectRemoteDebugger(const CHAR * Ip, const CHAR * Port)
 
     if (Port != NULL)
     {
-        if (!IsNumber(Port) || stoi(Port) > 65535 || stoi(Port) < 0)
+        if (!IsNumber(Port) || strtoul(Port, NULL, 10) > 65535)
         {
             return FALSE;
         }
@@ -169,7 +169,7 @@ CommandConnect(vector<CommandToken> CommandTokens, string Command)
 
         if (CommandTokens.size() == 3)
         {
-            if (!IsNumber(Port) || stoi(Port) > 65535 || stoi(Port) < 0)
+            if (!IsNumber(Port) || strtoul(Port.c_str(), NULL, 10) > 65535)
             {
                 ShowMessages("incorrect port\n");
                 return;

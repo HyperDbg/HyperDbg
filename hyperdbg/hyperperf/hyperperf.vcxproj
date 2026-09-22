@@ -108,6 +108,7 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformIntrinsics.c" />
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c" />
+    <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c" />
     <ClCompile Include="code\api\PerfApi.c" />
     <ClCompile Include="code\broadcast\Broadcast.c" />
     <ClCompile Include="code\broadcast\DpcRoutines.c" />
@@ -119,6 +120,7 @@
     <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformIntrinsics.h" />
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h" />
+    <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h" />
     <ClInclude Include="header\api\PerfApi.h" />
     <ClInclude Include="header\broadcast\Broadcast.h" />
     <ClInclude Include="header\broadcast\DpcRoutines.h" />

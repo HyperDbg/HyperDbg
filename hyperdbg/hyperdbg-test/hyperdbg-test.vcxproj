@@ -113,8 +113,6 @@
     <ClCompile Include="code\tests\test-pe-parser.cpp" />
     <ClCompile Include="code\tests\test-parser.cpp" />
     <ClCompile Include="code\tests\test-semantic-scripts.cpp" />
-    <ClCompile Include="code\tests\test-script-floating-point.cpp" />
-    <ClCompile Include="code\tests\test-script-variable-types.cpp" />
     <ClCompile Include="code\tools.cpp" />
     <ClCompile Include="pch.cpp" />
   </ItemGroup>

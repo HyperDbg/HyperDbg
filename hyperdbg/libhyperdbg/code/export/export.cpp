@@ -1041,7 +1041,31 @@ hyperdbg_u_request_cpuid(UINT32 FunctionId, UINT32 SubFunctionId)
     // Call the existing CPUID command handler
     // This handles both local and remote modes automatically
     //
-    CommandCpuidRequestCpuid(FunctionId, SubFunctionId);
+    return CommandCpuidRequestCpuid(FunctionId, SubFunctionId);
+}
 
-    return TRUE;
+/**
+ * @brief I/O instruction (IN)
+ *
+ * @param InRequest
+ *
+ * @return BOOLEAN TRUE if successful, FALSE otherwise
+ */
+BOOLEAN
+hyperdebg_u_in_instruction(DEBUGGER_USER_IN_REQUEST_RESPONSE InRequest)
+{
+    return CommandUserInRequest(InRequest);
+}
+
+/**
+ * @brief I/O instruction (OUT)
+ *
+ * @param OutRequest
+ *
+ * @return BOOLEAN TRUE if successful, FALSE otherwise
+ */
+BOOLEAN
+hyperdebg_u_out_instruction(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest)
+{
+    return CommandUserOutRequest(OutRequest);
 }

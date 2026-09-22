@@ -58,6 +58,8 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET   ChangeThreadPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS              FlushPacket;
     PDEBUGGER_CPUID_REQUEST_RESPONSE             CpuidPacket;
+    PDEBUGGER_USER_IN_REQUEST_RESPONSE           InPacket;
+    PDEBUGGER_USER_OUT_REQUEST_RESPONSE          OutPacket;
     PDEBUGGER_CALLSTACK_REQUEST                  CallstackPacket;
     PDEBUGGER_SINGLE_CALLSTACK_FRAME             CallstackFramePacket;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER         TestQueryPacket;
@@ -599,6 +601,54 @@ StartAgain:
             // Signal the event relating to receiving result of CPUID
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_USER_IN_INSTRUCTION:
+
+            InPacket = (DEBUGGER_USER_IN_REQUEST_RESPONSE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (InPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                USHORT UserChosenRegister = InPacket->UserChosenRegister;
+                USHORT PortAddress        = InPacket->PortAddress;
+                ULONG  Data               = InPacket->Data;
+
+                CommandShowUserInMessage(UserChosenRegister, PortAddress, Data);
+            }
+            else
+            {
+                ShowErrorMessage(InPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of IN instruction
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_IN_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_USER_OUT_INSTRUCTION:
+
+            OutPacket = (DEBUGGER_USER_OUT_REQUEST_RESPONSE *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (OutPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+            {
+                USHORT UserChosenRegister = OutPacket->UserChosenRegister;
+                USHORT PortAddress        = OutPacket->PortAddress;
+                UINT32 Value              = OutPacket->Value;
+
+                CommandShowUserOutMessage(UserChosenRegister, PortAddress, Value);
+            }
+            else
+            {
+                ShowErrorMessage(OutPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of OUT instruction
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_OUT_RESULT);
 
             break;
 

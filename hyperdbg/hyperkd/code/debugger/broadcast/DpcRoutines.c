@@ -37,7 +37,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     PRKDPC Dpc;
     ULONG  ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Check if the core number is not invalid
@@ -60,7 +60,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Creating a DPC that will run on the target process
     //
-    KeInitializeDpc(Dpc,                         // Dpc
+    PlatformDpcInitialize(Dpc,                         // Dpc
                     (PKDEFERRED_ROUTINE)Routine, // DeferredRoutine
                     DeferredContext              // DeferredContext
     );
@@ -68,7 +68,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Set the target core
     //
-    KeSetTargetProcessorDpc(Dpc, (CCHAR)CoreNumber);
+    PlatformDpcSetTargetProcessor(Dpc, (CCHAR)CoreNumber);
 
     //
     // it's sure will be executed, but we want to free the above
@@ -98,7 +98,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
     //
     // Fire the DPC
     //
-    KeInsertQueueDpc(Dpc, NULL, NULL);
+    PlatformDpcInsertQueueDpc(Dpc, NULL, NULL);
 
     //
     // spin on lock to be release, immediately after we get the lock, we'll
@@ -127,7 +127,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
 VOID
 DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG                       CurrentCore           = PlatformCpuGetCurrentProcessorNumber();
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
@@ -159,7 +159,7 @@ DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
 VOID
 DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG                       CurrentCore           = PlatformCpuGetCurrentProcessorNumber();
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
@@ -191,7 +191,7 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
 VOID
 DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG                       CurrentCore           = PlatformCpuGetCurrentProcessorNumber();
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);
@@ -220,7 +220,7 @@ DpcRoutineWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgu
 VOID
 DpcRoutineReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG                       CurrentCore           = KeGetCurrentProcessorNumberEx(NULL);
+    ULONG                       CurrentCore           = PlatformCpuGetCurrentProcessorNumber();
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &g_DbgState[CurrentCore];
 
     UNREFERENCED_PARAMETER(Dpc);

@@ -23,7 +23,7 @@ BroadcastVmxVirtualizationAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutinePerformVirtualization, NULL);
+    PlatformDpcGenericCall(DpcRoutinePerformVirtualization, NULL);
 }
 
 /**
@@ -37,7 +37,7 @@ BroadcastEnableDbAndBpExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableDbAndBpExitingOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineEnableDbAndBpExitingOnAllCores, NULL);
 }
 
 /**
@@ -51,7 +51,7 @@ BroadcastDisableDbAndBpExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableDbAndBpExitingOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineDisableDbAndBpExitingOnAllCores, NULL);
 }
 
 /**
@@ -65,7 +65,7 @@ BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores, NULL);
 }
 
 /**
@@ -79,7 +79,7 @@ BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores, NULL);
 }
 
 /**
@@ -93,7 +93,7 @@ BroadcastEnableNmiExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableNmiVmexitOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineEnableNmiVmexitOnAllCores, NULL);
 }
 
 /**
@@ -107,7 +107,7 @@ BroadcastDisableNmiExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableNmiVmexitOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineDisableNmiVmexitOnAllCores, NULL);
 }
 
 /**
@@ -121,7 +121,7 @@ BroadcastNotifyAllToInvalidateEptAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, (PVOID)TRUE);
+    PlatformDpcGenericCall(DpcRoutineInvalidateEptOnAllCores, (PVOID)TRUE);
 }
 
 /**
@@ -134,7 +134,7 @@ BroadcastEnableRdtscExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableRdtscExitingAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineEnableRdtscExitingAllCores, NULL);
 }
 
 /**
@@ -147,7 +147,7 @@ BroadcastDisableRdtscExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableRdtscExitingAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineDisableRdtscExitingAllCores, NULL);
 }
 
 /**
@@ -162,7 +162,7 @@ BroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeMsrBitmapReadOnAllCores, (PVOID)BitmapMask);
+    PlatformDpcGenericCall(DpcRoutineChangeMsrBitmapReadOnAllCores, (PVOID)BitmapMask);
 }
 
 /**
@@ -175,7 +175,7 @@ BroadcastResetChangeAllMsrBitmapReadAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetMsrBitmapReadOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineResetMsrBitmapReadOnAllCores, NULL);
 }
 
 /**
@@ -189,7 +189,7 @@ BroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeMsrBitmapWriteOnAllCores, (PVOID)BitmapMask);
+    PlatformDpcGenericCall(DpcRoutineChangeMsrBitmapWriteOnAllCores, (PVOID)BitmapMask);
 }
 
 /**
@@ -202,7 +202,7 @@ BroadcastResetAllMsrBitmapWriteAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetMsrBitmapWriteOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineResetMsrBitmapWriteOnAllCores, NULL);
 }
 
 /**
@@ -215,7 +215,7 @@ BroadcastDisableRdtscExitingForClearingEventsAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores, NULL);
 }
 
 /**
@@ -229,7 +229,7 @@ BroadcastDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT_
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores, BroadcastingOption);
+    PlatformDpcGenericCall(DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores, BroadcastingOption);
 }
 
 /**
@@ -242,7 +242,7 @@ BroadcastDisableMov2DebugRegsExitingForClearingEventsAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores, NULL);
 }
 
 /**
@@ -256,7 +256,7 @@ BroadcastEnableRdpmcExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableRdpmcExitingAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineEnableRdpmcExitingAllCores, NULL);
 }
 
 /**
@@ -269,7 +269,7 @@ BroadcastDisableRdpmcExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableRdpmcExitingAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineDisableRdpmcExitingAllCores, NULL);
 }
 
 /**
@@ -285,7 +285,7 @@ BroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetExceptionBitmapOnAllCores, (PVOID)ExceptionIndex);
+    PlatformDpcGenericCall(DpcRoutineSetExceptionBitmapOnAllCores, (PVOID)ExceptionIndex);
 }
 
 /**
@@ -301,7 +301,7 @@ BroadcastUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineUnsetExceptionBitmapOnAllCores, (PVOID)ExceptionIndex);
+    PlatformDpcGenericCall(DpcRoutineUnsetExceptionBitmapOnAllCores, (PVOID)ExceptionIndex);
 }
 
 /**
@@ -314,7 +314,7 @@ BroadcastResetExceptionBitmapAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores, NULL);
 }
 
 /**
@@ -329,7 +329,7 @@ BroadcastEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT_OPTIONS Broadca
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableMovControlRegisterExitingAllCores, BroadcastingOption);
+    PlatformDpcGenericCall(DpcRoutineEnableMovControlRegisterExitingAllCores, BroadcastingOption);
 }
 
 /**
@@ -343,7 +343,7 @@ BroadcastDisableMovToControlRegistersExitingAllCores(PDEBUGGER_EVENT_OPTIONS Bro
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMovControlRegisterExitingAllCores, BroadcastingOption);
+    PlatformDpcGenericCall(DpcRoutineDisableMovControlRegisterExitingAllCores, BroadcastingOption);
 }
 
 /**
@@ -357,7 +357,7 @@ BroadcastEnableMovDebugRegistersExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineEnableMovDebigRegisterExitingAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineEnableMovDebigRegisterExitingAllCores, NULL);
 }
 
 /**
@@ -370,7 +370,7 @@ BroadcastDisableMovDebugRegistersExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineDisableMovDebigRegisterExitingAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineDisableMovDebigRegisterExitingAllCores, NULL);
 }
 
 /**
@@ -384,7 +384,7 @@ BroadcastSetExternalInterruptExitingAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetEnableExternalInterruptExitingOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineSetEnableExternalInterruptExitingOnAllCores, NULL);
 }
 
 /**
@@ -397,7 +397,7 @@ BroadcastUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores, NULL);
 }
 
 /**
@@ -411,7 +411,7 @@ BroadcastIoBitmapChangeAllCores(UINT64 Port)
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineChangeIoBitmapOnAllCores, (PVOID)Port);
+    PlatformDpcGenericCall(DpcRoutineChangeIoBitmapOnAllCores, (PVOID)Port);
 }
 
 /**
@@ -424,7 +424,7 @@ BroadcastIoBitmapResetAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetIoBitmapOnAllCores, NULL);
+    PlatformDpcGenericCall(DpcRoutineResetIoBitmapOnAllCores, NULL);
 }
 
 /**
@@ -435,7 +435,7 @@ BroadcastIoBitmapResetAllCores()
 VOID
 BroadcastEnableMovToCr3ExitingOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineEnableMovToCr3Exiting, 0x0);
+    PlatformDpcGenericCall(DpcRoutineEnableMovToCr3Exiting, 0x0);
 }
 
 /**
@@ -446,7 +446,7 @@ BroadcastEnableMovToCr3ExitingOnAllProcessors()
 VOID
 BroadcastChangeToMbecSupportedEptpOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineChangeToMbecSupportedEptp, 0x0);
+    PlatformDpcGenericCall(DpcRoutineChangeToMbecSupportedEptp, 0x0);
 }
 
 /**
@@ -457,7 +457,7 @@ BroadcastChangeToMbecSupportedEptpOnAllProcessors()
 VOID
 BroadcastRestoreToNormalEptpOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineRestoreToNormalEptp, 0x0);
+    PlatformDpcGenericCall(DpcRoutineRestoreToNormalEptp, 0x0);
 }
 
 /**
@@ -468,7 +468,7 @@ BroadcastRestoreToNormalEptpOnAllProcessors()
 VOID
 BroadcasDisableMbecOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineEnableOrDisableMbec, 0x0);
+    PlatformDpcGenericCall(DpcRoutineEnableOrDisableMbec, 0x0);
 }
 
 /**
@@ -479,7 +479,7 @@ BroadcasDisableMbecOnAllProcessors()
 VOID
 BroadcasEnableMbecOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineEnableOrDisableMbec, (PVOID)0x1);
+    PlatformDpcGenericCall(DpcRoutineEnableOrDisableMbec, (PVOID)0x1);
 }
 
 /**
@@ -490,7 +490,7 @@ BroadcasEnableMbecOnAllProcessors()
 VOID
 BroadcastDisableMovToCr3ExitingOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineDisableMovToCr3Exiting, 0x0);
+    PlatformDpcGenericCall(DpcRoutineDisableMovToCr3Exiting, 0x0);
 }
 
 /**
@@ -501,7 +501,7 @@ BroadcastDisableMovToCr3ExitingOnAllProcessors()
 VOID
 BroadcastEnableEferSyscallEventsOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineEnableEferSyscallEvents, 0x0);
+    PlatformDpcGenericCall(DpcRoutineEnableEferSyscallEvents, 0x0);
 }
 
 /**
@@ -512,7 +512,7 @@ BroadcastEnableEferSyscallEventsOnAllProcessors()
 VOID
 BroadcastDisableEferSyscallEventsOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineDisableEferSyscallEvents, 0x0);
+    PlatformDpcGenericCall(DpcRoutineDisableEferSyscallEvents, 0x0);
 }
 
 /**
@@ -523,7 +523,7 @@ BroadcastDisableEferSyscallEventsOnAllProcessors()
 VOID
 BroadcastEnablePmlOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineEnablePml, 0x0);
+    PlatformDpcGenericCall(DpcRoutineEnablePml, 0x0);
 }
 
 /**
@@ -534,5 +534,5 @@ BroadcastEnablePmlOnAllProcessors()
 VOID
 BroadcastDisablePmlOnAllProcessors()
 {
-    KeGenericCallDpc(DpcRoutineDisablePml, 0x0);
+    PlatformDpcGenericCall(DpcRoutineDisablePml, 0x0);
 }

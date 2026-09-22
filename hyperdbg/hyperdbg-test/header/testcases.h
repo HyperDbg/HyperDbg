@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file testcases.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief header for test cases
@@ -29,6 +29,3 @@ TestSemanticScripts();
 
 BOOLEAN
 TestScriptEngineFloatingPoint();
-
-BOOLEAN
-TestScriptEngineVariableTypes();

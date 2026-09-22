@@ -337,6 +337,20 @@ IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_request_cpuid(UINT32 FunctionId, UINT32 SubFunctionId);
 
 //
+// IN instruction related command
+// Exported functionality of the 'uin'
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdebg_u_in_instruction(DEBUGGER_USER_IN_REQUEST_RESPONSE InRequest);
+
+//
+// OUT instruction related command
+// Exported functionality of the 'uout'
+//
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdebg_u_out_instruction(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest);
+
+//
 // Transparent mode related command
 // Exported functionality of the '!hide', and '!unhide' commands
 //

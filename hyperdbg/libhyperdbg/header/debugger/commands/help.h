@@ -175,6 +175,12 @@ VOID
 CommandUserCpuidHelp();
 
 VOID
+CommandUserInHelp();
+
+VOID
+CommandUserOutHelp();
+
+VOID
 CommandPauseHelp();
 
 VOID

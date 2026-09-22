@@ -29,7 +29,7 @@
 .ThreeOpFunc4->wcsncmp
 
 .OperatorsOneOperand->inc dec reference dereference
-.ScriptVariableType->void bool char short int long unsigned signed float double
+.ScriptVariableType->void bool char wchar_t short int long unsigned signed float double
 
 S->BE
 
@@ -106,6 +106,8 @@ E12->.ThreeOpFunc4 ( WstringNumber , WstringNumber , EXP ) @.ThreeOpFunc4
 E12->( CAST_OR_BOOLEAN
 E12->E12 . MEMBER_NAME @MEMBER_DOT_READ
 E12->E12 -> MEMBER_NAME @MEMBER_ARROW_READ
+E12->E12 . MEMBER_NAME ARRAY3 ARRAY4 @MEMBER_DOT_ARRAY_READ
+E12->E12 -> MEMBER_NAME ARRAY3 ARRAY4 @MEMBER_ARROW_ARRAY_READ
 
 # Types must have '_' at the first
 E12->_register @PUSH

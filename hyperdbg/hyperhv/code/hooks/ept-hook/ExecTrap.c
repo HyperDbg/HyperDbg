@@ -338,7 +338,7 @@ ExecTrapReadRamPhysicalRegions()
     //
     // Read the RAM regions (BIOS) gives these details to Windows
     //
-    PhysicalMemoryRanges = MmGetPhysicalMemoryRanges();
+    PhysicalMemoryRanges = PlatformMemGetPhysicalMemoryRanges();
 
     do
     {
@@ -357,7 +357,7 @@ ExecTrapReadRamPhysicalRegions()
 
     } while (++Count < MAX_PHYSICAL_RAM_RANGE_COUNT);
 
-    ExFreePool(PhysicalMemoryRanges);
+    PlatformMemFreePoolUntagged(PhysicalMemoryRanges);
 }
 
 /**
@@ -735,7 +735,7 @@ ExecTrapApplyMbecConfiguratinFromKernelSide(VIRTUAL_MACHINE_STATE * VCpu)
     Result = BinarySearchPerformSearchItem(&g_ExecTrapState.InterceptionProcessIds[0],
                                            g_ExecTrapState.NumberOfItems,
                                            &Index,
-                                           (UINT64)PsGetCurrentProcessId());
+                                           (UINT64)PlatformProcessGetCurrentProcessId());
 
     //
     // Release the lock for the exec trap process list

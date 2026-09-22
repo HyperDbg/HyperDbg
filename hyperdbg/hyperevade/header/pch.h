@@ -26,7 +26,10 @@
 //
 // Windows defined functions
 //
-#    include <ntddk.h>
+// ntifs.h (superset of ntddk.h) so the shared platform TUs compiled into this
+// project see ZwAllocateVirtualMemory/ZwFreeVirtualMemory (PlatformMem.c) — same
+// header hyperkd/hyperhv already use.
+#    include <ntifs.h>
 #    include <ntstrsafe.h>
 #    include <Windef.h>
 

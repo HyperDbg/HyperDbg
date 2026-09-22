@@ -742,7 +742,13 @@
     <ClCompile Include="code\debugger\misc\pt-helper.cpp">
       <Filter>code\debugger\misc</Filter>
     </ClCompile>
-    <ClCompile Include="ucpuid.cpp">
+    <ClCompile Include="code\debugger\commands\debugging-commands\ucpuid.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\debugging-commands\uin.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\debugging-commands\uout.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
   </ItemGroup>

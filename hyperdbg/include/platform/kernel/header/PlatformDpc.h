@@ -19,12 +19,18 @@
 //                  Functions                   //
 //////////////////////////////////////////////////
 
-#if defined(_WIN32) || defined(_WIN64)
-
 VOID
 PlatformDpcInitialize(PRKDPC Dpc, PKDEFERRED_ROUTINE DeferredRoutine, PVOID DeferredContext);
+
+VOID
+PlatformDpcSetTargetProcessor(PRKDPC Dpc, CCHAR Number);
 
 BOOLEAN
 PlatformDpcInsertQueueDpc(PRKDPC Dpc, PVOID SystemArgument1, PVOID SystemArgument2);
 
-#endif // defined(_WIN32) || defined(_WIN64)
+//
+// Run a DPC routine on every processor. Windows: KeGenericCallDpc(). Linux:
+// stub (no-op) for now. See PlatformDpc.c.
+//
+VOID
+PlatformDpcGenericCall(PKDEFERRED_ROUTINE Routine, PVOID Context);

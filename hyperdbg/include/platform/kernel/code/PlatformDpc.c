@@ -11,8 +11,43 @@
  */
 #include "pch.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+//
+// KeGenericCallDpc()'s prototype is declared manually in PlatformBroadcast.h
+// (it is not exposed by ntifs.h/ntddk.h). PlatformDpc.c is compiled by hyperlog,
+// whose pch pulls in neither PlatformBroadcast.h nor Broadcast.c, so include it
+// explicitly here for the KeGenericCallDpc() call below. hyperhv/hyperkd already
+// compile both this file and PlatformBroadcast.h together, so there is no clash.
+#    include "../header/PlatformBroadcast.h"
+#endif
+
 #if defined(__linux__)
 #    include "../header/PlatformDpc.h"
+
+/**
+ * @brief BH-workqueue trampoline for the Linux KDPC backing
+ *
+ * @details A Linux work callback receives only the work_struct pointer, whereas
+ * the Windows DPC contract hands the deferred routine four arguments. Recover
+ * the enclosing KDPC and replay the Windows-style (Dpc, Context, Arg1, Arg2)
+ * call. SKELETON — compile-clean wiring, not yet runtime-tested.
+ *
+ * @param Work The work_struct embedded in the owning KDPC
+ * @return void
+ */
+static void
+PlatformDpcWorkTrampoline(struct work_struct * Work)
+{
+    KDPC * Dpc = container_of(Work, KDPC, Work);
+
+    if (Dpc->DeferredRoutine != NULL)
+    {
+        Dpc->DeferredRoutine(Dpc,
+                             Dpc->DeferredContext,
+                             Dpc->SystemArgument1,
+                             Dpc->SystemArgument2);
+    }
+}
 #endif // defined(__linux__)
 
 /**
@@ -32,7 +67,47 @@ PlatformDpcInitialize(PRKDPC Dpc, PKDEFERRED_ROUTINE DeferredRoutine, PVOID Defe
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // Stash the Windows-style routine + context so the tasklet trampoline can
+    // replay the 4-argument call. System arguments are supplied at queue time.
+    //
+    Dpc->DeferredRoutine = DeferredRoutine;
+    Dpc->DeferredContext = DeferredContext;
+    Dpc->SystemArgument1 = NULL;
+    Dpc->SystemArgument2 = NULL;
+    Dpc->TargetCore      = KDPC_NO_TARGET_CORE;
+
+    INIT_WORK(&Dpc->Work, PlatformDpcWorkTrampoline);
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Pin a DPC to the processor it must run on
+ *
+ * @param Dpc Pointer to the initialized KDPC structure
+ * @param Number The logical processor number to run the deferred routine on
+ * @return VOID
+ */
+VOID
+PlatformDpcSetTargetProcessor(PRKDPC Dpc, CCHAR Number)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    KeSetTargetProcessorDpc(Dpc, Number);
+
+#elif defined(__linux__)
+
+    //
+    // There is no "set the target" call on the Linux side — the CPU is chosen
+    // when the work item is queued (queue_work_on), so record it here and let
+    // PlatformDpcInsertQueueDpc apply it.
+    //
+    Dpc->TargetCore = (INT32)Number;
 
 #else
 
@@ -58,7 +133,54 @@ PlatformDpcInsertQueueDpc(PRKDPC Dpc, PVOID SystemArgument1, PVOID SystemArgumen
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // Supply the system arguments for this run, then hand the work item to the
+    // bottom-half (BH) workqueue, which runs it in softirq context — the closest
+    // match to a DPC at DISPATCH_LEVEL. queue_work() is safe from atomic/
+    // interrupt context, matching KeInsertQueueDpc.
+    //
+    // queue_work() returns false if the item was already pending, mirroring
+    // KeInsertQueueDpc's "FALSE if already queued" contract, so return it directly.
+    //
+    Dpc->SystemArgument1 = SystemArgument1;
+    Dpc->SystemArgument2 = SystemArgument2;
+
+    if (Dpc->TargetCore != KDPC_NO_TARGET_CORE)
+    {
+        //
+        // Pinned by PlatformDpcSetTargetProcessor — queue_work_on() is the
+        // per-CPU spelling of the same call.
+        //
+        return queue_work_on(Dpc->TargetCore, system_bh_wq, &Dpc->Work) ? TRUE : FALSE;
+    }
+
+    return queue_work(system_bh_wq, &Dpc->Work) ? TRUE : FALSE;
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Run a DPC routine on every processor.
+ * @details Windows broadcasts the routine to all cores via KeGenericCallDpc().
+ *          Linux arm is a stub for now.
+ *
+ * TODO(Linux): drive on_each_cpu()/smp_call_function() through the KDPC
+ *              trampoline the way PlatformDpc already replays a single DPC.
+ */
+VOID
+PlatformDpcGenericCall(PKDEFERRED_ROUTINE Routine, PVOID Context)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    KeGenericCallDpc(Routine, Context);
+
+#elif defined(__linux__)
+
+    // no-op
 
 #else
 

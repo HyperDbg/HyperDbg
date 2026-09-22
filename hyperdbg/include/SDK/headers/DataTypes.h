@@ -59,7 +59,84 @@ typedef struct _LIST_ENTRY
     struct _LIST_ENTRY * Blink;
 } LIST_ENTRY, *PLIST_ENTRY;
 
+//
+// The NT list API (InitializeListHead, InsertHeadList, RemoveEntryList, ...)
+// that the shared code calls on this exact layout. Included here, right after
+// the layout it operates on, the way BasicTypes.h includes WdkTypes.h.
+//
+#    include "../../platform/general/header/nt-list.h"
+
+//
+// Broken-down calendar time — mirrors the Windows TIME_FIELDS that
+// RtlTimeToTimeFields produces (CSHORT == SHORT). See PlatformTime.
+//
+typedef struct _TIME_FIELDS
+{
+    SHORT Year;
+    SHORT Month;        // 1..12
+    SHORT Day;          // 1..31
+    SHORT Hour;         // 0..23
+    SHORT Minute;       // 0..59
+    SHORT Second;       // 0..59
+    SHORT Milliseconds; // 0..999
+    SHORT Weekday;      // 0..6 (Sunday = 0)
+} TIME_FIELDS, *PTIME_FIELDS;
+
 #endif // defined(__linux__)
+
+//////////////////////////////////////////////////
+//         Deferred Procedure Call (DPC)         //
+//////////////////////////////////////////////////
+
+#if defined(__linux__) && defined(HYPERDBG_KERNEL_MODE)
+
+//
+// Windows' KDPC is a "run this small routine soon, from a safe (DISPATCH_LEVEL)
+// context" object. The closest Linux analog is a bottom-half (BH) workqueue: it
+// runs the work item in softirq context like a DPC, but via the modern,
+// non-deprecated workqueue API (tasklets are deprecated). The struct is stored
+// BY VALUE inside NOTIFY_RECORD (hyperlog), so it must be a real, fully-sized type.
+//
+// A Linux work callback receives only the work_struct pointer, whereas Windows
+// hands the deferred routine four arguments (Dpc, Context, Arg1, Arg2). We stash
+// the routine + context + system arguments here and reconstruct the 4-arg call
+// in a trampoline (see PlatformDpc.c).
+//
+// SKELETON (2026-08-11): compile-clean wiring only. There is no teardown/cancel
+// wrapper yet — a queued work item embedded in freed memory is a use-after-free,
+// so real callers will need cancel_work_sync() before the owning NOTIFY_RECORD
+// is freed. See the TODO(Linux) notes in PlatformDpc.c.
+//
+struct _KDPC;
+typedef VOID (*PKDEFERRED_ROUTINE)(struct _KDPC * Dpc,
+                                   PVOID          DeferredContext,
+                                   PVOID          SystemArgument1,
+                                   PVOID          SystemArgument2);
+
+typedef struct _KDPC
+{
+    struct work_struct Work;            // Linux deferred-work primitive (BH workqueue = softirq)
+    PKDEFERRED_ROUTINE DeferredRoutine; // Windows-style routine, replayed by the trampoline
+    PVOID              DeferredContext;
+    PVOID              SystemArgument1;
+    PVOID              SystemArgument2;
+    INT32              TargetCore; // KeSetTargetProcessorDpc's core, or -1 for "any" (see PlatformDpc.c)
+} KDPC, *PKDPC, *PRKDPC;
+
+//
+// "No target core selected" — the state a KDPC is in until
+// PlatformDpcSetTargetProcessor pins it, mirroring an unpinned Windows DPC.
+//
+#    define KDPC_NO_TARGET_CORE (-1)
+
+//
+// Windows KSPIN_LOCK is an integer token; Linux's spinlock_t is a real struct.
+// It is embedded BY VALUE in LOG_BUFFER_INFORMATION (Logging.h), so it must be a
+// full-sized type. spin_lock()/spin_unlock() = preempt-off (DISPATCH_LEVEL).
+//
+typedef spinlock_t KSPIN_LOCK, *PKSPIN_LOCK;
+
+#endif // defined(__linux__) && defined(HYPERDBG_KERNEL_MODE)
 
 //////////////////////////////////////////////////
 //                 Pool Manager      			//

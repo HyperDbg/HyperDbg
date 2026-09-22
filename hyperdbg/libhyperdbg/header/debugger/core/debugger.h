@@ -65,6 +65,8 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT          0x20
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT      0x21
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT                   0x22
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_IN_RESULT                      0x23
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_OUT_RESULT                     0x24
 
 //////////////////////////////////////////////////
 //               Event Details                  //
@@ -221,13 +223,29 @@ CommandEventsClearAllEventsAndResetTags();
 VOID
 CommandFlushRequestFlush();
 
-VOID
+BOOLEAN
 CommandCpuidRequestCpuid(UINT32 FunctionId, UINT32 SubFunctionId);
 
 VOID
 CommandShowUserCpuidMessage(UINT32                           FunctionId,
                             UINT32                           SubFunctionId,
                             PDEBUGGER_CPUID_REQUEST_RESPONSE CpuidRequest);
+
+BOOLEAN
+CommandUserInRequest(DEBUGGER_USER_IN_REQUEST_RESPONSE InRequest);
+
+BOOLEAN
+CommandUserOutRequest(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest);
+
+VOID
+CommandShowUserInMessage(USHORT UserChosenRegister,
+                         USHORT PortAddress,
+                         ULONG  Data);
+
+VOID
+CommandShowUserOutMessage(USHORT UserChosenRegister,
+                          USHORT PortAddress,
+                          UINT32 Value);
 
 UINT64
 GetCommandAttributes(const string & FirstCommand);

@@ -138,7 +138,9 @@ set(SourceFiles
     "code/debugger/commands/debugging-commands/wrmsr.cpp"
     "code/debugger/commands/debugging-commands/x.cpp"
     "code/debugger/commands/extension-commands/cpuid.cpp"
-    "ucpuid.cpp"
+    "code/debugger/commands/debugging-commands/ucpuid.cpp"
+    "code/debugger/commands/debugging-commands/uin.cpp"
+    "code/debugger/commands/debugging-commands/uout.cpp"
     "code/debugger/commands/extension-commands/dr.cpp"
     "code/debugger/commands/extension-commands/epthook.cpp"
     "code/debugger/commands/extension-commands/epthook2.cpp"
@@ -234,10 +236,16 @@ if(UNIX)
     #
     # The MASM (.asm) implementation only builds with the Microsoft assembler,
     # so swap it for the GAS (AT&T syntax) port and enable the ASM language so
-    # CMake assembles the .s file with the system assembler.
+    # CMake assembles the .S file with the system assembler.
+    #
+    # NOTE: the extension MUST be uppercase .S — the kernel-module build runs
+    # with M= at the repo root, and kbuild's `make clean` deletes every lowercase
+    # .s (it treats them as generated assembler intermediates), which would wipe
+    # this hand-written source. Uppercase .S is a recognized source extension and
+    # is left untouched. See linux/PORTING_STATUS.md.
     #
     list(REMOVE_ITEM SourceFiles "code/assembly/asm-vmx-checks-masm-windows.asm")
-    list(APPEND SourceFiles "code/assembly/asm-vmx-checks-gas-unix.s")
+    list(APPEND SourceFiles "code/assembly/asm-vmx-checks-gas-unix.S")
     enable_language(ASM)
 endif()
 

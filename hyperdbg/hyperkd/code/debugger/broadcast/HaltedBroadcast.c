@@ -38,7 +38,7 @@ HaltedBroadcastChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -72,7 +72,7 @@ HaltedBroadcastChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -106,7 +106,7 @@ HaltedBroadcastChangeAllIoBitmapAllCores(UINT64 Port)
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -133,7 +133,7 @@ HaltedBroadcastEnableRdpmcExitingAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -160,7 +160,7 @@ HaltedBroadcastEnableRdtscExitingAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -187,7 +187,7 @@ HaltedBroadcastEnableMov2DebugRegsExitingAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -214,7 +214,7 @@ HaltedBroadcastEnableExternalInterruptExitingAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -248,7 +248,7 @@ HaltedBroadcastSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -282,7 +282,7 @@ HaltedBroadcastUnSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -317,7 +317,7 @@ HaltedBroadcastEnableMovToCrExitingAllCores(DEBUGGER_EVENT_OPTIONS * Broadcastin
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -344,7 +344,7 @@ HaltedBroadcastEnableEferSyscallHookAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -371,7 +371,7 @@ HaltedBroadcastInvalidateEptAllContextsAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -398,7 +398,7 @@ HaltedBroadcastInvalidateSingleContextAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -433,7 +433,7 @@ HaltedBroadcastUnhookSinglePageAllCores(EPT_SINGLE_HOOK_UNHOOKING_DETAILS * Unho
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -460,7 +460,7 @@ HaltedBroadcastSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsAl
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -487,7 +487,7 @@ HaltedBroadcastResetMsrBitmapReadAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -514,7 +514,7 @@ HaltedBroadcastResetMsrBitmapWriteAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -542,7 +542,7 @@ HaltedBroadcastResetExceptionBitmapOnlyOnClearingExceptionEventsAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -569,7 +569,7 @@ HaltedBroadcastResetIoBitmapAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -597,7 +597,7 @@ HaltedBroadcastDisableRdtscExitingForClearingTscEventsAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -625,7 +625,7 @@ HaltedBroadcastDisableRdpmcExitingAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -653,7 +653,7 @@ HaltedBroadcastDisableEferSyscallEventsAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -681,7 +681,7 @@ HaltedBroadcastDisableMov2DrExitingForClearingDrEventsAllCores()
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,
@@ -717,7 +717,7 @@ HaltedBroadcastDisableMov2CrExitingForClearingCrEventsAllCores(DEBUGGER_EVENT_OP
     //
     // Send request for the target task to the halted cores (synchronized)
     //
-    HaltedCoreBroadcastTaskAllCores(&g_DbgState[KeGetCurrentProcessorNumberEx(NULL)],
+    HaltedCoreBroadcastTaskAllCores(&g_DbgState[PlatformCpuGetCurrentProcessorNumber()],
                                     HaltedCoreTask,
                                     TRUE,
                                     TRUE,

@@ -29,7 +29,7 @@ AttachingInitialize()
     if (g_PsGetProcessPeb == NULL)
     {
         RtlInitUnicodeString(&FunctionName, L"PsGetProcessPeb");
-        g_PsGetProcessPeb = (PsGetProcessPeb)MmGetSystemRoutineAddress(&FunctionName);
+        g_PsGetProcessPeb = (PsGetProcessPeb)PlatformGetSystemRoutineAddress(&FunctionName);
 
         if (g_PsGetProcessPeb == NULL)
         {
@@ -48,7 +48,7 @@ AttachingInitialize()
     if (g_PsGetProcessWow64Process == NULL)
     {
         RtlInitUnicodeString(&FunctionName, L"PsGetProcessWow64Process");
-        g_PsGetProcessWow64Process = (PsGetProcessWow64Process)MmGetSystemRoutineAddress(&FunctionName);
+        g_PsGetProcessWow64Process = (PsGetProcessWow64Process)PlatformGetSystemRoutineAddress(&FunctionName);
 
         if (g_PsGetProcessWow64Process == NULL)
         {
@@ -70,7 +70,7 @@ AttachingInitialize()
 
         RtlInitUnicodeString(&RoutineName, L"ZwQueryInformationProcess");
 
-        g_ZwQueryInformationProcess = (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
+        g_ZwQueryInformationProcess = (ZwQueryInformationProcess)PlatformGetSystemRoutineAddress(&RoutineName);
 
         if (g_ZwQueryInformationProcess == NULL)
         {
@@ -448,7 +448,7 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     VmFuncSuppressRipIncrement(DbgState->CoreId);
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
 
     //
     // Check to only break on the target process id and thread id and when
@@ -519,7 +519,7 @@ AttachingHandleEntrypointInterception(PROCESSOR_DEBUGGING_STATE * DbgState)
                 // Indicate that we should set the trap flag to the FALSE next time on
                 // the same process/thread
                 //
-                if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PsGetCurrentProcessId()), HANDLE_TO_UINT32(PsGetCurrentThreadId())))
+                if (!BreakpointRestoreTheTrapFlagOnceTriggered(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()), HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId())))
                 {
                     LogWarning("Warning, it is currently not possible to add the current process/thread to the list of processes "
                                "where the trap flag should be masked. Please ensure that you manually unset the trap flag");
@@ -564,7 +564,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
     PEPROCESS  SourceProcess;
     KAPC_STATE State = {0};
 
-    if (PsLookupProcessByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -572,6 +572,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
         return FALSE;
     }
 
+#ifdef _WIN32
     __try
     {
         KeStackAttachProcess(SourceProcess, &State);
@@ -602,7 +603,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
 
         KeUnstackDetachProcess(&State);
 
-        ObDereferenceObject(SourceProcess);
+        PlatformObjectDereference(SourceProcess);
     }
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
@@ -610,6 +611,14 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
 
         return FALSE;
     }
+#else
+    //
+    // TODO(Linux): write the NOP-sled/cpuid loop into the target process'
+    // address space (needs process attach + fault-safe writes). Stubbed.
+    //
+    UNREFERENCED_PARAMETER(ReservedBuffAddress);
+    UNREFERENCED_PARAMETER(State);
+#endif
 
     return TRUE;
 }
@@ -635,7 +644,7 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
         return FALSE;
     }
 
-    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PsGetCurrentProcessId()));
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
 
     //
     // Check if the process debugging detail is found
@@ -789,7 +798,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         return FALSE;
     }
 
-    if (PsLookupProcessByProcessId((HANDLE)AttachRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)AttachRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
@@ -798,7 +807,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         return FALSE;
     }
 
-    ObDereferenceObject(SourceProcess);
+    PlatformObjectDereference(SourceProcess);
 
     //
     // Check to avoid double attaching to a process

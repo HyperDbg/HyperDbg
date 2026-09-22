@@ -94,7 +94,7 @@ VmxBroadcastHandleNmiCallback(PVOID Context, BOOLEAN Handled)
     UNREFERENCED_PARAMETER(Context);
 
     ULONG CurrentCore;
-    CurrentCore                  = KeGetCurrentProcessorNumberEx(NULL);
+    CurrentCore                  = PlatformCpuGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE * VCpu = &g_GuestState[CurrentCore];
 
     //
@@ -152,7 +152,7 @@ VmxBroadcastNmi(VIRTUAL_MACHINE_STATE * VCpu, NMI_BROADCAST_ACTION_TYPE VmxBroad
         return FALSE;
     }
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Indicate that we're waiting for NMI
@@ -193,7 +193,7 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
     // Check if NMI relates to us or not
     // Set NMI broadcasting action to none (clear the action)
     //
-    BroadcastAction = InterlockedExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
+    BroadcastAction = CpuInterlockedExchange((volatile LONG *)&VCpu->NmiBroadcastingState.NmiBroadcastAction, NMI_BROADCAST_ACTION_NONE);
 
     if (BroadcastAction == NMI_BROADCAST_ACTION_NONE)
     {

@@ -92,12 +92,12 @@ DebuggerEventEnableMonitorReadWriteExec(EPT_HOOKS_ADDRESS_DETAILS_FOR_MEMORY_MON
     //
     if (ApplyDirectlyFromVmxRoot)
     {
-        return ConfigureEptHookMonitorFromVmxRoot(KeGetCurrentProcessorNumberEx(NULL),
+        return ConfigureEptHookMonitorFromVmxRoot(PlatformCpuGetCurrentProcessorNumber(),
                                                   HookingDetails);
     }
     else
     {
-        return ConfigureEptHookMonitor(KeGetCurrentProcessorNumberEx(NULL),
+        return ConfigureEptHookMonitor(PlatformCpuGetCurrentProcessorNumber(),
                                        HookingDetails,
                                        ProcessId);
     }

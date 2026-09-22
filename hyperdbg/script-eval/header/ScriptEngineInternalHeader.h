@@ -181,7 +181,7 @@ UINT64
 ScriptEngineFunctionDisassembleLen(PVOID Address, BOOLEAN Is32Bit);
 
 UINT64
-ScriptEngineFunctionWcslen(const wchar_t * Address);
+ScriptEngineFunctionWcslen(const UINT16 * Address);
 
 VOID
 ScriptEngineFunctionMicroSleep(UINT64 Us);

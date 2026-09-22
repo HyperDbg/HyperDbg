@@ -57,6 +57,7 @@ NewUnknownToken()
     Token->AddressSpace      = 0;
     Token->IsAddress         = FALSE;
     Token->IsImplicitType    = FALSE;
+    Token->IsSignedFunctionResult = FALSE;
 
     return Token;
 }
@@ -101,6 +102,7 @@ NewToken(SCRIPT_ENGINE_TOKEN_TYPE Type, char * Value)
     Token->AddressSpace      = 0;
     Token->IsAddress         = FALSE;
     Token->IsImplicitType    = FALSE;
+    Token->IsSignedFunctionResult = FALSE;
 
     if (Token->Value == NULL)
     {
@@ -291,14 +293,14 @@ AppendByte(PSCRIPT_ENGINE_TOKEN Token, char c)
 }
 
 /**
- * @brief Appends wchar_t to the token value
+ * @brief Appends one fixed-width UTF-16 code unit to the token value
  *
  * @param Token
  * @param c the wide character to append
  * @return void
  */
 void
-AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c)
+AppendWchar(PSCRIPT_ENGINE_TOKEN Token, UINT16 c)
 {
     //
     // Check overflow of the string
@@ -333,7 +335,7 @@ AppendWchar(PSCRIPT_ENGINE_TOKEN Token, wchar_t c)
     //
     // Append the new character to the wstring
     //
-    *((wchar_t *)(Token->Value) + Token->Len / 2) = c;
+    memcpy(Token->Value + Token->Len, &c, sizeof(c));
     Token->Len += 2;
 }
 
@@ -389,6 +391,7 @@ CopyToken(PSCRIPT_ENGINE_TOKEN Token)
     TokenCopy->AddressSpace      = Token->AddressSpace;
     TokenCopy->IsAddress         = Token->IsAddress;
     TokenCopy->IsImplicitType    = Token->IsImplicitType;
+    TokenCopy->IsSignedFunctionResult = Token->IsSignedFunctionResult;
 
     if (TokenCopy->Value == NULL)
     {

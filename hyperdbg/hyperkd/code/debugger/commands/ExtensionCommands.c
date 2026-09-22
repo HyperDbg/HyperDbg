@@ -157,7 +157,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
         // *** regular !va2pa and !pa2va in VMI Mode
         //
 
-        if (AddressDetails->ProcessId == HANDLE_TO_UINT32(PsGetCurrentProcessId()))
+        if (AddressDetails->ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()))
         {
             //
             // It's on current process address space (we process the request
@@ -284,7 +284,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
     }
     else
     {
-        if (PteDetails->ProcessId != HANDLE_TO_UINT32(PsGetCurrentProcessId()))
+        if (PteDetails->ProcessId != HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()))
         {
             //
             // It's on another process address space

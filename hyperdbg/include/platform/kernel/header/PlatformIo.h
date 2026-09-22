@@ -19,8 +19,6 @@
 //                  Functions                   //
 //////////////////////////////////////////////////
 
-#if defined(_WIN32) || defined(_WIN64)
-
 PIO_STACK_LOCATION
 PlatformIoGetCurrentIrpStackLocation(PIRP Irp);
 
@@ -29,5 +27,3 @@ PlatformIoCompleteRequest(PIRP Irp, CCHAR PriorityBoost);
 
 VOID
 PlatformIoMarkIrpPending(PIRP Irp);
-
-#endif // defined(_WIN32) || defined(_WIN64)

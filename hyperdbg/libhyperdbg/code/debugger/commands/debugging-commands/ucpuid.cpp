@@ -43,6 +43,10 @@ CommandUserCpuidHelp()
 /**
  * @brief ucpuid command show messages
  *
+ * @param FunctionId
+ * @param SubFunctionId
+ * @param CpuidRequest
+ *
  * @return VOID
  */
 VOID
@@ -2065,9 +2069,12 @@ CommandShowUserCpuidMessage(UINT32                           FunctionId,
 /**
  * @brief ucpuid command handler
  *
- * @return VOID
+ * @param FunctionId
+ * @param SubFunctionId
+ *
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 CommandCpuidRequestCpuid(UINT32 FunctionId, UINT32 SubFunctionId)
 {
     BOOL                             Status;
@@ -2082,15 +2089,14 @@ CommandCpuidRequestCpuid(UINT32 FunctionId, UINT32 SubFunctionId)
         //
         // It's on a debugger mode
         //
-        KdSendUserCpuidPacketToDebuggee(FunctionId, SubFunctionId);
-        return;
+        return KdSendUserCpuidPacketToDebuggee(FunctionId, SubFunctionId);
     }
     else
     {
         //
         // It's on a local debugging mode
         //
-        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+        AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // By the way, we don't need to send an input buffer
@@ -2113,17 +2119,19 @@ CommandCpuidRequestCpuid(UINT32 FunctionId, UINT32 SubFunctionId)
         if (!Status)
         {
             ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
-            return;
+            return FALSE;
         }
 
         if (CpuidRequest->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             CommandShowUserCpuidMessage(FunctionId, SubFunctionId, CpuidRequest);
+            return TRUE;
         }
 
         else
         {
-            ShowMessages("Receiving CPUID result was not successful :(\n");
+            ShowMessages("Receiving CPUID result was not successful\n");
+            return FALSE;
         }
     }
 }

@@ -281,6 +281,11 @@ typedef enum _DEBUGGER_SHOW_MEMORY_STYLE
     DEBUGGER_SHOW_COMMAND_DC,
     DEBUGGER_SHOW_COMMAND_DQ,
     DEBUGGER_SHOW_COMMAND_DD,
+    DEBUGGER_SHOW_COMMAND_DW,
+    DEBUGGER_SHOW_COMMAND_DA,
+    DEBUGGER_SHOW_COMMAND_DDS,
+    DEBUGGER_SHOW_COMMAND_DQS,
+    DEBUGGER_SHOW_COMMAND_DPS,
     DEBUGGER_SHOW_COMMAND_DUMP
 } DEBUGGER_SHOW_MEMORY_STYLE;
 
@@ -1770,5 +1775,49 @@ typedef struct _DEBUGGER_CPUID_REQUEST_RESPONSE
 
     UINT32 KernelStatus;
 } DEBUGGER_CPUID_REQUEST_RESPONSE, *PDEBUGGER_CPUID_REQUEST_RESPONSE;
+
+// ==============================================================================================
+
+#define SIZEOF_DEBUGGER_USER_IN_REQUEST_RESPONSE \
+    sizeof(DEBUGGER_USER_IN_REQUEST_RESPONSE)
+
+/**
+ * @brief Cpu registers for I/O instructions (related to _DEBUGGER_USER_IN_REQUEST_RESPONSE 
+ *  and SIZEOF_DEBUGGER_USER_OUT_REQUEST_RESPONSE structs)
+ *
+ */
+typedef enum _DEBUGGER_CPU_REGISTER_USER_IO
+{
+    AL_8_BIT_REGISTER,
+    AX_16_BIT_REGISTER,
+    EAX_32_BIT_REGISTER
+} DEBUGGER_CPU_REGISTER_USER_IO;
+
+/**
+ * @brief Request and response for user IN instruction
+ *
+ */
+typedef struct _DEBUGGER_USER_IN_REQUEST_RESPONSE
+{
+    DEBUGGER_CPU_REGISTER_USER_IO UserChosenRegister; // from enum data type (_DEBUGGER_CPU_REGISTER_USER_IO)
+    USHORT                        PortAddress;        // totally 65,536 (2^16) port address (0 - 65,535)
+    ULONG                         Data;               // returned result
+
+    UINT32                        KernelStatus;
+} DEBUGGER_USER_IN_REQUEST_RESPONSE, *PDEBUGGER_USER_IN_REQUEST_RESPONSE;
+
+// ==============================================================================================
+
+#define SIZEOF_DEBUGGER_USER_OUT_REQUEST_RESPONSE \
+    sizeof(DEBUGGER_USER_OUT_REQUEST_RESPONSE)
+
+typedef struct _DEBUGGER_USER_OUT_REQUEST_RESPONSE
+{
+    DEBUGGER_CPU_REGISTER_USER_IO UserChosenRegister; // from enum data type (_DEBUGGER_CPU_REGISTER_USER_IO)
+    USHORT                        PortAddress;        // totally 65,536 (2^16) port address (0 - 65,535)
+    UINT32                        Value;              // the value to be written to the port address
+
+    UINT32                        KernelStatus;
+} DEBUGGER_USER_OUT_REQUEST_RESPONSE, *PDEBUGGER_USER_OUT_REQUEST_RESPONSE;
 
 // ==============================================================================================

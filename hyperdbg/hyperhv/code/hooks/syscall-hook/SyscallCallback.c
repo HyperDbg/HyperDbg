@@ -43,7 +43,7 @@ SyscallCallbackInitialize()
         //
         // Apply the hook from vmx non-root mode
         //
-        if (!ConfigureEptHook(g_SystemCallHookAddress, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
+        if (!ConfigureEptHook(g_SystemCallHookAddress, (UINT32)(ULONG_PTR)PlatformProcessGetCurrentProcessId()))
         {
             // LogInfo("Error while inserting EPT page hook for Windows system call handler at address 0x%p+3", Msr.Flags);
 
@@ -100,7 +100,7 @@ SyscallCallbackUninitialize()
         //
         // Unset the EPT hook from the syscall entry before disabling state.
         //
-        if (!ConfigureEptHookUnHookSingleAddress((UINT64)g_SystemCallHookAddress, (UINT64)NULL, (UINT32)(ULONG_PTR)PsGetCurrentProcessId()))
+        if (!ConfigureEptHookUnHookSingleAddress((UINT64)g_SystemCallHookAddress, (UINT64)NULL, (UINT32)(ULONG_PTR)PlatformProcessGetCurrentProcessId()))
         {
             LogInfo("Error while removing the EPT hook from windows syscall handler at address 0x%p", g_SystemCallHookAddress);
 

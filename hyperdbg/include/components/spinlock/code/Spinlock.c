@@ -40,7 +40,7 @@ static UINT32 g_MaxWait = 65536;
 BOOLEAN
 SpinlockTryLock(volatile LONG * Lock)
 {
-    return (!(*Lock) && !_interlockedbittestandset(Lock, 0));
+    return (!(*Lock) && !CpuInterlockedBitTestAndSet(Lock, 0));
 }
 
 /**
@@ -58,7 +58,7 @@ SpinlockLock(volatile LONG * Lock)
     {
         for (UINT32 i = 0; i < Wait; ++i)
         {
-            _mm_pause();
+            CpuPause();
         }
 
         //
@@ -94,11 +94,11 @@ SpinlockInterlockedCompareExchange(
 {
     UINT32 Wait = 1;
 
-    while (InterlockedCompareExchange(Destination, Exchange, Comperand) != Comperand)
+    while (CpuInterlockedCompareExchange(Destination, Exchange, Comperand) != Comperand)
     {
         for (UINT32 i = 0; i < Wait; ++i)
         {
-            _mm_pause();
+            CpuPause();
         }
 
         //
@@ -133,7 +133,7 @@ SpinlockLockWithCustomWait(volatile LONG * Lock, UINT32 MaximumWait)
     {
         for (UINT32 i = 0; i < Wait; ++i)
         {
-            _mm_pause();
+            CpuPause();
         }
 
         //

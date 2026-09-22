@@ -1402,7 +1402,7 @@ HvInitVmm(VMM_CALLBACKS * VmmCallbacks)
     //
     // We have a zeroed guest state
     //
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     //
     // Set the core's id and initialize memory mapper

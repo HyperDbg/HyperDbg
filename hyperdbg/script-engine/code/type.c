@@ -340,6 +340,7 @@ VARIABLE_TYPE * VARIABLE_TYPE_VOID = &(VARIABLE_TYPE) {.Kind = TY_VOID, .Size = 
 VARIABLE_TYPE * VARIABLE_TYPE_BOOL = &(VARIABLE_TYPE) {.Kind = TY_BOOL, .Size = 1, .Align = 1, .IsComplete = TRUE, .IntegerRank = INTEGER_RANK_BOOL};
 
 VARIABLE_TYPE * VARIABLE_TYPE_CHAR   = &(VARIABLE_TYPE) {.Kind = TY_CHAR, .Size = 1, .Align = 1, .IsComplete = TRUE, .IntegerRank = INTEGER_RANK_CHAR};
+VARIABLE_TYPE * VARIABLE_TYPE_WCHAR  = &(VARIABLE_TYPE) {.Kind = TY_WCHAR, .Size = 2, .Align = 2, .IsUnsigned = TRUE, .IsComplete = TRUE, .IntegerRank = INTEGER_RANK_SHORT};
 VARIABLE_TYPE * VARIABLE_TYPE_SHORT  = &(VARIABLE_TYPE) {.Kind = TY_SHORT, .Size = 2, .Align = 2, .IsComplete = TRUE, .IntegerRank = INTEGER_RANK_SHORT};
 VARIABLE_TYPE * VARIABLE_TYPE_INT    = &(VARIABLE_TYPE) {.Kind = TY_INT, .Size = 4, .Align = 4, .IsComplete = TRUE, .IntegerRank = INTEGER_RANK_INT};
 VARIABLE_TYPE * VARIABLE_TYPE_LONG   = &(VARIABLE_TYPE) {.Kind = TY_LONG, .Size = 8, .Align = 8, .IsComplete = TRUE, .IntegerRank = INTEGER_RANK_LONG};
@@ -364,7 +365,7 @@ VARIABLE_TYPE * VARIABLE_TYPE_LDOUBLE = &(VARIABLE_TYPE) {.Kind = TY_LDOUBLE, .S
 VARIABLE_TYPE *
 HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack)
 {
-    unsigned int          VoidCount = 0, BoolCount = 0, CharCount = 0;
+    unsigned int          VoidCount = 0, BoolCount = 0, CharCount = 0, WcharCount = 0;
     unsigned int          ShortCount = 0, IntCount = 0, LongCount = 0;
     unsigned int          FloatCount = 0, DoubleCount = 0;
     unsigned int          SignedCount = 0, UnsignedCount = 0;
@@ -383,7 +384,7 @@ HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack)
             if (TypedefType)
             {
                 RemoveToken(&TopToken);
-                if (VoidCount || BoolCount || CharCount || ShortCount || IntCount || LongCount ||
+                if (VoidCount || BoolCount || CharCount || WcharCount || ShortCount || IntCount || LongCount ||
                     FloatCount || DoubleCount || SignedCount || UnsignedCount ||
                     (PtokenStack->Pointer && Top(PtokenStack)->Type == SCRIPT_VARIABLE_TYPE))
                     return VARIABLE_TYPE_UNKNOWN;
@@ -401,6 +402,10 @@ HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack)
         else if (!strcmp(TopToken->Value, "char"))
         {
             CharCount++;
+        }
+        else if (!strcmp(TopToken->Value, "wchar_t"))
+        {
+            WcharCount++;
         }
         else if (!strcmp(TopToken->Value, "short"))
         {
@@ -438,32 +443,34 @@ HandleType(PSCRIPT_ENGINE_TOKEN_LIST PtokenStack)
     }
 
     if (SignedCount > 1 || UnsignedCount > 1 || (SignedCount && UnsignedCount) ||
-        VoidCount > 1 || BoolCount > 1 || CharCount > 1 || ShortCount > 1 ||
+        VoidCount > 1 || BoolCount > 1 || CharCount > 1 || WcharCount > 1 || ShortCount > 1 ||
         IntCount > 1 || LongCount > 2 || FloatCount > 1 || DoubleCount > 1)
     {
         return VARIABLE_TYPE_UNKNOWN;
     }
 
-    if (VoidCount || BoolCount || CharCount || ShortCount || FloatCount || DoubleCount)
+    if (VoidCount || BoolCount || CharCount || WcharCount || ShortCount || FloatCount || DoubleCount)
     {
-        if (VoidCount && !(BoolCount || CharCount || ShortCount || IntCount || LongCount || FloatCount || DoubleCount || SignedCount || UnsignedCount))
+        if (VoidCount && !(BoolCount || CharCount || WcharCount || ShortCount || IntCount || LongCount || FloatCount || DoubleCount || SignedCount || UnsignedCount))
             return VARIABLE_TYPE_VOID;
-        if (BoolCount && !(VoidCount || CharCount || ShortCount || IntCount || LongCount || FloatCount || DoubleCount || SignedCount || UnsignedCount))
+        if (BoolCount && !(VoidCount || CharCount || WcharCount || ShortCount || IntCount || LongCount || FloatCount || DoubleCount || SignedCount || UnsignedCount))
             return VARIABLE_TYPE_BOOL;
-        if (CharCount && !(VoidCount || BoolCount || ShortCount || IntCount || LongCount || FloatCount || DoubleCount))
+        if (CharCount && !(VoidCount || BoolCount || WcharCount || ShortCount || IntCount || LongCount || FloatCount || DoubleCount))
             return UnsignedCount ? VARIABLE_TYPE_UCHAR : VARIABLE_TYPE_CHAR;
-        if (ShortCount && !(VoidCount || BoolCount || CharCount || LongCount || FloatCount || DoubleCount))
+        if (WcharCount && !(VoidCount || BoolCount || CharCount || ShortCount || IntCount || LongCount || FloatCount || DoubleCount || SignedCount || UnsignedCount))
+            return VARIABLE_TYPE_WCHAR;
+        if (ShortCount && !(VoidCount || BoolCount || CharCount || WcharCount || LongCount || FloatCount || DoubleCount))
             return UnsignedCount ? VARIABLE_TYPE_USHORT : VARIABLE_TYPE_SHORT;
-        if (FloatCount && !(VoidCount || BoolCount || CharCount || ShortCount || IntCount || LongCount || DoubleCount || SignedCount || UnsignedCount))
+        if (FloatCount && !(VoidCount || BoolCount || CharCount || WcharCount || ShortCount || IntCount || LongCount || DoubleCount || SignedCount || UnsignedCount))
             return VARIABLE_TYPE_FLOAT;
-        if (DoubleCount && !VoidCount && !BoolCount && !CharCount && !ShortCount && !IntCount && !FloatCount && !SignedCount && !UnsignedCount)
+        if (DoubleCount && !VoidCount && !BoolCount && !CharCount && !WcharCount && !ShortCount && !IntCount && !FloatCount && !SignedCount && !UnsignedCount)
             return LongCount == 0 ? VARIABLE_TYPE_DOUBLE : VARIABLE_TYPE_UNKNOWN;
         return VARIABLE_TYPE_UNKNOWN;
     }
 
     if (LongCount)
     {
-        if (VoidCount || BoolCount || CharCount || ShortCount || FloatCount || DoubleCount)
+        if (VoidCount || BoolCount || CharCount || WcharCount || ShortCount || FloatCount || DoubleCount)
             return VARIABLE_TYPE_UNKNOWN;
         if (LongCount == 2)
             return UnsignedCount ? VARIABLE_TYPE_ULLONG : VARIABLE_TYPE_LLONG;
@@ -516,7 +523,7 @@ GetDefaultImplicitVariableType(VOID)
 BOOLEAN
 IsIntegerVariableType(PVARIABLE_TYPE Type)
 {
-    return Type && (Type->Kind == TY_BOOL || Type->Kind == TY_CHAR ||
+    return Type && (Type->Kind == TY_BOOL || Type->Kind == TY_CHAR || Type->Kind == TY_WCHAR ||
                     Type->Kind == TY_SHORT || Type->Kind == TY_INT ||
                     Type->Kind == TY_LONG || Type->Kind == TY_LLONG ||
                     Type->Kind == TY_ENUM);

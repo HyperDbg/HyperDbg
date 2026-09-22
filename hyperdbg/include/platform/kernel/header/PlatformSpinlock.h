@@ -19,8 +19,6 @@
 //                  Functions                   //
 //////////////////////////////////////////////////
 
-#if defined(_WIN32) || defined(_WIN64)
-
 VOID
 PlatformSpinlockInitialize(PKSPIN_LOCK SpinLock);
 
@@ -29,5 +27,3 @@ PlatformSpinlockAcquire(PKSPIN_LOCK SpinLock, PKIRQL OldIrql);
 
 VOID
 PlatformSpinlockRelease(PKSPIN_LOCK SpinLock, KIRQL OldIrql);
-
-#endif // defined(_WIN32) || defined(_WIN64)

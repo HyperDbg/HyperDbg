@@ -305,6 +305,12 @@
     <ClCompile Include="..\include\platform\kernel\code\PlatformMem.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformDbg.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformTime.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
     <ClCompile Include="code\memory\Segmentation.c">
       <Filter>code\memory</Filter>
     </ClCompile>
@@ -336,6 +342,21 @@
       <Filter>code\platform</Filter>
     </ClCompile>
     <ClCompile Include="..\include\platform\kernel\code\PlatformBroadcast.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformCpu.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformDpc.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformEvent.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformIrql.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\platform\kernel\code\PlatformProcess.c">
       <Filter>code\platform</Filter>
     </ClCompile>
     <ClCompile Include="..\include\components\callback\code\HyperLogCallback.c">
@@ -586,6 +607,12 @@
     <ClInclude Include="..\include\platform\kernel\header\PlatformMem.h">
       <Filter>header\platform</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformDbg.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformTime.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
     <ClInclude Include="header\memory\Segmentation.h">
       <Filter>header\memory</Filter>
     </ClInclude>
@@ -617,6 +644,21 @@
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\platform\kernel\header\PlatformBroadcast.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformCpu.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformDpc.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformEvent.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformIrql.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\kernel\header\PlatformProcess.h">
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\components\callback\header\HyperLogCallback.h">

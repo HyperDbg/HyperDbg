@@ -25,18 +25,31 @@ typedef unsigned long long QWORD;
 typedef int                BOOL;
 
 typedef short SHORT;
-typedef long  LONG;
+
+#ifdef _WIN32 // Windows (LLP64: long is 32-bit)
+
+typedef long          LONG;
+typedef unsigned long ULONG;
+
+#else // Linux (LP64: long is 64-bit, so the Windows widths need int)
+
+typedef int          LONG;
+typedef unsigned int ULONG;
+
+#endif
 
 typedef unsigned short USHORT;
-typedef unsigned long  ULONG;
 
 typedef char          CHAR;
 typedef unsigned char UCHAR;
 typedef UCHAR         BOOLEAN;
 typedef BOOLEAN *     PBOOLEAN;
 
-typedef unsigned long  DWORD;
-typedef unsigned long  ULONG;
+#ifdef _WIN32
+typedef unsigned long DWORD;
+#else
+typedef unsigned int  DWORD;
+#endif
 typedef unsigned char  BYTE;
 typedef unsigned short USHORT;
 typedef unsigned short WORD;
@@ -83,6 +96,7 @@ typedef unsigned long long DWORD64, *PDWORD64;
 
 typedef unsigned long long ULONGLONG;
 typedef unsigned long long ULONG_PTR, *PULONG_PTR;
+typedef signed long long   LONG_PTR, *PLONG_PTR;
 
 typedef INT64 LONGLONG;
 
@@ -95,6 +109,7 @@ typedef union _LARGE_INTEGER {
 // To be fixed later, linux wchar_t is 4 bytes, but windows wchar_t is 2 bytes
 //
 // typedef UINT16  wchar_t;
+// (the kernel-mode wchar_t stand-in lives in WdkTypes.h, included below)
 typedef UINT16 WCHAR;
 // typedef wchar_t WCHAR;
 
@@ -124,6 +139,11 @@ typedef struct _PROCESS_INFORMATION
     DWORD  dwProcessId;
     DWORD  dwThreadId;
 } PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION;
+
+// Every WDK / NT kernel type, status code and ntdef macro the shared sources
+// need now lives in one header instead of being spread through the SDK. It is
+// included here (not from HyperDbgSdk.h) so the scalars above are in scope.
+#include "../../platform/general/header/WdkTypes.h"
 
 #endif
 

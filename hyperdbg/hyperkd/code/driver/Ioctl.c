@@ -167,7 +167,7 @@ DrvResolvePtTargetCr3(UINT32 ProcessId, BOOLEAN TraceUser, BOOLEAN TraceKernel)
     UINT64    UserCr3;
     UINT64    Chosen;
 
-    if (PsLookupProcessByProcessId((HANDLE)(ULONG_PTR)ProcessId, &TargetProcess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)(ULONG_PTR)ProcessId, &TargetProcess) != STATUS_SUCCESS)
     {
         return 0;
     }
@@ -175,7 +175,7 @@ DrvResolvePtTargetCr3(UINT32 ProcessId, BOOLEAN TraceUser, BOOLEAN TraceKernel)
     KernelCr3 = (UINT64)((NT_KPROCESS *)TargetProcess)->DirectoryTableBase;
     UserCr3   = *(UINT64 *)((UCHAR *)TargetProcess + UserDirTableBaseOffset);
 
-    ObDereferenceObject(TargetProcess);
+    PlatformObjectDereference(TargetProcess);
 
     if (TraceKernel && !TraceUser)
     {
@@ -411,6 +411,8 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_CPUID_REQUEST_RESPONSE                        DebuggerCpuidRequest;
+    PDEBUGGER_USER_IN_REQUEST_RESPONSE                      DebuggerUserInRequest;
+    PDEBUGGER_USER_OUT_REQUEST_RESPONSE                     DebuggerUserOutRequest;
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_PREACTIVATE_COMMAND                           DebuggerPreactivationRequest;
     PDEBUGGER_APIC_REQUEST                                  DebuggerApicRequest;
@@ -861,6 +863,62 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
         // Adjust the status and output size
         //
         DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_CPUID_REQUEST_RESPONSE, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_DEBUGGER_USER_IN:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGER_USER_IN_REQUEST_RESPONSE,
+                                                (PVOID *)&DebuggerUserInRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Perform IN instruction
+        //
+        DebuggerCommandUserIn(DebuggerUserInRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_USER_IN_REQUEST_RESPONSE, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_DEBUGGER_USER_OUT:
+
+        //
+        // Validate and adjust the parameters, and set the target buffer to the system buffer of the IRP
+        //
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGER_USER_OUT_REQUEST_RESPONSE,
+                                                (PVOID *)&DebuggerUserOutRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Perform OUT instruction
+        //
+        DebuggerCommandUserOut(DebuggerUserOutRequest);
+
+        //
+        // Adjust the status and output size
+        //
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_USER_OUT_REQUEST_RESPONSE, DoNotChangeInformation, Irp, &Status);
 
         break;
 
@@ -1784,7 +1842,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     // Get the current stack location of the IRP to access the parameters of the IOCTL request
     //
-    IrpStack = IoGetCurrentIrpStackLocation(Irp);
+    IrpStack = PlatformIoGetCurrentIrpStackLocation(Irp);
 
     //
     // Get the IOCTL code from the parameters
@@ -1798,7 +1856,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     {
         Irp->IoStatus.Status      = STATUS_SUCCESS;
         Irp->IoStatus.Information = 0;
-        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+        PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
 
         return STATUS_SUCCESS;
     }
@@ -1836,7 +1894,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         {
             Irp->IoStatus.Information = 0;
         }
-        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+        PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
     }
 
     return Status;

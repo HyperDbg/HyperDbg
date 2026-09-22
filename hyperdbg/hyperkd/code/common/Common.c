@@ -25,7 +25,7 @@ CommonIsProcessExist(UINT32 ProcId)
 {
     PEPROCESS TargetEprocess;
 
-    if (PsLookupProcessByProcessId((HANDLE)ProcId, &TargetEprocess) != STATUS_SUCCESS)
+    if (PlatformProcessLookupByProcessId((HANDLE)ProcId, &TargetEprocess) != STATUS_SUCCESS)
     {
         //
         // There was an error, probably the process id was not found
@@ -34,7 +34,7 @@ CommonIsProcessExist(UINT32 ProcId)
     }
     else
     {
-        ObDereferenceObject(TargetEprocess);
+        PlatformObjectDereference(TargetEprocess);
 
         return TRUE;
     }
@@ -60,7 +60,7 @@ CommonGetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
     Cid.UniqueProcess = (HANDLE)ProcessId;
     Cid.UniqueThread  = (HANDLE)0;
 
-    Status = ZwOpenProcess(Handle, PROCESS_ALL_ACCESS, &ObjAttr, &Cid);
+    Status = PlatformProcessOpen(Handle, PROCESS_ALL_ACCESS, &ObjAttr, &Cid);
 
     return Status;
 }
@@ -77,10 +77,10 @@ CommonGetProcessNameFromProcessControlBlock(PEPROCESS Eprocess)
     PCHAR Result = 0;
 
     //
-    // We can't use PsLookupProcessByProcessId as in pageable and not
+    // We can't use PlatformProcessLookupByProcessId as in pageable and not
     // work on vmx-root
     //
-    Result = (CHAR *)PsGetProcessImageFileName(Eprocess);
+    Result = (CHAR *)PlatformProcessGetImageFileName(Eprocess);
 
     return Result;
 }
@@ -107,7 +107,7 @@ CommonUndocumentedNtOpenProcess(
     PEPROCESS    ProcessObject  = NULL;
     HANDLE       ProcHandle     = NULL;
 
-    Status = SeCreateAccessState(
+    Status = PlatformSeCreateAccessState(
         &AccessState,
         AuxData,
         DesiredAccess,
@@ -121,14 +121,14 @@ CommonUndocumentedNtOpenProcess(
     AccessState.PreviouslyGrantedAccess |= AccessState.RemainingDesiredAccess;
     AccessState.RemainingDesiredAccess = 0;
 
-    Status = PsLookupProcessByProcessId(ProcessId, &ProcessObject);
+    Status = PlatformProcessLookupByProcessId(ProcessId, &ProcessObject);
 
     if (!NT_SUCCESS(Status))
     {
-        SeDeleteAccessState(&AccessState);
+        PlatformSeDeleteAccessState(&AccessState);
         return Status;
     }
-    Status = ObOpenObjectByPointer(
+    Status = PlatformObjectOpenByPointer(
         ProcessObject,
         0,
         &AccessState,
@@ -137,9 +137,9 @@ CommonUndocumentedNtOpenProcess(
         AccessMode,
         &ProcHandle);
 
-    SeDeleteAccessState(&AccessState);
+    PlatformSeDeleteAccessState(&AccessState);
 
-    ObDereferenceObject(ProcessObject);
+    PlatformObjectDereference(ProcessObject);
 
     if (NT_SUCCESS(Status))
         *ProcessHandle = ProcHandle;
@@ -181,7 +181,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         //
         // Call ZwTerminateProcess with NULL handle
         //
-        Status = ZwTerminateProcess(ProcessHandle, 0);
+        Status = PlatformProcessTerminate(ProcessHandle, 0);
 
         if (!NT_SUCCESS(Status))
         {
@@ -206,7 +206,7 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         //
         // Call ZwTerminateProcess with NULL handle
         //
-        Status = ZwTerminateProcess(ProcessHandle, 0);
+        Status = PlatformProcessTerminate(ProcessHandle, 0);
 
         if (!NT_SUCCESS(Status))
         {
@@ -220,12 +220,12 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         //
         // Get the base address of process's executable image and unmap it
         //
-        Status = MmUnmapViewOfSection(Process, PsGetProcessSectionBaseAddress(Process));
+        Status = PlatformMemUnmapViewOfSection(Process, PlatformProcessGetSectionBaseAddress(Process));
 
         //
         // Dereference the target process
         //
-        ObDereferenceObject(Process);
+        PlatformObjectDereference(Process);
 
         break;
 
@@ -257,7 +257,7 @@ CommonValidateCoreNumber(UINT32 CoreNumber)
 {
     ULONG ProcessorsCount;
 
-    ProcessorsCount = KeQueryActiveProcessorCount(0);
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
 
     if (CoreNumber >= ProcessorsCount)
     {

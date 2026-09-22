@@ -13,6 +13,14 @@
 
 #if defined(__linux__)
 #    include "../header/PlatformEvent.h"
+
+//
+// Backing token for the NT global declared in PlatformEvent.h — never
+// inspected, it only has to be a dereferenceable address
+//
+static POBJECT_TYPE g_LinuxEventObjectType = NULL;
+POBJECT_TYPE *      ExEventObjectType      = &g_LinuxEventObjectType;
+
 #endif // defined(__linux__)
 
 /**
@@ -30,7 +38,11 @@ PlatformObjectDereference(PVOID Object)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // STUB: EVENT_BASED notify is unsupported on Linux until an eventfd backing
+    // lands. TODO(Linux): eventfd_ctx_put((struct eventfd_ctx *)Object).
+    //
+    UNREFERENCED_PARAMETER(Object);
 
 #else
 
@@ -56,7 +68,89 @@ PlatformEventSet(PKEVENT Event, KPRIORITY Increment, BOOLEAN Wait)
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // STUB. TODO(Linux): eventfd_signal((struct eventfd_ctx *)Event). Returns the
+    // previous signal state; 0 is a safe default (no caller inspects it).
+    //
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(Increment);
+    UNREFERENCED_PARAMETER(Wait);
+
+    return 0;
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Initialize a kernel event object
+ *
+ * @param Event Pointer to the KEVENT to initialize
+ * @param Type Event type (SynchronizationEvent = auto-reset, NotificationEvent = manual-reset)
+ * @param State Initial signaled state
+ * @return VOID
+ */
+VOID
+PlatformEventInitialize(PRKEVENT Event, EVENT_TYPE Type, BOOLEAN State)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    KeInitializeEvent(Event, Type, State);
+
+#elif defined(__linux__)
+
+    //
+    // STUB. TODO(Linux): initialize an eventfd/completion backing the KEVENT
+    // (Type selects auto- vs manual-reset semantics).
+    //
+    UNREFERENCED_PARAMETER(Event);
+    UNREFERENCED_PARAMETER(Type);
+    UNREFERENCED_PARAMETER(State);
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Wait until a kernel event object is signaled
+ *
+ * @param Object Pointer to the dispatcher object (KEVENT) to wait on
+ * @param WaitReason Reason for the wait (Executive)
+ * @param WaitMode Processor mode to wait in (KernelMode or UserMode)
+ * @param Alertable Whether the wait can be interrupted by an alert/APC
+ * @param Timeout Optional timeout; NULL waits indefinitely
+ * @return NTSTATUS STATUS_SUCCESS when the object is signaled
+ */
+NTSTATUS
+PlatformEventWait(PVOID           Object,
+                  KWAIT_REASON    WaitReason,
+                  KPROCESSOR_MODE WaitMode,
+                  BOOLEAN         Alertable,
+                  PLARGE_INTEGER  Timeout)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    return KeWaitForSingleObject(Object, WaitReason, WaitMode, Alertable, Timeout);
+
+#elif defined(__linux__)
+
+    //
+    // STUB. TODO(Linux): wait on the eventfd/completion backing the KEVENT.
+    // Returns immediately as signaled; no caller inspects the status today.
+    //
+    UNREFERENCED_PARAMETER(Object);
+    UNREFERENCED_PARAMETER(WaitReason);
+    UNREFERENCED_PARAMETER(WaitMode);
+    UNREFERENCED_PARAMETER(Alertable);
+    UNREFERENCED_PARAMETER(Timeout);
+
+    return STATUS_SUCCESS;
 
 #else
 
@@ -95,7 +189,22 @@ PlatformObjectReferenceByHandle(HANDLE                     Handle,
 
 #elif defined(__linux__)
 
-#    error "Not yet implemented"
+    //
+    // STUB. TODO(Linux): eventfd_ctx_fdget((int)(uintptr_t)Handle) into *Object.
+    // Fail closed so the EVENT_BASED registration path bails cleanly.
+    //
+    UNREFERENCED_PARAMETER(Handle);
+    UNREFERENCED_PARAMETER(DesiredAccess);
+    UNREFERENCED_PARAMETER(ObjectType);
+    UNREFERENCED_PARAMETER(AccessMode);
+    UNREFERENCED_PARAMETER(HandleInformation);
+
+    if (Object != NULL)
+    {
+        *Object = NULL;
+    }
+
+    return STATUS_NOT_IMPLEMENTED;
 
 #else
 

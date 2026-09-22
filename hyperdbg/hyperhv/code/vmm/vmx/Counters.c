@@ -65,7 +65,7 @@ CounterEmulateRdpmc(VIRTUAL_MACHINE_STATE * VCpu)
     PGUEST_REGS GuestRegs = VCpu->Regs;
 
     EcxReg         = GuestRegs->rcx & 0xffffffff;
-    UINT64 Pmc     = __readpmc(EcxReg);
+    UINT64 Pmc     = CpuReadPmc(EcxReg);
     GuestRegs->rax = 0x00000000ffffffff & Pmc;
     GuestRegs->rdx = 0x00000000ffffffff & (Pmc >> 32);
 }
