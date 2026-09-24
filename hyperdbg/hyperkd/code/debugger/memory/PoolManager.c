@@ -99,6 +99,7 @@ PoolManagerUninitialize()
     //
     g_PoolManagerInitialized = FALSE;
 
+    SpinlockLock(&LockForPerformingAllocation);
     SpinlockLock(&LockForReadingPool);
 
     Link = g_ListOfAllocatedPoolsHead.Flink;
@@ -140,6 +141,8 @@ PoolManagerUninitialize()
     SpinlockUnlock(&LockForReadingPool);
 
     PlmgrFreeRequestNewAllocation();
+
+    SpinlockUnlock(&LockForPerformingAllocation);
 }
 
 /**
@@ -259,7 +262,7 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
 
 /**
  * @brief Allocate the new pools and add them to pool table
- * @details This function doesn't need lock as it just calls once from PASSIVE_LEVEL
+ * @details This function should be called from PASSIVE_LEVEL without holding LockForReadingPool
  *
  * @param Size Size of each chunk
  * @param Count Count of chunks
@@ -304,7 +307,9 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
         //
         // Add it to the list
         //
-        InsertHeadList(&g_ListOfAllocatedPoolsHead, &(SinglePool->PoolsList));
+        ScopedSpinlock(
+            LockForReadingPool,
+            InsertHeadList(&g_ListOfAllocatedPoolsHead, &(SinglePool->PoolsList)));
     }
 
     return TRUE;
@@ -319,7 +324,10 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 BOOLEAN
 PoolManagerCheckAndPerformAllocationAndDeallocation()
 {
-    BOOLEAN Result = TRUE;
+    BOOLEAN                Result                = TRUE;
+    BOOLEAN                NewAllocationReceived = FALSE;
+    REQUEST_NEW_ALLOCATION CurrentRequest;
+    LIST_ENTRY             PoolsToFree;
 
     //
     // Make sure we're on vmx non-root and also we have new allocation
@@ -339,32 +347,52 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     PAGED_CODE();
 
-    SpinlockLock(&LockForReadingPool);
+    //
+    // Pools are allocated and freed without holding the locks that are also
+    // acquired from vmx root, this lock only serializes the callers of this function
+    //
+    SpinlockLock(&LockForPerformingAllocation);
 
     //
-    // Check for new allocation
+    // Check for new allocation (consume the signal under the same lock that
+    // sets it, so a request received during the allocation is not lost)
     //
-    if (g_IsNewRequestForAllocationReceived)
+    SpinlockLock(&LockForRequestAllocation);
+    NewAllocationReceived               = g_IsNewRequestForAllocationReceived;
+    g_IsNewRequestForAllocationReceived = FALSE;
+    SpinlockUnlock(&LockForRequestAllocation);
+
+    if (NewAllocationReceived)
     {
         for (SIZE_T i = 0; i < MaximumRequestsQueueDepth; i++)
         {
             REQUEST_NEW_ALLOCATION * CurrentItem = &g_RequestNewAllocation[i];
 
-            if (CurrentItem->Size != 0)
-            {
-                Result = PoolManagerAllocateAndAddToPoolTable(CurrentItem->Size,
-                                                              CurrentItem->Count,
-                                                              CurrentItem->Intention);
+            SpinlockLock(&LockForRequestAllocation);
 
-                //
-                // Free the data for future use
-                //
-                CurrentItem->Count     = 0;
-                CurrentItem->Intention = 0;
-                CurrentItem->Size      = 0;
+            CurrentRequest = *CurrentItem;
+
+            //
+            // Free the data for future use
+            //
+            CurrentItem->Count     = 0;
+            CurrentItem->Intention = 0;
+            CurrentItem->Size      = 0;
+
+            SpinlockUnlock(&LockForRequestAllocation);
+
+            if (CurrentRequest.Size != 0)
+            {
+                Result = PoolManagerAllocateAndAddToPoolTable(CurrentRequest.Size,
+                                                              CurrentRequest.Count,
+                                                              CurrentRequest.Intention);
             }
         }
     }
+
+    InitializeListHead(&PoolsToFree);
+
+    SpinlockLock(&LockForReadingPool);
 
     //
     // Check for deallocation
@@ -394,19 +422,11 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
                 PoolTable->AlreadyFreed = TRUE;
 
                 //
-                // This item should be freed
-                //
-                PlatformMemFreePool((PVOID)PoolTable->Address);
-
-                //
                 // Now we should remove the entry from the g_ListOfAllocatedPoolsHead
+                // (it's freed after releasing the lock)
                 //
                 RemoveEntryList(Link);
-
-                //
-                // Free the structure pool
-                //
-                PlatformMemFreePool(PoolTable);
+                InsertHeadList(&PoolsToFree, Link);
             }
 
             Link = Next;
@@ -414,12 +434,28 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     }
 
     //
-    // All allocation and deallocation are performed
+    // All deallocation requests are received
     //
-    g_IsNewRequestForDeAllocation       = FALSE;
-    g_IsNewRequestForAllocationReceived = FALSE;
+    g_IsNewRequestForDeAllocation = FALSE;
 
     SpinlockUnlock(&LockForReadingPool);
+
+    while (!IsListEmpty(&PoolsToFree))
+    {
+        PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(RemoveHeadList(&PoolsToFree), POOL_TABLE, PoolsList);
+
+        //
+        // This item should be freed
+        //
+        PlatformMemFreePool((PVOID)PoolTable->Address);
+
+        //
+        // Free the structure pool
+        //
+        PlatformMemFreePool(PoolTable);
+    }
+
+    SpinlockUnlock(&LockForPerformingAllocation);
 
     return Result;
 }

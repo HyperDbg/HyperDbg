@@ -77,6 +77,12 @@ volatile LONG LockForRequestAllocation;
 volatile LONG LockForReadingPool;
 
 /**
+ * @brief Spinlock for performing allocations and deallocations (only acquired from vmx non-root)
+ *
+ */
+volatile LONG LockForPerformingAllocation;
+
+/**
  * @brief Pool manager memory allocator initialized
  *
  */
