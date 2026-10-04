@@ -78,6 +78,17 @@ CommandDebugCheckComPort(const CHAR * ComPort, UINT32 * Port)
         *Port = COM4_PORT;
         return TRUE;
     }
+#if defined(__linux__)
+    else if (ComPort[0] == '/')
+    {
+        //
+        // A device or socket path (e.g., /dev/ttyS0, or the VMware serial
+        // port socket), only usable by the debugger, it has no I/O port
+        //
+        *Port = 0;
+        return TRUE;
+    }
+#endif // defined(__linux__)
 
     return FALSE;
 }
@@ -186,10 +197,10 @@ HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
     //
     // check if com port address is valid or not
     //
-    if (!CommandDebugCheckComPort(PortName, &Port))
+    if (!CommandDebugCheckComPort(PortName, &Port) || Port == 0)
     {
         //
-        // com port is invalid
+        // com port is invalid (a device path has no I/O port for the debuggee)
         //
         return FALSE;
     }
@@ -411,6 +422,18 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         CommandDebugHelp();
         return;
     }
+
+#if defined(__linux__)
+    //
+    // A device or socket path has no I/O port, so it can't be used by the debuggee
+    //
+    if (IsSerial && IsPrepare && Port == 0)
+    {
+        ShowMessages("err, a device path can only be used with 'remote', use COM1-COM4 with 'prepare'\n\n");
+        CommandDebugHelp();
+        return;
+    }
+#endif // defined(__linux__)
 
     //
     // Perform connecting to the remote machine or prepare to send
