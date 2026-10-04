@@ -24,6 +24,126 @@
 #    include <dlfcn.h>
 #    include <sys/mman.h> // munmap (PlatformUnmapFile)
 #    include <time.h>     // clock_gettime / CLOCK_MONOTONIC (PlatformQueryPerformanceCounter)
+#    include <pthread.h>  // events and threads
+#endif // defined(__linux__)
+
+#if defined(__linux__)
+
+//
+// Events and threads are heap objects behind the HANDLE. Other HANDLEs on Linux
+// are file descriptors, FILE pointers, etc., so every object created here is
+// kept in a registry; PlatformCloseHandle and the event routines only touch a
+// HANDLE after finding it there
+//
+typedef enum _PLATFORM_HANDLE_TYPE
+{
+    PLATFORM_HANDLE_EVENT,
+    PLATFORM_HANDLE_THREAD,
+} PLATFORM_HANDLE_TYPE;
+
+typedef struct _PLATFORM_HANDLE_OBJECT
+{
+    struct _PLATFORM_HANDLE_OBJECT * Next;
+    PLATFORM_HANDLE_TYPE             Type;
+
+    //
+    // PLATFORM_HANDLE_EVENT
+    //
+    pthread_mutex_t Lock;
+    pthread_cond_t  Cond;
+    BOOLEAN         ManualReset;
+    BOOLEAN         Signaled;
+
+    //
+    // PLATFORM_HANDLE_THREAD
+    //
+    pthread_t Thread;
+
+} PLATFORM_HANDLE_OBJECT, *PPLATFORM_HANDLE_OBJECT;
+
+static pthread_mutex_t         g_PlatformHandleRegistryLock = PTHREAD_MUTEX_INITIALIZER;
+static PPLATFORM_HANDLE_OBJECT g_PlatformHandleRegistry     = NULL;
+
+/**
+ * @brief Add an object to the handle registry
+ */
+static VOID
+PlatformHandleRegister(PPLATFORM_HANDLE_OBJECT Object)
+{
+    pthread_mutex_lock(&g_PlatformHandleRegistryLock);
+    Object->Next             = g_PlatformHandleRegistry;
+    g_PlatformHandleRegistry = Object;
+    pthread_mutex_unlock(&g_PlatformHandleRegistryLock);
+}
+
+/**
+ * @brief Find an object in the handle registry
+ *
+ * @param Handle
+ * @param Remove TRUE to also unlink it from the registry
+ *
+ * @return PPLATFORM_HANDLE_OBJECT the object, or NULL if Handle isn't one
+ */
+static PPLATFORM_HANDLE_OBJECT
+PlatformHandleLookup(HANDLE Handle, BOOLEAN Remove)
+{
+    PPLATFORM_HANDLE_OBJECT * Link;
+    PPLATFORM_HANDLE_OBJECT   Found = NULL;
+
+    pthread_mutex_lock(&g_PlatformHandleRegistryLock);
+
+    for (Link = &g_PlatformHandleRegistry; *Link != NULL; Link = &(*Link)->Next)
+    {
+        if ((HANDLE)*Link == Handle)
+        {
+            Found = *Link;
+
+            if (Remove)
+                *Link = Found->Next;
+
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&g_PlatformHandleRegistryLock);
+
+    return Found;
+}
+
+/**
+ * @brief Find an event in the handle registry
+ */
+static PPLATFORM_HANDLE_OBJECT
+PlatformEventLookup(HANDLE Handle)
+{
+    PPLATFORM_HANDLE_OBJECT Object = PlatformHandleLookup(Handle, FALSE);
+
+    return (Object != NULL && Object->Type == PLATFORM_HANDLE_EVENT) ? Object : NULL;
+}
+
+//
+// Start parameters of a thread, freed by the thread itself
+//
+typedef struct _PLATFORM_THREAD_START
+{
+    PLATFORM_THREAD_ROUTINE Routine;
+    PVOID                   Param;
+} PLATFORM_THREAD_START, *PPLATFORM_THREAD_START;
+
+/**
+ * @brief pthread entry point that calls the Win32-style thread routine
+ */
+static void *
+PlatformThreadTrampoline(void * Arg)
+{
+    PLATFORM_THREAD_START Start = *(PPLATFORM_THREAD_START)Arg;
+
+    free(Arg);
+    Start.Routine(Start.Param);
+
+    return NULL;
+}
+
 #endif // defined(__linux__)
 
 /**
@@ -537,14 +657,29 @@ PlatformCreateEvent(BOOLEAN ManualReset, BOOLEAN InitialState)
 #if defined(_WIN32)
     return CreateEvent(NULL, ManualReset, InitialState, NULL);
 #elif defined(__linux__)
+    PPLATFORM_HANDLE_OBJECT Event;
+    pthread_condattr_t      CondAttr;
+
+    Event = (PPLATFORM_HANDLE_OBJECT)calloc(1, sizeof(PLATFORM_HANDLE_OBJECT));
+    if (Event == NULL)
+        return NULL;
+
+    Event->Type        = PLATFORM_HANDLE_EVENT;
+    Event->ManualReset = ManualReset;
+    Event->Signaled    = InitialState;
+
     //
-    // TODO: back this with a pthread mutex+cond (or eventfd) when the Linux
-    //       kernel-debugger transport is implemented. For now return a dummy
-    //       non-NULL handle so existing NULL-checks treat creation as success.
+    // Timed waits use the monotonic clock so wall-clock changes don't affect them
     //
-    (void)ManualReset;
-    (void)InitialState;
-    return (HANDLE)(uintptr_t)1;
+    pthread_condattr_init(&CondAttr);
+    pthread_condattr_setclock(&CondAttr, CLOCK_MONOTONIC);
+    pthread_cond_init(&Event->Cond, &CondAttr);
+    pthread_condattr_destroy(&CondAttr);
+    pthread_mutex_init(&Event->Lock, NULL);
+
+    PlatformHandleRegister(Event);
+
+    return (HANDLE)Event;
 #else
 #    error "Unsupported platform"
 #endif
@@ -559,7 +694,24 @@ PlatformSetEvent(HANDLE EventHandle)
 #if defined(_WIN32)
     return (BOOLEAN)SetEvent(EventHandle);
 #elif defined(__linux__)
-    (void)EventHandle; // TODO: signal the underlying cond/eventfd
+    PPLATFORM_HANDLE_OBJECT Event = PlatformEventLookup(EventHandle);
+
+    if (Event == NULL)
+        return FALSE;
+
+    pthread_mutex_lock(&Event->Lock);
+    Event->Signaled = TRUE;
+
+    //
+    // A manual-reset event releases every waiter, an auto-reset event only one
+    //
+    if (Event->ManualReset)
+        pthread_cond_broadcast(&Event->Cond);
+    else
+        pthread_cond_signal(&Event->Cond);
+
+    pthread_mutex_unlock(&Event->Lock);
+
     return TRUE;
 #else
 #    error "Unsupported platform"
@@ -575,7 +727,15 @@ PlatformResetEvent(HANDLE EventHandle)
 #if defined(_WIN32)
     return (BOOLEAN)ResetEvent(EventHandle);
 #elif defined(__linux__)
-    (void)EventHandle; // TODO: clear the underlying cond/eventfd
+    PPLATFORM_HANDLE_OBJECT Event = PlatformEventLookup(EventHandle);
+
+    if (Event == NULL)
+        return FALSE;
+
+    pthread_mutex_lock(&Event->Lock);
+    Event->Signaled = FALSE;
+    pthread_mutex_unlock(&Event->Lock);
+
     return TRUE;
 #else
 #    error "Unsupported platform"
@@ -585,7 +745,9 @@ PlatformResetEvent(HANDLE EventHandle)
 /**
  * @brief Platform independent wrapper for WaitForSingleObject
  *
- * @return 0 (WAIT_OBJECT_0) on success
+ * @details On Linux only events can be waited on
+ *
+ * @return WAIT_OBJECT_0 when signaled, WAIT_TIMEOUT, or WAIT_FAILED
  */
 DWORD
 PlatformWaitForSingleObject(HANDLE Handle, DWORD TimeoutMilliseconds)
@@ -593,13 +755,51 @@ PlatformWaitForSingleObject(HANDLE Handle, DWORD TimeoutMilliseconds)
 #if defined(_WIN32)
     return WaitForSingleObject(Handle, TimeoutMilliseconds);
 #elif defined(__linux__)
+    PPLATFORM_HANDLE_OBJECT Event = PlatformEventLookup(Handle);
+    struct timespec         Deadline;
+    int                     Ret = 0;
+
+    if (Event == NULL)
+        return WAIT_FAILED;
+
+    if (TimeoutMilliseconds != INFINITE)
+    {
+        clock_gettime(CLOCK_MONOTONIC, &Deadline);
+        Deadline.tv_sec += TimeoutMilliseconds / 1000;
+        Deadline.tv_nsec += (long)(TimeoutMilliseconds % 1000) * 1000000L;
+
+        if (Deadline.tv_nsec >= 1000000000L)
+        {
+            Deadline.tv_sec += 1;
+            Deadline.tv_nsec -= 1000000000L;
+        }
+    }
+
+    pthread_mutex_lock(&Event->Lock);
+
+    while (!Event->Signaled && Ret != ETIMEDOUT)
+    {
+        if (TimeoutMilliseconds == INFINITE)
+            pthread_cond_wait(&Event->Cond, &Event->Lock);
+        else
+            Ret = pthread_cond_timedwait(&Event->Cond, &Event->Lock, &Deadline);
+    }
+
+    if (!Event->Signaled)
+    {
+        pthread_mutex_unlock(&Event->Lock);
+        return WAIT_TIMEOUT;
+    }
+
     //
-    // TODO: wait on the underlying cond/eventfd. For now return immediately as
-    //       success — no real transport exists yet to wait on.
+    // An auto-reset event is consumed by the waiter it releases
     //
-    (void)Handle;
-    (void)TimeoutMilliseconds;
-    return 0;
+    if (!Event->ManualReset)
+        Event->Signaled = FALSE;
+
+    pthread_mutex_unlock(&Event->Lock);
+
+    return WAIT_OBJECT_0;
 #else
 #    error "Unsupported platform"
 #endif
@@ -614,7 +814,30 @@ PlatformCloseHandle(HANDLE Handle)
 #if defined(_WIN32)
     return (BOOLEAN)CloseHandle(Handle);
 #elif defined(__linux__)
-    (void)Handle; // TODO: free the underlying cond/eventfd or close the fd
+    PPLATFORM_HANDLE_OBJECT Object = PlatformHandleLookup(Handle, TRUE);
+
+    //
+    // Not an event or a thread, nothing is released for other handle kinds yet
+    //
+    if (Object == NULL)
+        return TRUE;
+
+    if (Object->Type == PLATFORM_HANDLE_EVENT)
+    {
+        pthread_cond_destroy(&Object->Cond);
+        pthread_mutex_destroy(&Object->Lock);
+    }
+    else
+    {
+        //
+        // Like CloseHandle on a Win32 thread, the thread keeps running, it
+        // just releases its resources itself once it exits
+        //
+        pthread_detach(Object->Thread);
+    }
+
+    free(Object);
+
     return TRUE;
 #else
 #    error "Unsupported platform"
@@ -634,14 +857,33 @@ PlatformCreateThread(PLATFORM_THREAD_ROUTINE Routine, PVOID Param)
 #if defined(_WIN32)
     return CreateThread(NULL, 0, Routine, Param, 0, NULL);
 #elif defined(__linux__)
-    //
-    // TODO: back this with pthread_create when the Linux kernel-debugger
-    //       transport is implemented. Returning NULL leaves the listening
-    //       thread unstarted, which is all the callers check for.
-    //
-    (void)Routine;
-    (void)Param;
-    return NULL;
+    PPLATFORM_HANDLE_OBJECT Object;
+    PPLATFORM_THREAD_START  Start;
+
+    Object = (PPLATFORM_HANDLE_OBJECT)calloc(1, sizeof(PLATFORM_HANDLE_OBJECT));
+    Start  = (PPLATFORM_THREAD_START)malloc(sizeof(PLATFORM_THREAD_START));
+
+    if (Object == NULL || Start == NULL)
+    {
+        free(Object);
+        free(Start);
+        return NULL;
+    }
+
+    Object->Type   = PLATFORM_HANDLE_THREAD;
+    Start->Routine = Routine;
+    Start->Param   = Param;
+
+    if (pthread_create(&Object->Thread, NULL, PlatformThreadTrampoline, Start) != 0)
+    {
+        free(Object);
+        free(Start);
+        return NULL;
+    }
+
+    PlatformHandleRegister(Object);
+
+    return (HANDLE)Object;
 #else
 #    error "Unsupported platform"
 #endif
@@ -666,9 +908,9 @@ PlatformCreateThread(PLATFORM_THREAD_ROUTINE Routine, PVOID Param)
  *          (teardown before thread-kill, and SD_SEND -> SHUT_RDWR to wake a
  *          blocked reader), which the port's no-logic-changes rule defers.
  *
- *          Returning TRUE is consistent with PlatformCreateThread, which
- *          returns NULL on Linux — the thread is never started there, so
- *          there is nothing to terminate yet.
+ *          Until then this is a no-op that returns TRUE: the thread keeps
+ *          running and leaves its loop on the next receive error, and
+ *          PlatformCloseHandle detaches it so it is cleaned up on exit.
  *
  * @param Thread handle to the thread to terminate
  * @param ExitCode exit code for the terminated thread
