@@ -127,11 +127,10 @@ PlatformTimeConvertToTimeFields(PLARGE_INTEGER Time, PTIME_FIELDS TimeFields)
 
 /**
  * @brief Read the performance counter (and, optionally, its frequency).
- * @details Windows: KeQueryPerformanceCounter(). Linux arm is a stub that
- *          reports 0 for both counter and frequency.
- *
- * TODO(Linux): back with ktime_get_ns()/tsc so busy-wait loops using this
- *              actually elapse.
+ * @details Windows: KeQueryPerformanceCounter(). Linux: ktime_get_ns(), whose
+ *          tick is one nanosecond — so the reported frequency is fixed at
+ *          NSEC_PER_SEC. Both platforms only promise a monotonic counter plus
+ *          the frequency needed to convert it, which is all the callers use.
  */
 LARGE_INTEGER
 PlatformTimeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency)
@@ -143,12 +142,12 @@ PlatformTimeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency)
 #elif defined(__linux__)
 
     LARGE_INTEGER Counter;
-    Counter.QuadPart = 0;
+    Counter.QuadPart = (LONGLONG)ktime_get_ns();
 
     if (PerformanceFrequency != NULL)
-        PerformanceFrequency->QuadPart = 0;
+        PerformanceFrequency->QuadPart = NSEC_PER_SEC;
 
-    return Counter; // TODO(Linux)
+    return Counter;
 
 #else
 

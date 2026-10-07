@@ -15,6 +15,7 @@
 
 #if defined(__linux__)
 #    include "../header/PlatformMem.h"
+#    include <linux/io.h> // ioremap / iounmap / virt_to_phys / phys_to_virt
 #endif // defined(__linux__)
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -269,10 +270,10 @@ PlatformMemFreePool(PVOID BufferAddress)
 //
 // -------------------------------------------------------------------------
 // Cross-platform wrappers for the memory-manager / pool APIs the shared sources
-// use. Windows forwards to the WDK; the Linux arm is a placeholder stub for now.
+// use. Windows forwards to the WDK; the Linux arm forwards to the equivalent
+// kernel API where one exists, and is still a placeholder stub where it does not
+// (see the remaining TODO(Linux) markers below).
 // The #ifdef lives INSIDE each wrapper so the call sites stay OS-agnostic.
-// TODO(Linux): replace each Linux arm with its real equivalent (ioremap,
-//              virt_to_phys, phys_to_virt, ...) as the callers are brought up.
 // -------------------------------------------------------------------------
 //
 
@@ -282,7 +283,24 @@ PlatformMemMapIoSpace(PHYSICAL_ADDRESS PhysicalAddress, SIZE_T NumberOfBytes, ME
 #if defined(_WIN32) || defined(_WIN64)
     return MmMapIoSpace(PhysicalAddress, NumberOfBytes, CacheType);
 #elif defined(__linux__)
-    return NULL; // TODO(Linux): ioremap()
+    //
+    // MmMapIoSpace takes the cacheability as an argument, so pick the ioremap
+    // flavour that matches rather than defaulting everything to uncached —
+    // plain ioremap() is UC- on x86, which would silently be the wrong
+    // attribute for an MmCached or MmWriteCombined request.
+    //
+    switch (CacheType)
+    {
+    case MmCached:
+        return (PVOID)ioremap_cache((phys_addr_t)PhysicalAddress.QuadPart, NumberOfBytes);
+
+    case MmWriteCombined:
+        return (PVOID)ioremap_wc((phys_addr_t)PhysicalAddress.QuadPart, NumberOfBytes);
+
+    case MmNonCached:
+    default:
+        return (PVOID)ioremap((phys_addr_t)PhysicalAddress.QuadPart, NumberOfBytes);
+    }
 #endif
 }
 
@@ -302,7 +320,13 @@ PlatformMemUnmapIoSpace(PVOID BaseAddress, SIZE_T NumberOfBytes)
 #if defined(_WIN32) || defined(_WIN64)
     MmUnmapIoSpace(BaseAddress, NumberOfBytes);
 #elif defined(__linux__)
-    // no-op // TODO(Linux): iounmap()
+    //
+    // iounmap() recovers the length from the vm_area it created, so the
+    // NumberOfBytes the WDK needs is unused here.
+    //
+    UNREFERENCED_PARAMETER(NumberOfBytes);
+
+    iounmap((void __iomem *)BaseAddress);
 #endif
 }
 
@@ -312,9 +336,16 @@ PlatformMemGetPhysicalAddress(PVOID BaseAddress)
 #if defined(_WIN32) || defined(_WIN64)
     return MmGetPhysicalAddress(BaseAddress);
 #elif defined(__linux__)
+    //
+    // virt_to_phys() is valid for direct-map (kmalloc/kzalloc) addresses, which
+    // is what every Platform* allocator in this file hands out. It is NOT valid
+    // for vmalloc or ioremap addresses — MmGetPhysicalAddress resolves those on
+    // Windows, so a caller that starts passing one will need vmalloc_to_pfn()
+    // here instead.
+    //
     PHYSICAL_ADDRESS Pa;
-    Pa.QuadPart = 0;
-    return Pa; // TODO(Linux): virt_to_phys()
+    Pa.QuadPart = (LONGLONG)virt_to_phys(BaseAddress);
+    return Pa;
 #endif
 }
 
@@ -324,7 +355,7 @@ PlatformMemGetVirtualForPhysical(PHYSICAL_ADDRESS PhysicalAddress)
 #if defined(_WIN32) || defined(_WIN64)
     return MmGetVirtualForPhysical(PhysicalAddress);
 #elif defined(__linux__)
-    return NULL; // TODO(Linux): phys_to_virt()
+    return phys_to_virt((phys_addr_t)PhysicalAddress.QuadPart);
 #endif
 }
 
@@ -364,7 +395,11 @@ PlatformMemFreeContiguousMemory(PVOID BaseAddress)
 #if defined(_WIN32) || defined(_WIN64)
     MmFreeContiguousMemory(BaseAddress);
 #elif defined(__linux__)
-    // no-op // TODO(Linux): pair with the contiguous allocator used by callers
+    //
+    // Pairs with PlatformMemAllocateContiguousZeroedMemory above, which backs
+    // the contiguous allocation with kzalloc().
+    //
+    kfree(BaseAddress);
 #endif
 }
 
@@ -387,7 +422,11 @@ PlatformMemFreePoolUntagged(PVOID P)
 #if defined(_WIN32) || defined(_WIN64)
     ExFreePool(P);
 #elif defined(__linux__)
-    // no-op // TODO(Linux): kfree(), paired with the matching allocation stub
+    //
+    // Pairs with the kmalloc/kzalloc-backed PlatformMemAllocate* wrappers above
+    // (kfree tolerates NULL, matching the callers' expectations).
+    //
+    kfree(P);
 #endif
 }
 

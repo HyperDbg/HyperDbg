@@ -2432,14 +2432,34 @@ KdSendResponseOfThePingPacket()
     //
     // ShowMessages("the ping request is received\n");
 
+    CHAR * Signature       = (CHAR *)BuildSignature;
+    UINT32 SignatureLength = sizeof(BuildSignature);
+
+#if defined(__linux__)
+    //
+    // TODO(Linux): DEV ONLY, remove before merging. Lets the signature sent to a
+    // separately built (Windows) debuggee be overridden, e.g.,
+    // HYPERDBG_BUILD_SIGNATURE=0.2.0-20261004.0959
+    //
+    CHAR * OverrideSignature = getenv("HYPERDBG_BUILD_SIGNATURE");
+
+    if (OverrideSignature != NULL && OverrideSignature[0] != '\0')
+    {
+        ShowMessages("sending overridden build signature '%s' (dev only)\n", OverrideSignature);
+
+        Signature       = OverrideSignature;
+        SignatureLength = (UINT32)strlen(OverrideSignature) + 1;
+    }
+#endif // defined(__linux__)
+
     //
     // Send the handshake packet to debuggee
     //
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DEBUGGER_VERSION,
-            (CHAR *)BuildSignature,
-            sizeof(BuildSignature)))
+            Signature,
+            SignatureLength))
     {
         ShowMessages("err, unable to send response to the ping packet\n");
         return FALSE;
@@ -2524,10 +2544,8 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
         }
 #else
         //
-        // TODO(Linux): waiting for the first byte on the serial port is
-        // Win32-only here (SetCommMask/WaitCommEvent); the Linux home for it is
-        // platform-serial.c. Unreachable for now, as the Linux serial path is
-        // refused in KdPrepareAndConnectDebugPort.
+        // Linux: no need to wait for the first byte explicitly, the serial
+        // handle is blocking so the reads that follow wait for it
         //
 #endif // _WIN32
     }
@@ -2771,6 +2789,23 @@ StartAgain:
 }
 
 /**
+ * @brief Close the serial (or named pipe) handle of the kernel debugger
+ *
+ * @param Handle
+ *
+ * @return BOOLEAN
+ */
+static BOOLEAN
+KdCloseSerialHandle(HANDLE Handle)
+{
+#ifdef _WIN32
+    return PlatformCloseHandle(Handle);
+#else
+    return PlatformSerialClose(Handle);
+#endif // _WIN32
+}
+
+/**
  * @brief Prepare and initialize COM port
  *
  * @param PortName
@@ -2940,13 +2975,24 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
     */
 #else
         //
-        // TODO(Linux): opening and configuring the serial port is Win32-only
-        // here (CreateFile/PurgeComm/GetCommState/SetCommState). The Linux
-        // home for this is platform-serial.c, whose serial routines are still
-        // stubs. Until they are implemented, refuse the serial path.
+        // It's a serial, PortName is a tty device or a UNIX socket (e.g., the
+        // VMware serial port socket)
         //
-        ShowMessages("err, serial connection is not supported on Linux yet\n");
-        return FALSE;
+        Comm = PlatformSerialOpen(PortName,
+                                  IsPreparing ? PLATFORM_SERIAL_IO_DEBUGGEE : PLATFORM_SERIAL_IO_DEBUGGER);
+
+        if (Comm == NULL)
+        {
+            ShowMessages("err, unable to open '%s' (%s)\n", PortName, strerror(errno));
+            return FALSE;
+        }
+
+        if (!PlatformSerialConfigure(Comm, Baudrate))
+        {
+            ShowMessages("err, unable to configure '%s' (%s)\n", PortName, strerror(errno));
+            PlatformSerialClose(Comm);
+            return FALSE;
+        }
 #endif // _WIN32
     }
     else
@@ -2987,7 +3033,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         //
         if (!KdCheckIfDebuggerIsListening(Comm))
         {
-            PlatformCloseHandle(Comm);
+            KdCloseSerialHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
             g_IsDebuggeeInHandshakingPhase = FALSE;
 
@@ -3012,7 +3058,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         //
         if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
-            PlatformCloseHandle(Comm);
+            KdCloseSerialHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
             g_IsConnectedToHyperDbgLocally = FALSE;
 
@@ -3026,7 +3072,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         //
         if (!g_DeviceHandle)
         {
-            PlatformCloseHandle(Comm);
+            KdCloseSerialHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
             g_IsConnectedToHyperDbgLocally = FALSE;
 
@@ -3041,7 +3087,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
 
         if (DebuggeeRequest == NULL)
         {
-            PlatformCloseHandle(Comm);
+            KdCloseSerialHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
             g_IsConnectedToHyperDbgLocally = FALSE;
 
@@ -3091,7 +3137,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
 
         if (!StatusIoctl)
         {
-            PlatformCloseHandle(Comm);
+            KdCloseSerialHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
             g_IsConnectedToHyperDbgLocally = FALSE;
 
@@ -3124,7 +3170,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         }
         else
         {
-            PlatformCloseHandle(Comm);
+            KdCloseSerialHandle(Comm);
             g_SerialRemoteComPortHandle    = NULL;
             g_IsConnectedToHyperDbgLocally = FALSE;
 
@@ -3899,7 +3945,7 @@ KdUninitializeConnection()
     //
     if (g_SerialRemoteComPortHandle != NULL)
     {
-        PlatformCloseHandle(g_SerialRemoteComPortHandle);
+        KdCloseSerialHandle(g_SerialRemoteComPortHandle);
         g_SerialRemoteComPortHandle = NULL;
     }
 

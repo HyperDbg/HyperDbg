@@ -1554,10 +1554,8 @@ StartAgain:
     }
 #else
     //
-    // TODO(Linux): waiting for the first byte on the serial port is
-    // Win32-only here (SetCommMask/WaitCommEvent); the Linux home for it is
-    // platform-serial.c. Unreachable for now, as the Linux serial path is
-    // refused in KdPrepareAndConnectDebugPort.
+    // Linux: no need to wait for the first byte explicitly, the serial
+    // handle is blocking so the read below waits for it
     //
 #endif // _WIN32
 

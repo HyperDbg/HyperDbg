@@ -13,6 +13,7 @@
 
 #if defined(__linux__)
 #    include "../header/PlatformProcess.h"
+#    include <linux/sched/task.h> // init_task
 
 //
 // Backing token for the NT global PsProcessType declared in PlatformProcess.h —
@@ -182,8 +183,11 @@ PlatformProcessGetCurrentThreadTeb(VOID)
 //
 
 /**
- * @brief The System process' EPROCESS. Windows: PsInitialSystemProcess. Linux:
- *        NULL stub. TODO(Linux): a PEPROCESS shim over &init_task.
+ * @brief The System process' EPROCESS. Windows: PsInitialSystemProcess.
+ *        Linux: init_task, the swapper/0 task every other task descends from,
+ *        which is the closest counterpart to the NT System process. PEPROCESS
+ *        is opaque and backed by task_struct on Linux (see WdkTypes.h), so the
+ *        address is handed straight back.
  */
 PEPROCESS
 PlatformProcessGetInitialSystemProcess(VOID)
@@ -191,7 +195,7 @@ PlatformProcessGetInitialSystemProcess(VOID)
 #if defined(_WIN32) || defined(_WIN64)
     return PsInitialSystemProcess;
 #elif defined(__linux__)
-    return NULL; // TODO(Linux)
+    return (PEPROCESS)&init_task;
 #endif
 }
 

@@ -119,6 +119,8 @@ typedef void * HMODULE;
 // Win32 wait/event constants (used by the cross-platform sync wrappers)
 #    define INFINITE      0xFFFFFFFF
 #    define WAIT_OBJECT_0 0x00000000
+#    define WAIT_TIMEOUT  0x00000102
+#    define WAIT_FAILED   0xFFFFFFFF
 
 // Win32 invalid handle sentinel (returned by the cross-platform file/serial wrappers)
 #    define INVALID_HANDLE_VALUE ((HANDLE)(SIZE_T)-1)
