@@ -40,6 +40,9 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId);
 BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
 
+BOOLEAN
+AttachingConfigureInterceptingThreadsLocked(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail, BOOLEAN Enable);
+
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 

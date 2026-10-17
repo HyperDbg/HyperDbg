@@ -11,6 +11,83 @@
  */
 #include "pch.h"
 
+typedef struct _UD_UNINITIALIZE_CONTEXT
+{
+    volatile INT64 Arrived;
+    volatile LONG  Released;
+    INT64          ProcessorCount;
+} UD_UNINITIALIZE_CONTEXT;
+
+/**
+ * @brief Enter a root rendezvous, or drain earlier root readers on this CPU
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ */
+static VOID
+UdSynchronizeDpc(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    if (DeferredContext != NULL)
+    {
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_UNINITIALIZE_USER_DEBUGGER, (UINT64)DeferredContext, 0, 0);
+    }
+    PlatformBroadcastSynchronizeEndOfRoutine(SystemArgument1, SystemArgument2);
+}
+
+/**
+ * @brief Drain readers after a process has been unlinked from the lookup list
+ */
+VOID
+UdSynchronizeUserDebugger()
+{
+    PlatformDpcGenericCall(UdSynchronizeDpc, NULL);
+}
+
+/**
+ * @brief Cancel restoration on each CPU and restore bytes while all CPUs are in root
+ * @param CoreId
+ * @param Context
+ */
+VOID
+UdUninitializeUserDebuggerOnCore(UINT32 CoreId, PVOID Context)
+{
+    UD_UNINITIALIZE_CONTEXT *   Rendezvous = (UD_UNINITIALIZE_CONTEXT *)Context;
+    PROCESSOR_DEBUGGING_STATE * DbgState   = &g_DbgState[CoreId];
+
+    if (DbgState->SoftwareBreakpointState != NULL)
+    {
+        DbgState->SoftwareBreakpointState = NULL;
+        VmFuncEnableAndCheckForPreviousExternalInterrupts(CoreId);
+        VmFuncChangeIgnoreOneMtfState(CoreId, TRUE);
+    }
+    CpuInterlockedIncrement64(&Rendezvous->Arrived);
+    while (CpuInterlockedCompareExchange64(&Rendezvous->Arrived, 0, 0) != Rendezvous->ProcessorCount)
+    {
+        CpuPause();
+    }
+    if (CoreId == 0)
+    {
+        LIST_FOR_EACH_LINK(g_BreakpointsListHead, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList, Breakpoint)
+        {
+            BreakpointClear(Breakpoint);
+            Breakpoint->Enabled                = FALSE;
+            Breakpoint->AvoidReApplyBreakpoint = TRUE;
+        }
+        g_UserDebuggerState          = FALSE;
+        g_UserDebuggerUninitializing = TRUE;
+        CpuInterlockedExchange(&Rendezvous->Released, TRUE);
+    }
+    else
+    {
+        while (!CpuInterlockedCompareExchange(&Rendezvous->Released, FALSE, FALSE))
+        {
+            CpuPause();
+        }
+    }
+}
+
 /**
  * @brief initialize user debugger
  * @details this function should be called on vmx non-root
@@ -72,6 +149,7 @@ UdInitializeUserDebugger()
     //
     SynchronizationInitializeEvent(&g_UserDebuggerWaitingCommandEvent);
     CpuInterlockedExchange(&g_UserDebuggerCommandCompleted, FALSE);
+    g_UserDebuggerUninitializing = FALSE;
 
     //
     // Indicate that the user debugger is active
@@ -92,6 +170,15 @@ UdUninitializeUserDebugger()
 {
     if (g_UserDebuggerState)
     {
+        //
+        // No CPU may rearm a breakpoint after the final byte restoration.
+        // Rendezvous in root before removing descriptors in non-root.
+        //
+        UD_UNINITIALIZE_CONTEXT Rendezvous = {0};
+        Rendezvous.ProcessorCount          = PlatformCpuGetActiveProcessorCount();
+        PlatformDpcGenericCall(UdSynchronizeDpc, &Rendezvous);
+        BreakpointRemoveAllBreakpoints();
+
         //
         // Indicate that the user debugger is not active
         //
@@ -119,10 +206,10 @@ UdUninitializeUserDebugger()
  *
  * @return BOOLEAN
  */
-BOOLEAN
-UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
-                     DEBUGGEE_PAUSING_REASON             Reason,
-                     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+static BOOLEAN
+UdHandleInstantBreakLocked(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                           DEBUGGEE_PAUSING_REASON             Reason,
+                           PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
     //
     // Check if the process debugging details is available or not
@@ -148,7 +235,7 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
     //
     // Add the process to the watching list to be able to intercept the threads
     //
-    if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, TRUE))
+    if (AttachingConfigureInterceptingThreadsLocked(ProcessDebuggingDetail, TRUE))
     {
         //
         // Since the adding it to the watching list will take effect from the next
@@ -168,6 +255,33 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
     // If we reached here, it means that we couldn't add the process to the
     //
     return FALSE;
+}
+
+/**
+ * @brief Serialize pause publication with root-side continue and interception
+ * @param DbgState
+ * @param Reason
+ * @param ProcessDebuggingDetail
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
+                     DEBUGGEE_PAUSING_REASON             Reason,
+                     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+{
+    BOOLEAN Handled;
+    if (ProcessDebuggingDetail == NULL)
+    {
+        ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
+    }
+    if (ProcessDebuggingDetail == NULL)
+    {
+        return FALSE;
+    }
+    SpinlockLock(&ProcessDebuggingDetail->ThreadStateLock);
+    Handled = UdHandleInstantBreakLocked(DbgState, Reason, ProcessDebuggingDetail);
+    SpinlockUnlock(&ProcessDebuggingDetail->ThreadStateLock);
+    return Handled;
 }
 
 /**
@@ -996,21 +1110,18 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgS
                                               ExitInstructionLength);
 
     //
-    // Send the pause packet, along with RIP and an indication
-    // to pause to the user debugger
-    //
-    LogCallbackSendBuffer(OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE,
-                          &PausePacket,
-                          sizeof(DEBUGGEE_UD_PAUSED_PACKET),
-                          TRUE);
-
-    //
-    // Set the thread debugging details
+    // Commit the paused state before notifying the client. An immediate
+    // continue/step must not race a later write that pauses the thread again.
     //
     UdSetThreadPausingState(ThreadDebuggingDetails,
                             ProcessDebuggingDetails,
                             &PausePacket.InstructionBytesOnRip,
                             ExitInstructionLength);
+
+    LogCallbackSendBuffer(OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE,
+                          &PausePacket,
+                          sizeof(DEBUGGEE_UD_PAUSED_PACKET),
+                          TRUE);
 
     //
     // Everything was okay
