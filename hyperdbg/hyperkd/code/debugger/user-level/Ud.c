@@ -71,6 +71,7 @@ UdInitializeUserDebugger()
     // Initialize command waiting event
     //
     SynchronizationInitializeEvent(&g_UserDebuggerWaitingCommandEvent);
+    CpuInterlockedExchange(&g_UserDebuggerCommandCompleted, FALSE);
 
     //
     // Indicate that the user debugger is active
@@ -385,10 +386,6 @@ UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
-    //
-    // Set the event to indicate that the command is completed
-    //
-    SynchronizationSetEvent(&g_UserDebuggerWaitingCommandEvent);
 }
 
 /**
@@ -463,10 +460,6 @@ UdRunScript(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
-    //
-    // Set the event to indicate that the command is completed
-    //
-    SynchronizationSetEvent(&g_UserDebuggerWaitingCommandEvent);
 }
 
 /**
@@ -586,6 +579,8 @@ UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
     {
         if (ThreadDebuggingDetails->UdAction[i].ActionType != DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
         {
+            DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType = ThreadDebuggingDetails->UdAction[i].ActionType;
+
             //
             // We found a command for this thread
             //
@@ -615,6 +610,16 @@ UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
             // At last disable it
             //
             ThreadDebuggingDetails->UdAction[i].ActionType = DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE;
+
+            if (ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS ||
+                ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_EXECUTE_SCRIPT_BUFFER)
+            {
+                //
+                // Never call KeSetEvent from VMX-root. Publish only after the
+                // slot is clear, so the next serialized request can reuse it.
+                //
+                CpuInterlockedExchange(&g_UserDebuggerCommandCompleted, TRUE);
+            }
 
             //
             // only one command at a time
@@ -666,6 +671,8 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
     //
     if (ActionRequest->WaitForEventCompletion)
     {
+        CpuInterlockedExchange(&g_UserDebuggerCommandCompleted, FALSE);
+
         //
         // Set the command event buffer
         //
@@ -695,7 +702,27 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
         //
         // Wait for the command to be completed
         //
-        SynchronizationWaitForEvent(&g_UserDebuggerWaitingCommandEvent);
+        LARGE_INTEGER PollInterval;
+        PollInterval.QuadPart = -10000; // one millisecond, relative
+
+        //
+        // Only the ordinary IOCTL thread may call the Windows dispatcher.
+        // A timed wait yields its CPU while the VMX-root handler publishes
+        // completion with an interlocked operation.
+        //
+        while (!CpuInterlockedCompareExchange(&g_UserDebuggerCommandCompleted, FALSE, FALSE))
+        {
+            PlatformEventWait(&g_UserDebuggerWaitingCommandEvent,
+                              Executive,
+                              KernelMode,
+                              FALSE,
+                              &PollInterval);
+        }
+    }
+
+    if (ActionRequest->WaitForEventCompletion)
+    {
+        g_UserDebuggerWaitingCommandBuffer = NULL;
     }
 
     //
