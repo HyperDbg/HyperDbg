@@ -141,6 +141,14 @@ CommandBpRequest(UINT64 Address, UINT32 Pid, UINT32 Tid, UINT32 CoreNumer)
     //
     if (g_ActiveProcessDebuggingState.IsActive)
     {
+        //
+        // Local breakpoints need the target process's memory layout, just as
+        // the bp command does when no process filter is specified.
+        //
+        if (BpPacket.Pid == DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES)
+        {
+            BpPacket.Pid = g_ActiveProcessDebuggingState.ProcessId;
+        }
         return CommandBpPerformApplyingBreakpointOnUserDebugger(&BpPacket);
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
