@@ -34,6 +34,7 @@ typedef struct _USERMODE_DEBUGGING_THREAD_DETAILS
     UINT32                     ThreadId;
     UINT64                     ThreadRip; // if IsPaused is TRUE
     BOOLEAN                    IsPaused;
+    volatile INT64             PendingSoftwareBreakpointId;
     BYTE                       InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
     UINT32                     SizeOfInstruction;
     UINT64                     NumberOfBlockedContextSwitches;
@@ -83,6 +84,9 @@ ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGI
 BOOLEAN
 ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails,
                                        PDEBUGGER_UD_COMMAND_PACKET         ActionRequest);
+
+VOID
+ThreadHolderCancelPendingBreakpoints(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
 
 VOID
 ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);

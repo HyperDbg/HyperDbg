@@ -492,6 +492,30 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
 }
 
 /**
+ * @brief Release pending watches in VMX-root before non-root memory reclamation
+ * @details The process must be unlinked and earlier root readers drained, or
+ *          the user debugger must already have completed its unload rendezvous.
+ * @param ProcessDebuggingDetail
+ */
+VOID
+ThreadHolderCancelPendingBreakpoints(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+{
+    LIST_FOR_EACH_LINK(ProcessDebuggingDetail->ThreadsListHead, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList, ThreadHolder)
+    {
+        //
+        // Release each pending instruction's independent execution-watch reference.
+        //
+        for (SIZE_T i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        {
+            if (CpuInterlockedExchange64(&ThreadHolder->Threads[i].PendingSoftwareBreakpointId, 0))
+            {
+                ConfigureExecTrapRemoveProcessFromWatchingList(ProcessDebuggingDetail->ProcessId);
+            }
+        }
+    }
+}
+
+/**
  * @brief Free all of thread holder structures
  *
  * @param ProcessDebuggingDetail
@@ -500,6 +524,10 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
 VOID
 ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
 {
+    // The watch-list lock is also taken on CR3 exits. Never acquire it from
+    // a preemptible non-root cleanup path.
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_CANCEL_PENDING_USER_BREAKPOINTS, (UINT64)ProcessDebuggingDetail, 0, 0);
+
     PLIST_ENTRY TempList = 0;
 
     TempList = &ProcessDebuggingDetail->ThreadsListHead;

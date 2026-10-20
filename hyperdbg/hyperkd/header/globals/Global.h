@@ -47,6 +47,16 @@ BOOLEAN g_HyperTraceInitialized;
 KEVENT g_UserDebuggerWaitingCommandEvent;
 
 /**
+ * @brief Command completion published by VMX-root for the waiting IOCTL thread
+ */
+volatile LONG g_UserDebuggerCommandCompleted;
+
+/**
+ * @brief Prevent breakpoint lookup after synchronized user-debugger teardown
+ */
+BOOLEAN g_UserDebuggerUninitializing;
+
+/**
  * @brief Buffer to hold the command from user debugger
  *
  */

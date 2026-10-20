@@ -36,6 +36,7 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
     BOOLEAN    Is32Bit;
     BOOLEAN    IsOnTheStartingPhase;
     BOOLEAN    IsOnThreadInterceptingPhase;
+    volatile LONG ThreadStateLock;                              // acquired only in VMX-root
     BOOLEAN    CheckCallBackForInterceptingFirstInstruction; // checks for the callbacks for interceptions of the very first instruction (used by RE Machine)
     LIST_ENTRY ThreadsListHead;
 
@@ -47,6 +48,12 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
 
 BOOLEAN
 UdInitializeUserDebugger();
+
+VOID
+UdSynchronizeUserDebugger();
+
+VOID
+UdUninitializeUserDebuggerOnCore(UINT32 CoreId, PVOID Context);
 
 VOID
 UdUninitializeUserDebugger();
