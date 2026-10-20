@@ -155,10 +155,12 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
             //
             if (!EptTable->PML2[i][j].LargePage)
             {
+                PEPT_PML2_POINTER Pml2Pointer = (PEPT_PML2_POINTER)&EptTable->PML2[i][j];
+
                 //
-                // Shift to the left to get the PFN
+                // A split entry points to a 4-KB table, not a 2-MB page.
                 //
-                MemoryMapperReadMemorySafeByPhysicalAddress(EptTable->PML2[i][j].PageFrameNumber << 12, (UINT64)Pml1Entries, PAGE_SIZE);
+                MemoryMapperReadMemorySafeByPhysicalAddress(Pml2Pointer->PageFrameNumber << 12, (UINT64)Pml1Entries, PAGE_SIZE);
 
                 //
                 // Set execute access for PML1s
@@ -171,7 +173,7 @@ ModeBasedExecHookEnableUsermodeExecution(PVMM_EPT_PAGE_TABLE EptTable)
                 //
                 // Write back the PML1 entries to the EPT page table
                 //
-                MemoryMapperWriteMemorySafeByPhysicalAddress(EptTable->PML2[i][j].PageFrameNumber << 12, (UINT64)Pml1Entries, PAGE_SIZE);
+                MemoryMapperWriteMemorySafeByPhysicalAddress(Pml2Pointer->PageFrameNumber << 12, (UINT64)Pml1Entries, PAGE_SIZE);
             }
         }
     }
