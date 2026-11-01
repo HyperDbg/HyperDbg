@@ -306,9 +306,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_EXECUTE_XSETBV:
     {
         //
-        // Dispatch and trigger the XSETBV instruction events
+        // Dispatch and trigger the XSETBV instruction events, and call the function which is used for
+        // loginfo if transparency mode is enabled (hyperevade related)
         //
         DispatchEventXsetbv(VCpu);
+        TransparentCheckAndHandleXsetbv(VCpu->LastVmexitRip);
 
         break;
     }

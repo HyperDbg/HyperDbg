@@ -203,3 +203,17 @@ TransparentCheckAndMitigateVmResumeFootprints(UINT64 * ResumeRIP)
     //
     TransparentCheckOverflowingRipNonLongMode(ResumeRIP);
 }
+
+
+/**
+ * @brief handle xsetbv (log)
+ *
+ * @param
+ * @return VOID
+ */
+VOID
+TransparentCheckAndHandleXsetbv(UINT64 Rip)
+{
+    LogInfo("XSETBV used by ==> pid: %llx, tid: %llx, RIP: %llx\n\n", PsGetCurrentProcessId(), PsGetCurrentThreadId(), Rip);
+
+}
