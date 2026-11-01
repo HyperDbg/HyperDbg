@@ -11,7 +11,6 @@ New release of the HyperDbg Debugger.
 - Starting from this version, you can use HyperDbg to debug a Windows machine (guest) from a Linux (host), thanks to [@maxraulea](https://github.com/maxraulea)
 - Filled in user-mode and kernel-mode stubs for Linux port ([link](https://github.com/HyperDbg/HyperDbg/commit/5b9f8e2c280fa4c0c1057f6cf9ca0a4344449595))([link](https://github.com/HyperDbg/HyperDbg/commit/11c2ea9b7cb552a315c6e6a460356a0d495704e8))
 - Added Linux serial transport (termios and UNIX socket) ([link](https://github.com/HyperDbg/HyperDbg/commit/6fb308d57627734148c047231da4a1f2047184f5))
-- Added Linux serial transport (termios and UNIX socket) ([link](https://github.com/HyperDbg/HyperDbg/commit/5b9f8e2c280fa4c0c1057f6cf9ca0a4344449595))
 - Implement Linux events and threads with pthreads ([link](https://github.com/HyperDbg/HyperDbg/commit/b0e7294e3520a326f9833054f572b6d0b21bc2ca))
 - Connect the kernel debugger over serial on Linux ([link](https://github.com/HyperDbg/HyperDbg/commit/afcc9c844133dbfc5c236ae0e36a684891a06f51))
 - Evaluate expressions in address arguments on Linux ([link](https://github.com/HyperDbg/HyperDbg/commit/c561fd8c8af9a784893cf4b5f5d40c944d0e6697))
