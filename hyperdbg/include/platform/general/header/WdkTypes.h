@@ -171,6 +171,7 @@ typedef enum _KWAIT_REASON
 
 #    define STATUS_SUCCESS                ((NTSTATUS)0x00000000L)
 #    define STATUS_PENDING                ((NTSTATUS)0x00000103L)
+#    define STATUS_CANCELLED              ((NTSTATUS)0xC0000120L)
 #    define STATUS_NOT_IMPLEMENTED        ((NTSTATUS)0xC0000002L)
 #    define STATUS_INVALID_PARAMETER      ((NTSTATUS)0xC000000DL)
 #    define STATUS_INFO_LENGTH_MISMATCH   ((NTSTATUS)0xC0000004L)
@@ -534,7 +535,11 @@ typedef struct _IRP
     IO_STATUS_BLOCK IoStatus;
     KPROCESSOR_MODE RequestorMode;
     PVOID           UserBuffer;
+    BOOLEAN         Cancel;
+    KIRQL           CancelIrql;
 } IRP, *PIRP;
+
+typedef VOID (*PDRIVER_CANCEL)(PDEVICE_OBJECT DeviceObject, PIRP Irp);
 
 //////////////////////////////////////////////////
 //                Memory manager                //

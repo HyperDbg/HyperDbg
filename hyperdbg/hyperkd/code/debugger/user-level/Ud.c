@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+//
+// The address of the breakpoint set on all cores for a step over a call, until
+// it is removed
+//
+static volatile UINT64 g_UdStepOverBreakpointAddress = NULL64_ZERO;
+
 /**
  * @brief initialize user debugger
  * @details this function should be called on vmx non-root
@@ -66,11 +72,6 @@ UdInitializeUserDebugger()
     // Request to allocate buffers for thread holder of threads
     //
     ThreadHolderAllocateThreadHoldingBuffers();
-
-    //
-    // Initialize command waiting event
-    //
-    SynchronizationInitializeEvent(&g_UserDebuggerWaitingCommandEvent);
 
     //
     // Indicate that the user debugger is active
@@ -145,9 +146,13 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
     }
 
     //
-    // Add the process to the watching list to be able to intercept the threads
+    // Add the process to the watching list to be able to intercept the threads.
+    // It may be there already (e.g., a breakpoint that is a fault triggers again
+    // on the paused thread, or two threads break at once): refusing it then
+    // re-injected the event into the debuggee (a single-step exception)
     //
-    if (AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, TRUE))
+    if (ProcessDebuggingDetail->IsOnThreadInterceptingPhase ||
+        AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, TRUE))
     {
         //
         // Since the adding it to the watching list will take effect from the next
@@ -179,6 +184,15 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
 VOID
 UdApplyHardwareDebugRegister(PVOID TargetAddress)
 {
+    if (TargetAddress == NULL)
+    {
+        //
+        // Remove it (DR7 reset value)
+        //
+        CpuWriteDr(7, 0x400);
+        return;
+    }
+
     SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
                       BREAK_ON_INSTRUCTION_FETCH,
                       FALSE,
@@ -214,6 +228,26 @@ UdBroadcastSetHardwareDebugRegistersAllCores(PVOID TargetAddress)
 }
 
 /**
+ * @brief Remove the breakpoint of a step over a call from all cores
+ * @details this function should not be called in vmx-root. The breakpoint is
+ * one-shot: left set, the next time any thread runs that instruction it breaks
+ *
+ * @return VOID
+ */
+VOID
+UdDisarmStepOverBreakpoint()
+{
+    if (g_UdStepOverBreakpointAddress == NULL64_ZERO)
+    {
+        return;
+    }
+
+    g_UdStepOverBreakpointAddress = NULL64_ZERO;
+
+    UdBroadcastSetHardwareDebugRegistersAllCores(NULL);
+}
+
+/**
  * @brief Regular step-over, step one instruction to the debuggee on user debugger if
  * there is a call then it jumps the call
  *
@@ -237,14 +271,22 @@ UdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLen
     {
         //
         // It's a call, we should put a hardware debug register breakpoint
-        // on the next instruction
+        // on the next instruction. The IOCTL thread has already set it on all
+        // cores (UdDispatchUsermodeCommands): this runs in VMX root-mode, where
+        // a DPC broadcast may switch to another thread on the VMM stack, which
+        // then resumes in non-root mode and executes VMRESUME (bugcheck 0x1AA).
+        // Setting it here again only covers the core the thread continues on
         //
         NextAddressForHardwareDebugBp = LastRip + CallLength;
 
         //
-        // Broadcast to apply hardware debug registers to all cores
+        // In VMX root-mode, the guest's DR7 is in the VMCS (the broadcast turned
+        // on the save and load debug controls)
         //
-        UdBroadcastSetHardwareDebugRegistersAllCores((PVOID)NextAddressForHardwareDebugBp);
+        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                          BREAK_ON_INSTRUCTION_FETCH,
+                          VmFuncCheckCpuSupportForSaveAndLoadDebugControls(),
+                          NextAddressForHardwareDebugBp);
     }
     else
     {
@@ -268,6 +310,18 @@ UdHandleDebugEventsWhenUserDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgSta
                                               BOOLEAN                     TrapSetByDebugger)
 {
     UNREFERENCED_PARAMETER(TrapSetByDebugger);
+
+    //
+    // The breakpoint of a step over a call is a fault: as long as it is set,
+    // the paused thread triggers it again on every VM-entry. Remove it from
+    // this core (the IOCTL thread removes it from the others)
+    //
+    if (g_UdStepOverBreakpointAddress != NULL64_ZERO &&
+        VmFuncGetLastVmexitRip(DbgState->CoreId) == g_UdStepOverBreakpointAddress &&
+        VmFuncCheckCpuSupportForSaveAndLoadDebugControls())
+    {
+        VmFuncSetDebugReg7(0x400);
+    }
 
     if (UdHandleInstantBreak(DbgState,
                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
@@ -327,6 +381,16 @@ UdStepInstructions(PROCESSOR_DEBUGGING_STATE *         DbgState,
 
     case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER:
 
+    //
+    // Step-over for 'gu' (step out) is the same step; the CLI loops over it
+    // until it sees a 'ret'. Without these two cases it fell into 'default',
+    // so nothing was stepped and the thread stayed paused: the debugger then
+    // waited for a 'debuggee is running' event that never came ('gu' hung
+    // forever, and with it the session).
+    //
+    case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU:
+    case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU_LAST_INSTRUCTION:
+
         //
         // Apply Step-over (p command)
         //
@@ -345,6 +409,37 @@ UdStepInstructions(PROCESSOR_DEBUGGING_STATE *         DbgState,
     default:
         break;
     }
+}
+
+/**
+ * @brief Take the buffer of the command the IOCTL thread is waiting for
+ * @details the IOCTL thread withdraws the buffer when it gives up waiting (its
+ * IRP may be gone then), and a command left in another slot of the paused
+ * thread may find the buffer of a newer request, so a command runs only on a
+ * buffer it takes here and that is of its own type
+ *
+ * @param ActionType
+ *
+ * @return PDEBUGGER_UD_COMMAND_PACKET NULL if there is no buffer for this command
+ */
+static PDEBUGGER_UD_COMMAND_PACKET
+UdTakeWaitingCommandBuffer(DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType)
+{
+    PDEBUGGER_UD_COMMAND_PACKET ActionRequest;
+
+    ActionRequest = (PDEBUGGER_UD_COMMAND_PACKET)CpuInterlockedExchange64((INT64 volatile *)&g_UserDebuggerWaitingCommandBuffer, 0);
+
+    if (ActionRequest != NULL && ActionRequest->UdAction.ActionType != ActionType)
+    {
+        //
+        // Not ours: give it back to the command it belongs to
+        //
+        CpuInterlockedCompareExchange64((INT64 volatile *)&g_UserDebuggerWaitingCommandBuffer, (INT64)ActionRequest, 0);
+
+        return NULL;
+    }
+
+    return ActionRequest;
 }
 
 /**
@@ -367,8 +462,14 @@ UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
     //
     // Recover the action request buffer and optional storage buffer
     //
-    ActionRequest = (DEBUGGER_UD_COMMAND_PACKET *)g_UserDebuggerWaitingCommandBuffer;
-    RegDesc       = (PDEBUGGEE_REGISTER_READ_DESCRIPTION)((UINT8 *)g_UserDebuggerWaitingCommandBuffer + sizeof(DEBUGGER_UD_COMMAND_PACKET));
+    ActionRequest = UdTakeWaitingCommandBuffer(DEBUGGER_UD_COMMAND_ACTION_TYPE_READ_REGISTERS);
+
+    if (ActionRequest == NULL)
+    {
+        return;
+    }
+
+    RegDesc = (PDEBUGGEE_REGISTER_READ_DESCRIPTION)((UINT8 *)ActionRequest + sizeof(DEBUGGER_UD_COMMAND_PACKET));
 
     //
     // *** Here, we should read the registers and put them in the optional storage buffer ***
@@ -386,9 +487,10 @@ UdReadRegisters(PROCESSOR_DEBUGGING_STATE * DbgState,
     ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     //
-    // Set the event to indicate that the command is completed
+    // Indicate that the command is completed (we're in VMX root-mode, the
+    // waiting thread polls this flag)
     //
-    SynchronizationSetEvent(&g_UserDebuggerWaitingCommandEvent);
+    CpuInterlockedExchange(&g_UserDebuggerWaitingCommandCompleted, TRUE);
 }
 
 /**
@@ -408,8 +510,14 @@ UdRunScript(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     // Recover the action request buffer and optional storage buffer
     //
-    ActionRequest = (DEBUGGER_UD_COMMAND_PACKET *)g_UserDebuggerWaitingCommandBuffer;
-    ScriptPacket  = (DEBUGGEE_SCRIPT_PACKET *)((UINT8 *)g_UserDebuggerWaitingCommandBuffer + sizeof(DEBUGGER_UD_COMMAND_PACKET));
+    ActionRequest = UdTakeWaitingCommandBuffer(DEBUGGER_UD_COMMAND_ACTION_TYPE_EXECUTE_SCRIPT_BUFFER);
+
+    if (ActionRequest == NULL)
+    {
+        return;
+    }
+
+    ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)((UINT8 *)ActionRequest + sizeof(DEBUGGER_UD_COMMAND_PACKET));
 
     //
     // *** Here, we should execute script buffer and put them in the optional storage buffer ***
@@ -464,9 +572,10 @@ UdRunScript(PROCESSOR_DEBUGGING_STATE * DbgState)
     ActionRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     //
-    // Set the event to indicate that the command is completed
+    // Indicate that the command is completed (we're in VMX root-mode, the
+    // waiting thread polls this flag)
     //
-    SynchronizationSetEvent(&g_UserDebuggerWaitingCommandEvent);
+    CpuInterlockedExchange(&g_UserDebuggerWaitingCommandCompleted, TRUE);
 }
 
 /**
@@ -630,6 +739,52 @@ UdCheckForCommand(PROCESSOR_DEBUGGING_STATE *         DbgState,
 }
 
 /**
+ * @brief Set the hardware breakpoint of a step over a call on all cores
+ * @details Called from the IOCTL thread, not in VMX root-mode, since the
+ * broadcast uses DPCs
+ *
+ * @param ProcessDebuggingDetails
+ * @param ActionRequest
+ *
+ * @return VOID
+ */
+static VOID
+UdPrepareStepOverACall(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails,
+                       PDEBUGGER_UD_COMMAND_PACKET         ActionRequest)
+{
+    PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
+    DEBUGGER_REMOTE_STEPPING_REQUEST   SteppingType;
+
+    if (ActionRequest->UdAction.ActionType != DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP ||
+        ActionRequest->ApplyToAllPausedThreads ||
+        !(BOOLEAN)ActionRequest->UdAction.OptionalParam2)
+    {
+        return;
+    }
+
+    SteppingType = (DEBUGGER_REMOTE_STEPPING_REQUEST)ActionRequest->UdAction.OptionalParam1;
+
+    if (SteppingType != DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER &&
+        SteppingType != DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU &&
+        SteppingType != DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU_LAST_INSTRUCTION)
+    {
+        return;
+    }
+
+    ThreadDebuggingDetails = ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(ProcessDebuggingDetails->ProcessId,
+                                                                                       ActionRequest->TargetThreadId);
+
+    if (!ThreadDebuggingDetails || !ThreadDebuggingDetails->IsPaused)
+    {
+        return;
+    }
+
+    g_UdStepOverBreakpointAddress = ThreadDebuggingDetails->ThreadRip + (UINT32)ActionRequest->UdAction.OptionalParam3;
+
+    UdBroadcastSetHardwareDebugRegistersAllCores((PVOID)g_UdStepOverBreakpointAddress);
+}
+
+/**
  * @brief Dispatch the user-mode commands
  *
  * @param ActionRequest
@@ -645,6 +800,8 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
     BOOLEAN                             Result;
+    LARGE_INTEGER                       WaitStart;
+    LARGE_INTEGER                       Now;
 
     //
     // Find the thread debugging detail of the thread
@@ -680,7 +837,20 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
         // Set the output command buffer length
         //
         g_UserDebuggerWaitingCommandOutputBufferLength = ActionRequestOutputLength;
+
+        //
+        // The paused thread sets it once it has run the command
+        //
+        CpuInterlockedExchange(&g_UserDebuggerWaitingCommandCompleted, FALSE);
     }
+
+    //
+    // A step over a call breaks on the instruction after it on whichever core
+    // the thread returns, so set it on all cores before the step runs (and
+    // remove the one of the previous step first)
+    //
+    UdDisarmStepOverBreakpoint();
+    UdPrepareStepOverACall(ProcessDebuggingDetails, ActionRequest);
 
     //
     // Apply the command to all threads or just one thread
@@ -693,9 +863,39 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest,
     if (Result && ActionRequest->WaitForEventCompletion)
     {
         //
-        // Wait for the command to be completed
+        // Wait for the command to be completed. The paused thread runs it in VMX
+        // root-mode, so it can't signal an event: KeSetEvent there may switch to
+        // this thread from VMX root-mode, which then completes the IRP at
+        // DISPATCH_LEVEL and faults copying the result to the user buffer
+        // (bugcheck 0x50)
         //
-        SynchronizationWaitForEvent(&g_UserDebuggerWaitingCommandEvent);
+        // The thread may also never run it (it exits, or is resumed). This wait
+        // can't be interrupted, so it is bounded: past the timeout, the command
+        // is withdrawn unless the paused thread has already taken it, in which
+        // case it is running and about to complete
+        //
+        PlatformTimeQuerySystemTime(&WaitStart);
+
+        while (!CpuInterlockedCompareExchange(&g_UserDebuggerWaitingCommandCompleted, FALSE, FALSE))
+        {
+            PlatformTimeQuerySystemTime(&Now);
+
+            if (Now.QuadPart - WaitStart.QuadPart > UD_COMMAND_COMPLETION_TIMEOUT &&
+                CpuInterlockedCompareExchange64((INT64 volatile *)&g_UserDebuggerWaitingCommandBuffer, 0, (INT64)ActionRequest) == (INT64)ActionRequest)
+            {
+                Result = FALSE;
+                break;
+            }
+
+            PlatformTimeDelayExecution(1);
+        }
+    }
+    else if (ActionRequest->WaitForEventCompletion)
+    {
+        //
+        // The command was not applied, don't leave its buffer behind
+        //
+        CpuInterlockedCompareExchange64((INT64 volatile *)&g_UserDebuggerWaitingCommandBuffer, 0, (INT64)ActionRequest);
     }
 
     //

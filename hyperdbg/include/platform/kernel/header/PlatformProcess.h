@@ -78,6 +78,9 @@ NTSTATUS
 PlatformProcessTerminate(HANDLE ProcessHandle, NTSTATUS ExitStatus);
 
 NTSTATUS
+PlatformProcessCloseHandle(HANDLE ProcessHandle);
+
+NTSTATUS
 PlatformObjectOpenByPointer(PVOID           Object,
                             ULONG           HandleAttributes,
                             PACCESS_STATE   PassedAccessState,

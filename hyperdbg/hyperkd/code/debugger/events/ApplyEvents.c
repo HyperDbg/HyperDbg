@@ -799,7 +799,7 @@ ApplyEventMov2DebugRegExecutionEvent(PDEBUGGER_EVENT                   Event,
                                      PDEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn,
                                      BOOLEAN                           InputFromVmxRoot)
 {
-    UNREFERENCED_PARAMETER(InputFromVmxRoot);
+    UNREFERENCED_PARAMETER(ResultsToReturn);
 
     //
     // Let's see if it is for all cores or just one core
@@ -809,7 +809,7 @@ ApplyEventMov2DebugRegExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // All cores
         //
-        if (ResultsToReturn)
+        if (InputFromVmxRoot)
         {
             HaltedBroadcastEnableMov2DebugRegsExitingAllCores();
         }
@@ -823,7 +823,7 @@ ApplyEventMov2DebugRegExecutionEvent(PDEBUGGER_EVENT                   Event,
         //
         // Just one core
         //
-        if (ResultsToReturn)
+        if (InputFromVmxRoot)
         {
             HaltedRoutineEnableMov2DebugRegsExitingOnSingleCore(Event->CoreId);
         }

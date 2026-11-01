@@ -339,6 +339,22 @@ PlatformProcessTerminate(HANDLE ProcessHandle, NTSTATUS ExitStatus)
 }
 
 /**
+ * @brief Close a process handle opened by PlatformProcessOpen. Windows: ZwClose().
+ *        Linux: fail-closed stub, as PlatformProcessOpen never opens one.
+ */
+NTSTATUS
+PlatformProcessCloseHandle(HANDLE ProcessHandle)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return ZwClose(ProcessHandle);
+#elif defined(__linux__)
+    UNREFERENCED_PARAMETER(ProcessHandle);
+
+    return STATUS_UNSUCCESSFUL; // TODO(Linux)
+#endif
+}
+
+/**
  * @brief Open a handle to a kernel object given a pointer to it. Windows:
  *        ObOpenObjectByPointer(). Linux: fail-closed stub.
  * TODO(Linux): map the object pointer to a Linux handle shim.

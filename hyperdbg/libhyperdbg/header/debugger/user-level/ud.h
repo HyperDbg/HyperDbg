@@ -90,6 +90,12 @@ BOOLEAN
 UdKillProcess(UINT32 TargetPid);
 
 BOOLEAN
+UdDoesProcessExistByHandle(HANDLE TargetHandle);
+
+VOID
+UdWaitForProcessExit(DWORD TargetPid, DWORD TimeoutMilliseconds);
+
+BOOLEAN
 UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken);
 
 BOOLEAN
