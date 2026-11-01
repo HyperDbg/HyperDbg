@@ -45,6 +45,9 @@ TransparentCheckAndModifyMsrRead(PGUEST_REGS Regs, UINT32 TargetMsr);
 IMPORT_EXPORT_HYPEREVADE BOOLEAN
 TransparentCheckAndModifyMsrWrite(PGUEST_REGS Regs, UINT32 TargetMsr);
 
+IMPORT_EXPORT_HYPEREVADE VOID
+TransparentCheckAndHandleXsetbv(UINT64 Rip);
+
 //
 // Syscall footprint routines
 //
