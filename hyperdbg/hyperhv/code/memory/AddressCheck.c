@@ -204,6 +204,14 @@ CheckAccessValidityAndSafetyWrapper(UINT64 TargetAddress, UINT32 Size, UINT32 Pr
     }
 
     //
+    // A failed process lookup has no address space. Do not load a zero CR3.
+    //
+    if (GuestCr3.Flags == NULL64_ZERO)
+    {
+        goto Return;
+    }
+
+    //
     // Move to new cr3
     //
     OriginalCr3 = CpuReadCr3();

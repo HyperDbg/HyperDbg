@@ -944,7 +944,7 @@ HyperDbgInterpreter(CHAR * Command)
     if (!FirstCommand.compare(".help") || !FirstCommand.compare("help") ||
         !FirstCommand.compare(".hh") || !FirstCommand.compare("!help"))
     {
-        if (Tokens.size() == 2)
+        if (Tokens.size() >= 2)
         {
             //
             // Show that it's a help command
@@ -954,8 +954,8 @@ HyperDbgInterpreter(CHAR * Command)
         }
         else
         {
-            ShowMessages("incorrect use of the '%s'\n\n",
-                         GetCaseSensitiveStringFromCommandToken(Tokens.at(0)).c_str());
+            ShowMessages("\nHyperDbg [version: %s, build: %s]\n\n", CompleteVersion, BuildVersion);
+
             CommandHelpHelp();
             return 0;
         }

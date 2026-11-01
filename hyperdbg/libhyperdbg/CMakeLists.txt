@@ -191,13 +191,23 @@ set(SourceFiles
 include_directories(
     "../dependencies/phnt"
     "../dependencies"
-    "../dependencies/zydis/dependencies/zycore/include"
     "../include"
-    "../dependencies/zydis/include"
     "."
     "../script-eval"
     "../dependencies/keystone/include"
 )
+
+#
+# On Linux libhyperdbg links the system Zydis/Zycore (see the top-level
+# CMakeLists.txt), so it must also use the system headers; the bundled headers
+# are a different Zydis version and fail the ZYDIS_VERSION check at runtime
+#
+if(NOT UNIX)
+    include_directories(
+        "../dependencies/zydis/dependencies/zycore/include"
+        "../dependencies/zydis/include"
+    )
+endif()
 set_source_files_properties(
     "../include/platform/user/code/platform-intrinsics.c"
     "../include/platform/user/code/platform-lib-calls.c"

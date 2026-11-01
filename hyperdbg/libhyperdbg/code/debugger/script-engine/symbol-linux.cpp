@@ -41,24 +41,55 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 }
 
 /**
- * @brief Attempt to resolve a name or expression to an address.
+ * @brief check and convert string to a 64 bit unsigned integer and also
+ *  check for symbol object names and evaluate expressions
+ * @details Same as the Windows implementation in symbol.cpp. Symbol names
+ *          aren't resolved on Linux yet (the name lookup always reports not
+ *          found), but numbers and expressions (e.g., @rax, @rsp+10) are
  *
- * On Linux, full symbol resolution (ELF/DWARF) is not yet implemented.
- * This stub handles the common case of a plain hex/decimal literal so that
- * numeric addresses still work everywhere in the debugger.
+ * @param TextToConvert the target string
+ * @param Result result will be save to the pointer
+ *
+ * @return BOOLEAN shows whether the conversion was successful or not
  */
 BOOLEAN
 SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 {
-    try
+    BOOLEAN IsFound  = FALSE;
+    BOOLEAN HasError = FALSE;
+    UINT64  Address  = 0;
+
+    if (ConvertStringToUInt64(TextToConvert, &Address))
     {
-        *Result = std::stoull(TextToConvert, nullptr, 0);
-        return TRUE;
+        //
+        // It's a hex number
+        //
+        IsFound = TRUE;
     }
-    catch (...)
+    else
     {
-        return FALSE;
+        //
+        // Check for symbol object names
+        //
+        Address = ScriptEngineConvertNameToAddressWrapper(TextToConvert.c_str(), &IsFound);
+
+        if (!IsFound)
+        {
+            //
+            // As the last resort, test whether it's an expression; in the
+            // Debugger Mode it's sent to the debuggee to be evaluated
+            //
+            Address = ScriptEngineEvalSingleExpression(TextToConvert, &HasError);
+            IsFound = !HasError;
+        }
     }
+
+    if (IsFound)
+    {
+        *Result = Address;
+    }
+
+    return IsFound;
 }
 
 BOOLEAN
