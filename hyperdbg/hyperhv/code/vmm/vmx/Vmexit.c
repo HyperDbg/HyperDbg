@@ -310,7 +310,14 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         // loginfo if transparency mode is enabled (hyperevade related)
         //
         DispatchEventXsetbv(VCpu);
-        TransparentCheckAndHandleXsetbv(VCpu->LastVmexitRip);
+
+        //
+        // If we are in transparent-mode, then we need to handle the XSETBV artifacts (hyperevade related)
+        //
+        if (g_CheckForFootprints)
+        {
+            TransparentCheckAndHandleXsetbv(VCpu->LastVmexitRip);
+        }
 
         break;
     }
