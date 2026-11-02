@@ -664,6 +664,35 @@ hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOO
 }
 
 /**
+ * @brief Reattach to a prepared debuggee that is still bound to an earlier debugger, using COM port
+ *
+ * @param port_name The port name
+ * @param baudrate The baudrate
+ * @param pause_after_connection Pause after connection
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_reattach_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate, BOOLEAN pause_after_connection)
+{
+    return HyperDbgReattachRemoteDeviceUsingComPort(port_name, baudrate, pause_after_connection);
+}
+
+/**
+ * @brief Reattach to a prepared debuggee that is still bound to an earlier debugger, using named pipe
+ *
+ * @param named_pipe The named pipe
+ * @param pause_after_connection Pause after connection
+ *
+ * @return BOOLEAN Returns true if it was successful
+ */
+BOOLEAN
+hyperdbg_u_reattach_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOOLEAN pause_after_connection)
+{
+    return HyperDbgReattachRemoteDeviceUsingNamedPipe(named_pipe, pause_after_connection);
+}
+
+/**
  * @brief Close the remote debugger
  *
  * @return BOOLEAN Returns true if it was successful

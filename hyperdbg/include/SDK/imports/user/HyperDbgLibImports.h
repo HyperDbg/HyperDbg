@@ -169,6 +169,12 @@ IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOOLEAN pause_after_connection);
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_reattach_remote_debugger_using_com_port(const CHAR * port_name, DWORD baudrate, BOOLEAN pause_after_connection);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
+hyperdbg_u_reattach_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOOLEAN pause_after_connection);
+
+IMPORT_EXPORT_LIBHYPERDBG BOOLEAN
 hyperdbg_u_connect_current_debugger_using_com_port(const CHAR * port_name, DWORD baudrate);
 
 IMPORT_EXPORT_LIBHYPERDBG BOOLEAN

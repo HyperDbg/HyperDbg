@@ -79,12 +79,18 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
                                         BOOLEAN PauseAfterConnection);
 
 BOOLEAN
+KdReattachSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
+                                         BOOLEAN IsNamedPipe,
+                                         BOOLEAN PauseAfterConnection);
+
+BOOLEAN
 KdPrepareAndConnectDebugPort(const CHAR * PortName,
                              DWORD        Baudrate,
                              UINT32       Port,
                              BOOLEAN      IsPreparing,
                              BOOLEAN      IsNamedPipe,
-                             BOOLEAN      PauseAfterConnection);
+                             BOOLEAN      PauseAfterConnection,
+                             BOOLEAN      IsReattach);
 
 BOOLEAN
 KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuffer);
