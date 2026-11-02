@@ -13,6 +13,45 @@
 #include "pch.h"
 
 /**
+ * @brief Re-apply the events of a list except the terminated event
+ *
+ * @param EventsHead Head of the target events list
+ * @param Event The event that is being terminated
+ * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
+ *
+ * @return VOID
+ */
+static VOID
+TerminateReapplyEventsInList(PLIST_ENTRY EventsHead, PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
+{
+    PLIST_ENTRY                      TempList        = EventsHead;
+    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
+
+    while (EventsHead != TempList->Flink)
+    {
+        TempList                     = TempList->Flink;
+        PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+        //
+        // We have to check because we don't want to re-apply
+        // the terminated event
+        //
+        if (CurrentEvent->Tag != Event->Tag)
+        {
+            //
+            // re-apply the event
+            //
+            DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
+
+            if (!ResultsToReturn.IsSuccessful)
+            {
+                LogInfo("Err, unable to re-apply previous events");
+            }
+        }
+    }
+}
+
+/**
  * @brief Termination function for external-interrupts
  *
  * @param Event Target Event Object
@@ -464,14 +503,10 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY                      TempList        = 0;
-    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
-
     //
     // For this event we should also check for out instructions events too
-    // because both of them are emulated by a single bit in vmx controls
-    // so if there is anything in out events list then we can remove all
-    // the events
+    // because both of them share the same I/O bitmaps, so if there is
+    // anything in OUT events list then we should re-apply those events too
     //
     if (DebuggerEventListCount(&g_Events->InInstructionExecutionEventsHead) > 1 ||
         DebuggerEventListCount(&g_Events->OutInstructionExecutionEventsHead) >= 1)
@@ -495,33 +530,11 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmx
         }
 
         //
-        // Then we iterate through the list of this event to re-apply
-        // the previous events
+        // Then we re-apply the remaining events of both lists as
+        // they share the same I/O bitmaps
         //
-        TempList = &g_Events->InInstructionExecutionEventsHead;
-
-        while (&g_Events->InInstructionExecutionEventsHead != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-
-            //
-            // We have to check because we don't want to re-apply
-            // the terminated event
-            //
-            if (CurrentEvent->Tag != Event->Tag)
-            {
-                //
-                // re-apply the event
-                //
-                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
-
-                if (!ResultsToReturn.IsSuccessful)
-                {
-                    LogInfo("Err, unable to re-apply previous events");
-                }
-            }
-        }
+        TerminateReapplyEventsInList(&g_Events->OutInstructionExecutionEventsHead, Event, InputFromVmxRoot);
+        TerminateReapplyEventsInList(&g_Events->InInstructionExecutionEventsHead, Event, InputFromVmxRoot);
     }
     else
     {
@@ -555,14 +568,10 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmx
 VOID
 TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY                      TempList        = 0;
-    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
-
     //
-    // For this event we should also check for out instructions events too
-    // because both of them are emulated by a single bit in vmx controls
-    // so if there is anything in out events list then we can remove all
-    // the events
+    // For this event we should also check for in instructions events too
+    // because both of them share the same I/O bitmaps, so if there is
+    // anything in IN events list then we should re-apply those events too
     //
     if (DebuggerEventListCount(&g_Events->OutInstructionExecutionEventsHead) > 1 ||
         DebuggerEventListCount(&g_Events->InInstructionExecutionEventsHead) >= 1)
@@ -586,33 +595,11 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVm
         }
 
         //
-        // Then we iterate through the list of this event to re-apply
-        // the previous events
+        // Then we re-apply the remaining events of both lists as
+        // they share the same I/O bitmaps
         //
-        TempList = &g_Events->OutInstructionExecutionEventsHead;
-
-        while (&g_Events->OutInstructionExecutionEventsHead != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-
-            //
-            // We have to check because we don't want to re-apply
-            // the terminated event
-            //
-            if (CurrentEvent->Tag != Event->Tag)
-            {
-                //
-                // re-apply the event
-                //
-                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
-
-                if (!ResultsToReturn.IsSuccessful)
-                {
-                    LogInfo("Err, unable to re-apply previous events");
-                }
-            }
-        }
+        TerminateReapplyEventsInList(&g_Events->InInstructionExecutionEventsHead, Event, InputFromVmxRoot);
+        TerminateReapplyEventsInList(&g_Events->OutInstructionExecutionEventsHead, Event, InputFromVmxRoot);
     }
     else
     {
@@ -1124,14 +1111,11 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY                      TempList        = 0;
-    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
-
     //
     // For this event we should also check for sysret instructions events too
     // because both of them are emulated by a single bit in vmx controls
-    // and an MSR so if there is anything in out events list then we can
-    // remove all the events
+    // and an MSR, so if there is anything in sysret events list then we should
+    // re-apply those events too
     //
     if (DebuggerEventListCount(&g_Events->SyscallHooksEferSyscallEventsHead) > 1 ||
         DebuggerEventListCount(&g_Events->SyscallHooksEferSysretEventsHead) >= 1)
@@ -1155,33 +1139,12 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         }
 
         //
-        // Then we iterate through the list of this event to re-apply
-        // the previous events
+        // Then we re-apply the remaining events of both lists as
+        // they share the same EFER syscall hook, events of the same
+        // type are applied last (as before) as the hook type is global
         //
-        TempList = &g_Events->SyscallHooksEferSyscallEventsHead;
-
-        while (&g_Events->SyscallHooksEferSyscallEventsHead != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-
-            //
-            // We have to check because we don't want to re-apply
-            // the terminated event
-            //
-            if (CurrentEvent->Tag != Event->Tag)
-            {
-                //
-                // re-apply the event
-                //
-                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
-
-                if (!ResultsToReturn.IsSuccessful)
-                {
-                    LogInfo("Err, unable to re-apply previous events");
-                }
-            }
-        }
+        TerminateReapplyEventsInList(&g_Events->SyscallHooksEferSysretEventsHead, Event, InputFromVmxRoot);
+        TerminateReapplyEventsInList(&g_Events->SyscallHooksEferSyscallEventsHead, Event, InputFromVmxRoot);
     }
     else
     {
@@ -1215,17 +1178,14 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 VOID
 TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
 {
-    PLIST_ENTRY                      TempList        = 0;
-    DEBUGGER_EVENT_AND_ACTION_RESULT ResultsToReturn = {0};
-
     //
     // For this event we should also check for syscall instructions events too
     // because both of them are emulated by a single bit in vmx controls
-    // and an MSR so if there is anything in out events list then we can
-    // remove all the events
+    // and an MSR, so if there is anything in syscall events list then we should
+    // re-apply those events too
     //
     if (DebuggerEventListCount(&g_Events->SyscallHooksEferSysretEventsHead) > 1 ||
-        DebuggerEventListCount(&g_Events->SyscallHooksEferSyscallEventsHead) > 1)
+        DebuggerEventListCount(&g_Events->SyscallHooksEferSyscallEventsHead) >= 1)
     {
         //
         // There are still other events in the queue (list), we should only remove
@@ -1246,33 +1206,12 @@ TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event, BOOLEAN InputFromVmxRoot)
         }
 
         //
-        // Then we iterate through the list of this event to re-apply
-        // the previous events
+        // Then we re-apply the remaining events of both lists as
+        // they share the same EFER syscall hook, events of the same
+        // type are applied last (as before) as the hook type is global
         //
-        TempList = &g_Events->SyscallHooksEferSysretEventsHead;
-
-        while (&g_Events->SyscallHooksEferSysretEventsHead != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-
-            //
-            // We have to check because we don't want to re-apply
-            // the terminated event
-            //
-            if (CurrentEvent->Tag != Event->Tag)
-            {
-                //
-                // re-apply the event
-                //
-                DebuggerApplyEvent(CurrentEvent, &ResultsToReturn, InputFromVmxRoot);
-
-                if (!ResultsToReturn.IsSuccessful)
-                {
-                    LogInfo("Err, unable to re-apply previous events");
-                }
-            }
-        }
+        TerminateReapplyEventsInList(&g_Events->SyscallHooksEferSyscallEventsHead, Event, InputFromVmxRoot);
+        TerminateReapplyEventsInList(&g_Events->SyscallHooksEferSysretEventsHead, Event, InputFromVmxRoot);
     }
     else
     {

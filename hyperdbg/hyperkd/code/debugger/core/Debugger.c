@@ -2003,105 +2003,6 @@ DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
 }
 
 /**
- * @brief Terminate effect and configuration to vmx-root
- * and non-root for all the events
- *
- * @param InputFromVmxRoot Whether the input comes from VMX root-mode or IOCTL
- *
- * @return BOOLEAN if at least one event terminated then
- * it returns true, and otherwise false
- */
-BOOLEAN
-DebuggerTerminateAllEvents(BOOLEAN InputFromVmxRoot)
-{
-    BOOLEAN     FindAtLeastOneEvent = FALSE;
-    PLIST_ENTRY TempList            = 0;
-    PLIST_ENTRY TempList2           = 0;
-
-    //
-    // We have to iterate through all events
-    //
-    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
-    {
-        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
-        TempList2 = TempList;
-
-        while (TempList2 != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-
-            //
-            // Check if we find at least one event or not
-            //
-            if (!FindAtLeastOneEvent)
-            {
-                FindAtLeastOneEvent = TRUE;
-            }
-
-            //
-            // Terminate the current event
-            //
-            DebuggerTerminateEvent(CurrentEvent->Tag, InputFromVmxRoot);
-        }
-    }
-
-    return FindAtLeastOneEvent;
-}
-
-/**
- * @brief Remove all the events from all the lists
- * and also de-allocate their structures and actions
- *
- * @details should not be called from vmx-root mode, also
- * it won't terminate their effects, so the events should
- * be terminated first then we can remove them
- *
- * @param PoolManagerAllocatedMemory Whether the pools are allocated from the
- * pool manager or original OS pools
- *
- * @return BOOLEAN if at least one event removed then
- * it returns true, and otherwise false
- */
-BOOLEAN
-DebuggerRemoveAllEvents(BOOLEAN PoolManagerAllocatedMemory)
-{
-    BOOLEAN     FindAtLeastOneEvent = FALSE;
-    PLIST_ENTRY TempList            = 0;
-    PLIST_ENTRY TempList2           = 0;
-
-    //
-    // We have to iterate through all events
-    //
-    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
-    {
-        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
-        TempList2 = TempList;
-
-        while (TempList2 != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-
-            //
-            // Check if we find at least one event or not
-            //
-            if (!FindAtLeastOneEvent)
-            {
-                FindAtLeastOneEvent = TRUE;
-            }
-
-            //
-            // Remove the current event
-            //
-            DebuggerRemoveEvent(CurrentEvent->Tag, PoolManagerAllocatedMemory);
-        }
-    }
-
-    return FindAtLeastOneEvent;
-}
-
-/**
  * @brief Count the list of events in a special list
  *
  * @param TargetEventList target event list
@@ -2496,6 +2397,8 @@ DebuggerClearEvent(UINT64 Tag, BOOLEAN InputFromVmxRoot, BOOLEAN PoolManagerAllo
 VOID
 DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot, BOOLEAN PoolManagerAllocatedMemory)
 {
+    PLIST_ENTRY EventsHead = 0;
+
     //
     // Because we want to delete all the objects and buffers (pools)
     // after we finished termination, the debugger might still use
@@ -2511,14 +2414,27 @@ DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot, BOOLEAN PoolManagerAllocatedMem
     DebuggerEnableOrDisableAllEvents(FALSE);
 
     //
-    // Second, terminate all events
+    // Second, terminate and remove the events one by one. Terminating an
+    // event re-applies the other events that share its interception, so
+    // each event should be removed before the next one is terminated,
+    // otherwise the interception remains active after all events are removed
     //
-    DebuggerTerminateAllEvents(InputFromVmxRoot);
+    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    {
+        EventsHead = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
 
-    //
-    // Third, remove all events
-    //
-    DebuggerRemoveAllEvents(PoolManagerAllocatedMemory);
+        while (EventsHead != EventsHead->Flink)
+        {
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(EventsHead->Flink, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+            DebuggerTerminateEvent(CurrentEvent->Tag, InputFromVmxRoot);
+
+            if (!DebuggerRemoveEvent(CurrentEvent->Tag, PoolManagerAllocatedMemory))
+            {
+                break;
+            }
+        }
+    }
 }
 
 /**
