@@ -1267,7 +1267,24 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
         // in HyperDbg's process memory layout and we need to switch to
         // the target process memory layout to set the breakpoint
         //
-        BreakpointAddNew(DebuggerBreakpointRequest, TRUE);
+        {
+            PEPROCESS TargetProcess;
+            KAPC_STATE ApcState;
+
+            if (PlatformProcessLookupByProcessId((HANDLE)DebuggerBreakpointRequest->Pid, &TargetProcess) != STATUS_SUCCESS)
+            {
+                DebuggerBreakpointRequest->Result = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+            }
+            else
+            {
+                // A raw CR3 switch alone is lost on a thread migration. Keep the
+                // target as the thread's attached process throughout installation.
+                PlatformProcessAttach(TargetProcess, &ApcState);
+                BreakpointAddNew(DebuggerBreakpointRequest, TRUE);
+                PlatformProcessDetach(&ApcState);
+                PlatformObjectDereference(TargetProcess);
+            }
+        }
 
         //
         // Adjust the status and output size
