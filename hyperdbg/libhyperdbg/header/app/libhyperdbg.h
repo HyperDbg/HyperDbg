@@ -77,4 +77,7 @@ VOID
 HyperDbgTestCommandParserShowTokens(CHAR * Command);
 
 VOID
+HyperDbgGetSignature(CHAR * Buffer, UINT32 BufferSize);
+
+VOID
 HyperDbgShowSignature();
