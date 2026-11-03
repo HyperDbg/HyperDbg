@@ -240,6 +240,20 @@ hyperdbg_u_test_command_parser_show_tokens(CHAR * command)
 }
 
 /**
+ * @brief Get the signature of the debugger
+ *
+ * @param buffer the buffer that receives the null-terminated signature
+ * @param buffer_size the size of the buffer in bytes
+ *
+ * @return VOID
+ */
+VOID
+hyperdbg_u_get_signature(CHAR * buffer, UINT32 buffer_size)
+{
+    HyperDbgGetSignature(buffer, buffer_size);
+}
+
+/**
  * @brief Show the signature of the debugger
  *
  * @return VOID

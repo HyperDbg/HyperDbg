@@ -472,6 +472,11 @@ const UCHAR BuildSignature[] = {
 //////////////////////////////////////////////////
 
 /**
+ * @brief maximum buffer size for the debugger prompt/signature
+ */
+#define MAXIMUM_PROMPT_LENGTH 512
+
+/**
  * @brief maximum instruction size in Intel
  */
 #define MAXIMUM_INSTR_SIZE 16

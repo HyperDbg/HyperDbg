@@ -64,11 +64,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;HYPERDBG_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <SupportJustMyCode>false</SupportJustMyCode>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,10 +113,11 @@ copy "$(SolutionDir)miscellaneous\constants\pciid\pci.ids" "$(OutDir)constants\p
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)dependencies;$(ProjectDir)header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <CompileAs>CompileAsCpp</CompileAs>
       <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
@@ -153,7 +155,15 @@ copy "$(SolutionDir)miscellaneous\constants\pciid\pci.ids" "$(OutDir)constants\p
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="hyperdbg-cli.cpp" />
+    <ClCompile Include="..\include\platform\user\code\platform-console.c" />
+    <ClCompile Include="..\include\platform\user\code\platform-file.c" />
+    <ClCompile Include="code\hyperdbg-cli.cpp" />
+    <ClCompile Include="code\line-editor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\platform\user\header\platform-console.h" />
+    <ClInclude Include="..\include\platform\user\header\platform-file.h" />
+    <ClInclude Include="header\line-editor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

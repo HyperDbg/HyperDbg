@@ -13,8 +13,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hyperdbg-cli.cpp">
+    <ClCompile Include="..\include\platform\user\code\platform-console.c">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\platform\user\code\platform-file.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\hyperdbg-cli.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\line-editor.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\platform\user\header\platform-console.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\platform\user\header\platform-file.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\line-editor.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
