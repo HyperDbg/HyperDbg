@@ -37,6 +37,21 @@ DebuggerVmcallHandler(UINT32 CoreId,
 
     switch (VmcallNumber)
     {
+    case DEBUGGER_VMCALL_CONFIGURE_USER_THREADS:
+    {
+        BOOLEAN * Completed = (BOOLEAN *)OptionalParam3;
+        *Completed          = AttachingConfigureInterceptingThreads(OptionalParam1, (BOOLEAN)OptionalParam2);
+        Result              = TRUE;
+        break;
+    }
+    case DEBUGGER_VMCALL_CANCEL_PENDING_USER_BREAKPOINTS:
+        ThreadHolderCancelPendingBreakpoints((PUSERMODE_DEBUGGING_PROCESS_DETAILS)OptionalParam1);
+        Result = TRUE;
+        break;
+    case DEBUGGER_VMCALL_UNINITIALIZE_USER_DEBUGGER:
+        UdUninitializeUserDebuggerOnCore(CoreId, (PVOID)OptionalParam1);
+        Result = TRUE;
+        break;
     case DEBUGGER_VMCALL_VM_EXIT_HALT_SYSTEM:
     {
         KdHandleBreakpointAndDebugBreakpoints(DbgState,

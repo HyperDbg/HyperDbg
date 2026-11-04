@@ -269,14 +269,13 @@ AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
     }
 
     //
-    // Free the thread holding structure(s)
+    // Stop new lookups, then drain VMX-root readers before freeing records.
     //
-    ThreadHolderFreeHoldingStructures(ProcessDebuggingDetails);
-
-    //
-    // Remove thread debugging detail from the list active threads
-    //
+    ProcessDebuggingDetails->Enabled = FALSE;
     RemoveEntryList(&ProcessDebuggingDetails->AttachedProcessList);
+    UdSynchronizeUserDebugger();
+
+    ThreadHolderFreeHoldingStructures(ProcessDebuggingDetails);
 
     //
     // Unallocate the pool
@@ -630,11 +629,12 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
  *
  * @return BOOLEAN if TRUE show that the thread interceptin is handled otherwise FALSE
  */
-BOOLEAN
-AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
+static BOOLEAN
+AttachingCheckThreadInterceptionWithUserDebuggerLocked(UINT32 CoreId)
 {
     PROCESSOR_DEBUGGING_STATE *         DbgState = &g_DbgState[CoreId];
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+    PUSERMODE_DEBUGGING_THREAD_DETAILS  Thread;
 
     //
     // Check whether user-debugger is initialized or not
@@ -658,6 +658,31 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
     }
 
     //
+    // A continued thread must execute its restored instruction on this CPU
+    // before MTF reinstalls the breakpoint. Its own watch survives g/t/p
+    // so migration cannot strand per-CPU MTF state on the old CPU.
+    //
+    Thread = ProcessDebuggingDetail->IsOnThreadInterceptingPhase ? NULL : ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(ProcessDebuggingDetail->ProcessId, HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()));
+    if (Thread != NULL && !Thread->IsPaused)
+    {
+        UINT64 BreakpointId = (UINT64)CpuInterlockedExchange64(&Thread->PendingSoftwareBreakpointId, 0);
+        if (BreakpointId == 0)
+        {
+            return FALSE;
+        }
+        PDEBUGGEE_BP_DESCRIPTOR Bp = BreakpointGetEntryByBreakpointId(BreakpointId);
+        ConfigureExecTrapRemoveProcessFromWatchingList(ProcessDebuggingDetail->ProcessId);
+        if (Bp != NULL && !Bp->AvoidReApplyBreakpoint)
+        {
+            DbgState->SoftwareBreakpointState = Bp;
+            VmFuncEnableMtfAndChangeExternalInterruptState(CoreId);
+        }
+        //
+        // Let DispatchEventMode select a user-executable EPT before VM entry.
+        //
+        return FALSE;
+    }
+
     // Check if thread is in the intercepting phase
     //
     if (ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
@@ -669,11 +694,6 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
                                                       NULL))
         {
-            //
-            // Check for possible commands that need to be executed
-            //
-            UdCheckForCommand(DbgState, ProcessDebuggingDetail);
-
             return TRUE;
         }
     }
@@ -685,8 +705,41 @@ AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
 }
 
 /**
+ * @brief Serialize interception with pause/continue updates in VMX-root
+ * @param CoreId
+ * @return BOOLEAN Whether user execution must remain intercepted
+ */
+BOOLEAN
+AttachingCheckThreadInterceptionWithUserDebugger(UINT32 CoreId)
+{
+    BOOLEAN                             Handled;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS Process;
+    if (!g_UserDebuggerState)
+    {
+        return FALSE;
+    }
+    Process = AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
+    if (Process == NULL)
+    {
+        return FALSE;
+    }
+    SpinlockLock(&Process->ThreadStateLock);
+    Handled = AttachingCheckThreadInterceptionWithUserDebuggerLocked(CoreId);
+    SpinlockUnlock(&Process->ThreadStateLock);
+    if (Handled)
+    {
+        //
+        // Commands may perform work beyond state publication. Do not hold the
+        // state lock across command execution or cross-CPU operations.
+        //
+        UdCheckForCommand(&g_DbgState[CoreId], Process);
+    }
+    return Handled;
+}
+
+/**
  * @brief Enable or disable the thread intercepting phase
- * @details this function should be called in vmx non-root
+ * @details Non-root callers enter root before acquiring the state lock
  *
  * @param ProcessDebuggingToken
  * @param Enable
@@ -696,6 +749,21 @@ BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+    BOOLEAN                             Result;
+
+    //
+    // A guest-side lock can be preempted by its own VM-exit. Acquire the lock
+    // only in root, including when a stepping command requests continue.
+    //
+    if (!VmFuncVmxGetCurrentExecutionMode())
+    {
+        BOOLEAN Completed = FALSE;
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_CONFIGURE_USER_THREADS,
+                        ProcessDebuggingToken,
+                        Enable,
+                        (UINT64)&Completed);
+        return Completed;
+    }
 
     //
     // Get the current process debugging detail
@@ -707,6 +775,21 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
         return FALSE;
     }
 
+    SpinlockLock(&ProcessDebuggingDetail->ThreadStateLock);
+    Result = AttachingConfigureInterceptingThreadsLocked(ProcessDebuggingDetail, Enable);
+    SpinlockUnlock(&ProcessDebuggingDetail->ThreadStateLock);
+    return Result;
+}
+
+/**
+ * @brief Update the pause phase while the caller holds the root state lock
+ * @param ProcessDebuggingDetail
+ * @param Enable
+ * @return BOOLEAN
+ */
+BOOLEAN
+AttachingConfigureInterceptingThreadsLocked(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail, BOOLEAN Enable)
+{
     //
     // If the thread is already in intercepting phase, we should return,
     //
@@ -717,9 +800,13 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     }
 
     //
-    // We're or we're not in thread intercepting phase now
+    // Only an active pause phase owns a watch reference to release.
+    // Detach may repeat a continue while a breakpoint still owns its own watch.
     //
-    ProcessDebuggingDetail->IsOnThreadInterceptingPhase = Enable;
+    if (!Enable && !ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
+    {
+        return TRUE;
+    }
 
     //
     // Intercepting threads is enabled
@@ -729,10 +816,16 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
         //
         // Add the process to the watching list to be able to intercept the threads
         //
-        ConfigureExecTrapAddProcessToWatchingList(ProcessDebuggingDetail->ProcessId);
+        if (!ConfigureExecTrapAddProcessToWatchingList(ProcessDebuggingDetail->ProcessId))
+        {
+            return FALSE;
+        }
+        ProcessDebuggingDetail->IsOnThreadInterceptingPhase = TRUE;
     }
     else
     {
+        ProcessDebuggingDetail->IsOnThreadInterceptingPhase = FALSE;
+
         //
         // Unpause the threads of the target process
         //
