@@ -650,7 +650,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName, const char * Cus
     //
     if (!SymGetFileParams(PdbFileName, FileSize))
     {
-        ShowMessages("err, cannot obtain file parameters (internal error)\n");
+        ShowMessages("warning, cannot obtain file parameters for symbol file: \"%s\" as the result, this symbol file is ignored\n");
         return -1;
     }
 
