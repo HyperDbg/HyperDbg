@@ -78,7 +78,7 @@ Shared, OS-neutral headers:
 |------|----------|---------------|-------------------|
 | `.../script-engine/symbol-linux.cpp` | `symbol.cpp` (DbgHelp + PDB) | All `Symbol*` functions. Only `SymbolConvertNameOrExprToAddress` does real work: parses a plain hex/decimal literal so numeric addresses work. | Real ELF/DWARF symbol parser (libdw / libelf / libbfd). |
 | `.../user-level/pe-parser-linux.cpp` | `pe-parser.cpp` (Windows PE format) | The 3 public fns: `PeShowSectionInformationAndDump`, `PeIsPE32BitOr64Bit` (→ FALSE), `PeGetSyscallNumber` (→ 0). | Recreate the Windows `IMAGE_*` headers for Linux, then port `pe-parser.cpp`. Only needed for Windows-target debugging on Linux. |
-| `.../driver-loader/install-linux.cpp` | `install.cpp` (SCM driver loader) | The 2 Linux-visible public fns: `ManageDriver` (→ FALSE) and `SetupPathForFileName` (→ FALSE). The 4 `SC_HANDLE` helpers (`InstallDriver`/`RemoveDriver`/`StartDriver`/`StopDriver`) are guarded out of `install.h` on Linux (never referenced there). | `ManageDriver`: load/unload a future HyperDbg Linux kernel module via `finit_module`/`delete_module` (needs CAP_SYS_MODULE). `SetupPathForFileName`: `readlink("/proc/self/exe")` + strip + append + `access()` (generic "find a file beside my binary"; also used by hwdbg). |
+| `.../driver-loader/install-linux.cpp` | `install.cpp` (SCM driver loader) | The 2 Linux-visible public fns: `ManageDriver` (→ FALSE) and `SetupPathForFileName` (implemented: `readlink("/proc/self/exe")` + strip + append + optional `access()`; backslashes in the shared Windows-style relative paths are turned into `/`). The 4 `SC_HANDLE` helpers (`InstallDriver`/`RemoveDriver`/`StartDriver`/`StopDriver`) are guarded out of `install.h` on Linux (never referenced there). | `ManageDriver`: load/unload a future HyperDbg Linux kernel module via `finit_module`/`delete_module` (needs CAP_SYS_MODULE). |
 | `.../communication/namedpipe-linux.cpp` | `namedpipe.cpp` (Win32 named-pipe IPC) | All 10 public `NamedPipeServer*`/`NamedPipeClient*` fns. `Create*` → `INVALID_HANDLE_VALUE` (print); send/read → 0/FALSE; close → no-op (quiet, unreachable once Create fails). The two internal `*Example()` demos are not in the Linux TU. | Back with a filesystem FIFO (`mkfifo`) or, better for framed bidirectional messages, an `AF_UNIX` socket derived from the `\\.\pipe\NAME` string; overlapped/event I/O collapses to blocking `read`/`write`. |
 
 All four self-guard with `#ifdef __linux__` and print
@@ -683,8 +683,10 @@ Grouped by subsystem. These are the shortcuts taken to reach compilation.
 ### Wide characters (the big deferred item)
 - [ ] **`wchar_t` 2-vs-4-byte / `WCHAR` / `UNICODE_STRING`.** On Linux `WCHAR` is
   2 bytes but native `wchar_t` is 4. Current state: bogus 2-byte reinterpret casts
-  at call sites (each marked `TEMPORARY LINUX SHIM / TODO(Linux)`), and the
-  `script-engine-wrapper.cpp` test harnesses are guarded out on Linux. Needs a
+  at call sites (each marked `TEMPORARY LINUX SHIM / TODO(Linux)`). The
+  `script-engine-wrapper.cpp` test harnesses are no longer guarded out: they use
+  UTF-16 (`char16_t`) literals, and the script-eval wide-string functions
+  (`wcscmp`/`wcsncmp`/`%ws`) work on 16-bit `WCHAR` on both platforms. Still needs a
   real `std::wstring` → 2-byte-`WCHAR`/UTF-16 conversion helper before Linux file
   I/O and the user-debugger path can actually open files.
 
@@ -803,8 +805,8 @@ but out of scope for the port.
 - [ ] `$peb` pseudo-register — returns 0 on Linux (PEB is NT-only).
 - [ ] `DebuggerGetNtoskrnlBase` — returns NULL on Linux (NT system-module enum).
 - [ ] File I/O / user-debugger paths — stubbed (also blocked on wide-char above).
-- [ ] `common.cpp::ListDirectory` — Linux returns empty vector; reimplement with
-  `opendir`/`readdir` + `fnmatch` (only caller today is eval.cpp's test harness).
+- [x] `common.cpp::ListDirectory` — implemented with `opendir`/`readdir` +
+  `fnmatch` (only caller today is eval.cpp's test harness, i.e. `? test`).
 - [ ] `common.cpp::GetConfigFilePath` — Linux empties the path; resolve via
   `readlink("/proc/self/exe")` + append `CONFIG_FILE_NAME` (also blocked on wide-char).
 - [ ] `common.cpp::SetPrivilege` / `IsFileExistW` — Linux stubs (no callers /

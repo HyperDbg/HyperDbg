@@ -16,6 +16,7 @@
 #    include <immintrin.h> // Intel TSX RTM intrinsics (_xbegin/_xend); requires -mrtm
 #    include <dirent.h>    // opendir()/readdir() for ListDirectory
 #    include <fnmatch.h>   // fnmatch() for the wildcard filter of ListDirectory
+#    include <algorithm>   // std::sort() for ListDirectory
 #endif
 
 //
@@ -996,12 +997,41 @@ ListDirectory(const std::string & Directory, const std::string & Extension)
     return DirList;
 #else
     //
-    // TODO(Linux): reimplement with opendir/readdir + fnmatch(Extension) over
-    // Directory. Only caller today is the script-engine test harness (eval.cpp).
+    // Same contract as the Windows branch: 'Extension' is a wildcard pattern
+    // (e.g., "*.txt") and a missing directory is reported with an exception
     //
-    UNREFERENCED_PARAMETER(Directory);
-    UNREFERENCED_PARAMETER(Extension);
-    return std::vector<std::string>();
+    std::vector<std::string> DirList;
+    struct dirent *          Entry;
+    DIR *                    Dir = opendir(Directory.c_str());
+
+    if (Dir == NULL)
+        throw std::runtime_error("invalid directory! please check your path...");
+
+    while ((Entry = readdir(Dir)) != NULL)
+    {
+        std::string FullPath = Directory + "/" + std::string(Entry->d_name);
+        struct stat FileStat;
+
+        //
+        // Only regular files that match the pattern are listed
+        //
+        if (fnmatch(Extension.c_str(), Entry->d_name, 0) != 0)
+            continue;
+
+        if (stat(FullPath.c_str(), &FileStat) != 0 || !S_ISREG(FileStat.st_mode))
+            continue;
+
+        DirList.push_back(FullPath);
+    }
+
+    closedir(Dir);
+
+    //
+    // readdir() returns the entries in no particular order
+    //
+    std::sort(DirList.begin(), DirList.end());
+
+    return DirList;
 #endif
 }
 

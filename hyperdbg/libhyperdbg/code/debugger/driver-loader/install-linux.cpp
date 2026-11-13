@@ -26,18 +26,13 @@
  *            / delete_module(2) syscalls (or libkmod), taking the .ko path built
  *            by SetupPathForFileName. DRIVER_FUNC_INSTALL/START -> load,
  *            DRIVER_FUNC_STOP/REMOVE -> unload. Requires CAP_SYS_MODULE (root).
- *          - SetupPathForFileName: build the absolute path of a file that sits
- *            next to the running executable. The Windows version uses
- *            GetModuleFileName + strip-after-last-'\\' + append '\\'+FileName +
- *            optional existence check. The Linux equivalent is:
- *              readlink("/proc/self/exe", ...)  (the kernel-provided symlink to
- *              the current process's own binary, i.e. the GetModuleFileName
- *              counterpart), then strrchr(..., '/') to strip the program name,
- *              append '/' + FileName, and (if CheckFileExists) verify with
- *              access(path, F_OK). Mind BufferLength bounds on every write.
- *            This is a generic "find a file beside my binary" helper (also used
- *            for the hwdbg test/script files, not just the driver), so it is the
- *            one that is actually worth implementing for real later.
+ *
+ *          SetupPathForFileName is implemented for real: it is the generic
+ *          "find a file beside my binary" helper (also used for the test-case
+ *          and hwdbg script files, not just the driver). It is the counterpart
+ *          of the Windows version: readlink("/proc/self/exe") instead of
+ *          GetModuleFileName, then strip the program name, append the file name
+ *          and optionally check that the result exists.
  *
  * @version 0.1
  * @date 2026-07-18
@@ -46,6 +41,12 @@
  *
  */
 #include "pch.h"
+
+#ifdef __linux__
+#    include <unistd.h> // readlink() / access()
+#    include <limits.h> // PATH_MAX
+#    include <errno.h>
+#endif
 
 #ifdef __linux__
 
@@ -79,9 +80,7 @@ ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName, _In_ UINT16 Func
  * @param BufferLength size of FileLocation in bytes
  * @param CheckFileExists whether to verify the resulting path exists
  *
- * @return BOOLEAN FALSE — not implemented on Linux yet. The real version should
- *         use readlink("/proc/self/exe") + strip + append + access(); see the
- *         file header TODO(Linux).
+ * @return BOOLEAN TRUE if the path was built (and exists, when requested)
  */
 BOOLEAN
 SetupPathForFileName(const CHAR *                                  FileName,
@@ -89,13 +88,80 @@ SetupPathForFileName(const CHAR *                                  FileName,
                      ULONG                                         BufferLength,
                      BOOLEAN                                       CheckFileExists)
 {
-    UNREFERENCED_PARAMETER(FileName);
-    UNREFERENCED_PARAMETER(FileLocation);
-    UNREFERENCED_PARAMETER(BufferLength);
-    UNREFERENCED_PARAMETER(CheckFileExists);
+    CHAR    ExePath[PATH_MAX] = {0};
+    CHAR *  Pos;
+    ssize_t ExePathLen;
+    size_t  DirLen;
+    size_t  FileNameLen;
 
-    ShowMessages("err, SetupPathForFileName is not supported on Linux yet\n");
-    return FALSE;
+    if (FileName == NULL || FileLocation == NULL || BufferLength == 0)
+    {
+        return FALSE;
+    }
+
+    //
+    // /proc/self/exe is the counterpart of GetModuleFileName(NULL, ...).
+    // readlink() does not null-terminate, the buffer is zeroed above and one
+    // byte is kept for the terminator
+    //
+    ExePathLen = readlink("/proc/self/exe", ExePath, sizeof(ExePath) - 1);
+
+    if (ExePathLen <= 0)
+    {
+        ShowMessages("err, unable to get the path of the running executable (%x)\n", errno);
+        return FALSE;
+    }
+
+    //
+    // Strip the name of the executable
+    //
+    Pos = strrchr(ExePath, '/');
+
+    if (Pos != NULL)
+    {
+        *Pos = '\0';
+    }
+
+    //
+    // Setup path name to the file ("<directory>/<FileName>")
+    //
+    DirLen      = strlen(ExePath);
+    FileNameLen = strlen(FileName);
+
+    if (DirLen + 1 + FileNameLen + 1 > BufferLength)
+    {
+        return FALSE;
+    }
+
+    memcpy(FileLocation, ExePath, DirLen);
+    FileLocation[DirLen] = '/';
+    memcpy(FileLocation + DirLen + 1, FileName, FileNameLen + 1);
+
+    //
+    // The callers are shared with Windows and pass relative paths with
+    // backslashes (e.g., "..\\..\\tests\\..."), which is not a separator here
+    //
+    for (Pos = FileLocation + DirLen + 1; *Pos != '\0'; Pos++)
+    {
+        if (*Pos == '\\')
+        {
+            *Pos = '/';
+        }
+    }
+
+    if (CheckFileExists)
+    {
+        //
+        // ensure file is in the specified directory
+        //
+        if (access(FileLocation, F_OK) != 0)
+        {
+            ShowMessages("err, target file is not loaded\n");
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }
 
 #endif // __linux__
