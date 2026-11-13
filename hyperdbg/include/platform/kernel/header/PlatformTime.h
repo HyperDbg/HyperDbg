@@ -34,3 +34,9 @@ PlatformTimeConvertToTimeFields(PLARGE_INTEGER Time, PTIME_FIELDS TimeFields);
 //
 LARGE_INTEGER
 PlatformTimeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency);
+
+//
+// Sleep for the given number of milliseconds (PASSIVE_LEVEL). See PlatformTime.c.
+//
+VOID
+PlatformTimeDelayExecution(UINT32 Milliseconds);

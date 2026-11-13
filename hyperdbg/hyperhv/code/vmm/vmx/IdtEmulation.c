@@ -406,6 +406,15 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     case EXCEPTION_VECTOR_DEBUG_BREAKPOINT:
 
         //
+        // A #DB never moves RIP: a trap (e.g., the trap flag of a step) already
+        // points to the next instruction, and a fault resumes through RF. The
+        // VM-exit instruction length is not defined for it, so incrementing by
+        // it (e.g., 4) resumed a stepped thread in the middle of the next
+        // instruction
+        //
+        HvSuppressRipIncrement(VCpu);
+
+        //
         // Check if syscall callback is enabled and if so, then we need to
         // check whether the this trap flag is set because of intercepting
         // the result of a system-call or not

@@ -283,9 +283,17 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
         }
 
         //
-        // Allocate the buffer
+        // Allocate the buffer, trampolines are executed so they need
+        // executable memory
         //
-        SinglePool->Address = (UINT64)PlatformMemAllocateZeroedNonPagedPool(Size);
+        if (Intention == EXEC_TRAMPOLINE)
+        {
+            SinglePool->Address = (UINT64)PlatformMemAllocateZeroedNonPagedExecutablePool(Size);
+        }
+        else
+        {
+            SinglePool->Address = (UINT64)PlatformMemAllocateZeroedNonPagedPool(Size);
+        }
 
         if (!SinglePool->Address)
         {

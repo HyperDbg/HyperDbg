@@ -1856,6 +1856,18 @@ BOOLEAN
 EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address)
 {
     //
+    // The list head is only initialized by the first !epthook2; before that it is
+    // all zeros and walking it dereferences NULL. Callers reach this for other
+    // hooks too (EptHookUnHookAll for every non-hidden-breakpoint hook, the single
+    // unhook for every execution hook), e.g. when the VMM is terminated while
+    // !monitor or user-debugger hooks are active
+    //
+    if (!g_IsEptHook2sDetourListInitialized)
+    {
+        return FALSE;
+    }
+
+    //
     // Iterate through the list of hooked pages details to find
     // the entry in the list
     //

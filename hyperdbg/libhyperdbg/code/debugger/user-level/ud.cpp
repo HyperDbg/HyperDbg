@@ -17,6 +17,7 @@
 extern UINT32                   g_ProcessIdOfLatestStartingProcess;
 extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 extern BOOLEAN                  g_IsUserDebuggerInitialized;
+extern BOOLEAN                  g_IsInstrumentingInstructions;
 extern BOOLEAN                  g_IsVmmModuleLoaded;
 extern UINT64                   g_ResultOfEvaluatedExpression;
 extern UINT32                   g_ErrorStateOfResultOfEvaluatedExpression;
@@ -155,6 +156,13 @@ UdRemoveActiveDebuggingProcess()
     // Activate the debugging
     //
     g_ActiveProcessDebuggingState.IsActive = FALSE;
+
+    //
+    // Nothing is paused any more: a paused state left behind made the pause
+    // packet of the next process look like one from another thread of this
+    // one, so it was ignored and the next '.start' never became active
+    //
+    g_ActiveProcessDebuggingState.IsPaused = FALSE;
 }
 
 /**
@@ -367,6 +375,45 @@ UdCreateSuspendedProcess(const WCHAR * FileName, const WCHAR * CommandLine, PPRO
 }
 
 /**
+ * @brief Close the handles of a process started by UdAttachToProcess
+ * @details a start that fails after the process was created ends the process:
+ * if the kernel already attached to it, through UdKillProcess so the kernel
+ * also forgets it, otherwise directly (it is still suspended)
+ *
+ * @param ProcInfo
+ * @param IsAttached
+ * @param Terminate
+ *
+ * @return VOID
+ */
+static VOID
+UdCloseStartedProcess(PROCESS_INFORMATION * ProcInfo, BOOLEAN IsAttached, BOOLEAN Terminate = TRUE)
+{
+    if (ProcInfo->hProcess == NULL)
+    {
+        return;
+    }
+
+    if (Terminate)
+    {
+        if (IsAttached)
+        {
+            UdKillProcess(ProcInfo->dwProcessId);
+        }
+        else
+        {
+            PlatformTerminateProcess(ProcInfo->hProcess, 0);
+        }
+    }
+
+    PlatformCloseHandle(ProcInfo->hThread);
+    PlatformCloseHandle(ProcInfo->hProcess);
+
+    ProcInfo->hThread  = NULL;
+    ProcInfo->hProcess = NULL;
+}
+
+/**
  * @brief Attach to target process
  * @details this function will not check whether the process id  is valid or not
  *
@@ -434,7 +481,10 @@ UdAttachToProcess(UINT32        TargetPid,
         //
         // Start the process in suspended state
         //
-        UdCreateSuspendedProcess(TargetFileAddress, CommandLine, &ProcInfo);
+        if (!UdCreateSuspendedProcess(TargetFileAddress, CommandLine, &ProcInfo))
+        {
+            return FALSE;
+        }
 
         //
         // Set the process id and thread id
@@ -469,6 +519,7 @@ UdAttachToProcess(UINT32        TargetPid,
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
+        UdCloseStartedProcess(&ProcInfo, FALSE);
         return FALSE;
     }
 
@@ -503,6 +554,7 @@ UdAttachToProcess(UINT32        TargetPid,
             //
             // The handle of the target thread is empty
             //
+            UdCloseStartedProcess(&ProcInfo, TRUE);
             return FALSE;
         }
 
@@ -536,6 +588,7 @@ UdAttachToProcess(UINT32        TargetPid,
             if (!Status)
             {
                 ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
+                UdCloseStartedProcess(&ProcInfo, TRUE);
                 return FALSE;
             }
 
@@ -553,6 +606,17 @@ UdAttachToProcess(UINT32        TargetPid,
             else if (AttachRequest.Result == DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED)
             {
                 //
+                // A process that exits (or is killed) before its entrypoint never
+                // reaches it, so stop waiting for it
+                //
+                if (!UdDoesProcessExistByHandle(ProcInfo.hProcess))
+                {
+                    ShowMessages("err, the process exited before reaching its entrypoint\n");
+                    UdCloseStartedProcess(&ProcInfo, TRUE);
+                    return FALSE;
+                }
+
+                //
                 // Wait for a while until the Windows call the entrypoint
                 //
                 // ShowMessages("entrypoint is not reached, continue sending the request...\n");
@@ -566,6 +630,7 @@ UdAttachToProcess(UINT32        TargetPid,
                 // An error happened, we should not continue
                 //
                 ShowErrorMessage((UINT32)AttachRequest.Result);
+                UdCloseStartedProcess(&ProcInfo, TRUE);
                 return FALSE;
             }
         }
@@ -576,6 +641,12 @@ UdAttachToProcess(UINT32        TargetPid,
         g_ProcessIdOfLatestStartingProcess = ProcInfo.dwProcessId;
 
         //
+        // The process id is all we keep: an open handle would keep the process
+        // object alive after it exits
+        //
+        UdCloseStartedProcess(&ProcInfo, FALSE, FALSE);
+
+        //
         // The operation of attaching was successful
         //
         return TRUE;
@@ -583,6 +654,7 @@ UdAttachToProcess(UINT32        TargetPid,
     else
     {
         ShowErrorMessage((UINT32)AttachRequest.Result);
+        UdCloseStartedProcess(&ProcInfo, FALSE);
         return FALSE;
     }
 
@@ -604,7 +676,7 @@ UdTerminateProcessByPid(DWORD TargetPid)
     //
     // Attempt to open a handle to the process with PROCESS_TERMINATE access rights
     //
-    HANDLE Handle = PlatformOpenProcess(PROCESS_TERMINATE, FALSE, TargetPid);
+    HANDLE Handle = PlatformOpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, TargetPid);
     if (Handle == NULL)
     {
         //
@@ -619,11 +691,46 @@ UdTerminateProcessByPid(DWORD TargetPid)
     Terminated = PlatformTerminateProcess(Handle, 0);
 
     //
+    // TerminateProcess only starts the termination: wait for it, so whoever
+    // checks the process next does not find it still running
+    //
+    if (Terminated)
+    {
+        PlatformWaitForSingleObject(Handle, 5000);
+    }
+
+    //
     // Close the process handle
     //
     PlatformCloseHandle(Handle);
 
     return Terminated;
+}
+
+/**
+ * @brief Wait for a process to exit
+ *
+ * @param TargetPid
+ * @param TimeoutMilliseconds
+ *
+ * @return VOID
+ */
+VOID
+UdWaitForProcessExit(DWORD TargetPid, DWORD TimeoutMilliseconds)
+{
+    HANDLE Handle = PlatformOpenProcess(SYNCHRONIZE, FALSE, TargetPid);
+
+    if (Handle == NULL)
+    {
+        //
+        // The process is gone already
+        //
+        return;
+    }
+
+    PlatformWaitForSingleObject(Handle, TimeoutMilliseconds);
+
+    PlatformCloseHandle(Handle);
 }
 
 /**
@@ -636,6 +743,8 @@ UdTerminateProcessByPid(DWORD TargetPid)
 BOOLEAN
 UdDoesProcessExistByPid(DWORD TargetPid)
 {
+    BOOLEAN IsActive = FALSE;
+
     if (HANDLE process = PlatformOpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, TargetPid))
     {
         DWORD ExitCodeOut;
@@ -646,12 +755,14 @@ UdDoesProcessExistByPid(DWORD TargetPid)
         if (PlatformGetExitCodeProcess(process, &ExitCodeOut) != 0)
         {
             //
-            // Return if the process is still active
+            // The process is still active
             //
-            return ExitCodeOut == STILL_ACTIVE;
+            IsActive = ExitCodeOut == STILL_ACTIVE;
         }
+
+        PlatformCloseHandle(process);
     }
-    return FALSE;
+    return IsActive;
 }
 
 /**
@@ -706,26 +817,12 @@ UdKillProcess(UINT32 TargetPid)
     AssertShowMessageReturnStmt(g_IsVmmModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_VMM_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
-    // Check if the process exists
+    // The kernel kills the process: it first unpauses its threads (a paused
+    // thread never leaves the kernel, so the process could not exit) and stops
+    // intercepting them, and it forgets the process either way. A kill done
+    // only in user-mode left the process attached in the kernel, and the next
+    // '.start' never became active
     //
-    if (!UdDoesProcessExistByPid(TargetPid))
-    {
-        return FALSE;
-    }
-
-    //
-    // First, we try to kill the process in user-mode, if not successful,
-    // we try to kill it from kernel-mode
-    //
-    UdTerminateProcessByPid(TargetPid);
-
-    //
-    // Check again to see if the process exists
-    //
-    if (!UdDoesProcessExistByPid(TargetPid))
-    {
-        return TRUE;
-    }
 
     //
     // We wanna kill a process
@@ -760,9 +857,10 @@ UdKillProcess(UINT32 TargetPid)
     }
 
     //
-    // Check if killing was successful or not
+    // Check if killing was successful or not (the process may be gone already)
     //
-    if (KillRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    if (KillRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL ||
+        KillRequest.Result == DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS_DOES_NOT_EXISTS)
     {
         //
         // Remove the current active debugging process (thread)
@@ -770,9 +868,21 @@ UdKillProcess(UINT32 TargetPid)
         UdRemoveActiveDebuggingProcess();
 
         //
+        // Termination is asynchronous: wait for the process to be gone
+        //
+        UdWaitForProcessExit(TargetPid, 5000);
+
+        //
         // The operation of attaching was successful
         //
         return TRUE;
+    }
+    else if (KillRequest.Result == DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS)
+    {
+        //
+        // Not attached (e.g., the latest started process): kill it in user-mode
+        //
+        return UdTerminateProcessByPid(TargetPid) && !UdDoesProcessExistByPid(TargetPid);
     }
     else
     {
@@ -1244,6 +1354,90 @@ UdSendScriptBufferToProcess(UINT64  ProcessDetailToken,
 }
 
 /**
+ * @brief Whether the process attached by the user debugger is still running
+ *
+ * @return BOOLEAN
+ */
+static BOOLEAN
+UdIsDebuggeeProcessAlive()
+{
+    BOOLEAN IsAlive       = FALSE;
+    HANDLE  ProcessHandle = NULL;
+    DWORD   ExitCode      = 0;
+
+    if (!g_ActiveProcessDebuggingState.IsActive || g_ActiveProcessDebuggingState.ProcessId == 0)
+    {
+        return FALSE;
+    }
+
+    ProcessHandle = PlatformOpenProcess(PROCESS_QUERY_INFORMATION,
+                                        FALSE,
+                                        g_ActiveProcessDebuggingState.ProcessId);
+
+    if (ProcessHandle == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // A terminated process keeps a handle open, so the exit code is what tells
+    // the two apart (259 = STILL_ACTIVE)
+    //
+    if (PlatformGetExitCodeProcess(ProcessHandle, &ExitCode) && ExitCode == 259)
+    {
+        IsAlive = TRUE;
+    }
+
+    PlatformCloseHandle(ProcessHandle);
+
+    return IsAlive;
+}
+
+/**
+ * @brief Wait until the debuggee halts, giving up if the process is gone
+ *
+ * @details The debugger gets no notification when an attached process exits, so
+ * a step whose thread dies mid-flight would wait for a pause packet that can
+ * never come - forever, holding the caller (and, in an MCP server, the session)
+ *
+ * @return BOOLEAN TRUE if the debuggee halted, FALSE if it is not alive anymore
+ */
+BOOLEAN
+UdWaitForDebuggeeToHalt()
+{
+    DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =
+        &g_UserSyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING];
+
+    SyncronizationObject->IsOnWaitingState = TRUE;
+
+    while (TRUE)
+    {
+        if (PlatformWaitForSingleObject(SyncronizationObject->EventHandle, 100) == WAIT_OBJECT_0)
+        {
+            return TRUE;
+        }
+
+        if (!UdIsDebuggeeProcessAlive())
+        {
+            SyncronizationObject->IsOnWaitingState = FALSE;
+
+            ShowMessages("err, the debuggee process is not alive anymore (it exited or "
+                         "crashed), so this step cannot finish\n");
+
+            //
+            // 'gu' loops until this flag is cleared (its CTRL+C handler does the
+            // same), and the halted thread a user-debugger command needs is gone
+            //
+            g_IsInstrumentingInstructions               = FALSE;
+            g_ActiveProcessDebuggingState.IsActive      = FALSE;
+
+            return FALSE;
+        }
+    }
+}
+
+/**
  * @brief Send stepping instructions packet to user debugger
  * @param ProcessDetailToken
  * @param TargetThreadId
@@ -1262,11 +1456,16 @@ UdSendStepPacketToDebuggee(UINT64                           ProcessDetailToken,
     //
     // Check for specific stepping type
     //
-    if (StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
+    if (StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER ||
+        StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER_FOR_GU)
     {
         //
         // We should check whether the current instruction is a 'call'
         // instruction or not, if yes we have to compute the length of call
+        //
+        // 'gu' (step out) needs it as well: like the kernel-level stepper, it
+        // steps over calls instead of into them. The last-instruction variant
+        // is a 'ret', not a 'call', so it needs no call length.
         //
         if (HyperDbgCheckWhetherTheCurrentInstructionIsCall(
                 (UCHAR *)&g_ActiveProcessDebuggingState.InstructionBytesOnRip[0],
@@ -1300,9 +1499,7 @@ UdSendStepPacketToDebuggee(UINT64                           ProcessDetailToken,
         //
         // Wait until the result of user-input received
         //
-        DbgWaitForUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING);
-
-        return TRUE;
+        return UdWaitForDebuggeeToHalt();
     }
 
     //

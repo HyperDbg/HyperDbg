@@ -27,3 +27,9 @@ PlatformIoCompleteRequest(PIRP Irp, CCHAR PriorityBoost);
 
 VOID
 PlatformIoMarkIrpPending(PIRP Irp);
+
+PDRIVER_CANCEL
+PlatformIoSetCancelRoutine(PIRP Irp, PDRIVER_CANCEL CancelRoutine);
+
+VOID
+PlatformIoReleaseCancelSpinLock(KIRQL Irql);

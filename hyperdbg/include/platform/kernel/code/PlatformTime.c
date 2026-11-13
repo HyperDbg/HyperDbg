@@ -15,6 +15,7 @@
 #    include "../header/PlatformTime.h"
 #    include <linux/timekeeping.h> // ktime_get_real_ts64
 #    include <linux/time.h>        // time64_to_tm, struct tm, sys_tz
+#    include <linux/delay.h>       // msleep
 
 //
 // Windows kernel time is 100-nanosecond ticks since 1601-01-01; Linux gives
@@ -148,6 +149,32 @@ PlatformTimeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency)
         PerformanceFrequency->QuadPart = NSEC_PER_SEC;
 
     return Counter;
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Put the current thread to sleep for the given time.
+ * @details Windows: KeDelayExecutionThread(). Linux: msleep(). Must be called
+ *          at PASSIVE_LEVEL (APC_LEVEL on Windows).
+ */
+VOID
+PlatformTimeDelayExecution(UINT32 Milliseconds)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    LARGE_INTEGER Interval;
+
+    Interval.QuadPart = -10000LL * Milliseconds; // relative, in 100-nanosecond units
+    KeDelayExecutionThread(KernelMode, FALSE, &Interval);
+
+#elif defined(__linux__)
+
+    msleep(Milliseconds);
 
 #else
 
