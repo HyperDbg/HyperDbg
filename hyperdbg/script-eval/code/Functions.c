@@ -1624,10 +1624,10 @@ ApplyFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 
  * @return size_t
  */
 size_t
-WcharToChar(const wchar_t * src, char * dest, size_t dest_len)
+WcharToChar(const WCHAR * src, char * dest, size_t dest_len)
 {
-    wchar_t Code;
-    size_t  i;
+    WCHAR  Code;
+    size_t i;
 
     i = 0;
 
@@ -1668,12 +1668,12 @@ WcharToChar(const wchar_t * src, char * dest, size_t dest_len)
 BOOLEAN
 ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 CurrentProcessedPositionFromStartOfFormat, PUINT32 CurrentPositionInFinalBuffer, UINT64 Val, BOOLEAN IsWstring, UINT32 SizeOfFinalBuffer)
 {
-    UINT32  StringSize;
-    wchar_t WstrBuffer[50];
-    CHAR    AsciiBuffer[sizeof(WstrBuffer) / 2];
-    UINT32  StringSizeInByte; /* because of wide-char */
-    UINT32  CountOfBlocks;
-    UINT32  CopiedBlockLen;
+    UINT32 StringSize;
+    WCHAR  WstrBuffer[50];
+    CHAR   AsciiBuffer[sizeof(WstrBuffer) / 2];
+    UINT32 StringSizeInByte; /* because of wide-char */
+    UINT32 CountOfBlocks;
+    UINT32 CopiedBlockLen;
 
     //
     // First we have to check if string is valid or not
@@ -2236,11 +2236,22 @@ ScriptEngineFunctionStrncmp(const char * Address1, const char * Address2, size_t
  * @return UINT64
  */
 UINT64
-ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
+ScriptEngineFunctionWcscmp(const WCHAR * Address1, const WCHAR * Address2)
 {
     UINT64 Result = 0;
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = wcscmp(Address1, Address2);
+
+    //
+    // The wide strings of the script engine are 16-bit, so the comparison is
+    // done here instead of wcscmp (wchar_t is not 16-bit on every platform)
+    //
+    while (*Address1 != 0 && *Address1 == *Address2)
+    {
+        Address1++;
+        Address2++;
+    }
+
+    Result = (*Address1 == *Address2) ? 0 : ((*Address1 < *Address2) ? (UINT64)-1 : 1);
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -2260,11 +2271,28 @@ ScriptEngineFunctionWcscmp(const wchar_t * Address1, const wchar_t * Address2)
  * @return UINT64
  */
 UINT64
-ScriptEngineFunctionWcsncmp(const wchar_t * Address1, const wchar_t * Address2, size_t Num)
+ScriptEngineFunctionWcsncmp(const WCHAR * Address1, const WCHAR * Address2, size_t Num)
 {
     UINT64 Result = 0;
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = wcsncmp(Address1, Address2, Num);
+
+    //
+    // The wide strings of the script engine are 16-bit, so the comparison is
+    // done here instead of wcsncmp (wchar_t is not 16-bit on every platform)
+    //
+    for (; Num != 0; Num--, Address1++, Address2++)
+    {
+        if (*Address1 != *Address2)
+        {
+            Result = (*Address1 < *Address2) ? (UINT64)-1 : 1;
+            break;
+        }
+
+        if (*Address1 == 0)
+        {
+            break;
+        }
+    }
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE

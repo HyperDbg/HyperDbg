@@ -3571,7 +3571,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
 
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionWcscmp((const wchar_t *)SrcVal1, (const wchar_t *)SrcVal0);
+        DesVal = ScriptEngineFunctionWcscmp((const WCHAR *)SrcVal1, (const WCHAR *)SrcVal0);
 
         SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
 
@@ -3742,7 +3742,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
 
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionWcsncmp((const wchar_t *)SrcVal2, (const wchar_t *)SrcVal1, SrcVal0);
+        DesVal = ScriptEngineFunctionWcsncmp((const WCHAR *)SrcVal2, (const WCHAR *)SrcVal1, SrcVal0);
 
         SetValue(GuestRegs, ScriptGeneralRegisters, Des, DesVal);
 
