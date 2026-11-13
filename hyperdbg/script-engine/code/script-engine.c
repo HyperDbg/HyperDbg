@@ -5125,7 +5125,11 @@ CodeGen(PSCRIPT_ENGINE_TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PSCRI
             BOOL Handled = FALSE;
             Op0          = Top(MatchedStack);
 
-            if (((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_PTR)
+            //
+            // The operand has no type when it is an unresolved variable (e.g.,
+            // 'x--;' without defining 'x'), the error is reported below
+            //
+            if (Op0->VariableType != NULL && ((VARIABLE_TYPE *)Op0->VariableType)->Kind == TY_PTR)
             {
                 if (!strcmp(Operator->Value, "@INC"))
                 {
