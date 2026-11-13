@@ -532,7 +532,10 @@ ScriptAutomaticStatementsTestWrapper(const string & Expr, UINT64 ExpectationValu
 PVOID
 AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING AllocationsForCastings)
 {
-#ifdef _WIN32
+    //
+    // The strings are UTF-16 (char16_t) on purpose: WCHAR is 16-bit on both
+    // platforms, while L"" literals and wcslen() are 32-bit on Linux
+    //
     typedef struct _UNICODE_STRING
     {
         UINT16 Length;        // +0x000
@@ -561,8 +564,8 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     //
     // Allocate UNICODE_STRING 1
     //
-    WCHAR           MyString1[40]   = L"Hi come from stupid struct 1!";
-    UINT32          SizeOfMyString1 = (UINT32)wcslen(MyString1) * sizeof(WCHAR) + 2;
+    const char16_t  MyString1[40]   = u"Hi come from stupid struct 1!";
+    UINT32          SizeOfMyString1 = (UINT32)std::char_traits<char16_t>::length(MyString1) * sizeof(WCHAR) + 2;
     PUNICODE_STRING UnicodeStr1     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
 
     if (UnicodeStr1 == NULL)
@@ -588,8 +591,8 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
     //
     // Allocate UNICODE_STRING 2
     //
-    WCHAR           MyString2[40]   = L"Goodbye I'm at stupid struct 2!";
-    UINT32          SizeOfMyString2 = (UINT32)wcslen(MyString2) * sizeof(WCHAR) + 2;
+    const char16_t  MyString2[40]   = u"Goodbye I'm at stupid struct 2!";
+    UINT32          SizeOfMyString2 = (UINT32)std::char_traits<char16_t>::length(MyString2) * sizeof(WCHAR) + 2;
     PUNICODE_STRING UnicodeStr2     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
 
     if (UnicodeStr2 == NULL)
@@ -665,14 +668,6 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
 
     //_CrtDbgBreak();
     return StupidStruct2;
-#else
-    //
-    // TODO(Linux): wide-char (UNICODE_STRING / WCHAR) casting test harness — blocked on
-    // the wchar_t 2-vs-4-byte issue; stubbed until Linux exercises the script-engine cast tests.
-    //
-    UNREFERENCED_PARAMETER(AllocationsForCastings);
-    return NULL;
-#endif
 }
 
 /**
@@ -684,7 +679,6 @@ AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING Allocations
 VOID
 ScriptEngineWrapperTestParser(const string & Expr)
 {
-#ifdef _WIN32
     ALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING AllocationsForCastings = {0};
 
     typedef struct _TEST_STRUCT
@@ -709,10 +703,13 @@ ScriptEngineWrapperTestParser(const string & Expr)
 
     GUEST_REGS GuestRegs = {0};
 
-    CHAR  test[] = "Hello world !";
-    WCHAR testw[] =
-        L"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 "
-        L"9 a b c d e f g h i j k l m n o p q r s t u v w x y z";
+    //
+    // UTF-16 on purpose, see AllocateStructForCasting
+    //
+    CHAR     test[] = "Hello world !";
+    char16_t testw[] =
+        u"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 "
+        u"9 a b c d e f g h i j k l m n o p q r s t u v w x y z";
 
     CHAR * RspReg = (CHAR *)malloc(0x100);
 
@@ -752,13 +749,6 @@ ScriptEngineWrapperTestParser(const string & Expr)
     free(AllocationsForCastings.Buff4);
     free(AllocationsForCastings.Buff5);
     free(AllocationsForCastings.Buff6);
-#else
-    //
-    // TODO(Linux): parser test harness relies on wide-char (WCHAR testw[]) — blocked on
-    // the wchar_t 2-vs-4-byte issue; stubbed until Linux exercises the script-engine parser tests.
-    //
-    UNREFERENCED_PARAMETER(Expr);
-#endif
 }
 
 /**
