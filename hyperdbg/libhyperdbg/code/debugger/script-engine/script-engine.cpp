@@ -43,7 +43,7 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
         //
         // Send data to the target user debugger or kernel debugger
         //
-        if (!ScriptEngineExecuteSingleExpression((CHAR *)Expr.c_str(), TRUE, TRUE))
+        if (!ScriptEngineExecuteSingleExpression((CHAR *)Expr.c_str(), FALSE, TRUE))
         {
             *HasError = TRUE;
             return NULL;

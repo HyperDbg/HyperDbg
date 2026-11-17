@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.1.0] - 2026-11-17
+New release of the HyperDbg Debugger.
+
+### Changed
+- Turn off showing messages related to errors for unknown symbols ([link](https://github.com/HyperDbg/HyperDbg/commit/8e56c2a3d286cc3771f2e3e9ac315bbc422898f9))
+- Fix the parser for the 'dt' and 'struct' commands ([link](https://github.com/HyperDbg/HyperDbg/commit/71f948e2b5c02991d5b0de7c7b6ffe85dda2b444))
+- Update pdbex dependency to fix the 'dt' command ([link](https://github.com/HyperDbg/HyperDbg/commit/7b38fc1a978cf8a7e8a7e348cc3ed66b4a3c649c))
+- Change the symbol parameter error message ([link](https://github.com/HyperDbg/HyperDbg/commit/84444b9c80eb6702c4b762dc28dca05682def003))
+
 ## [0.25.0.0] - 2026-11-02
 New release of the HyperDbg Debugger.
 
