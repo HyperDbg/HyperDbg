@@ -41,10 +41,12 @@ BOOLEAN g_VmmInitialized;
 BOOLEAN g_HyperTraceInitialized;
 
 /**
- * @brief Event to show whether the user debugger is waiting for a command or not
+ * @brief Set by the paused thread when it has completed the waiting user debugger command
+ * @details A flag rather than an event: the command runs in VMX root-mode, where
+ * KeSetEvent can't be called
  *
  */
-KEVENT g_UserDebuggerWaitingCommandEvent;
+volatile LONG g_UserDebuggerWaitingCommandCompleted;
 
 /**
  * @brief Buffer to hold the command from user debugger

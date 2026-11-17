@@ -534,23 +534,23 @@ LogCallbackSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, B
     if (g_GlobalNotifyRecord != NULL)
     {
         //
-        // there is some threads that needs to be completed
+        // there is some threads that needs to be completed; take the record
+        // atomically, as the parked IRP's cancel routine may be racing for it
         //
+        PNOTIFY_RECORD NotifyRecord = LogTakeGlobalNotifyRecord(NULL);
 
-        //
-        // set the target pool
-        //
-        g_GlobalNotifyRecord->CheckVmxRootMessagePool = IsVmxRoot;
+        if (NotifyRecord != NULL)
+        {
+            //
+            // set the target pool
+            //
+            NotifyRecord->CheckVmxRootMessagePool = IsVmxRoot;
 
-        //
-        // Insert dpc to queue
-        //
-        PlatformDpcInsertQueueDpc(&g_GlobalNotifyRecord->Dpc, g_GlobalNotifyRecord, NULL);
-
-        //
-        // set notify routine to null
-        //
-        g_GlobalNotifyRecord = NULL;
+            //
+            // Insert dpc to queue
+            //
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+        }
     }
 
     //
@@ -1400,6 +1400,13 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
             PIO_STACK_LOCATION IrpSp;
 
             //
+            // This record was taken out of g_GlobalNotifyRecord (or never parked),
+            // so the IRP is ours to complete even if its cancel routine is already
+            // running: that routine only completes a record it took itself
+            //
+            PlatformIoSetCancelRoutine(Irp, NULL);
+
+            //
             // Make suree that concurrent calls to notify function never occurs
             //
             if (!(Irp->CurrentLocation <= Irp->StackCount + 1))
@@ -1475,6 +1482,85 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
     {
         PlatformMemFreePool(NotifyRecord);
     }
+}
+
+/**
+ * @brief Atomically take the parked notify record out of g_GlobalNotifyRecord
+ *
+ * @details A message (possibly sent from VMX root, where no lock can be taken)
+ * and the cancel routine of the parked IRP race for the record; whoever swaps
+ * it out owns it and is the only one to complete its IRP
+ *
+ * @param Expected Take the record only if it is still this one, or NULL to take
+ * whatever record is parked
+ * @return PNOTIFY_RECORD The record now owned by the caller, or NULL
+ */
+PNOTIFY_RECORD
+LogTakeGlobalNotifyRecord(PNOTIFY_RECORD Expected)
+{
+    if (Expected == NULL)
+    {
+        return (PNOTIFY_RECORD)CpuInterlockedExchange64((INT64 volatile *)&g_GlobalNotifyRecord, (INT64)NULL);
+    }
+
+    if (CpuInterlockedCompareExchange64((INT64 volatile *)&g_GlobalNotifyRecord, (INT64)NULL, (INT64)Expected) == (INT64)Expected)
+    {
+        return Expected;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Cancel routine of the IRP parked in g_GlobalNotifyRecord
+ *
+ * @details Called by the I/O manager when the waiting thread exits or the
+ * request is cancelled (e.g., the debugger process is killed)
+ *
+ * @param DeviceObject
+ * @param Irp The IRP being cancelled
+ * @return VOID
+ */
+VOID
+LogCancelPendingNotifyIrp(PDEVICE_OBJECT DeviceObject, PIRP Irp)
+{
+    PNOTIFY_RECORD NotifyRecord;
+
+    UNREFERENCED_PARAMETER(DeviceObject);
+
+    PlatformIoReleaseCancelSpinLock(Irp->CancelIrql);
+
+    //
+    // Only one IRP is parked at a time. If a message already took this one,
+    // its DPC completes it and there is nothing to do here
+    //
+    NotifyRecord = LogTakeGlobalNotifyRecord(NULL);
+
+    if (NotifyRecord == NULL)
+    {
+        return;
+    }
+
+    if (NotifyRecord->Message.PendingIrp != Irp)
+    {
+        //
+        // A message took this IRP and another one got parked since: put that
+        // one back, or deliver it if yet another one got parked meanwhile
+        //
+        if (CpuInterlockedCompareExchange64((INT64 volatile *)&g_GlobalNotifyRecord, (INT64)NotifyRecord, (INT64)NULL) != (INT64)NULL)
+        {
+            NotifyRecord->CheckVmxRootMessagePool = FALSE;
+            PlatformDpcInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+        }
+
+        return;
+    }
+
+    PlatformMemFreePool(NotifyRecord);
+
+    Irp->IoStatus.Status      = STATUS_CANCELLED;
+    Irp->IoStatus.Information = 0;
+    PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
 }
 
 /**
@@ -1580,9 +1666,34 @@ LogRegisterIrpBasedNotification(PVOID TargetIrp, LONG * Status)
         else
         {
             //
+            // Park the IRP until a message arrives. It needs a cancel routine:
+            // without one a thread waiting here can't be terminated, and a killed
+            // debugger process hung (holding its handle to the device) until the
+            // next message happened to complete the IRP
+            //
+            PlatformIoSetCancelRoutine(Irp, LogCancelPendingNotifyIrp);
+
+            //
             // Set the notify routine to the global structure
             //
-            g_GlobalNotifyRecord = NotifyRecord;
+            CpuInterlockedExchange64((INT64 volatile *)&g_GlobalNotifyRecord, (INT64)NotifyRecord);
+
+            if (Irp->Cancel && PlatformIoSetCancelRoutine(Irp, NULL) != NULL)
+            {
+                //
+                // Cancelled before the cancel routine was set, so it will never
+                // run: take the IRP back, unless a message already took it (then
+                // its DPC completes it)
+                //
+                if (LogTakeGlobalNotifyRecord(NotifyRecord) != NULL)
+                {
+                    PlatformMemFreePool(NotifyRecord);
+
+                    Irp->IoStatus.Status      = STATUS_CANCELLED;
+                    Irp->IoStatus.Information = 0;
+                    PlatformIoCompleteRequest(Irp, IO_NO_INCREMENT);
+                }
+            }
         }
         //
         // We will return pending as we have marked the IRP pending

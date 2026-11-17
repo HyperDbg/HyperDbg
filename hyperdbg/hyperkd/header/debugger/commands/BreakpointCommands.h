@@ -52,3 +52,9 @@ BreakpointCheckAndHandleDebugBreakpoint(UINT32 CoreId);
 
 BOOLEAN
 BreakpointRestoreTheTrapFlagOnceTriggered(UINT32 ProcessId, UINT32 ThreadId);
+
+PDEBUGGEE_BP_DESCRIPTOR
+BreakpointGetEntryByBreakpointId(UINT64 BreakpointId);
+
+VOID
+BreakpointClearAndDeallocateMemory(PDEBUGGEE_BP_DESCRIPTOR BreakpointDesc);

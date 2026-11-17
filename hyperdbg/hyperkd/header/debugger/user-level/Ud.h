@@ -12,6 +12,17 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				   Constants					//
+//////////////////////////////////////////////////
+
+/**
+ * @brief How long the IOCTL thread waits for a paused thread to run a command
+ * (in 100-nanosecond units: 10 seconds)
+ *
+ */
+#define UD_COMMAND_COMPLETION_TIMEOUT (10LL * 1000 * 1000 * 10)
+
+//////////////////////////////////////////////////
 //				   Structures					//
 //////////////////////////////////////////////////
 
@@ -37,6 +48,7 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
     BOOLEAN    IsOnTheStartingPhase;
     BOOLEAN    IsOnThreadInterceptingPhase;
     BOOLEAN    CheckCallBackForInterceptingFirstInstruction; // checks for the callbacks for interceptions of the very first instruction (used by RE Machine)
+    UINT64     EntrypointBreakpointId;                       // the breakpoint on the entrypoint until it is hit (zero if none)
     LIST_ENTRY ThreadsListHead;
 
 } USERMODE_DEBUGGING_PROCESS_DETAILS, *PUSERMODE_DEBUGGING_PROCESS_DETAILS;
@@ -58,6 +70,9 @@ UdHandleInstantBreak(PROCESSOR_DEBUGGING_STATE *         DbgState,
 
 VOID
 UdApplyHardwareDebugRegister(PVOID TargetAddress);
+
+VOID
+UdDisarmStepOverBreakpoint();
 
 BOOLEAN
 UdCheckAndHandleBreakpointsAndDebugBreaks(PROCESSOR_DEBUGGING_STATE *       DbgState,

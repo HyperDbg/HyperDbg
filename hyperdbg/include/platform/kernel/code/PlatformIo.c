@@ -100,3 +100,61 @@ PlatformIoMarkIrpPending(PIRP Irp)
 
 #endif
 }
+
+/**
+ * @brief Set (or clear, with NULL) the cancel routine of a pending IRP
+ *
+ * @param Irp Pointer to the IRP
+ * @param CancelRoutine The routine the I/O manager calls to cancel the IRP, or NULL
+ * @return PDRIVER_CANCEL The previous cancel routine (NULL if it was cleared or is running)
+ */
+PDRIVER_CANCEL
+PlatformIoSetCancelRoutine(PIRP Irp, PDRIVER_CANCEL CancelRoutine)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    return IoSetCancelRoutine(Irp, CancelRoutine);
+
+#elif defined(__linux__)
+
+    //
+    // STUB. TODO(Linux): a blocking read is interrupted by a signal instead.
+    //
+    UNREFERENCED_PARAMETER(Irp);
+    UNREFERENCED_PARAMETER(CancelRoutine);
+
+    return NULL;
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}
+
+/**
+ * @brief Release the I/O manager's cancel spin lock (first thing a cancel routine does)
+ *
+ * @param Irql The IRQL to return to (the IRP's CancelIrql)
+ * @return VOID
+ */
+VOID
+PlatformIoReleaseCancelSpinLock(KIRQL Irql)
+{
+#if defined(_WIN32) || defined(_WIN64)
+
+    IoReleaseCancelSpinLock(Irql);
+
+#elif defined(__linux__)
+
+    //
+    // STUB. TODO(Linux): no cancel spin lock.
+    //
+    UNREFERENCED_PARAMETER(Irql);
+
+#else
+
+#    error "Unsupported platform"
+
+#endif
+}

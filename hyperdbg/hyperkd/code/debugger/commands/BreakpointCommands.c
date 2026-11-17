@@ -487,6 +487,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext         = {0};
     BOOLEAN                          AvoidUnsetMtf         = FALSE;
     BOOLEAN                          IgnoreUserHandling    = FALSE;
+    BOOLEAN                          CheckForCallbacks     = FALSE;
 
     //
     // ***** Check breakpoint for 'bp' command *****
@@ -557,15 +558,22 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 if (CurrentBreakpointDesc->RemoveAfterHit)
                 {
                     //
-                    // One hit, we have to remove it
+                    // One hit, we have to remove it. The descriptor is freed, so
+                    // keep what is still needed from it
                     //
+                    CheckForCallbacks = CurrentBreakpointDesc->CheckForCallbacks;
                     BreakpointClearAndDeallocateMemory(CurrentBreakpointDesc);
+                    CurrentBreakpointDesc = NULL;
+                }
+                else
+                {
+                    CheckForCallbacks = CurrentBreakpointDesc->CheckForCallbacks;
                 }
 
                 //
                 // Check if it needs to check for callbacks or not
                 //
-                if (CurrentBreakpointDesc->CheckForCallbacks)
+                if (CheckForCallbacks)
                 {
                     //
                     // check callbacks
@@ -608,7 +616,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
             // Check if we should re-apply the breakpoint after this instruction
             // or not (in other words, is breakpoint still valid)
             //
-            if (!CurrentBreakpointDesc->AvoidReApplyBreakpoint)
+            if (CurrentBreakpointDesc != NULL && !CurrentBreakpointDesc->AvoidReApplyBreakpoint)
             {
                 //
                 // We should re-apply the breakpoint on next mtf
