@@ -3569,12 +3569,6 @@ StartAgain:
         if (DbgState->HaltedCoreTask.PerformHaltedTask)
         {
             //
-            // Indicate that the halted core is no longer needed to execute a task
-            // as the current task is executed once
-            //
-            DbgState->HaltedCoreTask.PerformHaltedTask = FALSE;
-
-            //
             // Perform the target task
             //
             HaltedCorePerformTargetTask(DbgState,
@@ -3592,6 +3586,12 @@ StartAgain:
                 SpinlockLock(&DbgState->Lock);
 
                 //
+                // The broadcast loop waits for the task flag to clear after
+                // this core takes its lock again
+                //
+                DbgState->HaltedCoreTask.PerformHaltedTask = FALSE;
+
+                //
                 // If the debugger continued during the task, do not halt again
                 //
                 if (g_DebuggeeHaltInProgress)
@@ -3600,6 +3600,10 @@ StartAgain:
                 }
 
                 SpinlockUnlock(&DbgState->Lock);
+            }
+            else
+            {
+                DbgState->HaltedCoreTask.PerformHaltedTask = FALSE;
             }
         }
     }

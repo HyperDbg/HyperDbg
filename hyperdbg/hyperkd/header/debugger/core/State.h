@@ -134,11 +134,11 @@ typedef struct _DEBUGGER_TRAP_FLAG_STATE
  */
 typedef struct _DEBUGGEE_HALTED_CORE_TASK
 {
-    BOOLEAN PerformHaltedTask;
-    BOOLEAN LockAgainAfterTask;
-    UINT64  TargetTask;
-    PVOID   Context;
-    UINT64  KernelStatus;
+    volatile BOOLEAN PerformHaltedTask;
+    BOOLEAN          LockAgainAfterTask;
+    UINT64           TargetTask;
+    PVOID            Context;
+    UINT64           KernelStatus;
 
 } DEBUGGEE_HALTED_CORE_TASK, *PDEBUGGEE_HALTED_CORE_TASK;
 

@@ -454,9 +454,11 @@ HaltedCoreBroadcastTaskAllCores(PROCESSOR_DEBUGGING_STATE * DbgState,
                 {
                     //
                     // Keep checking to make sure the target core finished the
-                    // execution its task and locked again
+                    // task and took its lock again. The core also holds the
+                    // lock briefly before it runs the task
                     //
-                    if (KdCheckTheHaltedCore(&g_DbgState[i]) == FALSE)
+                    if (g_DbgState[i].HaltedCoreTask.PerformHaltedTask ||
+                        KdCheckTheHaltedCore(&g_DbgState[i]) == FALSE)
                     {
                         continue;
                     }
