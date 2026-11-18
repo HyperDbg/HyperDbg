@@ -834,6 +834,15 @@ DispatchEventException(VIRTUAL_MACHINE_STATE * VCpu)
     VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit.AsUInt);
 
     //
+    // The vm-exit instruction length is not valid for NMIs or hardware exceptions
+    //
+    if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI ||
+        InterruptExit.InterruptionType == INTERRUPT_TYPE_HARDWARE_EXCEPTION)
+    {
+        HvSuppressRipIncrement(VCpu);
+    }
+
+    //
     // This type of vm-exit, can be either because of an !exception event,
     // or it might be because we triggered APIC or X2APIC to generate an
     // NMI, we want to halt the debuggee. We perform the checks here to
