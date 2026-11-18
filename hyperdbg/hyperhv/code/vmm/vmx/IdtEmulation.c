@@ -555,10 +555,11 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
         //
         // External interrupts cannot be injected into the
-        // guest if guest isn't interruptible (e.g.: guest
-        // is blocked by "mov ss", or EFLAGS.IF == 0).
+        // guest while STI or MOV SS blocks delivery or the interrupt flag is clear
         //
-        Interruptible = GuestRflags.InterruptEnableFlag && !InterruptibilityState.BlockingByMovSs;
+        Interruptible = GuestRflags.InterruptEnableFlag &&
+                        !InterruptibilityState.BlockingBySti &&
+                        !InterruptibilityState.BlockingByMovSs;
 
         if (Interruptible)
         {
