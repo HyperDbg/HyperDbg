@@ -88,6 +88,46 @@ SerialConnectionCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffe
 }
 
 /**
+ * @brief Number of pause instructions after a receive poll returns no byte
+ *
+ */
+#define SERIAL_CONNECTION_RECEIVE_POLL_PAUSE 64
+
+/**
+ * @brief Try to receive a byte without waiting for the response lock
+ *
+ * USB send and receive operations share state and use the same lock.
+ *
+ * @param RecvChar Receives the byte
+ * @return BOOLEAN TRUE if a byte is received
+ */
+static BOOLEAN
+SerialConnectionRecvByteUnderResponseLock(PUCHAR RecvChar)
+{
+    BOOLEAN Result = FALSE;
+
+    if (SpinlockTryLock(&DebuggerResponseLock))
+    {
+        Result = KdHyperDbgRecvByte(RecvChar);
+
+        SpinlockUnlock(&DebuggerResponseLock);
+    }
+
+    if (!Result)
+    {
+        //
+        // Give waiting senders a chance to take the lock
+        //
+        for (UINT32 i = 0; i < SERIAL_CONNECTION_RECEIVE_POLL_PAUSE; i++)
+        {
+            CpuPause();
+        }
+    }
+
+    return Result;
+}
+
+/**
  * @brief Discard bytes until the next end of buffer marker to re-align the
  * stream to a frame boundary after a desync
  *
@@ -104,7 +144,7 @@ SerialConnectionResyncToNextFrame()
     {
         UCHAR RecvChar = NULL_ZERO;
 
-        if (!KdHyperDbgRecvByte(&RecvChar))
+        if (!SerialConnectionRecvByteUnderResponseLock(&RecvChar))
         {
             continue;
         }
@@ -148,7 +188,7 @@ SerialConnectionRecvBuffer(CHAR *   BufferToSave,
     {
         UCHAR RecvChar = NULL_ZERO;
 
-        if (!KdHyperDbgRecvByte(&RecvChar))
+        if (!SerialConnectionRecvByteUnderResponseLock(&RecvChar))
         {
             continue;
         }
