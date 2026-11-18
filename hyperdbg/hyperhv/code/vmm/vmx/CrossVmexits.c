@@ -81,3 +81,43 @@ VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu)
     //
     PlatformDbgBreakPoint();
 }
+
+/**
+ * @brief Handle a vm-entry failure
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+VmxHandleVmentryFailures(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    UINT32 ActivityState         = 0;
+    UINT32 EntryInterruptionInfo = 0;
+
+    VmxVmread32P(VMCS_GUEST_ACTIVITY_STATE, &ActivityState);
+    VmxVmread32P(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, &EntryInterruptionInfo);
+
+    LogError("Err, vm-entry failed, reason: 0x%x, qualification: 0x%x, rflags: 0x%llx, "
+             "interruptibility: 0x%llx, activity: 0x%x, pending debug exceptions: 0x%llx, "
+             "debugctl: 0x%llx, injected event: 0x%x",
+             VCpu->ExitReason,
+             VCpu->ExitQualification,
+             HvGetRflags(),
+             HvGetInterruptibilityState(),
+             ActivityState,
+             HvGetPendingDebugExceptions(),
+             HvGetDebugctl(),
+             EntryInterruptionInfo);
+
+    //
+    // Keep guest RIP unchanged because vm-entry failed
+    //
+    HvSuppressRipIncrement(VCpu);
+
+    CommonWriteDebugInformation(VCpu);
+
+    //
+    // Break into the debugger instead of retrying
+    //
+    PlatformDbgBreakPoint();
+}

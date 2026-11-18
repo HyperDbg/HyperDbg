@@ -290,6 +290,9 @@ VOID
 VmxHandleTripleFaults(VIRTUAL_MACHINE_STATE * VCpu);
 
 VOID
+VmxHandleVmentryFailures(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 VmxFixCr4AndCr0Bits();
 
 VOID
