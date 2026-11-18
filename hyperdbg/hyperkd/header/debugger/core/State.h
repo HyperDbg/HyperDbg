@@ -164,6 +164,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 {
     volatile LONG                              Lock;
     volatile BOOLEAN                           MainDebuggingCore;
+    volatile BOOLEAN                           IsWaitingInHaltLoop;
     UINT32                                     CoreId;
     BOOLEAN                                    ShortCircuitingEvent;
     BOOLEAN                                    IgnoreDisasmInNextPacket;
@@ -180,6 +181,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     DEBUGGEE_HALTED_CORE_TASK                  HaltedCoreTask;
     UINT16                                     InstructionLengthHint;
     UINT64                                     HardwareDebugRegisterForStepping;
+    BOOLEAN                                    ClearHardwareDebugRegisterForStepping;
     UINT64 *                                   ScriptEngineCoreSpecificStackBuffer;
     PKDPC                                      KdDpcObject;                       // DPC object to be used in kernel debugger
     CHAR                                       KdRecvBuffer[MaxSerialPacketSize]; // Used for debugging buffers (receiving buffers from serial devices)

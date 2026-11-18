@@ -102,6 +102,9 @@ static VOID
 KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID
+KdClearStepOverHardwareDebugRegister();
+
+static VOID
 KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
 static VOID

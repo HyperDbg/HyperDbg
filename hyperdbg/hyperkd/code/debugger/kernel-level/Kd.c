@@ -476,6 +476,36 @@ KdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLen
 }
 
 /**
+ * @brief End the current step-over
+ * @details Each core disables the breakpoint when it resumes
+ *
+ * @return VOID
+ */
+VOID
+KdClearStepOverHardwareDebugRegister()
+{
+    ULONG ProcessorsCount;
+
+    if (g_HardwareDebugRegisterDetailsForStepOver.Address == (UINT64)NULL)
+    {
+        return;
+    }
+
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
+
+    //
+    // Do not treat a later hit at this address as a step
+    //
+    RtlZeroMemory(&g_HardwareDebugRegisterDetailsForStepOver, sizeof(HARDWARE_DEBUG_REGISTER_DETAILS));
+
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
+    {
+        g_DbgState[i].HardwareDebugRegisterForStepping      = (UINT64)NULL;
+        g_DbgState[i].ClearHardwareDebugRegisterForStepping = TRUE;
+    }
+}
+
+/**
  * @brief Handles debug events when kernel-debugger is attached
  *
  * @param DbgState The state of the debugger on the current core
@@ -486,16 +516,47 @@ KdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLen
 VOID
 KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN TrapSetByDebugger)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext    = {0};
-    BOOLEAN                          IgnoreDebugEvent = FALSE;
-    UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(DbgState->CoreId);
+    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
+    BOOLEAN                          HandleAsStep  = TrapSetByDebugger;
+    RFLAGS                           Rflags        = {0};
+    UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
     TargetContext.Context = (PVOID)LastVmexitRip;
 
-    if (TrapSetByDebugger)
+    //
+    // A step-over breakpoint does not use the trap flag
+    //
+    if (g_HardwareDebugRegisterDetailsForStepOver.Address != (UINT64)NULL &&
+        g_HardwareDebugRegisterDetailsForStepOver.Address == LastVmexitRip)
+    {
+        if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()) &&
+            g_HardwareDebugRegisterDetailsForStepOver.ThreadId == HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()))
+        {
+            HandleAsStep = TRUE;
+        }
+        else
+        {
+            //
+            // Reapply the breakpoint but do not halt for another thread.
+            // The resume flag lets the instruction run without another #DB
+            //
+            SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                              BREAK_ON_INSTRUCTION_FETCH,
+                              FALSE,
+                              g_HardwareDebugRegisterDetailsForStepOver.Address);
+
+            Rflags.AsUInt     = VmFuncGetRflags();
+            Rflags.ResumeFlag = TRUE;
+            VmFuncSetRflags(Rflags.AsUInt);
+
+            return;
+        }
+    }
+
+    if (HandleAsStep)
     {
         //
         // *** Handle a regular trap flag (most of the times as a result of stepping) set by the debugger ***
@@ -509,49 +570,12 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 FALSE))
         {
-            if (g_HardwareDebugRegisterDetailsForStepOver.Address != (UINT64)NULL)
-            {
-                //
-                // Check if it's caused by a step-over hardware debug breakpoint or not
-                //
-                if (LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
-                {
-                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()) &&
-                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()))
-                    {
-                        //
-                        // It's a step caused by a debug register breakpoint step-over
-                        //
-                        RtlZeroMemory(&g_HardwareDebugRegisterDetailsForStepOver, sizeof(HARDWARE_DEBUG_REGISTER_DETAILS));
-                    }
-                    else
-                    {
-                        //
-                        // Should be ignored because it's a hardware debug register that is
-                        // likely triggered by other thread
-                        //
-                        IgnoreDebugEvent = TRUE;
-
-                        //
-                        // Also, we should re-apply the hardware debug breakpoint on this thread
-                        //
-                        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
-                                          BREAK_ON_INSTRUCTION_FETCH,
-                                          FALSE,
-                                          g_HardwareDebugRegisterDetailsForStepOver.Address);
-                    }
-                }
-            }
-
-            if (!IgnoreDebugEvent)
-            {
-                //
-                // Handle a regular step
-                //
-                KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                      &TargetContext);
-            }
+            //
+            // Handle a regular step
+            //
+            KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                  &TargetContext);
         }
     }
     else
@@ -616,6 +640,16 @@ KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState)
 VOID
 KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
+    if (DbgState->ClearHardwareDebugRegisterForStepping)
+    {
+        //
+        // Clear both enable bits for the step-over breakpoint before resuming
+        //
+        CpuWriteDr(7, CpuReadDr(7) & ~(3ULL << (DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER * 2)));
+
+        DbgState->ClearHardwareDebugRegisterForStepping = FALSE;
+    }
+
     //
     // Check to apply hardware debug register breakpoints for step-over
     //
@@ -652,6 +686,11 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     }
 
     //
+    // Clear the halt flag before unlocking cores so late NMIs do not halt them again
+    //
+    g_DebuggeeHaltInProgress = FALSE;
+
+    //
     // Check if we should enable interrupts in this core or not,
     // we have another same check in SWITCHING CORES too
     //
@@ -664,6 +703,17 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         SpinlockUnlock(&g_DbgState[i].Lock);
+    }
+
+    //
+    // Wait for cores to leave this halt loop before the next halt starts
+    //
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
+    {
+        while (g_DbgState[i].IsWaitingInHaltLoop)
+        {
+            CpuPause();
+        }
     }
 }
 
@@ -1314,6 +1364,16 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     }
 
     //
+    // Set the halt flag before sending halt NMIs to the other cores
+    //
+    g_DebuggeeHaltInProgress = TRUE;
+
+    //
+    // Any halt ends the step-over
+    //
+    KdClearStepOverHardwareDebugRegister();
+
+    //
     // Set it as the main core
     //
     DbgState->MainDebuggingCore = TRUE;
@@ -1413,6 +1473,15 @@ KdHandleNmi(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     DbgState->NmiState.WaitingToBeLocked = FALSE;
     SpinlockLock(&DbgState->Lock);
+
+    //
+    // Take the lock first so a late halt NMI cannot leave this core locked
+    //
+    if (!g_DebuggeeHaltInProgress)
+    {
+        SpinlockUnlock(&DbgState->Lock);
+        return;
+    }
 
     //
     // All the cores should go and manage through the following function
@@ -3471,6 +3540,8 @@ StartAgain:
         //
         DbgState->NmiState.WaitingToBeLocked = FALSE;
 
+        DbgState->IsWaitingInHaltLoop = TRUE;
+
         ScopedSpinlock(
             DbgState->Lock,
 
@@ -3483,10 +3554,14 @@ StartAgain:
                 //
                 g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED;
 
+                DbgState->IsWaitingInHaltLoop = FALSE;
+
                 goto StartAgain;
             }
 
         );
+
+        DbgState->IsWaitingInHaltLoop = FALSE;
 
         //
         // Check if any task needs to be executed on this core or not
@@ -3516,7 +3591,15 @@ StartAgain:
                 //
                 SpinlockLock(&DbgState->Lock);
 
-                goto StartAgain;
+                //
+                // If the debugger continued during the task, do not halt again
+                //
+                if (g_DebuggeeHaltInProgress)
+                {
+                    goto StartAgain;
+                }
+
+                SpinlockUnlock(&DbgState->Lock);
             }
         }
     }

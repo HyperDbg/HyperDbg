@@ -175,6 +175,12 @@ BOOLEAN g_InterceptDebugBreaks;
 DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
 
 /**
+ * @brief Whether a debuggee halt is in progress
+ *
+ */
+volatile BOOLEAN g_DebuggeeHaltInProgress;
+
+/**
  * @brief Trigger event details
  *
  */
