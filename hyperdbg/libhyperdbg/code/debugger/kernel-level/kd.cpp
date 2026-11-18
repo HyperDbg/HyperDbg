@@ -3454,9 +3454,12 @@ KdCloseConnection()
             g_IsSerialConnectedToRemoteDebugger = FALSE;
 
             //
-            // Unload VMM
+            // Close the KD device handle so the next .debug prepare can run
             //
-            HyperDbgUnloadVmm();
+            if (HyperDbgUnloadVmm() == 0)
+            {
+                HyperDbgUnloadKd();
+            }
         }
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
