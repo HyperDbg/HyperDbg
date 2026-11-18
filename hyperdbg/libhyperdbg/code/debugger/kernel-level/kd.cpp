@@ -45,6 +45,12 @@ extern BOOLEAN g_IsDebuggeeInHandshakingPhase;
 extern BOOLEAN g_ShouldPreviousCommandBeContinued;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
+extern UINT64  g_KernelBaseAddress;
+extern BOOLEAN g_SerialHandshakePingReceived;
+extern UINT32  g_DebuggeePausedPacketCount;
+
+extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
+extern UINT32                g_SymbolTableSize;
 
 /**
  * @brief compares the buffer with a string
@@ -2489,6 +2495,84 @@ KdTheRemoteSystemIsRunning()
 }
 
 /**
+ * @brief Finish a debugger session once the debuggee's 'started' packet arrived
+ * @details Shared by a regular connection and a reattach that found the debuggee
+ * still waiting for a debugger
+ *
+ * @param SerialHandle
+ * @param IsNamedPipe
+ * @param PauseAfterConnection
+ *
+ * @return VOID
+ */
+static VOID
+KdStartSessionAfterStartedPacket(HANDLE SerialHandle, BOOLEAN IsNamedPipe, BOOLEAN PauseAfterConnection)
+{
+    //
+    // Ignore handling breaks
+    //
+    g_IgnorePauseRequests = TRUE;
+
+    //
+    // The next step is getting symbol details
+    //
+    ShowMessages("getting symbol details...\n");
+
+    //
+    // Wait to receive symbol details
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+
+    //
+    // Connected to the debuggee
+    //
+    g_IsSerialConnectedToRemoteDebuggee = TRUE;
+
+    //
+    // And debuggee is running
+    //
+    g_IsDebuggeeRunning = TRUE;
+
+    //
+    // Save the handler
+    //
+    g_SerialRemoteComPortHandle = SerialHandle;
+
+    //
+    // Is serial handle for a named pipe
+    //
+    g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
+
+    //
+    // Process CTRL+C breaks again
+    //
+    g_IgnorePauseRequests = FALSE;
+
+    //
+    // Now, the user can press ctrl+c to pause the debuggee
+    //
+    ShowMessages("press CTRL+C to pause the debuggee\n");
+
+    //
+    // If the user wants to pause after connection
+    //
+    if (PauseAfterConnection)
+    {
+        //
+        // Pause the target debuggee after connection
+        //
+        KdBreakControlCheckAndPauseDebugger(FALSE);
+    }
+    else
+    {
+        //
+        // Wait for event on this thread
+        //
+        KdTheRemoteSystemIsRunning();
+    }
+}
+
+/**
  * @brief Prepare serial to connect to the remote server
  * @details wait to connect to debuggee (this is debugger)
  *
@@ -2582,68 +2666,208 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     if (!g_SerialConnectionAlreadyClosed)
     {
-        //
-        // Ignore handling breaks
-        //
-        g_IgnorePauseRequests = TRUE;
+        KdStartSessionAfterStartedPacket(SerialHandle, IsNamedPipe, PauseAfterConnection);
+    }
 
-        //
-        // The next step is getting symbol details
-        //
-        ShowMessages("getting symbol details...\n");
+    return TRUE;
+}
 
-        //
-        // Wait to receive symbol details
-        //
-        DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+/**
+ * @brief Wait for a kernel response, at most TimeoutMilliseconds
+ *
+ * @param KernelSyncObjectId
+ * @param TimeoutMilliseconds
+ *
+ * @return BOOLEAN TRUE if the response arrived in time
+ */
+static BOOLEAN
+KdWaitForKernelResponseWithTimeout(UINT32 KernelSyncObjectId, DWORD TimeoutMilliseconds)
+{
+    DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =
+        &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId];
 
-        //
-        // Connected to the debuggee
-        //
-        g_IsSerialConnectedToRemoteDebuggee = TRUE;
+    SyncronizationObject->IsOnWaitingState = TRUE;
 
-        //
-        // And debuggee is running
-        //
-        g_IsDebuggeeRunning = TRUE;
+    if (PlatformWaitForSingleObject(SyncronizationObject->EventHandle, TimeoutMilliseconds) == WAIT_OBJECT_0)
+    {
+        return TRUE;
+    }
 
-        //
-        // Save the handler
-        //
-        g_SerialRemoteComPortHandle = SerialHandle;
+    SyncronizationObject->IsOnWaitingState = FALSE;
+    return FALSE;
+}
 
-        //
-        // Is serial handle for a named pipe
-        //
-        g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
+/**
+ * @brief Recover the debuggee's kernel base from the module list of the symbol table
+ * @details The base normally arrives in the 'started' packet, which a reattach never sees
+ *
+ * @return VOID
+ */
+static VOID
+KdUpdateKernelBaseFromSymbolTable()
+{
+    if (g_SymbolTable == NULL)
+    {
+        return;
+    }
 
-        //
-        // Process CTRL+C breaks again
-        //
-        g_IgnorePauseRequests = FALSE;
+    for (SIZE_T i = 0; i < g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL); i++)
+    {
+        const CHAR * Name = strrchr(g_SymbolTable[i].FilePath, '\\');
+        Name              = Name == NULL ? g_SymbolTable[i].FilePath : Name + 1;
 
-        //
-        // Now, the user can press ctrl+c to pause the debuggee
-        //
-        ShowMessages("press CTRL+C to pause the debuggee\n");
-
-        //
-        // If the user wants to pause after connection
-        //
-        if (PauseAfterConnection)
+        if (PlatformStrCaseCmp(Name, "ntoskrnl.exe") == 0 || PlatformStrCaseCmp(Name, "ntkrnlmp.exe") == 0)
         {
-            //
-            // Pause the target debuggee after connection
-            //
-            KdBreakControlCheckAndPauseDebugger(FALSE);
+            g_KernelBaseAddress = g_SymbolTable[i].BaseAddress;
+            return;
         }
-        else
+    }
+}
+
+/**
+ * @brief Take over a debuggee that is already prepared (this is debugger)
+ * @details A debuggee sends its handshake only once per '.debug prepare' and keeps
+ * serving that session even after its debugger is gone (a serial link has no
+ * disconnect), so a new debugger would wait for the handshake forever. Instead,
+ * pause the debuggee through the listener that its user-mode side keeps running,
+ * which works whether the old debugger left it running or halted. A debuggee that
+ * is still waiting for a debugger is recognized by its pings and gets a regular
+ * handshake instead
+ *
+ * @param SerialHandle
+ * @param IsNamedPipe
+ * @param PauseAfterConnection
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdReattachSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
+                                         BOOLEAN IsNamedPipe,
+                                         BOOLEAN PauseAfterConnection)
+{
+    ShowMessages("reattaching to the debuggee...\n");
+
+    //
+    // Initialize the handle table
+    //
+    for (SIZE_T i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    {
+        g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
+        g_KernelSyncronizationObjectsHandleTable[i].EventHandle =
+            PlatformCreateEvent(FALSE, FALSE);
+    }
+
+    //
+    // The session already exists on the debuggee side, so we are connected now
+    //
+    g_SerialConnectionAlreadyClosed     = FALSE;
+    g_SerialRemoteComPortHandle         = SerialHandle;
+    g_IsDebuggerConntectedToNamedPipe   = IsNamedPipe;
+    g_IsSerialConnectedToRemoteDebuggee = TRUE;
+    g_IsDebuggeeRunning                 = TRUE;
+
+    g_SerialHandshakePingReceived = FALSE;
+
+    g_SerialListeningThreadHandle =
+        PlatformCreateThread(ListeningSerialPauseDebuggerThread, NULL);
+
+    //
+    // First only listen: a debuggee that is still waiting for a debugger pings
+    // about every 5 seconds (the listener answers as in a regular connection),
+    // and any other packet would make it abort its '.debug prepare'
+    //
+    BOOLEAN Paused = FALSE;
+
+    for (UINT32 i = 0; i < 60 && !g_SerialHandshakePingReceived; i++)
+    {
+        PlatformSleep(100);
+    }
+
+    if (g_SerialHandshakePingReceived)
+    {
+        //
+        // Nothing to take over: the handshake is going on, so finish it like a
+        // regular connection
+        //
+        ShowMessages("the debuggee is waiting for a debugger, continuing with the handshake...\n");
+
+        g_IsSerialConnectedToRemoteDebuggee = FALSE;
+        g_IsDebuggeeRunning                 = FALSE;
+
+        if (!KdWaitForKernelResponseWithTimeout(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED,
+                                                120000) ||
+            g_SerialConnectionAlreadyClosed)
         {
-            //
-            // Wait for event on this thread
-            //
-            KdTheRemoteSystemIsRunning();
+            ShowMessages("err, the debuggee did not finish the handshake\n");
+            KdUninitializeConnection();
+            return FALSE;
         }
+
+        KdStartSessionAfterStartedPacket(SerialHandle, IsNamedPipe, PauseAfterConnection);
+        return TRUE;
+    }
+
+    //
+    // Silent: it serves an earlier debugger. Pause it from its user-mode listener
+    //
+    if (KdCommandPacketToDebuggee(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
+                                  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE))
+    {
+        Paused = KdWaitForKernelResponseWithTimeout(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS,
+                                                    3000);
+    }
+
+    if (!Paused)
+    {
+        //
+        // No answer: the old debugger left it halted, and a halted debuggee only
+        // reads VMX-root packets. Resume it, then pause it the same way
+        //
+        KdCommandPacketToDebuggee(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+                                  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CONTINUE);
+        PlatformSleep(500);
+
+        if (!KdCommandPacketToDebuggee(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
+                                       DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE) ||
+            !KdWaitForKernelResponseWithTimeout(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS,
+                                                10000))
+        {
+            ShowMessages("err, the debuggee did not respond; is it prepared ('.debug prepare') "
+                         "and connected to this port?\n");
+            KdUninitializeConnection();
+            return FALSE;
+        }
+    }
+
+    //
+    // The symbol details (and the kernel base) normally come with the handshake
+    //
+    ShowMessages("getting symbol details...\n");
+    UINT32 PausedPackets = g_DebuggeePausedPacketCount;
+
+    if (SymbolReloadSymbolTableInDebuggerMode(0))
+    {
+        KdUpdateKernelBaseFromSymbolTable();
+
+        //
+        // The debuggee runs to collect the symbols and halts again after sending
+        // them; a 'continue' that overtakes that halt would leave it halted while
+        // the debugger believes it runs, so wait for its 'paused' packet
+        //
+        for (UINT32 i = 0; i < 30 && g_DebuggeePausedPacketCount == PausedPackets; i++)
+        {
+            PlatformSleep(100);
+        }
+    }
+
+    ShowMessages("reattached to the debuggee\n");
+
+    if (!PauseAfterConnection)
+    {
+        //
+        // Same as a regular connection without 'pause': continue and wait on this thread
+        //
+        KdBreakControlCheckAndContinueDebugger();
     }
 
     return TRUE;
@@ -2814,6 +3038,7 @@ KdCloseSerialHandle(HANDLE Handle)
  * @param IsPreparing
  * @param IsNamedPipe
  * @param PauseAfterConnection
+ * @param IsReattach take over a debuggee that already finished its handshake
  *
  * @return BOOLEAN
  */
@@ -2823,7 +3048,8 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
                              UINT32       Port,
                              BOOLEAN      IsPreparing,
                              BOOLEAN      IsNamedPipe,
-                             BOOLEAN      PauseAfterConnection)
+                             BOOLEAN      PauseAfterConnection,
+                             BOOLEAN      IsReattach)
 {
     HANDLE Comm; /* Handle to the Serial port */
 #ifdef _WIN32
@@ -2841,6 +3067,12 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
     //
     if (IsConnectedToAnyInstanceOfDebuggerOrDebuggee())
     {
+        return FALSE;
+    }
+
+    if (IsPreparing && IsReattach)
+    {
+        ShowMessages("err, only a debugger can reattach to a debuggee\n");
         return FALSE;
     }
 
@@ -3259,8 +3491,13 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
 
         //
         // If we are here, then it's a debugger (not debuggee)
-        // let's prepare the debuggee
+        // let's prepare the debuggee, or take over one that is already prepared
         //
+        if (IsReattach)
+        {
+            return KdReattachSerialConnectionToRemoteSystem(Comm, IsNamedPipe, PauseAfterConnection);
+        }
+
         KdPrepareSerialConnectionToRemoteSystem(Comm, IsNamedPipe, PauseAfterConnection);
     }
 

@@ -28,7 +28,7 @@ CommandDebugHelp()
         ".debug : debugs a target machine or makes this machine a debuggee.\n\n");
 
     ShowMessages(
-        "syntax : \t.debug [remote] [serial|namedpipe] [pause] [Baudrate (decimal)] [Address (string)]\n");
+        "syntax : \t.debug [remote] [serial|namedpipe] [pause] [reattach] [Baudrate (decimal)] [Address (string)]\n");
     ShowMessages(
         "syntax : \t.debug [prepare] [serial] [Baudrate (decimal)] [Address (string)]\n");
     ShowMessages("syntax : \t.debug [close]\n");
@@ -39,6 +39,8 @@ CommandDebugHelp()
     ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
     ShowMessages("\t\te.g : .debug remote pause namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
     ShowMessages("\t\te.g : .debug remote namedpipe \"\\\\.\\pipe\\HyperDbg Pipe\"\n");
+    ShowMessages("\t\te.g : .debug remote reattach namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
+    ShowMessages("\t\te.g : .debug remote pause reattach serial 115200 com2\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com1\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com2\n");
     ShowMessages("\t\te.g : .debug close\n");
@@ -47,6 +49,12 @@ CommandDebugHelp()
         "\nvalid baud rates (decimal) : 110, 300, 600, 1200, 2400, 4800, 9600, "
         "14400, 19200, 38400, 56000, 57600, 115200, 128000, 256000\n");
     ShowMessages("valid COM ports : COM1, COM2, COM3, COM4 \n");
+
+    ShowMessages(
+        "\n'reattach' connects to a debuggee that is already prepared and still bound to "
+        "an earlier debugger (e.g., the debugger process was closed or crashed). Instead "
+        "of waiting for a new handshake, which the debuggee only sends once per '.debug prepare', "
+        "it pauses the running debuggee and takes over the session\n");
 }
 
 /**
@@ -153,7 +161,7 @@ HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate, BOO
     //
     // Everything is okay, connect to the remote machine to send (debugger)
     //
-    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, FALSE, FALSE, PauseAfterConnection);
+    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, FALSE, FALSE, PauseAfterConnection, FALSE);
 }
 
 /**
@@ -167,7 +175,45 @@ HyperDbgDebugRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate, BOO
 BOOLEAN
 HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAfterConnection)
 {
-    return KdPrepareAndConnectDebugPort(NamedPipe, NULL, NULL, FALSE, TRUE, PauseAfterConnection);
+    return KdPrepareAndConnectDebugPort(NamedPipe, NULL, NULL, FALSE, TRUE, PauseAfterConnection, FALSE);
+}
+
+/**
+ * @brief Reattach to a running remote serial debuggee (Debugger)
+ * @details For a debuggee that is still bound to an earlier debugger
+ *
+ * @param PortName
+ * @param Baudrate
+ * @param PauseAfterConnection
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgReattachRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate, BOOLEAN PauseAfterConnection)
+{
+    UINT32 Port;
+
+    if (!CommandDebugCheckBaudrate(Baudrate) || !CommandDebugCheckComPort(PortName, &Port))
+    {
+        return FALSE;
+    }
+
+    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, FALSE, FALSE, PauseAfterConnection, TRUE);
+}
+
+/**
+ * @brief Reattach to a running remote debuggee over a named pipe (Debugger)
+ * @details For a debuggee that is still bound to an earlier debugger
+ *
+ * @param NamedPipe
+ * @param PauseAfterConnection
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgReattachRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAfterConnection)
+{
+    return KdPrepareAndConnectDebugPort(NamedPipe, NULL, NULL, FALSE, TRUE, PauseAfterConnection, TRUE);
 }
 
 /**
@@ -210,7 +256,7 @@ HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
     // Note: Pause after connect is set to FALSE, because it doesn't make sense for the
     // deubuggee to pause after connecting to the debugger
     //
-    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, TRUE, FALSE, FALSE);
+    return KdPrepareAndConnectDebugPort(PortName, Baudrate, Port, TRUE, FALSE, FALSE, FALSE);
 }
 
 /**
@@ -253,6 +299,7 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
     BOOLEAN IsSerial                = FALSE;
     BOOLEAN IsNamedPipe             = FALSE;
     BOOLEAN IsPause                 = FALSE;
+    BOOLEAN IsReattach              = FALSE;
     BOOLEAN IsNamedPipeAddressKnown = FALSE;
     string  NamedPipeAddress;
     BOOLEAN IsComPortAddressKnown = FALSE;
@@ -309,6 +356,11 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         else if (!IsPause && CompareLowerCaseStrings(Section, "pause"))
         {
             IsPause = TRUE;
+            continue;
+        }
+        else if (!IsReattach && CompareLowerCaseStrings(Section, "reattach"))
+        {
+            IsReattach = TRUE;
             continue;
         }
         else if (!IsNamedPipeAddressKnown && IsNamedPipe)
@@ -394,6 +446,16 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
     }
 
     //
+    // Only a debugger reattaches to a debuggee
+    //
+    if (IsPrepare && IsReattach)
+    {
+        ShowMessages("err, 'reattach' cannot be used with 'prepare'\n\n");
+        CommandDebugHelp();
+        return;
+    }
+
+    //
     // Named pipe cannot be used with the 'prepare'
     //
     if (IsNamedPipe && IsPrepare)
@@ -450,9 +512,17 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         //
         // Everything is okay, connect to the remote machine to send (debugger)
         //
-        if (IsNamedPipe)
+        if (IsNamedPipe && IsReattach)
+        {
+            HyperDbgReattachRemoteDeviceUsingNamedPipe(NamedPipeAddress.c_str(), IsPause);
+        }
+        else if (IsNamedPipe)
         {
             HyperDbgDebugRemoteDeviceUsingNamedPipe(NamedPipeAddress.c_str(), IsPause);
+        }
+        else if (IsSerial && IsReattach)
+        {
+            HyperDbgReattachRemoteDeviceUsingComPort(ComAddress.c_str(), Baudrate, IsPause);
         }
         else if (IsSerial)
         {

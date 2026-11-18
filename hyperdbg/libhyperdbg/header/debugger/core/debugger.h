@@ -318,6 +318,12 @@ BOOLEAN
 HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAfterConnection);
 
 BOOLEAN
+HyperDbgReattachRemoteDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate, BOOLEAN PauseAfterConnection);
+
+BOOLEAN
+HyperDbgReattachRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAfterConnection);
+
+BOOLEAN
 HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
 
 BOOLEAN

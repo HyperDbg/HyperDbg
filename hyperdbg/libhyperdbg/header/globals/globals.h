@@ -173,6 +173,20 @@ BOOLEAN g_IsEndOfMessageReceived = FALSE;
 BOOLEAN g_SerialConnectionAlreadyClosed = FALSE;
 
 /**
+ * @brief Set in the debugger when the debuggee pings for a handshake, i.e., it
+ * is still waiting for a debugger (used by '.debug remote ... reattach')
+ *
+ */
+BOOLEAN g_SerialHandshakePingReceived = FALSE;
+
+/**
+ * @brief Number of 'paused' packets the debugger received from the debuggee
+ * (lets '.debug remote ... reattach' wait for a debuggee to halt again)
+ *
+ */
+UINT32 g_DebuggeePausedPacketCount = 0;
+
+/**
  * @brief Show whether the pause request (CTRL+C or CTRL+BREAK)
  * should be ignored or not
  *
