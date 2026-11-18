@@ -312,6 +312,15 @@ VOID
 HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
+ * @brief Checks whether any external interrupt waits in the pending queue
+ *
+ * @param VCpu The virtual processor's state
+ * @return BOOLEAN
+ */
+BOOLEAN
+HvCheckForPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu);
+
+/**
  * @brief Checks to enable and reinject previous interrupts
  *
  * @param VCpu The virtual processor's state

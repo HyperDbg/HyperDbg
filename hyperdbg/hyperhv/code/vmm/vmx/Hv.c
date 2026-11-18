@@ -1116,6 +1116,29 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 }
 
 /**
+ * @brief Checks whether any external interrupt waits in the pending queue
+ * @details The queue can have empty entries before a used entry, so the
+ * whole queue is checked and not only the first entry
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return BOOLEAN TRUE if at least one interrupt waits for the interrupt window
+ */
+BOOLEAN
+HvCheckForPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    for (SIZE_T i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
+    {
+        if (VCpu->PendingExternalInterrupts[i] != NULL_ZERO)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+/**
  * @brief Checks to enable and reinject previous interrupts
  *
  * @param VCpu The virtual processor's state
@@ -1139,7 +1162,7 @@ HvEnableAndCheckForPreviousExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         // Check if there is at least an interrupt that needs to be delivered
         //
-        if (VCpu->PendingExternalInterrupts[0] != NULL_ZERO)
+        if (HvCheckForPendingExternalInterrupts(VCpu))
         {
             //
             // Enable Interrupt-window exiting.
@@ -1305,7 +1328,7 @@ HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
     //
     // Check if there is at least an interrupt that needs to be delivered
     //
-    if (VCpu->PendingExternalInterrupts[0] != NULL_ZERO)
+    if (HvCheckForPendingExternalInterrupts(VCpu))
     {
         //
         // Enable Interrupt-window exiting.
