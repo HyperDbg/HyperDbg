@@ -581,11 +581,14 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
     else
     {
         //
-        // It's a regular debug break event
+        // Halt for a #DB that the debugger did not cause, then deliver it
+        // to the guest when the debugger continues
         //
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
                                               &TargetContext);
+
+        VmFuncEventReinjectDebugBreakpoint(DbgState->CoreId);
     }
 }
 

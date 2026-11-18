@@ -115,6 +115,70 @@ EventInjectDebugBreakpoint()
 }
 
 /**
+ * @brief Reinject the #DB from the current vm-exit
+ * @details A #DB that directly causes a vm-exit leaves its status bits in the
+ * exit qualification instead of updating DR6
+ *
+ * @param VCpu The virtual processor's state
+ *
+ * @return VOID
+ */
+VOID
+EventReinjectDebugBreakpoint(VIRTUAL_MACHINE_STATE * VCpu)
+{
+    INTERRUPT_INFO                         EntryInterruptionInfo = {0};
+    VMEXIT_INTERRUPT_INFORMATION           ExitInterruptionInfo  = {0};
+    VMX_EXIT_QUALIFICATION_DEBUG_EXCEPTION ExitQualification     = {0};
+    VMX_INTERRUPTIBILITY_STATE             InterruptibilityState = {0};
+    DR6                                    Dr6                   = {0};
+
+    //
+    // Keep any event already set for vm-entry
+    //
+    VmxVmread32P(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, &EntryInterruptionInfo.Flags);
+
+    if (EntryInterruptionInfo.Fields.Valid)
+    {
+        return;
+    }
+
+    //
+    // Restore the debug status for a hardware #DB
+    //
+    VmxVmread32P(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &ExitInterruptionInfo.AsUInt);
+
+    if (ExitInterruptionInfo.InterruptionType == INTERRUPT_TYPE_HARDWARE_EXCEPTION)
+    {
+        ExitQualification.AsUInt = VCpu->ExitQualification;
+        Dr6.AsUInt               = CpuReadDr(6);
+
+        Dr6.BreakpointCondition = ExitQualification.BreakpointCondition;
+
+        if (ExitQualification.DebugRegisterAccessDetected)
+        {
+            Dr6.DebugRegisterAccessDetected = TRUE;
+        }
+
+        if (ExitQualification.SingleInstruction)
+        {
+            Dr6.SingleInstruction = TRUE;
+        }
+
+        CpuWriteDr(6, Dr6.AsUInt);
+    }
+
+    //
+    // Clear STI and MOV SS blocking to match #DB delivery and pass vm-entry checks
+    //
+    InterruptibilityState.AsUInt          = (UINT32)HvGetInterruptibilityState();
+    InterruptibilityState.BlockingBySti   = FALSE;
+    InterruptibilityState.BlockingByMovSs = FALSE;
+    HvSetInterruptibilityState(InterruptibilityState.AsUInt);
+
+    EventInjectDebugBreakpoint();
+}
+
+/**
  * @brief Inject #PF to the guest (Page-Fault for EFER Injector)
  *
  * @param PageFaultAddress Address of page fault
