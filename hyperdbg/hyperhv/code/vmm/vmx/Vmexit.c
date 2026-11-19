@@ -373,6 +373,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     {
         Result = TRUE;
     }
+    //
+    // Restore MTF before vm-entry if a halt NMI requested it
+    //
+    if (VCpu->MtfRequestedByHaltNmi && !VCpu->VmxoffState.IsVmxoffExecuted)
+    {
+        HvSetMonitorTrapFlag(TRUE);
+    }
 
     //
     // Set indicator of Vmx non root mode to false
