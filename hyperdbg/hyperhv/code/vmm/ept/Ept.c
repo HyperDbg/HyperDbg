@@ -701,7 +701,7 @@ EptAllocateAndCreateIdentityPageTable(VOID)
     // Allocate address anywhere in the OS's memory space and
     // zero out all entries to ensure all unused entries are marked Not Present
     //
-    PageTable = PlatformMemAllocateContiguousZeroedMemory(sizeof(VMM_EPT_PAGE_TABLE));
+    PageTable = PlatformMemAllocateZeroedNonPagedPool(sizeof(VMM_EPT_PAGE_TABLE));
 
     if (PageTable == NULL)
     {
@@ -889,7 +889,7 @@ EptLogicalProcessorInitialize(VOID)
             {
                 if (g_GuestState[j].EptPageTable != NULL)
                 {
-                    PlatformMemFreeContiguousMemory(g_GuestState[j].EptPageTable);
+                    PlatformMemFreePool(g_GuestState[j].EptPageTable);
                     g_GuestState[j].EptPageTable = NULL;
                 }
             }

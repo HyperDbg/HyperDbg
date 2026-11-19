@@ -1171,7 +1171,7 @@ VmxPerformTermination()
     {
         if (g_GuestState[i].EptPageTable != NULL)
         {
-            PlatformMemFreeContiguousMemory(g_GuestState[i].EptPageTable);
+            PlatformMemFreePool(g_GuestState[i].EptPageTable);
         }
 
         g_GuestState[i].EptPageTable = NULL;
