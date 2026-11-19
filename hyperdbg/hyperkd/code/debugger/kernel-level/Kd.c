@@ -2538,9 +2538,15 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 KdCloseConnectionAndUnloadDebuggee();
 
                 //
-                // Unlock other cores
+                // Remove the breakpoints while all cores are halted
                 //
-                KdContinueDebuggee(DbgState, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                BreakpointRemoveAllBreakpoints();
+
+                //
+                // Unlock other cores and ignore new halts until the debugger module
+                // unloads, as the debugger no longer reads packets
+                //
+                KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CLOSE_AND_UNLOAD_DEBUGGEE);
 
                 //
                 // No need to wait for new commands
