@@ -727,7 +727,7 @@ DbcReportUsbOpenError(PDBC_CONNECTION Connection, DWORD Error, BOOLEAN MissingWi
     if (MissingWinUsb)
     {
         ShowMessages("err, WinUSB is not set for the USB debug device: %s, 0x%lx.\n"
-                     "Run hyperdbg-usb-install.ps1 from the HyperDbg source folder.\n",
+                     "Run hyperdbg-usb-install.ps1 from the HyperDbg folder.\n",
                      ErrorName,
                      Error);
     }

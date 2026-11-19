@@ -99,7 +99,9 @@ copy "$(OutDir)hyperperf.dll" "$(OutDir)SDK\libraries\kernel\hyperperf.dll"
 copy "$(OutDir)kdserial.dll" "$(OutDir)SDK\libraries\kernel\kdserial.dll"
 if exist "$(OutDir)constants\" rd /q /s "$(OutDir)constants\"
 mkdir "$(OutDir)constants"
-copy "$(SolutionDir)miscellaneous\constants\pciid\pci.ids" "$(OutDir)constants\pci.ids"</Command>
+copy "$(SolutionDir)miscellaneous\constants\pciid\pci.ids" "$(OutDir)constants\pci.ids"
+copy /Y "$(SolutionDir)..\hyperdbg-usb.inf" "$(OutDir)hyperdbg-usb.inf"
+copy /Y "$(SolutionDir)..\hyperdbg-usb-install.ps1" "$(OutDir)hyperdbg-usb-install.ps1"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
@@ -149,7 +151,9 @@ copy "$(OutDir)hyperperf.dll" "$(OutDir)SDK\libraries\kernel\hyperperf.dll"
 copy "$(OutDir)kdserial.dll" "$(OutDir)SDK\libraries\kernel\kdserial.dll"
 if exist "$(OutDir)constants\" rd /q /s "$(OutDir)constants\"
 mkdir "$(OutDir)constants"
-copy "$(SolutionDir)miscellaneous\constants\pciid\pci.ids" "$(OutDir)constants\pci.ids"</Command>
+copy "$(SolutionDir)miscellaneous\constants\pciid\pci.ids" "$(OutDir)constants\pci.ids"
+copy /Y "$(SolutionDir)..\hyperdbg-usb.inf" "$(OutDir)hyperdbg-usb.inf"
+copy /Y "$(SolutionDir)..\hyperdbg-usb-install.ps1" "$(OutDir)hyperdbg-usb-install.ps1"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
