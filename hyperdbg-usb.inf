@@ -1,0 +1,36 @@
+;
+; WinUSB driver package for the USB debug device.
+;
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = USBDevice
+ClassGuid   = {88BAE032-5A81-49f0-BC3D-A4FF138216D6}
+Provider    = %ProviderName%
+DriverVer   = 11/18/2026,1.0.0.0
+CatalogFile = hyperdbg-usb.cat
+PnpLockdown = 1
+
+[Manufacturer]
+%ProviderName% = HyperDbgUsb,NTamd64
+
+[HyperDbgUsb.NTamd64]
+%DeviceName% = HyperDbgUsb_Install, USB\VID_0525&PID_127A
+
+[HyperDbgUsb_Install]
+Include = winusb.inf
+Needs   = WINUSB.NT
+
+[HyperDbgUsb_Install.Services]
+Include = winusb.inf
+Needs   = WINUSB.NT.Services
+
+[HyperDbgUsb_Install.HW]
+AddReg = HyperDbgUsb_AddReg
+
+[HyperDbgUsb_AddReg]
+HKR,,DeviceInterfaceGUIDs,0x10000,"{6E1F3A52-9C2B-4D3E-8F61-5A7B0C2D9E40}"
+
+[Strings]
+ProviderName = "HyperDbg"
+DeviceName   = "HyperDbg USB Debug"
