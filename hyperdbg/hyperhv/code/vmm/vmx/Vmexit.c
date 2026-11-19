@@ -373,6 +373,14 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     {
         Result = TRUE;
     }
+    else
+    {
+        //
+        // Recheck pending interrupts after CR8 writes and other vm-exits
+        //
+        HvInjectPendingExternalInterrupts(VCpu);
+    }
+
     //
     // Restore MTF before vm-entry if a halt NMI requested it
     //
