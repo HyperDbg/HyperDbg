@@ -29,6 +29,7 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 
 #    define DBC_USB_HARDWARE_ID_SUBSTRING L"vid_0525&pid_127a"
@@ -623,7 +624,7 @@ DbcReportUsbLayoutError(PDBC_CONNECTION Connection)
 }
 
 /**
- * @brief Report open errors and explain how to install WinUSB if needed
+ * @brief Report a USB disconnect or an open error before the session starts
  *
  * @param Connection
  * @param Error Last device open error or ERROR_SUCCESS
@@ -643,7 +644,19 @@ DbcReportUsbOpenError(PDBC_CONNECTION Connection, DWORD Error, BOOLEAN MissingWi
         Connection->UsbOpenErrorSince = Now;
     }
 
-    if (Error == ERROR_SUCCESS || Connection->UsbOpenErrorShown)
+    if (Connection->UsbOpenErrorShown)
+    {
+        return;
+    }
+
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, USB debug device disconnected. Waiting for it to reconnect.\n");
+        Connection->UsbOpenErrorShown = TRUE;
+        return;
+    }
+
+    if (Error == ERROR_SUCCESS)
     {
         return;
     }
@@ -664,6 +677,30 @@ DbcReportUsbOpenError(PDBC_CONNECTION Connection, DWORD Error, BOOLEAN MissingWi
         break;
     case ERROR_FILE_NOT_FOUND:
         ErrorName = "ERROR_FILE_NOT_FOUND";
+        break;
+    case ERROR_OPERATION_ABORTED:
+        ErrorName = "ERROR_OPERATION_ABORTED";
+        break;
+    case ERROR_DEVICE_REMOVED:
+        ErrorName = "ERROR_DEVICE_REMOVED";
+        break;
+    case ERROR_DEV_NOT_EXIST:
+        ErrorName = "ERROR_DEV_NOT_EXIST";
+        break;
+    case ERROR_NO_SUCH_DEVICE:
+        ErrorName = "ERROR_NO_SUCH_DEVICE";
+        break;
+    case ERROR_ACCESS_DENIED:
+        ErrorName = "ERROR_ACCESS_DENIED";
+        Transient = FALSE;
+        break;
+    case ERROR_SHARING_VIOLATION:
+        ErrorName = "ERROR_SHARING_VIOLATION";
+        Transient = FALSE;
+        break;
+    case ERROR_INVALID_PARAMETER:
+        ErrorName = "ERROR_INVALID_PARAMETER";
+        Transient = FALSE;
         break;
     case ERROR_INVALID_HANDLE:
         ErrorName = "ERROR_INVALID_HANDLE";
@@ -863,7 +900,7 @@ DbcAcquireUsbDevice(PDBC_CONNECTION Connection, BOOLEAN ForWrite)
             break;
         }
 
-        if (Connection->Closed == 0)
+        if (Connection->Closed == 0 && !g_SerialConnectionAlreadyClosed)
         {
             DbcReportUsbOpenError(Connection, OpenError, MissingWinUsb);
 
