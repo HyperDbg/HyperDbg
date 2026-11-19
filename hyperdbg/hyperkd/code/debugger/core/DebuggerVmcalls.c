@@ -128,6 +128,19 @@ DebuggerVmcallHandler(UINT32 CoreId,
         Result = TRUE;
         break;
     }
+    case DEBUGGER_VMCALL_DBC_RECEIVE:
+    {
+        //
+        // Read in vmx-root to avoid a vm-exit while holding the response lock
+        //
+        if (OptionalParam1 != NULL64_ZERO)
+        {
+            SerialConnectionDbcReceiveFromVmxRoot((PDEBUGGEE_DBC_RECEIVE_PACKET)OptionalParam1);
+        }
+
+        Result = TRUE;
+        break;
+    }
     default:
         Result = FALSE;
         LogError("Err, invalid VMCALL in top-level debugger");

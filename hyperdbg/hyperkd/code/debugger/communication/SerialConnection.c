@@ -435,6 +435,12 @@ SerialConnectionCheckPort(UINT32 SerialPort)
     {
         return TRUE;
     }
+
+    if (SerialPort == SERIAL_PORT_DBC)
+    {
+        return TRUE;
+    }
+
     return FALSE;
 }
 
@@ -448,6 +454,14 @@ SerialConnectionCheckPort(UINT32 SerialPort)
 NTSTATUS
 SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
 {
+    //
+    // USB has no baud rate
+    //
+    if (DebuggeeRequest->PortAddress == SERIAL_PORT_DBC)
+    {
+        return SerialConnectionPrepareDbc(DebuggeeRequest);
+    }
+
     //
     // Check if baud rate is valid or not
     //
@@ -499,6 +513,184 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     // Set status to successful
     //
     DebuggeeRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Prepare the debuggee over a USB debug cable
+ *
+ * @param DebuggeeRequest Request to prepare the debuggee
+ * @return NTSTATUS
+ */
+NTSTATUS
+SerialConnectionPrepareDbc(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
+{
+    if (!SerialConnectionCheckPort(DebuggeeRequest->PortAddress))
+    {
+        DebuggeeRequest->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT;
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    g_SerialConnectionDesyncReported = FALSE;
+
+    //
+    // Keep the link open if the handshake already set it up
+    //
+    if (!KdHyperDbgDbcIsReady())
+    {
+        KdHyperDbgPrepareDebuggeeConnectionPort(DebuggeeRequest->PortAddress, DebuggeeRequest->Baudrate);
+    }
+
+    if (!KdHyperDbgDbcIsReady())
+    {
+        LogError("Err, USB debugging is not ready");
+
+        DebuggeeRequest->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT;
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    KdInitializeKernelDebugger();
+
+    //
+    // Tell the debugger that the debuggee started and send the OS name
+    //
+    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED,
+                               (CHAR *)DebuggeeRequest,
+                               MAXIMUM_CHARACTER_FOR_OS_NAME);
+
+    DebuggeeRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Send or receive handshake bytes over USB
+ * @details Runs before the session starts. A request with no bytes to send
+ * reads available bytes without waiting.
+ *
+ * @param DbcHandshakeRequest Input/output packet in the non-paged system buffer
+ * @return NTSTATUS
+ */
+NTSTATUS
+SerialConnectionDbcHandshake(PDEBUGGEE_DBC_HANDSHAKE_PACKET DbcHandshakeRequest)
+{
+    UCHAR RecvChar = NULL_ZERO;
+
+    DbcHandshakeRequest->ReceiveLength = 0;
+
+    //
+    // After the session starts, receive bytes in vmx-root
+    //
+    if (g_KernelDebuggerState || DbcHandshakeRequest->SendLength > DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE)
+    {
+        DbcHandshakeRequest->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT;
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    //
+    // Reset DbC to discard transfers from the previous session
+    //
+    if (DbcHandshakeRequest->ResetConnection)
+    {
+        KdHyperDbgPrepareDebuggeeConnectionPort(SERIAL_PORT_DBC, 0);
+    }
+
+    if (!KdHyperDbgDbcIsReady())
+    {
+        LogError("Err, USB debugging is not ready");
+
+        DbcHandshakeRequest->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT;
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    if (DbcHandshakeRequest->SendLength != 0)
+    {
+        for (UINT32 i = 0; i < DbcHandshakeRequest->SendLength; i++)
+        {
+            KdHyperDbgSendByte(DbcHandshakeRequest->SendBuffer[i], TRUE);
+        }
+    }
+    else
+    {
+        while (DbcHandshakeRequest->ReceiveLength < DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE && KdHyperDbgRecvByte(&RecvChar))
+        {
+            DbcHandshakeRequest->ReceiveBuffer[DbcHandshakeRequest->ReceiveLength] = RecvChar;
+            DbcHandshakeRequest->ReceiveLength++;
+        }
+    }
+
+    DbcHandshakeRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Read debugger bytes over USB in vmx-root
+ * @details Skip the read if a core is halting the system or the response lock is busy.
+ *
+ * @param DbcReceiveRequest Output packet in the non-paged system buffer
+ * @return VOID
+ */
+VOID
+SerialConnectionDbcReceiveFromVmxRoot(PDEBUGGEE_DBC_RECEIVE_PACKET DbcReceiveRequest)
+{
+    UINT32 Length   = 0;
+    UCHAR  RecvChar = NULL_ZERO;
+
+    DbcReceiveRequest->Length = 0;
+
+    if (!g_KernelDebuggerState)
+    {
+        return;
+    }
+
+    if (SpinlockCheckLock(&DebuggerHandleBreakpointLock) || !SpinlockTryLock(&DebuggerResponseLock))
+    {
+        return;
+    }
+
+    while (Length < DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE && KdHyperDbgRecvByte(&RecvChar))
+    {
+        DbcReceiveRequest->Buffer[Length] = RecvChar;
+        Length++;
+
+        if (Length >= SERIAL_END_OF_BUFFER_CHARS_COUNT &&
+            DbcReceiveRequest->Buffer[Length - 4] == SERIAL_END_OF_BUFFER_CHAR_1 &&
+            DbcReceiveRequest->Buffer[Length - 3] == SERIAL_END_OF_BUFFER_CHAR_2 &&
+            DbcReceiveRequest->Buffer[Length - 2] == SERIAL_END_OF_BUFFER_CHAR_3 &&
+            DbcReceiveRequest->Buffer[Length - 1] == SERIAL_END_OF_BUFFER_CHAR_4)
+        {
+            break;
+        }
+    }
+
+    SpinlockUnlock(&DebuggerResponseLock);
+
+    DbcReceiveRequest->Length = Length;
+}
+
+/**
+ * @brief Handle a user-mode request to read debugger bytes over USB
+ *
+ * @param DbcReceiveRequest Input/output packet in the non-paged system buffer
+ * @return NTSTATUS
+ */
+NTSTATUS
+SerialConnectionDbcReceive(PDEBUGGEE_DBC_RECEIVE_PACKET DbcReceiveRequest)
+{
+    DbcReceiveRequest->Length = 0;
+
+    if (g_KernelDebuggerState && KdHyperDbgDbcIsReady())
+    {
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_RECEIVE,
+                        (UINT64)DbcReceiveRequest,
+                        0,
+                        0);
+    }
+
+    DbcReceiveRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }

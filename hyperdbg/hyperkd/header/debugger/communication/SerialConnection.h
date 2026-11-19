@@ -27,6 +27,9 @@ KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait);
 BOOLEAN
 KdHyperDbgRecvByte(PUCHAR RecvByte);
 
+BOOLEAN
+KdHyperDbgDbcIsReady();
+
 //////////////////////////////////////////////////
 //					 Functions					//
 //////////////////////////////////////////////////
@@ -61,6 +64,18 @@ SerialConnectionSendThreeBuffers(CHAR * Buffer1,
                                  CHAR * Buffer3,
                                  UINT32 Length3);
 
+NTSTATUS
+SerialConnectionPrepareDbc(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest);
+
+NTSTATUS
+SerialConnectionDbcHandshake(PDEBUGGEE_DBC_HANDSHAKE_PACKET DbcHandshakeRequest);
+
+NTSTATUS
+SerialConnectionDbcReceive(PDEBUGGEE_DBC_RECEIVE_PACKET DbcReceiveRequest);
+
+VOID
+SerialConnectionDbcReceiveFromVmxRoot(PDEBUGGEE_DBC_RECEIVE_PACKET DbcReceiveRequest);
+
 //////////////////////////////////////////////////
 //					 Constants					//
 //////////////////////////////////////////////////
@@ -91,3 +106,8 @@ SerialConnectionSendThreeBuffers(CHAR * Buffer1,
 #define COM2_PORT 0x02F8
 #define COM3_PORT 0x03E8
 #define COM4_PORT 0x02E8
+
+//
+// The xHCI Debug Capability (DbC) is used instead of a serial port
+//
+#define SERIAL_PORT_DBC 0xDBC0

@@ -40,3 +40,9 @@ KdHyperDbgRecvByte(PUCHAR RecvByte)
 
     return FALSE;
 }
+
+BOOLEAN
+KdHyperDbgDbcIsReady()
+{
+    return FALSE;
+}

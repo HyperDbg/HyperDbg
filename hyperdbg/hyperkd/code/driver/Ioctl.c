@@ -431,6 +431,8 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS               DebuggerAttachOrDetachToThreadRequest;
     PDEBUGGER_PREPARE_DEBUGGEE                              DebuggeeRequest;
     PDEBUGGER_PAUSE_PACKET_RECEIVED                         DebuggerPauseKernelRequest;
+    PDEBUGGEE_DBC_RECEIVE_PACKET                            DebuggeeDbcReceiveRequest;
+    PDEBUGGEE_DBC_HANDSHAKE_PACKET                          DebuggeeDbcHandshakeRequest;
     PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
     PSMI_OPERATION_PACKETS                                  SmiOperationRequest;
     PVOID                                                   BufferToStoreThreadsAndProcessesDetails;
@@ -1003,6 +1005,49 @@ DrvDispatchVmmIoControl(PIRP Irp, PIO_STACK_LOCATION IrpStack, BOOLEAN * DoNotCh
         // Adjust the status and output size
         //
         DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_DEBUGGEE_DBC_RECEIVE:
+
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGEE_DBC_RECEIVE_PACKET,
+                                                (PVOID *)&DebuggeeDbcReceiveRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength) ||
+            OutBuffLength < SIZEOF_DEBUGGEE_DBC_RECEIVE_PACKET)
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Read available USB bytes in vmx-root
+        //
+        SerialConnectionDbcReceive(DebuggeeDbcReceiveRequest);
+
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_DBC_RECEIVE_PACKET, DoNotChangeInformation, Irp, &Status);
+
+        break;
+
+    case IOCTL_DEBUGGEE_DBC_HANDSHAKE:
+
+        if (!DrvValidateAndAdjustIoctlParameter(SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                                (PVOID *)&DebuggeeDbcHandshakeRequest,
+                                                Irp,
+                                                IrpStack,
+                                                &InBuffLength,
+                                                &OutBuffLength) ||
+            OutBuffLength < SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET)
+        {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        SerialConnectionDbcHandshake(DebuggeeDbcHandshakeRequest);
+
+        DrvAdjustStatusAndSetOutputSize(SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET, DoNotChangeInformation, Irp, &Status);
 
         break;
 

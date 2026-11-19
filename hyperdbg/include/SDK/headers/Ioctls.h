@@ -410,6 +410,20 @@
 #define IOCTL_DEBUGGER_USER_OUT \
     CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x29, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+/**
+ * @brief ioctl, read debugger bytes over USB
+ *
+ */
+#define IOCTL_DEBUGGEE_DBC_RECEIVE \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x2a, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, exchange USB handshake bytes before the session starts
+ *
+ */
+#define IOCTL_DEBUGGEE_DBC_HANDSHAKE \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, IOCTL_VMM_IOCTL + 0x2b, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
 //////////////////////////////////////////////////
 //               HyperTrace IOCTLs              //
 //////////////////////////////////////////////////
