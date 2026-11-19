@@ -1078,37 +1078,56 @@ InterpreterRemoveComments(CHAR * CommandText)
 }
 
 /**
- * @brief Show signature of HyperDbg
+ * @brief Get signature of HyperDbg
+ *
+ * @details The signature is kept as a string (instead of being printed
+ *          directly) so that the CLI line editor can redraw the prompt.
+ *
+ * @param Buffer the buffer that receives the null-terminated signature
+ * @param BufferSize the size of the buffer in bytes
  *
  * @return VOID
  */
 VOID
-HyperDbgShowSignature()
+HyperDbgGetSignature(CHAR * Buffer, UINT32 BufferSize)
 {
+    if (Buffer == NULL || BufferSize == 0)
+    {
+        return;
+    }
+
+    Buffer[0] = 0;
+
     if (g_IsConnectedToRemoteDebuggee)
     {
         //
         // Remote debugging over tcp (vmi-mode)
         //
-        ShowMessages("[%s:%s] HyperDbg> ", g_ServerIp.c_str(), g_ServerPort.c_str());
+        PlatformSnprintf(Buffer,
+                         BufferSize,
+                         "[%s:%s] HyperDbg> ",
+                         g_ServerIp.c_str(),
+                         g_ServerPort.c_str());
     }
     else if (g_ActiveProcessDebuggingState.IsActive)
     {
         //
         // Debugging a special process
         //
-        ShowMessages("%x:%x %s u%sHyperDbg> ",
-                     g_ActiveProcessDebuggingState.ProcessId,
-                     g_ActiveProcessDebuggingState.ThreadId,
-                     g_ActiveProcessDebuggingState.IsPaused ? "(paused)" : "(running)",
-                     g_ActiveProcessDebuggingState.Is32Bit ? "86" : "64");
+        PlatformSnprintf(Buffer,
+                         BufferSize,
+                         "%x:%x %s u%sHyperDbg> ",
+                         (unsigned int)g_ActiveProcessDebuggingState.ProcessId,
+                         (unsigned int)g_ActiveProcessDebuggingState.ThreadId,
+                         g_ActiveProcessDebuggingState.IsPaused ? "(paused)" : "(running)",
+                         g_ActiveProcessDebuggingState.Is32Bit ? "86" : "64");
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
         // Remote debugging over serial (debugger-mode)
         //
-        ShowMessages("%x: kHyperDbg> ", g_CurrentRemoteCore);
+        PlatformSnprintf(Buffer, BufferSize, "%x: kHyperDbg> ", (unsigned int)g_CurrentRemoteCore);
     }
     else
     {
@@ -1116,8 +1135,23 @@ HyperDbgShowSignature()
         // Anything other than above scenarios including local debugging
         // in vmi-mode
         //
-        ShowMessages("HyperDbg> ");
+        PlatformSnprintf(Buffer, BufferSize, "HyperDbg> ");
     }
+}
+
+/**
+ * @brief Show signature of HyperDbg
+ *
+ * @return VOID
+ */
+VOID
+HyperDbgShowSignature()
+{
+    CHAR Signature[MAXIMUM_PROMPT_LENGTH] = {0};
+
+    HyperDbgGetSignature(Signature, static_cast<UINT32>(sizeof(Signature)));
+
+    ShowMessages("%s", Signature);
 }
 
 /**
