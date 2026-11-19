@@ -20,6 +20,11 @@
 #define COM3_PORT 0x03E8
 #define COM4_PORT 0x02E8
 
+//
+// Port value for USB debugging
+//
+#define SERIAL_PORT_DBC 0xDBC0
+
 //////////////////////////////////////////
 //			   	Server 		            //
 //////////////////////////////////////////

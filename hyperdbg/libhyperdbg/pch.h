@@ -220,6 +220,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/debugger/transparency/transparency.h"
 #include "header/debugger/communication/communication.h"
 #include "header/debugger/communication/namedpipe.h"
+#include "header/debugger/communication/dbc.h"
 #include "header/debugger/communication/forwarding.h"
 #include "header/debugger/kernel-level/kd.h"
 
@@ -279,5 +280,11 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 // For resolving symbols on Intel PT
 //
 #    pragma comment(lib, "dbghelp.lib")
+
+//
+// For USB debugging on Windows
+//
+#    pragma comment(lib, "winusb.lib")
+#    pragma comment(lib, "setupapi.lib")
 
 #endif // HYPERDBG_ENV_WINDOWS
