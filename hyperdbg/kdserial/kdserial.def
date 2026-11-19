@@ -19,3 +19,4 @@ EXPORTS
     KdHyperDbgPrepareDebuggeeConnectionPort
     KdHyperDbgSendByte
     KdHyperDbgRecvByte
+    KdHyperDbgDbcIsReady

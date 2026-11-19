@@ -16,6 +16,7 @@ Abstract:
 
 #include "common.h"
 #include "kdcom.h"
+#include "dbc.h"
 
 // ----------------------------------------------- Internal Function Prototypes
 
@@ -104,6 +105,15 @@ VOID
 KdHyperDbgPrepareDebuggeeConnectionPort(UINT32 PortAddress, UINT32 Baudrate)
 {
     UINT64 PortAddressUChar = 0ULL;
+
+    //
+    // Use DbC instead of a serial port for USB debugging
+    //
+    if (DbcPrepare(PortAddress))
+    {
+        return;
+    }
+
     PortAddressUChar        = PortAddressUChar | PortAddress;
 
     g_PortDetails.Address   = (PUCHAR)PortAddressUChar;
@@ -118,12 +128,23 @@ KdHyperDbgPrepareDebuggeeConnectionPort(UINT32 PortAddress, UINT32 Baudrate)
 VOID
 KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait)
 {
+    if (DbcIsActive())
+    {
+        DbcSendByte(Byte);
+        return;
+    }
+
     Uart16550PutByte(&g_PortDetails, Byte, BusyWait);
 }
 
 BOOLEAN
 KdHyperDbgRecvByte(PUCHAR RecvByte)
 {
+    if (DbcIsActive())
+    {
+        return DbcRecvByte(RecvByte);
+    }
+
     if (Uart16550GetByte(&g_PortDetails, RecvByte) == UartSuccess)
     {
         return TRUE;
