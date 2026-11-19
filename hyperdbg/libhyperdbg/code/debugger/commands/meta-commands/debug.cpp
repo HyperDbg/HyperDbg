@@ -28,9 +28,11 @@ CommandDebugHelp()
         ".debug : debugs a target machine or makes this machine a debuggee.\n\n");
 
     ShowMessages(
-        "syntax : \t.debug [remote] [serial|namedpipe] [pause] [Baudrate (decimal)] [Address (string)]\n");
+        "syntax : \t.debug [remote] [serial|namedpipe] [pause] [Baudrate (decimal)] [Address (string)]\n"
+        "syntax : \t.debug remote [pause] usb\n");
     ShowMessages(
-        "syntax : \t.debug [prepare] [serial] [Baudrate (decimal)] [Address (string)]\n");
+        "syntax : \t.debug [prepare] [serial] [Baudrate (decimal)] [Address (string)]\n"
+        "syntax : \t.debug prepare usb\n");
     ShowMessages("syntax : \t.debug [close]\n");
 
     ShowMessages("\n");
@@ -39,8 +41,11 @@ CommandDebugHelp()
     ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
     ShowMessages("\t\te.g : .debug remote pause namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
     ShowMessages("\t\te.g : .debug remote namedpipe \"\\\\.\\pipe\\HyperDbg Pipe\"\n");
+    ShowMessages("\t\te.g : .debug remote usb\n");
+    ShowMessages("\t\te.g : .debug remote pause usb\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com1\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com2\n");
+    ShowMessages("\t\te.g : .debug prepare usb\n");
     ShowMessages("\t\te.g : .debug close\n");
 
     ShowMessages(
@@ -171,6 +176,19 @@ HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAft
 }
 
 /**
+ * @brief Connect to a remote debuggee over USB
+ *
+ * @param PauseAfterConnection
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgDebugRemoteDeviceUsingUsb(BOOLEAN PauseAfterConnection)
+{
+    return KdPrepareAndConnectDebugPort("usb", 0, SERIAL_PORT_DBC, FALSE, FALSE, PauseAfterConnection);
+}
+
+/**
  * @brief Connect to a remote serial device (Debuggee)
  *
  * @param PortName
@@ -214,6 +232,20 @@ HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate)
 }
 
 /**
+ * @brief Prepare the current machine as a debuggee over USB
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgDebugCurrentDeviceUsingUsb()
+{
+    //
+    // The kernel driver owns DbC on the debuggee
+    //
+    return KdPrepareAndConnectDebugPort("usb", 0, SERIAL_PORT_DBC, TRUE, FALSE, FALSE);
+}
+
+/**
  * @brief Connect to a remote serial device (Debuggee)
  *
  * @return BOOLEAN
@@ -252,6 +284,7 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
     BOOLEAN IsPrepare               = FALSE;
     BOOLEAN IsSerial                = FALSE;
     BOOLEAN IsNamedPipe             = FALSE;
+    BOOLEAN IsUsb                   = FALSE;
     BOOLEAN IsPause                 = FALSE;
     BOOLEAN IsNamedPipeAddressKnown = FALSE;
     string  NamedPipeAddress;
@@ -271,7 +304,7 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
 
         return;
     }
-    else if (CommandTokens.size() <= 3)
+    else if (CommandTokens.size() < 3)
     {
         ShowMessages("incorrect use of the '%s'\n\n",
                      GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
@@ -304,6 +337,11 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         else if (!IsNamedPipe && CompareLowerCaseStrings(Section, "namedpipe"))
         {
             IsNamedPipe = TRUE;
+            continue;
+        }
+        else if (!IsUsb && CompareLowerCaseStrings(Section, "usb"))
+        {
+            IsUsb = TRUE;
             continue;
         }
         else if (!IsPause && CompareLowerCaseStrings(Section, "pause"))
@@ -383,6 +421,14 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         return;
     }
 
+    if ((IsSerial + IsNamedPipe + IsUsb) != 1)
+    {
+        ShowMessages("err, specify one transport for '%s'\n\n",
+                     GetCaseSensitiveStringFromCommandToken(CommandTokens.at(0)).c_str());
+        CommandDebugHelp();
+        return;
+    }
+
     //
     // Prepare cannot be specified with the 'pause'
     //
@@ -443,7 +489,14 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         //
         // Everything is okay, prepare to send (debuggee)
         //
-        HyperDbgDebugCurrentDeviceUsingComPort(ComAddress.c_str(), Baudrate);
+        if (IsUsb)
+        {
+            HyperDbgDebugCurrentDeviceUsingUsb();
+        }
+        else if (IsSerial)
+        {
+            HyperDbgDebugCurrentDeviceUsingComPort(ComAddress.c_str(), Baudrate);
+        }
     }
     else
     {
@@ -453,6 +506,10 @@ CommandDebug(vector<CommandToken> CommandTokens, string Command)
         if (IsNamedPipe)
         {
             HyperDbgDebugRemoteDeviceUsingNamedPipe(NamedPipeAddress.c_str(), IsPause);
+        }
+        else if (IsUsb)
+        {
+            HyperDbgDebugRemoteDeviceUsingUsb(IsPause);
         }
         else if (IsSerial)
         {

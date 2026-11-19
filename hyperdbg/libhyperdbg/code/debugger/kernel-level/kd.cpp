@@ -33,6 +33,8 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_KdReceiveFromDebuggerDesyncReported;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
+extern BOOLEAN g_IsDebuggerConnectedToDbc;
+extern BOOLEAN g_IsDebuggeeConnectedToDbc;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsVmmModuleLoaded;
@@ -45,6 +47,14 @@ extern BOOLEAN g_IsDebuggeeInHandshakingPhase;
 extern BOOLEAN g_ShouldPreviousCommandBeContinued;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
+
+static DEBUGGEE_DBC_RECEIVE_PACKET   g_DebuggeeDbcReceivePacket        = {0};
+static UINT32                        g_DebuggeeDbcReceivePosition      = 0;
+static DEBUGGEE_DBC_HANDSHAKE_PACKET g_DebuggeeDbcHandshakePacket      = {0};
+static UINT32                        g_DebuggeeDbcHandshakePosition    = 0;
+static BOOLEAN                       g_IsDebuggeeDbcInHandshakingPhase = FALSE;
+static BOOLEAN                       g_DebuggeeDbcResetConnection      = FALSE;
+static time_t                        g_DebuggeeDbcHandshakeStartTime   = 0;
 
 /**
  * @brief compares the buffer with a string
@@ -1676,6 +1686,11 @@ static BOOLEAN g_KdSerialReceiverDesyncReported = FALSE;
 static BOOLEAN
 KdReadByteFromDebuggeeSerial(CHAR * ReadData, DWORD * NoBytesRead)
 {
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        return DbcReadByte(g_SerialRemoteComPortHandle, ReadData, NoBytesRead);
+    }
+
 #ifdef _WIN32
     //
     // Try to read one byte in overlapped I/O (in debugger)
@@ -1722,6 +1737,122 @@ KdReadByteFromDebuggeeSerial(CHAR * ReadData, DWORD * NoBytesRead)
 }
 
 /**
+ * @brief Send USB handshake bytes to the debugger through the driver
+ *
+ * @param Buffer Bytes to send
+ * @param Length Number of bytes to send
+ *
+ * @return BOOLEAN
+ */
+static BOOLEAN
+KdSendHandshakeBytesToDebuggerDbc(const CHAR * Buffer, UINT32 Length)
+{
+    DEBUGGEE_DBC_HANDSHAKE_PACKET HandshakePacket = {0};
+    ULONG                         ReturnedLength  = 0;
+    UINT32                        Offset          = 0;
+    UINT32                        ChunkSize       = 0;
+
+    while (Offset < Length)
+    {
+        ChunkSize = Length - Offset;
+
+        if (ChunkSize > DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE)
+        {
+            ChunkSize = DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE;
+        }
+
+        PlatformZeroMemory(&HandshakePacket, SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET);
+
+        //
+        // Reset DbC on the first request
+        //
+        HandshakePacket.ResetConnection = g_DebuggeeDbcResetConnection;
+        HandshakePacket.SendLength      = ChunkSize;
+        memcpy(HandshakePacket.SendBuffer, Buffer + Offset, ChunkSize);
+
+        g_DebuggeeDbcResetConnection = FALSE;
+
+        if (!PlatformDeviceIoControl(g_DeviceHandle,
+                                     IOCTL_DEBUGGEE_DBC_HANDSHAKE,
+                                     &HandshakePacket,
+                                     SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                     &HandshakePacket,
+                                     SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                     &ReturnedLength,
+                                     NULL) ||
+            HandshakePacket.Result != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            return FALSE;
+        }
+
+        Offset += ChunkSize;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Read one USB handshake byte from the debugger
+ *
+ * @details Return TRUE with no bytes if the read times out.
+ *
+ * @param ReadData Receives the byte that was read
+ * @param NoBytesRead Receives the number of bytes read
+ *
+ * @return BOOLEAN
+ */
+static BOOLEAN
+KdReadHandshakeByteFromDebuggerDbc(CHAR * ReadData, DWORD * NoBytesRead)
+{
+    ULONG  ReturnedLength = 0;
+    time_t StartTime      = time(NULL);
+
+    *ReadData    = NULL_ZERO;
+    *NoBytesRead = 0;
+
+    while (g_DebuggeeDbcHandshakePosition >= g_DebuggeeDbcHandshakePacket.ReceiveLength)
+    {
+        if (time(NULL) - StartTime >= DBC_DEBUGGEE_HANDSHAKE_READ_TIMEOUT_SECONDS)
+        {
+            return TRUE;
+        }
+
+        PlatformZeroMemory(&g_DebuggeeDbcHandshakePacket, SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET);
+        g_DebuggeeDbcHandshakePosition = 0;
+
+        if (!PlatformDeviceIoControl(g_DeviceHandle,
+                                     IOCTL_DEBUGGEE_DBC_HANDSHAKE,
+                                     &g_DebuggeeDbcHandshakePacket,
+                                     SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                     &g_DebuggeeDbcHandshakePacket,
+                                     SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                     &ReturnedLength,
+                                     NULL) ||
+            g_DebuggeeDbcHandshakePacket.Result != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            g_DebuggeeDbcHandshakePacket.ReceiveLength = 0;
+            return FALSE;
+        }
+
+        if (g_DebuggeeDbcHandshakePacket.ReceiveLength > DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE)
+        {
+            g_DebuggeeDbcHandshakePacket.ReceiveLength = DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE;
+        }
+
+        if (g_DebuggeeDbcHandshakePacket.ReceiveLength == 0)
+        {
+            PlatformSleep(DBC_DEBUGGEE_POLL_INTERVAL_MS);
+        }
+    }
+
+    *ReadData = (CHAR)g_DebuggeeDbcHandshakePacket.ReceiveBuffer[g_DebuggeeDbcHandshakePosition];
+    g_DebuggeeDbcHandshakePosition++;
+    *NoBytesRead = sizeof(CHAR);
+
+    return TRUE;
+}
+
+/**
  * @brief Read a single byte from the debugger over the serial link
  *
  * @details Debuggee-side counterpart of KdReadByteFromDebuggeeSerial(); reads
@@ -1736,6 +1867,11 @@ KdReadByteFromDebuggeeSerial(CHAR * ReadData, DWORD * NoBytesRead)
 static BOOLEAN
 KdReadByteFromDebuggerSerial(CHAR * ReadData, DWORD * NoBytesRead)
 {
+    if (g_IsDebuggeeDbcInHandshakingPhase)
+    {
+        return KdReadHandshakeByteFromDebuggerDbc(ReadData, NoBytesRead);
+    }
+
 #ifdef _WIN32
     //
     // Try to read one byte in overlapped I/O (in debuggee)
@@ -1780,6 +1916,68 @@ KdReadByteFromDebuggerSerial(CHAR * ReadData, DWORD * NoBytesRead)
                                   NoBytesRead,
                                   PLATFORM_SERIAL_IO_DEBUGGEE);
 #endif // _WIN32
+}
+
+/**
+ * @brief Read one USB byte from the debugger
+ *
+ * @details Fetch a block from the driver when the receive buffer is empty.
+ * Return FALSE if the connection closes or the driver read fails.
+ *
+ * @param ReadData Receives the byte that was read
+ * @param NoBytesRead Receives the number of bytes read
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdReadByteFromDebuggeeDbc(CHAR * ReadData, DWORD * NoBytesRead)
+{
+    ULONG   ReturnedLength = 0;
+    BOOLEAN StatusIoctl    = FALSE;
+
+    while (g_DebuggeeDbcReceivePosition >= g_DebuggeeDbcReceivePacket.Length)
+    {
+        if (!g_IsDebuggeeConnectedToDbc || g_SerialConnectionAlreadyClosed || !g_DeviceHandle)
+        {
+            *NoBytesRead = 0;
+            return FALSE;
+        }
+
+        g_DebuggeeDbcReceivePacket.Result = 0;
+        g_DebuggeeDbcReceivePacket.Length = 0;
+        g_DebuggeeDbcReceivePosition      = 0;
+
+        StatusIoctl = PlatformDeviceIoControl(g_DeviceHandle,
+                                              IOCTL_DEBUGGEE_DBC_RECEIVE,
+                                              &g_DebuggeeDbcReceivePacket,
+                                              SIZEOF_DEBUGGEE_DBC_RECEIVE_PACKET,
+                                              &g_DebuggeeDbcReceivePacket,
+                                              SIZEOF_DEBUGGEE_DBC_RECEIVE_PACKET,
+                                              &ReturnedLength,
+                                              NULL);
+
+        if (!StatusIoctl || g_DebuggeeDbcReceivePacket.Result != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            *NoBytesRead = 0;
+            return FALSE;
+        }
+
+        if (g_DebuggeeDbcReceivePacket.Length > DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE)
+        {
+            g_DebuggeeDbcReceivePacket.Length = DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE;
+        }
+
+        if (g_DebuggeeDbcReceivePacket.Length == 0)
+        {
+            PlatformSleep(5);
+        }
+    }
+
+    *ReadData = (CHAR)g_DebuggeeDbcReceivePacket.Buffer[g_DebuggeeDbcReceivePosition];
+    g_DebuggeeDbcReceivePosition++;
+    *NoBytesRead = sizeof(CHAR);
+
+    return TRUE;
 }
 
 /**
@@ -1829,17 +2027,24 @@ KdResyncStreamToNextFrame(DEBUGGER_PACKET_RESYNC_ENUM ReSyncType)
         }
         else if (ReSyncType == DEBUGGER_PACKET_RESYNC_LISTENING)
         {
+            if (g_IsDebuggeeConnectedToDbc)
+            {
+                Status = KdReadByteFromDebuggeeDbc(&ReadData, &NoBytesRead);
+            }
+            else
+            {
 #ifdef _WIN32
-            Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
+                Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
 #else
-            //
-            // Linux: read one byte through the cross-platform serial transport
-            //
-            Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle,
-                                            &ReadData,
-                                            &NoBytesRead,
-                                            PLATFORM_SERIAL_IO_DEBUGGEE);
+                //
+                // Linux: read one byte through the cross-platform serial transport
+                //
+                Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                                &ReadData,
+                                                &NoBytesRead,
+                                                PLATFORM_SERIAL_IO_DEBUGGEE);
 #endif // _WIN32
+            }
 
             if (!Status)
             {
@@ -2111,12 +2316,35 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
     }
 
     //
+    // USB handshake packets bypass the serial handle
+    //
+    if (g_IsDebuggeeDbcInHandshakingPhase)
+    {
+        if (!KdSendHandshakeBytesToDebuggerDbc(Buffer, Length))
+        {
+            return FALSE;
+        }
+
+        goto Out;
+    }
+
+    //
     // Check if the remote code's handle found or not
     //
     if (g_SerialRemoteComPortHandle == NULL)
     {
         ShowMessages("err, handle to remote debuggee's com port is not found\n");
         return FALSE;
+    }
+
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        if (!DbcWrite(g_SerialRemoteComPortHandle, Buffer, Length))
+        {
+            return FALSE;
+        }
+
+        goto Out;
     }
 
 #ifdef _WIN32
@@ -2513,7 +2741,7 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     ShowMessages("waiting for debuggee to connect...\n");
 
-    if (!IsNamedPipe)
+    if (!IsNamedPipe && !g_IsDebuggerConnectedToDbc)
     {
 #ifdef _WIN32
         //
@@ -2687,6 +2915,12 @@ StartAgain:
     //
     if (!KdReceivePacketFromDebugger(BufferToReceive, &LengthReceived))
     {
+        if (g_IsDebuggeeDbcInHandshakingPhase)
+        {
+            ShowMessages("err, unable to read the USB handshake\n");
+            return FALSE;
+        }
+
         if (LengthReceived == 0 && BufferToReceive[0] == NULL)
         {
             //
@@ -2708,6 +2942,15 @@ StartAgain:
     //
     if (LengthReceived == 1 && BufferToReceive[0] == NULL)
     {
+        if (g_IsDebuggeeDbcInHandshakingPhase &&
+            time(NULL) - g_DebuggeeDbcHandshakeStartTime >= DBC_DEBUGGEE_HANDSHAKE_TIMEOUT_SECONDS)
+        {
+            ShowMessages("err, no USB reply in %d seconds.\n"
+                         "Run '.debug remote usb' on the debugger. Then retry '.debug prepare usb'.\n",
+                         DBC_DEBUGGEE_HANDSHAKE_TIMEOUT_SECONDS);
+            return FALSE;
+        }
+
         ShowMessages("is the debugger listening? retry handshaking with the debugger... (timeout: 5 seconds)\n");
         goto StartAgain;
     }
@@ -2798,6 +3041,16 @@ StartAgain:
 static BOOLEAN
 KdCloseSerialHandle(HANDLE Handle)
 {
+    if (Handle == NULL)
+    {
+        return TRUE;
+    }
+
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        return DbcClose(Handle);
+    }
+
 #ifdef _WIN32
     return PlatformCloseHandle(Handle);
 #else
@@ -2835,6 +3088,8 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
     BOOLEAN                    StatusIoctl;
     ULONG                      ReturnedLength;
     PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest;
+    BOOLEAN                    IsDebuggeeDbc = IsPreparing && Port == SERIAL_PORT_DBC;
+    BOOLEAN                    IsDebuggerDbc = !IsPreparing && Port == SERIAL_PORT_DBC;
 
     //
     // Check if the debugger or debuggee is already active
@@ -2850,7 +3105,23 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         return FALSE;
     }
 
-    if (!IsNamedPipe)
+    if (IsDebuggeeDbc)
+    {
+        //
+        // The driver owns DbC on the debuggee
+        //
+        Comm = NULL;
+    }
+    else if (IsDebuggerDbc)
+    {
+        Comm = DbcConnect();
+
+        if (Comm == NULL)
+        {
+            return FALSE;
+        }
+    }
+    else if (!IsNamedPipe)
     {
 #ifdef _WIN32
         //
@@ -3019,32 +3290,35 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         //
 
         //
-        // We entered the handshaking phase
-        //
-        g_IsDebuggeeInHandshakingPhase = TRUE;
-
-        //
         // Set handle to serial device
         //
         g_SerialRemoteComPortHandle = Comm;
 
         //
-        // Check if debuggee is listening before loading module
+        // Start the serial handshake before the driver loads
         //
-        if (!KdCheckIfDebuggerIsListening(Comm))
+        if (!IsDebuggeeDbc)
         {
-            KdCloseSerialHandle(Comm);
-            g_SerialRemoteComPortHandle    = NULL;
-            g_IsDebuggeeInHandshakingPhase = FALSE;
+            //
+            // We entered the handshaking phase
+            //
+            g_IsDebuggeeInHandshakingPhase = TRUE;
 
-            return FALSE;
-        }
-        else
-        {
-            //
-            // Not in handshaking phase anymore (The handshaking phase was successful)
-            //
-            g_IsDebuggeeInHandshakingPhase = FALSE;
+            if (!KdCheckIfDebuggerIsListening(Comm))
+            {
+                KdCloseSerialHandle(Comm);
+                g_SerialRemoteComPortHandle    = NULL;
+                g_IsDebuggeeInHandshakingPhase = FALSE;
+
+                return FALSE;
+            }
+            else
+            {
+                //
+                // Not in handshaking phase anymore (The handshaking phase was successful)
+                //
+                g_IsDebuggeeInHandshakingPhase = FALSE;
+            }
         }
 
         //
@@ -3077,6 +3351,43 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
             g_IsConnectedToHyperDbgLocally = FALSE;
 
             AssertShowMessageReturnStmt(g_IsKdModuleLoaded, g_DeviceHandle, ASSERT_MESSAGE_KD_NOT_LOADED, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+        }
+
+        //
+        // The USB handshake needs the driver
+        //
+        if (IsDebuggeeDbc)
+        {
+            g_IsDebuggeeInHandshakingPhase             = TRUE;
+            g_IsDebuggeeDbcInHandshakingPhase          = TRUE;
+            g_DebuggeeDbcResetConnection               = TRUE;
+            g_DebuggeeDbcHandshakeStartTime            = time(NULL);
+            g_DebuggeeDbcHandshakePosition             = 0;
+            g_DebuggeeDbcHandshakePacket.ReceiveLength = 0;
+
+            if (!KdCheckIfDebuggerIsListening(Comm))
+            {
+                g_IsDebuggeeInHandshakingPhase    = FALSE;
+                g_IsDebuggeeDbcInHandshakingPhase = FALSE;
+
+                //
+                // Release the driver so '.debug prepare usb' can run again
+                //
+                if (HyperDbgUnloadVmm() == 0)
+                {
+                    HyperDbgUnloadKd();
+                }
+
+                g_SerialRemoteComPortHandle    = NULL;
+                g_IsConnectedToHyperDbgLocally = FALSE;
+
+                return FALSE;
+            }
+            else
+            {
+                g_IsDebuggeeInHandshakingPhase    = FALSE;
+                g_IsDebuggeeDbcInHandshakingPhase = FALSE;
+            }
         }
 
         //
@@ -3201,6 +3512,9 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         // Indicate that we connected to the debugger
         //
         g_IsSerialConnectedToRemoteDebugger = TRUE;
+        g_DebuggeeDbcReceivePacket.Length   = 0;
+        g_DebuggeeDbcReceivePosition        = 0;
+        g_IsDebuggeeConnectedToDbc          = IsDebuggeeDbc;
 
         //
         // Free the buffer
@@ -3256,6 +3570,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         // Save the handler
         //
         g_SerialRemoteComPortHandle = Comm;
+        g_IsDebuggerConnectedToDbc  = IsDebuggerDbc;
 
         //
         // If we are here, then it's a debugger (not debuggee)
@@ -3927,6 +4242,9 @@ KdUninitializeConnection()
     // If connected to debugger
     //
     g_IsSerialConnectedToRemoteDebugger = FALSE;
+    g_IsDebuggeeConnectedToDbc          = FALSE;
+    g_DebuggeeDbcReceivePacket.Length   = 0;
+    g_DebuggeeDbcReceivePosition        = 0;
 
     //
     // No longer connected to the debuggee
@@ -3961,6 +4279,7 @@ KdUninitializeConnection()
     // Is serial handle for a named pipe
     //
     g_IsDebuggerConntectedToNamedPipe = FALSE;
+    g_IsDebuggerConnectedToDbc        = FALSE;
 }
 
 /**

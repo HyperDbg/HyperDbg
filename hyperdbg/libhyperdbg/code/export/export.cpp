@@ -664,6 +664,19 @@ hyperdbg_u_connect_remote_debugger_using_named_pipe(const CHAR * named_pipe, BOO
 }
 
 /**
+ * @brief Connect to a remote debuggee over USB
+ *
+ * @param pause_after_connection Pause after connection
+ *
+ * @return BOOLEAN TRUE if the connection succeeds
+ */
+BOOLEAN
+hyperdbg_u_connect_remote_debugger_using_usb(BOOLEAN pause_after_connection)
+{
+    return HyperDbgDebugRemoteDeviceUsingUsb(pause_after_connection);
+}
+
+/**
  * @brief Close the remote debugger
  *
  * @return BOOLEAN Returns true if it was successful
@@ -686,6 +699,17 @@ BOOLEAN
 hyperdbg_u_connect_current_debugger_using_com_port(const CHAR * port_name, DWORD baudrate)
 {
     return HyperDbgDebugCurrentDeviceUsingComPort(port_name, baudrate);
+}
+
+/**
+ * @brief Prepare the local machine as a USB debuggee
+ *
+ * @return BOOLEAN TRUE if the connection succeeds
+ */
+BOOLEAN
+hyperdbg_u_connect_current_debugger_using_usb()
+{
+    return HyperDbgDebugCurrentDeviceUsingUsb();
 }
 
 /**

@@ -253,6 +253,9 @@ KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pc
 BOOLEAN
 KdResyncStreamToNextFrame(DEBUGGER_PACKET_RESYNC_ENUM ReSyncType);
 
+BOOLEAN
+KdReadByteFromDebuggeeDbc(CHAR * ReadData, DWORD * NoBytesRead);
+
 VOID
 KdUninitializeConnection();
 

@@ -318,7 +318,13 @@ BOOLEAN
 HyperDbgDebugRemoteDeviceUsingNamedPipe(const CHAR * NamedPipe, BOOLEAN PauseAfterConnection);
 
 BOOLEAN
+HyperDbgDebugRemoteDeviceUsingUsb(BOOLEAN PauseAfterConnection);
+
+BOOLEAN
 HyperDbgDebugCurrentDeviceUsingComPort(const CHAR * PortName, DWORD Baudrate);
+
+BOOLEAN
+HyperDbgDebugCurrentDeviceUsingUsb();
 
 BOOLEAN
 HyperDbgDebugCloseRemoteDebugger();
