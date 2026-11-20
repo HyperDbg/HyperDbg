@@ -147,6 +147,8 @@
 #define DBC_SEND_TIMEOUT_MS      1000
 #define DBC_DISABLE_TIMEOUT_MS   100
 #define DBC_MAXIMUM_SPINS        50000000
+#define DBC_WATCHDOG_TIMEOUT_MS  5000
+#define DBC_WATCHDOG_MAXIMUM_MS  60000
 
 //
 // Match the end-of-buffer marker in SerialConnection.h
@@ -206,6 +208,8 @@ typedef struct _DBC_STATE
     UINT32 RxPosition;
 
     UINT64 TscPerMs;
+    UINT64 WatchdogStartTsc; // Host connected but did not configure DbC since then
+    UINT32 WatchdogTimeoutMs;
 
     //
     // Counters for the kernel debugger
@@ -224,6 +228,7 @@ typedef struct _DBC_STATE
     UINT32 UnknownTrbEvents;
     UINT32 LastErrorResidual;
     UINT64 LastErrorTrb;
+    UINT32 ConfigurationTimeoutResets; // DbC turned off because the host did not configure it in time
 
 } DBC_STATE, *PDBC_STATE;
 
@@ -577,7 +582,8 @@ DbcProgram()
     g_DbcState.RxLength     = 0;
     g_DbcState.RxPosition   = 0;
 
-    g_DbcState.OutRetainedTrb = 0;
+    g_DbcState.OutRetainedTrb   = 0;
+    g_DbcState.WatchdogStartTsc = 0;
     KeMemoryBarrier();
 
     //
@@ -959,6 +965,74 @@ DbcPostInTransfer()
 }
 
 /**
+ * @brief Turn DbC off if the host connected but did not configure it in time
+ * @details The next poll sets DbC up again, so the host sees a new device.
+ *
+ * @param PortSc DbC port status read in this poll
+ * @return VOID
+ */
+static VOID
+DbcCheckConfigurationTimeout(UINT32 PortSc)
+{
+    UINT64 Now;
+    UINT32 Control;
+
+    if (PortSc == 0xFFFFFFFF || !(PortSc & DBC_DCPORTSC_CCS) ||
+        g_DbcState.TscPerMs == 0 || g_DbcState.TscPerMs > MAXUINT64 / DBC_WATCHDOG_MAXIMUM_MS)
+    {
+        //
+        // Time the configuration from the host connection
+        // See xHCI 1.2 section 7.6.4.1
+        //
+        g_DbcState.WatchdogStartTsc = 0;
+        return;
+    }
+
+    Now = __rdtsc();
+
+    if (g_DbcState.WatchdogTimeoutMs == 0)
+    {
+        g_DbcState.WatchdogTimeoutMs = DBC_WATCHDOG_TIMEOUT_MS;
+    }
+
+    //
+    // Restart the timer if this core reads an earlier timestamp
+    //
+    if (g_DbcState.WatchdogStartTsc == 0 || (INT64)(Now - g_DbcState.WatchdogStartTsc) < 0)
+    {
+        g_DbcState.WatchdogStartTsc = Now;
+        return;
+    }
+
+    if (Now - g_DbcState.WatchdogStartTsc <= g_DbcState.TscPerMs * g_DbcState.WatchdogTimeoutMs)
+    {
+        return;
+    }
+
+    g_DbcState.WatchdogStartTsc = 0;
+
+    //
+    // Do not touch DbC if the host configured it meanwhile
+    //
+    Control = DbcRead32(DBC_REG_DCCTRL);
+    if (Control == 0xFFFFFFFF || !(Control & DBC_DCCTRL_DCE) || (Control & DBC_DCCTRL_DCR))
+    {
+        return;
+    }
+
+    //
+    // Wait longer after each reset in case the host never configures DbC
+    //
+    if (g_DbcState.WatchdogTimeoutMs < DBC_WATCHDOG_MAXIMUM_MS)
+    {
+        g_DbcState.WatchdogTimeoutMs = min(g_DbcState.WatchdogTimeoutMs * 2, DBC_WATCHDOG_MAXIMUM_MS);
+    }
+
+    g_DbcState.ConfigurationTimeoutResets++;
+    DbcWrite32(DBC_REG_DCCTRL, Control & DBC_DCCTRL_RSVDP);
+}
+
+/**
  * @brief Poll DbC and recover from resets or halts in vmx-root
  *
  * @return BOOLEAN TRUE when the debug host configured the device
@@ -1050,11 +1124,14 @@ DbcCheckState()
         !(Control & DBC_DCCTRL_DCR) || (Control & DBC_DCCTRL_DRC))
     {
         g_DbcState.Configured = FALSE;
+        DbcCheckConfigurationTimeout(PortSc);
         return FALSE;
     }
 
-    WasConfigured         = g_DbcState.Configured;
-    g_DbcState.Configured = TRUE;
+    WasConfigured                = g_DbcState.Configured;
+    g_DbcState.Configured        = TRUE;
+    g_DbcState.WatchdogStartTsc  = 0;
+    g_DbcState.WatchdogTimeoutMs = DBC_WATCHDOG_TIMEOUT_MS;
 
     DbcProcessEvents();
 
