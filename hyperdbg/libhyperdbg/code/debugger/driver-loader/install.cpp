@@ -24,6 +24,7 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
 {
     SC_HANDLE SchService;
     DWORD     LastError;
+    UINT32    DeleteWaitCount = 0;
 
     //
     // NOTE: This creates an entry for a standalone driver. If this
@@ -32,6 +33,8 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
     //       query the registry for existing driver information
     //       (in order to determine a unique Tag, etc.)
     //
+
+CreateAgain:
 
     //
     // Create a new a service object
@@ -107,8 +110,15 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
         {
             //
             // Previous instance of the service is not fully deleted so sleep
-            // and try again
+            // and try again for up to 5 seconds
             //
+            if (DeleteWaitCount < 50)
+            {
+                DeleteWaitCount++;
+                PlatformSleep(100);
+                goto CreateAgain;
+            }
+
             ShowMessages("err, previous instance of the service is not fully deleted. Try "
                          "again...\n");
             return FALSE;
