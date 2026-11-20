@@ -51,6 +51,15 @@ DriverEntry(
                               FALSE,
                               &DeviceObject);
 
+    if (!NT_SUCCESS(Ntstatus))
+    {
+        //
+        // Another instance of the driver can already own the device name
+        //
+        DbgPrint("Err, unable to create the HyperDbg device (%x)", Ntstatus);
+        return Ntstatus;
+    }
+
     if (Ntstatus == STATUS_SUCCESS)
     {
         for (Index = 0; Index < IRP_MJ_MAXIMUM_FUNCTION; Index++)
