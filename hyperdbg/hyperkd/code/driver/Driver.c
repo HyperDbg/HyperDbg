@@ -96,6 +96,15 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 {
     UNICODE_STRING DosDeviceName;
 
+    //
+    // Turn off the VMM and the debugger if user mode did not do it
+    // Otherwise the next vm-exit runs code from the unloaded hyperhv image
+    //
+    if (g_VmmInitialized)
+    {
+        LoaderUninitVmmAndDebugger();
+    }
+
     RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperDbgDebuggerDevice");
     IoDeleteSymbolicLink(&DosDeviceName);
     IoDeleteDevice(DriverObject->DeviceObject);
