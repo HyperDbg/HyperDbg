@@ -795,6 +795,34 @@ DbcFailUsbDevice(PDBC_CONNECTION Connection, PDBC_USB_DEVICE Device)
 }
 
 /**
+ * @brief Take the device lock for a closing writer within a time limit
+ *
+ * @param Connection
+ * @param TimeoutMilliseconds
+ * @return BOOLEAN
+ */
+static BOOLEAN
+DbcEnterDeviceLockWithTimeout(PDBC_CONNECTION Connection, DWORD TimeoutMilliseconds)
+{
+    DWORD Start = GetTickCount();
+
+    //
+    // The reader holds the lock only for a moment, so try again until the time limit
+    //
+    while (!TryEnterCriticalSection(&Connection->DeviceLock))
+    {
+        if (GetTickCount() - Start >= TimeoutMilliseconds)
+        {
+            return FALSE;
+        }
+
+        Sleep(1);
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Return the current open WinUSB device, or wait and reopen it
  *
  * @param Connection
@@ -817,7 +845,7 @@ DbcAcquireUsbDevice(PDBC_CONNECTION Connection, BOOLEAN ForWrite)
 
     if (ForWrite && g_SerialConnectionAlreadyClosed)
     {
-        if (!TryEnterCriticalSection(&Connection->DeviceLock))
+        if (!DbcEnterDeviceLockWithTimeout(Connection, DBC_USB_WRITE_TIMEOUT_MS))
         {
             return NULL;
         }
@@ -836,18 +864,19 @@ DbcAcquireUsbDevice(PDBC_CONNECTION Connection, BOOLEAN ForWrite)
     LeaveCriticalSection(&Connection->DeviceLock);
 
     //
-    // Use the current device without waiting for a new one during close
+    // Writers use only the current device and do not wait for a new one
+    // The reader waits and opens the device again after it comes back
     //
-    if (Device != NULL)
+    if (Device != NULL || ForWrite)
     {
         return Device;
     }
 
-    while (Connection->Closed == 0 && !(ForWrite && g_SerialConnectionAlreadyClosed))
+    while (Connection->Closed == 0)
     {
         EnterCriticalSection(&Connection->OpenLock);
 
-        if (Connection->Closed != 0 || (ForWrite && g_SerialConnectionAlreadyClosed))
+        if (Connection->Closed != 0)
         {
             LeaveCriticalSection(&Connection->OpenLock);
             break;
@@ -879,7 +908,7 @@ DbcAcquireUsbDevice(PDBC_CONNECTION Connection, BOOLEAN ForWrite)
 
             EnterCriticalSection(&Connection->DeviceLock);
 
-            if (Connection->Closed != 0 || (ForWrite && g_SerialConnectionAlreadyClosed))
+            if (Connection->Closed != 0)
             {
                 LeaveCriticalSection(&Connection->DeviceLock);
                 LeaveCriticalSection(&Connection->OpenLock);
@@ -1099,7 +1128,7 @@ DbcTransferUsbPipe(PDBC_CONNECTION Connection,
     {
         EnterCriticalSection(&Connection->DeviceLock);
     }
-    else if (!TryEnterCriticalSection(&Connection->DeviceLock))
+    else if (!DbcEnterDeviceLockWithTimeout(Connection, WaitTimeout))
     {
         return ERROR_OPERATION_ABORTED;
     }
@@ -1167,7 +1196,7 @@ DbcTransferUsbPipe(PDBC_CONNECTION Connection,
  * @param Handle
  * @param OutByte
  * @param BytesRead
- * @return BOOLEAN
+ * @return BOOLEAN TRUE with no bytes read once after the USB device is lost
  */
 BOOLEAN
 DbcReadByte(HANDLE Handle, CHAR * OutByte, DWORD * BytesRead)
@@ -1256,7 +1285,12 @@ DbcReadByte(HANDLE Handle, CHAR * OutByte, DWORD * BytesRead)
             }
             else
             {
+                //
+                // Return with no bytes read so the caller drops the packet in progress
+                // The next read waits for the device to come back
+                //
                 DbcFailUsbDevice(Connection, Device);
+                Result = TRUE;
             }
         }
 
@@ -1283,6 +1317,11 @@ DbcReadByte(HANDLE Handle, CHAR * OutByte, DWORD * BytesRead)
             *OutByte               = (CHAR)Connection->ReadBuffer[0];
             *BytesRead             = 1;
             Result                 = TRUE;
+            break;
+        }
+
+        if (Result)
+        {
             break;
         }
     }

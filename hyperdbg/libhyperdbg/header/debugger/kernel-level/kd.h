@@ -277,6 +277,9 @@ VOID
 KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag);
 
 VOID
+KdBreakControlStopWaitingForUsbDebuggee();
+
+VOID
 KdBreakControlCheckAndContinueDebugger();
 
 VOID

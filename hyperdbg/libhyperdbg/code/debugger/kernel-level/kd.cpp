@@ -56,6 +56,16 @@ static BOOLEAN                       g_IsDebuggeeDbcInHandshakingPhase = FALSE;
 static BOOLEAN                       g_DebuggeeDbcResetConnection      = FALSE;
 static time_t                        g_DebuggeeDbcHandshakeStartTime   = 0;
 
+//
+// Set for a command whose wait ended without a reply
+//
+static volatile BOOLEAN g_KdReplyLost[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS] = {0};
+
+//
+// Set while the CLI waits for the end of a step
+//
+static volatile BOOLEAN g_KdWaitingForStep = FALSE;
+
 /**
  * @brief compares the buffer with a string
  *
@@ -143,6 +153,85 @@ KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
 }
 
 /**
+ * @brief Stop waits for replies that the USB debuggee does not send
+ *
+ * @param Message Error to show if a command was waiting
+ * @return VOID
+ */
+static VOID
+KdStopWaitingForReplies(const CHAR * Message)
+{
+    BOOLEAN Shown = FALSE;
+
+    for (UINT32 i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    {
+        //
+        // Keep waiting for a debuggee to connect or for a running debuggee to pause
+        //
+        if (!g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState ||
+            g_KernelSyncronizationObjectsHandleTable[i].EventHandle == NULL ||
+            i == DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED ||
+            (i == DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING && !g_KdWaitingForStep))
+        {
+            continue;
+        }
+
+        if (!Shown)
+        {
+            ShowMessages("%s", Message);
+            Shown = TRUE;
+        }
+
+        //
+        // A late reply must not be copied into the buffer of a finished command
+        //
+        g_KernelSyncronizationObjectsHandleTable[i].RequestData = NULL;
+        g_KernelSyncronizationObjectsHandleTable[i].RequestSize = 0;
+
+        g_KdReplyLost[i] = TRUE;
+        DbgReceivedKernelResponse(i);
+    }
+}
+
+/**
+ * @brief Drop USB replies that arrived after their command stopped waiting
+ *
+ * @return VOID
+ */
+static VOID
+KdDropLateReplies()
+{
+    for (UINT32 i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    {
+        if (!g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState &&
+            g_KernelSyncronizationObjectsHandleTable[i].EventHandle != NULL)
+        {
+            PlatformResetEvent(g_KernelSyncronizationObjectsHandleTable[i].EventHandle);
+        }
+    }
+}
+
+/**
+ * @brief Check whether the reply of a finished wait arrived
+ *
+ * @param KernelSyncObjectId
+ * @return BOOLEAN FALSE if the wait ended without a reply
+ */
+static BOOLEAN
+KdReplyArrived(UINT32 KernelSyncObjectId)
+{
+    g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId].IsOnWaitingState = FALSE;
+
+    if (g_KdReplyLost[KernelSyncObjectId])
+    {
+        g_KdReplyLost[KernelSyncObjectId] = FALSE;
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Interpret the packets from debuggee in the case of paused
  *
  * @return VOID
@@ -224,7 +313,7 @@ KdSendSwitchCorePacketToDebuggee(UINT32 NewCore)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT);
 }
 
 /**
@@ -260,7 +349,7 @@ KdSendShortCircuitingEventToDebuggee(BOOLEAN IsEnabled)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE);
 }
 
 /**
@@ -343,7 +432,7 @@ KdSendFlushPacketToDebuggee()
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT);
 }
 
 /**
@@ -378,7 +467,7 @@ KdSendUserCpuidPacketToDebuggee(UINT32 FunctionId, UINT32 SubFunctionId)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT);
 }
 
 /**
@@ -408,7 +497,7 @@ KdSendUserInPacketToDebuggee(DEBUGGER_USER_IN_REQUEST_RESPONSE InRequest)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_IN_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_IN_RESULT);
 }
 
 /**
@@ -438,7 +527,7 @@ KdSendUserOutPacketToDebuggee(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_OUT_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_OUT_RESULT);
 }
 
 /**
@@ -551,7 +640,7 @@ KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 }
 
 /**
@@ -587,7 +676,7 @@ KdSendTestQueryPacketWithContextToDebuggee(DEBUGGER_TEST_QUERY_STATE Type, UINT6
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 }
 
 /**
@@ -619,7 +708,7 @@ KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
 }
 
 /**
@@ -655,7 +744,7 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, U
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
 }
 
 /**
@@ -689,7 +778,7 @@ KdSendWriteRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_WRITE_DESCRIPTION RegDes)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER);
 }
 
 /**
@@ -725,7 +814,7 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem, UINT32 RequestSi
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 }
 
 /**
@@ -760,7 +849,7 @@ KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY);
 }
 
 /**
@@ -947,7 +1036,7 @@ KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Act
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT);
 }
 
 /**
@@ -1000,7 +1089,7 @@ KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE Actio
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_THREAD_SWITCHING_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_THREAD_SWITCHING_RESULT);
 }
 
 /**
@@ -1029,7 +1118,7 @@ KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
 }
 
 /**
@@ -1058,7 +1147,7 @@ KdSendPageinPacketToDebuggee(PDEBUGGER_PAGE_IN_REQUEST PageinPacket)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAGE_IN_STATE);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAGE_IN_STATE);
 }
 
 /**
@@ -1087,7 +1176,7 @@ KdSendVa2paAndPa2vaPacketToDebuggee(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paAndP
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT);
 }
 
 /**
@@ -1123,7 +1212,7 @@ KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 Exp
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS);
 }
 
 /**
@@ -1158,7 +1247,7 @@ KdSendSmiPacketsToDebuggee(PSMI_OPERATION_PACKETS SmiOperationRequest, UINT32 Ex
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT);
 }
 
 /**
@@ -1193,7 +1282,7 @@ KdSendHyperTraceLbrdumpPacketsToDebuggee(PHYPERTRACE_LBR_DUMP_PACKETS HyperTrace
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT);
 }
 
 /**
@@ -1228,7 +1317,7 @@ KdSendHyperTracePtPacketsToDebuggee(PHYPERTRACE_PT_OPERATION_PACKETS HyperTraceP
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT);
 }
 
 /**
@@ -1262,7 +1351,7 @@ KdSendQueryIdtPacketsToDebuggee(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtR
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES);
 }
 
 /**
@@ -1291,7 +1380,7 @@ KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP);
 }
 
 /**
@@ -1321,7 +1410,7 @@ KdSendListOrModifyPacketToDebuggee(
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_LIST_OR_MODIFY_BREAKPOINTS);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_LIST_OR_MODIFY_BREAKPOINTS);
 }
 
 /**
@@ -1475,7 +1564,7 @@ KdSendSearchRequestPacketToDebuggee(UINT64 * SearchRequestBuffer, UINT32 SearchR
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT);
 }
 
 /**
@@ -1554,7 +1643,18 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType)
     //
     // Wait until the result of user-input received
     //
+    g_KdWaitingForStep = TRUE;
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
+    g_KdWaitingForStep = FALSE;
+
+    //
+    // After a lost step reply the debuggee most likely waits for commands again
+    //
+    if (!KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING))
+    {
+        g_IsDebuggeeRunning = FALSE;
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -1581,6 +1681,14 @@ KdSendPausePacketToDebuggee()
     // Handle the paused state (show rip, instructions, etc.)
     //
     KdInterpretPausedDebuggee();
+
+    //
+    // A paused debuggee ignores another pause request, so treat a lost reply as a pause
+    //
+    if (!KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS))
+    {
+        g_IsDebuggeeRunning = FALSE;
+    }
 
     return TRUE;
 }
@@ -2125,6 +2233,21 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
         }
 
         //
+        // A USB read with no bytes means that the device was lost with the packet in progress
+        //
+        if (NoBytesRead == 0 && g_IsDebuggerConnectedToDbc)
+        {
+            KdStopWaitingForReplies("err, the reply from the debuggee was lost because the USB debug device disconnected\n");
+
+            //
+            // Drop the partial packet and keep reading
+            //
+            Loop        = 0;
+            NoBytesRead = 1;
+            continue;
+        }
+
+        //
         // We already now that the maximum packet size is MaxSerialPacketSize
         // Check to make sure that we don't pass the boundaries
         //
@@ -2339,8 +2462,18 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
 
     if (g_IsDebuggerConnectedToDbc)
     {
+        //
+        // No reply to this packet exists yet, so any signal left now is from a late reply
+        //
+        KdDropLateReplies();
+
         if (!DbcWrite(g_SerialRemoteComPortHandle, Buffer, Length))
         {
+            if (!g_SerialConnectionAlreadyClosed)
+            {
+                ShowMessages("err, unable to send to the USB debug device\n");
+            }
+
             return FALSE;
         }
 
@@ -2583,7 +2716,9 @@ KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag)
         //
         // Send the pause request to the remote computer
         //
-        if (!KdSendPausePacketToDebuggee())
+        BOOLEAN Paused = KdSendPausePacketToDebuggee();
+
+        if (!Paused)
         {
             ShowMessages("err, unable to pause the debuggee\n");
         }
@@ -2595,7 +2730,39 @@ KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag)
         {
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
         }
+
+        //
+        // After a failed USB pause the prompt returns while the debuggee runs
+        // A running debuggee does not answer commands, so stop waiting for them
+        //
+        if (Paused && g_IsDebuggerConnectedToDbc)
+        {
+            KdStopWaitingForReplies("err, the debuggee was running and did not run the command\n");
+        }
     }
+}
+
+/**
+ * @brief Stop waiting for a USB debuggee that has not connected yet
+ *
+ * @return VOID
+ */
+VOID
+KdBreakControlStopWaitingForUsbDebuggee()
+{
+    if (!g_IsDebuggerConnectedToDbc || g_IsSerialConnectedToRemoteDebuggee || g_SerialConnectionAlreadyClosed)
+    {
+        return;
+    }
+
+    ShowMessages("stopped waiting for the debuggee\n");
+
+    //
+    // No session exists yet, so close the USB connection without a close packet
+    //
+    g_SerialConnectionAlreadyClosed = TRUE;
+    DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED);
+    KdUninitializeConnection();
 }
 
 /**
@@ -3780,6 +3947,14 @@ KdCloseConnection()
     else if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
+        // A running USB debuggee reads only pause requests, so pause it before the close packet
+        //
+        if (g_IsDebuggerConnectedToDbc && g_IsDebuggeeRunning)
+        {
+            KdSendPausePacketToDebuggee();
+        }
+
+        //
         // Send close & unload packet to debuggee (vmx-root)
         //
         if (KdCommandPacketToDebuggee(
@@ -4308,7 +4483,7 @@ KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeP
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT);
 }
 
 /**
@@ -4337,5 +4512,5 @@ KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pc
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT);
 }
