@@ -454,16 +454,16 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
         ModulesList[CurrentSavedModules].BaseAddress = (UINT64)Entry->DllBase;
 
         //
-        // Copy the path
+        // Copy the path, the length is in bytes and the path keeps room for the null terminator
         //
         TempSize = Entry->FullDllName.Length;
-        if (TempSize >= MAX_PATH)
+        if (TempSize > (MAX_PATH - 1) * sizeof(WCHAR))
         {
-            TempSize = MAX_PATH;
+            TempSize = (MAX_PATH - 1) * sizeof(WCHAR);
         }
 
-        TempSize = TempSize * 2;
         memcpy(&ModulesList[CurrentSavedModules].FilePath, Entry->FullDllName.Buffer, TempSize);
+        ModulesList[CurrentSavedModules].FilePath[TempSize / sizeof(WCHAR)] = L'\0';
 
         CurrentSavedModules++;
     }
@@ -597,16 +597,16 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
         ModulesList[CurrentSavedModules].BaseAddress = Entry->DllBase;
 
         //
-        // Copy the path
+        // Copy the path, the length is in bytes and the path keeps room for the null terminator
         //
         TempSize = Entry->FullDllName.Length;
-        if (TempSize >= MAX_PATH)
+        if (TempSize > (MAX_PATH - 1) * sizeof(WCHAR))
         {
-            TempSize = MAX_PATH;
+            TempSize = (MAX_PATH - 1) * sizeof(WCHAR);
         }
 
-        TempSize = TempSize * 2;
         memcpy(&ModulesList[CurrentSavedModules].FilePath, (const PVOID)Entry->FullDllName.Buffer, TempSize);
+        ModulesList[CurrentSavedModules].FilePath[TempSize / sizeof(WCHAR)] = L'\0';
 
         CurrentSavedModules++;
     }
