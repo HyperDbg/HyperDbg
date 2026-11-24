@@ -308,8 +308,33 @@ KdResponsePacketToDebugger(
     CHAR *                                  OptionalBuffer,
     UINT32                                  OptionalBufferLength)
 {
+    return KdResponsePacketToDebuggerWithPolicy(PacketType, Response, OptionalBuffer, OptionalBufferLength, TRUE);
+}
+
+/**
+ * @brief Send a response with an optional check for USB packet space
+ *
+ * @param PacketType Type of the response
+ * @param Response Requested action of the response
+ * @param OptionalBuffer Optional response data
+ * @param OptionalBufferLength Length of the response data
+ * @param WaitForSpace FALSE to return without sending if the USB ring lacks room
+ * @return BOOLEAN TRUE if the transport accepted the packet without a detected new loss
+ */
+_Use_decl_annotations_
+BOOLEAN
+KdResponsePacketToDebuggerWithPolicy(
+    DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
+    CHAR *                                  OptionalBuffer,
+    UINT32                                  OptionalBufferLength,
+    BOOLEAN                                 WaitForSpace)
+{
     DEBUGGER_REMOTE_PACKET Packet = {0};
     BOOLEAN                Result = FALSE;
+    BOOLEAN                PreviousLongWait;
+    BOOLEAN                Usb;
+    UINT32                 LossBeforeSend;
 
     //
     // Make the packet's structure
@@ -336,8 +361,22 @@ KdResponsePacketToDebugger(
         //
         ScopedSpinlock(
             DebuggerResponseLock,
-            Result = SerialConnectionSend((CHAR *)&Packet,
-                                          sizeof(DEBUGGER_REMOTE_PACKET)));
+            KdHyperDbgDbcSetControlPriority(TRUE);
+            PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+            Usb = KdHyperDbgDbcIsActive();
+            LossBeforeSend = Usb ? KdHyperDbgDbcGetSendLossCount() : 0;
+            if ((!Usb || KdHyperDbgDbcIsReady()) &&
+                (WaitForSpace || KdHyperDbgDbcCanSendPacket(sizeof(DEBUGGER_REMOTE_PACKET) + SERIAL_END_OF_BUFFER_CHARS_COUNT)))
+            {
+                Result = SerialConnectionSend((CHAR *)&Packet,
+                                              sizeof(DEBUGGER_REMOTE_PACKET));
+            }
+            if (Usb)
+            {
+                Result = Result && KdHyperDbgDbcIsReady() && KdHyperDbgDbcGetSendLossCount() == LossBeforeSend;
+            }
+            KdHyperDbgDbcSetSendWait(PreviousLongWait);
+            KdHyperDbgDbcSetControlPriority(FALSE));
     }
     else
     {
@@ -353,13 +392,29 @@ KdResponsePacketToDebugger(
 
         ScopedSpinlock(
             DebuggerResponseLock,
-            Result = SerialConnectionSendTwoBuffers((CHAR *)&Packet,
-                                                    sizeof(DEBUGGER_REMOTE_PACKET),
-                                                    OptionalBuffer,
-                                                    OptionalBufferLength));
+            KdHyperDbgDbcSetControlPriority(TRUE);
+            PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+            Usb = KdHyperDbgDbcIsActive();
+            LossBeforeSend = Usb ? KdHyperDbgDbcGetSendLossCount() : 0;
+            if ((!Usb || KdHyperDbgDbcIsReady()) &&
+                (WaitForSpace || KdHyperDbgDbcCanSendPacket((UINT64)sizeof(DEBUGGER_REMOTE_PACKET) +
+                                                          OptionalBufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT)))
+            {
+                Result = SerialConnectionSendTwoBuffers((CHAR *)&Packet,
+                                                        sizeof(DEBUGGER_REMOTE_PACKET),
+                                                        OptionalBuffer,
+                                                        OptionalBufferLength);
+            }
+            if (Usb)
+            {
+                Result = Result && KdHyperDbgDbcIsReady() && KdHyperDbgDbcGetSendLossCount() == LossBeforeSend;
+            }
+            KdHyperDbgDbcSetSendWait(PreviousLongWait);
+            KdHyperDbgDbcSetControlPriority(FALSE));
     }
 
-    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent && g_IgnoreBreaksToDebugger.SpeialEventResponse == Response)
+    if ((WaitForSpace || Result) &&
+        g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent && g_IgnoreBreaksToDebugger.SpeialEventResponse == Response)
     {
         //
         // Set it to false by zeroing it
@@ -390,8 +445,34 @@ KdLoggingResponsePacketToDebugger(
     UINT32 OptionalBufferLength,
     UINT32 OperationCode)
 {
+    return KdLoggingResponsePacketToDebuggerWithPolicy(OptionalBuffer,
+                                                       OptionalBufferLength,
+                                                       OperationCode,
+                                                       FALSE);
+}
+
+/**
+ * @brief Send a logging packet with an explicit drop policy
+ *
+ * @param OptionalBuffer Text to send
+ * @param OptionalBufferLength Length of the text
+ * @param OperationCode Logging operation code
+ * @param AllowDrop TRUE to keep the current send wait mode for event output
+ * @return BOOLEAN Result of serializing the packet
+ */
+_Use_decl_annotations_
+BOOLEAN
+KdLoggingResponsePacketToDebuggerWithPolicy(
+    CHAR *  OptionalBuffer,
+    UINT32  OptionalBufferLength,
+    UINT32  OperationCode,
+    BOOLEAN AllowDrop)
+{
     DEBUGGER_REMOTE_PACKET Packet = {0};
     BOOLEAN                Result = FALSE;
+    BOOLEAN                PreviousLongWait = FALSE;
+    BOOLEAN                Usb;
+    UINT32                 LossBeforeSend;
 
     //
     // Make the packet's structure
@@ -420,12 +501,41 @@ KdLoggingResponsePacketToDebugger(
 
     ScopedSpinlock(
         DebuggerResponseLock,
-        Result = SerialConnectionSendThreeBuffers((CHAR *)&Packet,
-                                                  sizeof(DEBUGGER_REMOTE_PACKET),
-                                                  (CHAR *)&OperationCode,
-                                                  sizeof(UINT32),
-                                                  OptionalBuffer,
-                                                  OptionalBufferLength));
+        if (AllowDrop &&
+            KdHyperDbgDbcDropEventPacket(
+                (UINT32)(sizeof(Packet) + sizeof(OperationCode) +
+                         OptionalBufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT)))
+        {
+            Result = TRUE;
+        }
+        else
+        {
+            if (!AllowDrop)
+            {
+                KdHyperDbgDbcSetControlPriority(TRUE);
+                PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+            }
+            Usb = KdHyperDbgDbcIsActive();
+            LossBeforeSend = !AllowDrop && Usb ? KdHyperDbgDbcGetSendLossCount() : 0;
+            if (AllowDrop || !Usb || KdHyperDbgDbcIsReady())
+            {
+                Result = SerialConnectionSendThreeBuffers((CHAR *)&Packet,
+                                                          sizeof(DEBUGGER_REMOTE_PACKET),
+                                                          (CHAR *)&OperationCode,
+                                                          sizeof(UINT32),
+                                                          OptionalBuffer,
+                                                          OptionalBufferLength);
+            }
+            if (!AllowDrop)
+            {
+                if (Usb)
+                {
+                    Result = Result && KdHyperDbgDbcIsReady() && KdHyperDbgDbcGetSendLossCount() == LossBeforeSend;
+                }
+                KdHyperDbgDbcSetSendWait(PreviousLongWait);
+                KdHyperDbgDbcSetControlPriority(FALSE);
+            }
+        });
 
     return Result;
 }

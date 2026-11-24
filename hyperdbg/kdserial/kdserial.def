@@ -24,6 +24,7 @@ EXPORTS
     KdHyperDbgDbcSetLongWait
     KdHyperDbgDbcSetSendWait
     KdHyperDbgDbcSetControlPriority
+    KdHyperDbgDbcDropEventPacket
     KdHyperDbgDbcCanSendPacket
     KdHyperDbgDbcWaitForSend
     KdHyperDbgDbcWaitForSendEx

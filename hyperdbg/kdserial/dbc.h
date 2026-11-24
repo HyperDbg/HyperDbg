@@ -55,6 +55,9 @@ VOID
 KdHyperDbgDbcSetControlPriority(BOOLEAN Enable);
 
 BOOLEAN
+KdHyperDbgDbcDropEventPacket(UINT32 Length);
+
+BOOLEAN
 KdHyperDbgDbcCanSendPacket(UINT64 Length);
 
 BOOLEAN

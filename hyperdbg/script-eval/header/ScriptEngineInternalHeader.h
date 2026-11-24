@@ -154,7 +154,7 @@ VOID
 ScriptEngineFunctionMemcpyPa(UINT64 Destination, UINT64 Source, UINT32 Num, BOOL * HasError);
 
 VOID
-ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);
+ScriptEngineFunctionPrint(ACTION_BUFFER * ActionDetail, UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);
 
 VOID
 ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);
@@ -238,7 +238,7 @@ VOID
 ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDetail);
 
 VOID
-ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);
+ScriptEngineFunctionFormats(ACTION_BUFFER * ActionDetail, UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value);
 
 VOID
 ScriptEngineFunctionPrintf(PGUEST_REGS                       GuestRegs,

@@ -97,6 +97,20 @@ KdHyperDbgDbcSetControlPriority(BOOLEAN Enable)
 }
 
 /**
+ * @brief Keep event output unchanged without a USB transport
+ *
+ * @param Length Total packet length
+ * @return BOOLEAN FALSE
+ */
+BOOLEAN
+KdHyperDbgDbcDropEventPacket(UINT32 Length)
+{
+    UNREFERENCED_PARAMETER(Length);
+
+    return FALSE;
+}
+
+/**
  * @brief Leave packet space checks unchanged without a USB transport
  *
  * @param Length Total packet length

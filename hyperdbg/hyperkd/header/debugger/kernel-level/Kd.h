@@ -214,9 +214,22 @@ KdResponsePacketToDebugger(_In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_TYPE 
                            _In_ UINT32                                                      OptionalBufferLength);
 
 BOOLEAN
+KdResponsePacketToDebuggerWithPolicy(_In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
+                                     _In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
+                                     _In_reads_bytes_opt_(OptionalBufferLength) CHAR *                OptionalBuffer,
+                                     _In_ UINT32                                                      OptionalBufferLength,
+                                     _In_ BOOLEAN                                                     WaitForSpace);
+
+BOOLEAN
 KdLoggingResponsePacketToDebugger(_In_reads_bytes_(OptionalBufferLength) CHAR * OptionalBuffer,
                                   _In_ UINT32                                   OptionalBufferLength,
                                   _In_ UINT32                                   OperationCode);
+
+BOOLEAN
+KdLoggingResponsePacketToDebuggerWithPolicy(_In_reads_bytes_(OptionalBufferLength) CHAR * OptionalBuffer,
+                                            _In_ UINT32                                   OptionalBufferLength,
+                                            _In_ UINT32                                   OperationCode,
+                                            _In_ BOOLEAN                                  AllowDrop);
 
 BOOLEAN
 KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector);

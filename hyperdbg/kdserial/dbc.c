@@ -395,6 +395,10 @@ typedef struct _DBC_STATE
     //
     UINT32 TxControlWaiters;
     //
+    // Number of whole event packets dropped for control priority
+    //
+    UINT32 TxPriorityDrops;
+    //
     // Number of delivery loss records since the USB pass started
     //
     UINT32 TxLossCount;
@@ -3145,6 +3149,28 @@ KdHyperDbgDbcSetControlPriority(BOOLEAN Enable)
     {
         g_DbcState.TxControlWaiters--;
     }
+}
+
+/**
+ * @brief Drop a whole event packet while protected sends have priority
+ * @details Hold DebuggerResponseLock before serializing any byte of the packet.
+ *
+ * @param Length Total packet length including its header and end marker
+ * @return BOOLEAN TRUE if the packet was dropped without changing the loss state
+ */
+BOOLEAN
+KdHyperDbgDbcDropEventPacket(UINT32 Length)
+{
+    if (!g_DbcState.Active || g_DbcState.TxControlWaiters == 0)
+    {
+        return FALSE;
+    }
+
+    g_DbcState.TxPriorityDrops++;
+    g_DbcState.TxPacketsDropped++;
+    g_DbcState.TxDroppedBytes += Length;
+
+    return TRUE;
 }
 
 /**
