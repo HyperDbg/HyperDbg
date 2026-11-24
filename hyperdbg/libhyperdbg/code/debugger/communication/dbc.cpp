@@ -3,7 +3,8 @@
  * @author lava1879 (magicv4@proton.me)
  * @brief USB debugger transport through WinUSB
  * @details Reopens the device when Windows detects it again.
- * Reads USB packets and passes one byte at a time to the debugger.
+ * A reader thread keeps several reads pending and queues the bytes in USB order.
+ * The debugger takes the bytes from that queue one at a time.
  * @version 0.1
  * @date 2026-11-18
  *
@@ -33,9 +34,27 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 
 #    define DBC_USB_HARDWARE_ID_SUBSTRING L"vid_0525&pid_127a"
+#    define DBC_USB_INTERFACE_CLASS       0xDC
+#    define DBC_USB_INTERFACE_SUBCLASS    0x02
 
 #    define DBC_USB_WRITE_TIMEOUT_MS    1000
 #    define DBC_USB_OPEN_ERROR_DELAY_MS 3000
+
+//
+// Limits for pending USB reads and the receive queue
+//
+#    define DBC_USB_READ_COUNT             32
+#    define DBC_USB_READ_QUEUE_SIZE        (512 * 1024)
+#    define DBC_USB_READER_EXIT_TIMEOUT_MS 5000
+#    define DBC_USB_STATISTICS_VARIABLE    "HYPERDBG_USB_STATS"
+//
+// Reserve space for all pending USB reads and one extra packet
+//
+#    define DBC_USB_READER_WAKE_BYTES ((DBC_USB_READ_COUNT + 1) * DBC_USB_MAX_PACKET_SIZE)
+#    define DBC_QUEUE_EVENT_SPACE     1
+#    define DBC_READ_EVENT_REMOVED    1
+#    define DBC_READ_EVENT_DATA       2
+#    define DBC_CONSUMER_EVENT_READER 2
 
 //
 // Standard USB device interface class GUID
@@ -64,7 +83,6 @@ typedef struct _DBC_USB_DEVICE
     UCHAR                   PipeOut;
     USHORT                  PacketSizeIn;
     USHORT                  PacketSizeOut;
-    BOOLEAN                 ReadPipeReset;
 
     decltype(&CM_Unregister_Notification) UnregisterNotification;
 
@@ -79,23 +97,44 @@ typedef struct _DBC_CONNECTION
     volatile LONG    RefCount;
     volatile LONG    Closed;
     HANDLE           CloseEvent;
-    HANDLE           ReadEvent;
     HANDLE           WriteEvent;
+    HANDLE           ReaderThread;
+    HANDLE           DataEvent;
+    HANDLE           SpaceEvent;
     CRITICAL_SECTION DeviceLock;
     CRITICAL_SECTION OpenLock;
     CRITICAL_SECTION ReadLock;
     CRITICAL_SECTION WriteLock;
+    CRITICAL_SECTION QueueLock;
     PDBC_USB_DEVICE  Device;
-    UCHAR *          ReadBuffer;
-    ULONG            ReadBufferSize;
-    ULONG            ReadOffset;
-    ULONG            ReadLength;
+    UCHAR *          Queue;
+    ULONG            QueueHead;
+    ULONG            QueueLength;
+    ULONG            QueuePeak;
+    BOOLEAN          DeviceLost;
+    BOOLEAN          ConsumerWaiting;
+    BOOLEAN          ReaderWaiting;
+    UINT64           BytesRead;
+    UINT64           ReadsCompleted;
+    UINT64           QueueFullWaits;
     DWORD            LastUsbOpenError;
     DWORD            UsbOpenErrorSince;
     BOOLEAN          UsbOpenErrorShown;
     BOOLEAN          UsbLayoutErrorShown;
 
 } DBC_CONNECTION, *PDBC_CONNECTION;
+
+//
+// One pending read on the USB bulk IN pipe
+//
+typedef struct _DBC_USB_READ
+{
+    OVERLAPPED Overlapped;
+    HANDLE     Event;
+    UCHAR *    Buffer;
+    BOOLEAN    Pending;
+
+} DBC_USB_READ, *PDBC_USB_READ;
 
 static volatile LONG   g_DbcActiveLock       = 0;
 static PDBC_CONNECTION g_DbcActiveConnection = NULL;
@@ -283,22 +322,33 @@ DbcReleaseConnection(PDBC_CONNECTION Connection)
             Connection->CloseEvent = NULL;
         }
 
-        if (Connection->ReadEvent != NULL)
-        {
-            CloseHandle(Connection->ReadEvent);
-        }
-
         if (Connection->WriteEvent != NULL)
         {
             CloseHandle(Connection->WriteEvent);
         }
 
+        if (Connection->ReaderThread != NULL)
+        {
+            CloseHandle(Connection->ReaderThread);
+        }
+
+        if (Connection->DataEvent != NULL)
+        {
+            CloseHandle(Connection->DataEvent);
+        }
+
+        if (Connection->SpaceEvent != NULL)
+        {
+            CloseHandle(Connection->SpaceEvent);
+        }
+
+        DeleteCriticalSection(&Connection->QueueLock);
         DeleteCriticalSection(&Connection->WriteLock);
         DeleteCriticalSection(&Connection->ReadLock);
         DeleteCriticalSection(&Connection->OpenLock);
         DeleteCriticalSection(&Connection->DeviceLock);
 
-        free(Connection->ReadBuffer);
+        free(Connection->Queue);
         free(Connection);
     }
 }
@@ -350,8 +400,14 @@ DbcQueryUsbPipes(WINUSB_INTERFACE_HANDLE WinUsbHandle,
     USB_INTERFACE_DESCRIPTOR InterfaceDescriptor = {0};
     WINUSB_PIPE_INFORMATION  PipeInfo            = {0};
 
+    ZeroMemory(PipeIn, sizeof(*PipeIn));
+    ZeroMemory(PipeOut, sizeof(*PipeOut));
+
     if (!WinUsb_QueryInterfaceSettings(WinUsbHandle, 0, &InterfaceDescriptor) ||
-        InterfaceDescriptor.bInterfaceNumber != 0 || InterfaceDescriptor.bNumEndpoints != 2)
+        InterfaceDescriptor.bInterfaceNumber != 0 ||
+        InterfaceDescriptor.bNumEndpoints != 2 ||
+        InterfaceDescriptor.bInterfaceClass != DBC_USB_INTERFACE_CLASS ||
+        InterfaceDescriptor.bInterfaceSubClass != DBC_USB_INTERFACE_SUBCLASS)
     {
         return FALSE;
     }
@@ -360,23 +416,30 @@ DbcQueryUsbPipes(WINUSB_INTERFACE_HANDLE WinUsbHandle,
     {
         if (!WinUsb_QueryPipe(WinUsbHandle, 0, Index, &PipeInfo) ||
             PipeInfo.PipeType != UsbdPipeTypeBulk ||
+            (PipeInfo.PipeId & 0x0F) == 0 ||
             PipeInfo.MaximumPacketSize == 0 ||
             PipeInfo.MaximumPacketSize > DBC_USB_MAX_PACKET_SIZE)
         {
             return FALSE;
         }
 
-        if (PipeInfo.PipeId == DBC_USB_PIPE_IN)
+        if (USB_ENDPOINT_DIRECTION_IN(PipeInfo.PipeId) != 0)
         {
+            if (PipeIn->PipeId != 0)
+            {
+                return FALSE;
+            }
+
             *PipeIn = PipeInfo;
-        }
-        else if (PipeInfo.PipeId == DBC_USB_PIPE_OUT)
-        {
-            *PipeOut = PipeInfo;
         }
         else
         {
-            return FALSE;
+            if (PipeOut->PipeId != 0)
+            {
+                return FALSE;
+            }
+
+            *PipeOut = PipeInfo;
         }
     }
 
@@ -394,12 +457,15 @@ DbcQueryUsbPipes(WINUSB_INTERFACE_HANDLE WinUsbHandle,
 static PDBC_USB_DEVICE
 DbcOpenUsbDeviceByPath(LPCWSTR DevicePath, DWORD * OpenError, BOOLEAN * UnsupportedLayout)
 {
-    PDBC_USB_DEVICE          Device         = NULL;
-    WINUSB_PIPE_INFORMATION  PipeIn         = {0};
-    WINUSB_PIPE_INFORMATION  PipeOut        = {0};
-    ULONG                    ReadTimeoutMs  = 0;
-    ULONG                    WriteTimeoutMs = DBC_USB_WRITE_TIMEOUT_MS;
-    UCHAR                    AutoClearStall = 0;
+    PDBC_USB_DEVICE         Device               = NULL;
+    WINUSB_PIPE_INFORMATION PipeIn               = {0};
+    WINUSB_PIPE_INFORMATION PipeOut              = {0};
+    ULONG                   ReadTimeoutMs        = 0;
+    ULONG                   WriteTimeoutMs       = DBC_USB_WRITE_TIMEOUT_MS;
+    UCHAR                   AutoClearStall       = 0;
+    UCHAR                   IgnoreShortPackets   = 0;
+    UCHAR                   ShortPacketTerminate = 0;
+    UCHAR                   RawIo                = 1;
 
     Device = (PDBC_USB_DEVICE)calloc(1, sizeof(DBC_USB_DEVICE));
 
@@ -448,7 +514,7 @@ DbcOpenUsbDeviceByPath(LPCWSTR DevicePath, DWORD * OpenError, BOOLEAN * Unsuppor
     }
 
     //
-    // Keep reads pending while the device is idle
+    // Keep reads pending while idle and configure bulk short-packet policies
     //
     if (!WinUsb_SetPipePolicy(Device->WinUsbHandle,
                               PipeIn.PipeId,
@@ -461,15 +527,30 @@ DbcOpenUsbDeviceByPath(LPCWSTR DevicePath, DWORD * OpenError, BOOLEAN * Unsuppor
                               sizeof(AutoClearStall),
                               &AutoClearStall) ||
         !WinUsb_SetPipePolicy(Device->WinUsbHandle,
+                              PipeIn.PipeId,
+                              IGNORE_SHORT_PACKETS,
+                              sizeof(IgnoreShortPackets),
+                              &IgnoreShortPackets) ||
+        !WinUsb_SetPipePolicy(Device->WinUsbHandle,
                               PipeOut.PipeId,
                               PIPE_TRANSFER_TIMEOUT,
                               sizeof(WriteTimeoutMs),
-                              &WriteTimeoutMs))
+                              &WriteTimeoutMs) ||
+        !WinUsb_SetPipePolicy(Device->WinUsbHandle,
+                              PipeOut.PipeId,
+                              SHORT_PACKET_TERMINATE,
+                              sizeof(ShortPacketTerminate),
+                              &ShortPacketTerminate))
     {
         *OpenError = GetLastError();
         DbcReleaseUsbDevice(Device);
         return NULL;
     }
+
+    //
+    // Submit reads directly when WinUSB accepts RAW_IO
+    //
+    WinUsb_SetPipePolicy(Device->WinUsbHandle, PipeIn.PipeId, RAW_IO, sizeof(RawIo), &RawIo);
 
     if (WaitForSingleObject(Device->RemovedEvent, 0) == WAIT_OBJECT_0)
     {
@@ -618,7 +699,7 @@ DbcReportUsbLayoutError(PDBC_CONNECTION Connection)
     if (!Connection->UsbLayoutErrorShown)
     {
         ShowMessages("err, unsupported USB debug device layout.\n"
-                     "Expected interface 0, bulk IN 0x81, bulk OUT 0x01, and packets up to 1024 bytes.\n");
+                     "Expected interface 0 (class 0xDC, subclass 0x02), one bulk IN endpoint, one bulk OUT endpoint, and packets up to 1024 bytes.\n");
         Connection->UsbLayoutErrorShown = TRUE;
     }
 }
@@ -961,20 +1042,11 @@ DbcCanResetPipe(DWORD Error)
 {
     switch (Error)
     {
-    case ERROR_SEM_TIMEOUT:
-    case ERROR_OPERATION_ABORTED:
-    case ERROR_CANCELLED:
-    case ERROR_DEVICE_NOT_CONNECTED:
-    case ERROR_FILE_NOT_FOUND:
-    case ERROR_BAD_COMMAND:
-    case ERROR_NOT_READY:
-    case ERROR_DEVICE_REMOVED:
-    case ERROR_DEV_NOT_EXIST:
-    case ERROR_NO_SUCH_DEVICE:
-    case ERROR_INVALID_HANDLE:
-        return FALSE;
-    default:
+    case ERROR_GEN_FAILURE:
+    case ERROR_IO_DEVICE:
         return TRUE;
+    default:
+        return FALSE;
     }
 }
 
@@ -1002,6 +1074,573 @@ DbcTryResetPipe(PDBC_CONNECTION Connection, PDBC_USB_DEVICE Device, UCHAR Pipe)
     LeaveCriticalSection(&Connection->DeviceLock);
 
     return Result;
+}
+
+/**
+ * @brief Wake the reader thread if it waits for the consumer
+ * @details The caller holds the queue lock.
+ *
+ * @param Connection
+ * @return VOID
+ */
+static VOID
+DbcWakeQueueReader(PDBC_CONNECTION Connection)
+{
+    //
+    // Wake the reader when the queue has room for its pending USB reads
+    //
+    if (Connection->ReaderWaiting && !Connection->DeviceLost &&
+        DBC_USB_READ_QUEUE_SIZE - Connection->QueueLength >= DBC_USB_READER_WAKE_BYTES)
+    {
+        Connection->ReaderWaiting = FALSE;
+        SetEvent(Connection->SpaceEvent);
+    }
+}
+
+/**
+ * @brief Wait until the consumer frees space in the queue or takes the device loss
+ * @details The caller holds the queue lock, and this function releases it.
+ *
+ * @param Connection
+ * @return BOOLEAN FALSE if the connection closes first
+ */
+static BOOLEAN
+DbcWaitForQueueConsumer(PDBC_CONNECTION Connection)
+{
+    HANDLE Events[] = {Connection->CloseEvent, Connection->SpaceEvent};
+
+    Connection->ReaderWaiting = TRUE;
+    ResetEvent(Connection->SpaceEvent);
+
+    LeaveCriticalSection(&Connection->QueueLock);
+
+    return WaitForMultipleObjects(ARRAYSIZE(Events), Events, FALSE, INFINITE) == WAIT_OBJECT_0 + DBC_QUEUE_EVENT_SPACE;
+}
+
+/**
+ * @brief Add received bytes to the end of the queue in USB order
+ * @details Waits for the consumer while the queue is full.
+ *
+ * @param Connection
+ * @param Data
+ * @param Length
+ * @return BOOLEAN FALSE if the connection closes while the queue is full
+ */
+static BOOLEAN
+DbcQueueAppend(PDBC_CONNECTION Connection, const UCHAR * Data, ULONG Length)
+{
+    ULONG Free  = 0;
+    ULONG Chunk = 0;
+    ULONG Tail  = 0;
+    ULONG First = 0;
+
+    while (Length != 0)
+    {
+        EnterCriticalSection(&Connection->QueueLock);
+
+        Free = DBC_USB_READ_QUEUE_SIZE - Connection->QueueLength;
+
+        if (Free == 0)
+        {
+            Connection->QueueFullWaits++;
+
+            if (!DbcWaitForQueueConsumer(Connection))
+            {
+                return FALSE;
+            }
+
+            continue;
+        }
+
+        Chunk = Length < Free ? Length : Free;
+        Tail  = (Connection->QueueHead + Connection->QueueLength) % DBC_USB_READ_QUEUE_SIZE;
+        First = DBC_USB_READ_QUEUE_SIZE - Tail;
+
+        if (First > Chunk)
+        {
+            First = Chunk;
+        }
+
+        memcpy(Connection->Queue + Tail, Data, First);
+        memcpy(Connection->Queue, Data + First, Chunk - First);
+
+        Connection->QueueLength += Chunk;
+
+        if (Connection->QueueLength > Connection->QueuePeak)
+        {
+            Connection->QueuePeak = Connection->QueueLength;
+        }
+
+        if (Connection->ConsumerWaiting)
+        {
+            Connection->ConsumerWaiting = FALSE;
+            SetEvent(Connection->DataEvent);
+        }
+
+        LeaveCriticalSection(&Connection->QueueLock);
+
+        Data += Chunk;
+        Length -= Chunk;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Tell the consumer that the device was lost after the queued bytes
+ * @details Waits until the consumer takes the loss, so the bytes of the next device come after it.
+ *
+ * @param Connection
+ * @return BOOLEAN FALSE if the connection closes first
+ */
+static BOOLEAN
+DbcQueueDeviceLoss(PDBC_CONNECTION Connection)
+{
+    EnterCriticalSection(&Connection->QueueLock);
+
+    Connection->DeviceLost = TRUE;
+
+    if (Connection->ConsumerWaiting)
+    {
+        Connection->ConsumerWaiting = FALSE;
+        SetEvent(Connection->DataEvent);
+    }
+
+    while (Connection->DeviceLost)
+    {
+        if (!DbcWaitForQueueConsumer(Connection))
+        {
+            return FALSE;
+        }
+
+        EnterCriticalSection(&Connection->QueueLock);
+    }
+
+    LeaveCriticalSection(&Connection->QueueLock);
+
+    return TRUE;
+}
+
+/**
+ * @brief Submit reads on the bulk IN pipe in queue order
+ *
+ * @param Connection
+ * @param Device
+ * @param Reads
+ * @param Start First read to submit
+ * @param Count Number of reads to submit
+ * @return DWORD Windows error or ERROR_SUCCESS
+ */
+static DWORD
+DbcSubmitUsbReads(PDBC_CONNECTION Connection,
+                  PDBC_USB_DEVICE Device,
+                  PDBC_USB_READ   Reads,
+                  ULONG           Start,
+                  ULONG           Count)
+{
+    PDBC_USB_READ Read        = NULL;
+    ULONG         Transferred = 0;
+    DWORD         Error       = ERROR_SUCCESS;
+
+    //
+    // Submit the reads before a device failure can abort the pipe
+    //
+    EnterCriticalSection(&Connection->DeviceLock);
+
+    if (WaitForSingleObject(Device->RemovedEvent, 0) == WAIT_OBJECT_0)
+    {
+        Error = ERROR_DEVICE_NOT_CONNECTED;
+    }
+    else if (Connection->Closed != 0 || Device->Failed != 0)
+    {
+        Error = ERROR_OPERATION_ABORTED;
+    }
+
+    for (ULONG Index = 0; Index < Count && Error == ERROR_SUCCESS; Index++)
+    {
+        Read = &Reads[(Start + Index) % DBC_USB_READ_COUNT];
+
+        PlatformZeroMemory(&Read->Overlapped, sizeof(OVERLAPPED));
+        Read->Overlapped.hEvent = Read->Event;
+        ResetEvent(Read->Event);
+
+        if (!WinUsb_ReadPipe(Device->WinUsbHandle,
+                             Device->PipeIn,
+                             Read->Buffer,
+                             Device->PacketSizeIn,
+                             &Transferred,
+                             &Read->Overlapped))
+        {
+            Error = GetLastError();
+
+            if (Error != ERROR_IO_PENDING)
+            {
+                break;
+            }
+
+            Error = ERROR_SUCCESS;
+        }
+
+        Read->Pending = TRUE;
+    }
+
+    LeaveCriticalSection(&Connection->DeviceLock);
+
+    return Error;
+}
+
+/**
+ * @brief Cancel pending reads, collect every result, and queue successful data in order
+ * @details A loss mark separates successful data across failed reads.
+ *
+ * @param Connection
+ * @param Device
+ * @param Reads
+ * @param Head Oldest submitted read
+ * @return BOOLEAN FALSE if the consumer stops taking the completed data
+ */
+static BOOLEAN
+DbcCancelUsbReads(PDBC_CONNECTION Connection, PDBC_USB_DEVICE Device, PDBC_USB_READ Reads, ULONG Head)
+{
+    ULONG   Transferred[DBC_USB_READ_COUNT] = {0};
+    BOOLEAN Completed[DBC_USB_READ_COUNT]   = {0};
+    BOOLEAN Succeeded[DBC_USB_READ_COUNT]   = {0};
+    BOOLEAN AnyPending                     = FALSE;
+    BOOLEAN Lost                           = FALSE;
+    BOOLEAN Result                         = TRUE;
+
+    for (ULONG Index = 0; Index < DBC_USB_READ_COUNT; Index++)
+    {
+        AnyPending |= Reads[Index].Pending;
+    }
+
+    if (!AnyPending)
+    {
+        return TRUE;
+    }
+
+    EnterCriticalSection(&Connection->DeviceLock);
+
+    if (!WinUsb_AbortPipe(Device->WinUsbHandle, Device->PipeIn))
+    {
+        for (ULONG Index = 0; Index < DBC_USB_READ_COUNT; Index++)
+        {
+            if (Reads[Index].Pending)
+            {
+                DbcCancelFileIo(Device->DeviceHandle, &Reads[Index].Overlapped);
+            }
+        }
+    }
+
+    LeaveCriticalSection(&Connection->DeviceLock);
+
+    //
+    // Cancellation can finish normally, so collect every result before reusing buffers
+    //
+    for (ULONG Index = 0; Index < DBC_USB_READ_COUNT; Index++)
+    {
+        ULONG Slot = (Head + Index) % DBC_USB_READ_COUNT;
+
+        if (Reads[Slot].Pending)
+        {
+            Completed[Slot] = TRUE;
+            Succeeded[Slot] = WinUsb_GetOverlappedResult(Device->WinUsbHandle,
+                                                         &Reads[Slot].Overlapped,
+                                                         &Transferred[Slot],
+                                                         TRUE) != FALSE;
+            Reads[Slot].Pending = FALSE;
+        }
+    }
+
+    for (ULONG Index = 0; Index < DBC_USB_READ_COUNT; Index++)
+    {
+        ULONG Slot = (Head + Index) % DBC_USB_READ_COUNT;
+
+        if (!Completed[Slot])
+        {
+            continue;
+        }
+
+        if (!Succeeded[Slot])
+        {
+            Lost = TRUE;
+            continue;
+        }
+
+        if (Connection->Closed != 0)
+        {
+            Result = FALSE;
+        }
+
+        if (Result && Lost)
+        {
+            Result = DbcQueueDeviceLoss(Connection);
+            Lost   = FALSE;
+        }
+
+        if (Transferred[Slot] > Device->PacketSizeIn)
+        {
+            Transferred[Slot] = Device->PacketSizeIn;
+        }
+
+        if (Result)
+        {
+            Result = DbcQueueAppend(Connection, Reads[Slot].Buffer, Transferred[Slot]);
+            if (Result)
+            {
+                Connection->BytesRead += Transferred[Slot];
+                Connection->ReadsCompleted++;
+            }
+        }
+    }
+
+    return Result;
+}
+
+/**
+ * @brief Keep reads pending on one device and queue their data in USB order
+ *
+ * @param Connection
+ * @param Device
+ * @param Reads
+ * @return BOOLEAN TRUE if the device failed and the reader opens it again
+ */
+static BOOLEAN
+DbcReadUsbDevice(PDBC_CONNECTION Connection, PDBC_USB_DEVICE Device, PDBC_USB_READ Reads)
+{
+    HANDLE  Events[]     = {Connection->CloseEvent, Device->RemovedEvent, NULL};
+    UCHAR * Buffers      = NULL;
+    ULONG   Head         = 0;
+    ULONG   Start        = 0;
+    ULONG   Completed    = 0;
+    ULONG   Transferred  = 0;
+    DWORD   WaitResult   = 0;
+    DWORD   Error        = ERROR_SUCCESS;
+    BOOLEAN PipeReset    = FALSE;
+    BOOLEAN DeviceFailed = FALSE;
+
+    Buffers = (UCHAR *)malloc((SIZE_T)Device->PacketSizeIn * DBC_USB_READ_COUNT);
+
+    if (Buffers == NULL)
+    {
+        ShowMessages("err, not enough memory for the USB read buffers\n");
+        return FALSE;
+    }
+
+    for (ULONG Index = 0; Index < DBC_USB_READ_COUNT; Index++)
+    {
+        Reads[Index].Buffer  = Buffers + (SIZE_T)Index * Device->PacketSizeIn;
+        Reads[Index].Pending = FALSE;
+    }
+
+    Error = DbcSubmitUsbReads(Connection, Device, Reads, 0, DBC_USB_READ_COUNT);
+
+    while (Connection->Closed == 0)
+    {
+        if (Error == ERROR_SUCCESS)
+        {
+            Events[DBC_READ_EVENT_DATA]  = Reads[Head].Event;
+            WaitResult = WaitForMultipleObjects(ARRAYSIZE(Events), Events, FALSE, INFINITE);
+
+            if (WaitResult == WAIT_OBJECT_0)
+            {
+                break;
+            }
+            else if (WaitResult == WAIT_OBJECT_0 + DBC_READ_EVENT_REMOVED)
+            {
+                Error = ERROR_DEVICE_NOT_CONNECTED;
+            }
+            else if (WaitResult != WAIT_OBJECT_0 + DBC_READ_EVENT_DATA)
+            {
+                Error = ERROR_GEN_FAILURE;
+            }
+        }
+
+        //
+        // Take completed USB reads in submission order
+        //
+        Start     = Head;
+        Completed = 0;
+
+        while (Error == ERROR_SUCCESS && Completed < DBC_USB_READ_COUNT &&
+               (Completed == 0 || HasOverlappedIoCompleted(&Reads[Head].Overlapped)))
+        {
+            Transferred = 0;
+
+            if (!WinUsb_GetOverlappedResult(Device->WinUsbHandle,
+                                            &Reads[Head].Overlapped,
+                                            &Transferred,
+                                            Completed == 0))
+            {
+                Error = GetLastError();
+                break;
+            }
+
+            Reads[Head].Pending = FALSE;
+            PipeReset           = FALSE;
+
+            if (Transferred > Device->PacketSizeIn)
+            {
+                Transferred = Device->PacketSizeIn;
+            }
+
+            if (!DbcQueueAppend(Connection, Reads[Head].Buffer, Transferred))
+            {
+                Error = ERROR_OPERATION_ABORTED;
+                break;
+            }
+
+            Connection->BytesRead += Transferred;
+            Connection->ReadsCompleted++;
+
+            Head = (Head + 1) % DBC_USB_READ_COUNT;
+            Completed++;
+        }
+
+        //
+        // Submit the completed reads again behind the ones still pending
+        //
+        if (Error == ERROR_SUCCESS)
+        {
+            Error = DbcSubmitUsbReads(Connection, Device, Reads, Start, Completed);
+
+            if (Error == ERROR_SUCCESS)
+            {
+                continue;
+            }
+        }
+
+        //
+        // Collect successful completions even when cancellation races with them
+        //
+        if (!DbcCancelUsbReads(Connection, Device, Reads, Head))
+        {
+            DeviceFailed = Connection->Closed == 0;
+            break;
+        }
+
+        if (Connection->Closed != 0)
+        {
+            break;
+        }
+
+        if (!PipeReset && DbcCanResetPipe(Error))
+        {
+            if (!DbcQueueDeviceLoss(Connection))
+            {
+                break;
+            }
+
+            if (DbcTryResetPipe(Connection, Device, Device->PipeIn))
+            {
+                PipeReset = TRUE;
+                Head      = 0;
+                Error     = DbcSubmitUsbReads(Connection, Device, Reads, 0, DBC_USB_READ_COUNT);
+                continue;
+            }
+        }
+
+        DeviceFailed = TRUE;
+        break;
+    }
+
+    if (!DbcCancelUsbReads(Connection, Device, Reads, Head))
+    {
+        DeviceFailed = Connection->Closed == 0;
+    }
+
+    if (DeviceFailed)
+    {
+        DbcFailUsbDevice(Connection, Device);
+    }
+
+    free(Buffers);
+
+    return DeviceFailed;
+}
+
+/**
+ * @brief Read from the USB device and open it again after each loss
+ * @details One reader thread runs for each connection and owns all pending reads.
+ *
+ * @param Parameter Connection with a reference held for this thread
+ * @return DWORD
+ */
+static DWORD WINAPI
+DbcUsbReaderThread(LPVOID Parameter)
+{
+    PDBC_CONNECTION Connection                = (PDBC_CONNECTION)Parameter;
+    PDBC_USB_DEVICE Device                    = NULL;
+    DBC_USB_READ    Reads[DBC_USB_READ_COUNT] = {0};
+    BOOLEAN         DeviceFailed              = FALSE;
+
+    for (ULONG Index = 0; Index < DBC_USB_READ_COUNT; Index++)
+    {
+        Reads[Index].Event = CreateEventW(NULL, TRUE, FALSE, NULL);
+
+        if (Reads[Index].Event == NULL)
+        {
+            ShowMessages("err, unable to create USB read events\n");
+            goto Out;
+        }
+    }
+
+    while (Connection->Closed == 0)
+    {
+        //
+        // Wait for the device and open it again after a loss
+        //
+        Device = DbcAcquireUsbDevice(Connection, FALSE);
+
+        if (Device == NULL)
+        {
+            break;
+        }
+
+        DeviceFailed = DbcReadUsbDevice(Connection, Device, Reads);
+
+        DbcReleaseUsbDevice(Device);
+        Device = NULL;
+
+        if (!DeviceFailed || !DbcQueueDeviceLoss(Connection))
+        {
+            break;
+        }
+    }
+
+Out:
+    for (ULONG Index = 0; Index < DBC_USB_READ_COUNT; Index++)
+    {
+        if (Reads[Index].Event != NULL)
+        {
+            CloseHandle(Reads[Index].Event);
+        }
+    }
+
+    DbcReleaseConnection(Connection);
+
+    return 0;
+}
+
+/**
+ * @brief Show the read statistics if the environment variable is set
+ *
+ * @param Connection
+ * @return VOID
+ */
+static VOID
+DbcShowReadStatistics(PDBC_CONNECTION Connection)
+{
+    if (GetEnvironmentVariableA(DBC_USB_STATISTICS_VARIABLE, NULL, 0) == 0)
+    {
+        return;
+    }
+
+    ShowMessages("received over USB: %llu bytes in %llu transfers, queue peak %lu bytes, %llu waits for queue space\n",
+                 Connection->BytesRead,
+                 Connection->ReadsCompleted,
+                 Connection->QueuePeak,
+                 Connection->QueueFullWaits);
 }
 
 /**
@@ -1042,21 +1681,32 @@ DbcConnect()
     InitializeCriticalSection(&Connection->OpenLock);
     InitializeCriticalSection(&Connection->ReadLock);
     InitializeCriticalSection(&Connection->WriteLock);
+    InitializeCriticalSection(&Connection->QueueLock);
 
     Connection->RefCount = 1;
 
-    Connection->ReadEvent  = CreateEventW(NULL, TRUE, FALSE, NULL);
     Connection->WriteEvent = CreateEventW(NULL, TRUE, FALSE, NULL);
+    Connection->DataEvent  = CreateEventW(NULL, TRUE, FALSE, NULL);
+    Connection->SpaceEvent = CreateEventW(NULL, TRUE, FALSE, NULL);
 
-    if (Connection->ReadEvent == NULL || Connection->WriteEvent == NULL)
+    if (Connection->WriteEvent == NULL || Connection->DataEvent == NULL || Connection->SpaceEvent == NULL)
     {
         DbcReleaseConnection(Connection);
         ShowMessages("err, unable to create USB transfer events\n");
         return NULL;
     }
 
+    Connection->Queue = (UCHAR *)malloc(DBC_USB_READ_QUEUE_SIZE);
+
+    if (Connection->Queue == NULL)
+    {
+        DbcReleaseConnection(Connection);
+        ShowMessages("err, not enough memory for the USB read queue\n");
+        return NULL;
+    }
+
     //
-    // If the device is absent, the first transfer waits for it
+    // If the device is absent, the reader thread waits for it
     //
     InitialDevice = DbcFindAndOpenUsbDevice(&OpenError, &MissingWinUsb, &UnsupportedLayout);
 
@@ -1073,6 +1723,21 @@ DbcConnect()
     else
     {
         DbcReportUsbOpenError(Connection, OpenError, MissingWinUsb);
+    }
+
+    //
+    // The reader thread holds its own reference to the connection
+    //
+    InterlockedIncrement(&Connection->RefCount);
+
+    Connection->ReaderThread = CreateThread(NULL, 0, DbcUsbReaderThread, Connection, 0, NULL);
+
+    if (Connection->ReaderThread == NULL)
+    {
+        InterlockedDecrement(&Connection->RefCount);
+        DbcReleaseConnection(Connection);
+        ShowMessages("err, unable to create the USB reader thread\n");
+        return NULL;
     }
 
     SpinlockLock(&g_DbcActiveLock);
@@ -1192,6 +1857,7 @@ DbcTransferUsbPipe(PDBC_CONNECTION Connection,
 
 /**
  * @brief Read one byte from the USB debuggee
+ * @details Takes the byte from the queue that the reader thread fills in USB order.
  *
  * @param Handle
  * @param OutByte
@@ -1202,10 +1868,7 @@ BOOLEAN
 DbcReadByte(HANDLE Handle, CHAR * OutByte, DWORD * BytesRead)
 {
     PDBC_CONNECTION Connection  = NULL;
-    PDBC_USB_DEVICE Device      = NULL;
-    UCHAR *         ReadBuffer  = NULL;
-    ULONG           Transferred = 0;
-    DWORD           LastError   = ERROR_SUCCESS;
+    BOOLEAN         ReaderEnded = FALSE;
     BOOLEAN         Result      = FALSE;
 
     *BytesRead = 0;
@@ -1217,116 +1880,58 @@ DbcReadByte(HANDLE Handle, CHAR * OutByte, DWORD * BytesRead)
         return FALSE;
     }
 
+    HANDLE Events[] = {Connection->CloseEvent, Connection->DataEvent, Connection->ReaderThread};
+
     EnterCriticalSection(&Connection->ReadLock);
-
-    if (Connection->Closed != 0)
-    {
-        goto Out;
-    }
-
-    if (Connection->ReadOffset < Connection->ReadLength)
-    {
-        *OutByte   = (CHAR)Connection->ReadBuffer[Connection->ReadOffset++];
-        *BytesRead = 1;
-        Result     = TRUE;
-        goto Out;
-    }
 
     while (Connection->Closed == 0)
     {
-        Device = DbcAcquireUsbDevice(Connection, FALSE);
+        EnterCriticalSection(&Connection->QueueLock);
 
-        if (Device == NULL)
+        if (Connection->QueueLength != 0)
         {
-            break;
+            *OutByte   = (CHAR)Connection->Queue[Connection->QueueHead];
+            *BytesRead = 1;
+            Result     = TRUE;
+
+            Connection->QueueHead = (Connection->QueueHead + 1) % DBC_USB_READ_QUEUE_SIZE;
+            Connection->QueueLength--;
         }
-
-        if (Connection->ReadBufferSize != Device->PacketSizeIn)
-        {
-            ReadBuffer = (UCHAR *)realloc(Connection->ReadBuffer, Device->PacketSizeIn);
-
-            if (ReadBuffer == NULL)
-            {
-                DbcReleaseUsbDevice(Device);
-                ShowMessages("err, not enough memory for the USB read buffer\n");
-                break;
-            }
-
-            Connection->ReadBuffer     = ReadBuffer;
-            Connection->ReadBufferSize = Device->PacketSizeIn;
-        }
-
-        Transferred = 0;
-        LastError   = DbcTransferUsbPipe(Connection,
-                                        Device,
-                                        Device->PipeIn,
-                                        Connection->ReadBuffer,
-                                        Connection->ReadBufferSize,
-                                        Connection->ReadEvent,
-                                        INFINITE,
-                                        &Transferred);
-
-        if (Connection->Closed != 0)
-        {
-            DbcReleaseUsbDevice(Device);
-            break;
-        }
-
-        if (LastError == ERROR_SUCCESS)
-        {
-            Device->ReadPipeReset = FALSE;
-        }
-        else if (LastError != ERROR_SEM_TIMEOUT)
-        {
-            if (!Device->ReadPipeReset && DbcCanResetPipe(LastError) &&
-                DbcTryResetPipe(Connection, Device, Device->PipeIn))
-            {
-                Device->ReadPipeReset = TRUE;
-            }
-            else
-            {
-                //
-                // Return with no bytes read so the caller drops the packet in progress
-                // The next read waits for the device to come back
-                //
-                DbcFailUsbDevice(Connection, Device);
-                Result = TRUE;
-            }
-        }
-
-        DbcReleaseUsbDevice(Device);
-        Device = NULL;
-
-        if (LastError != ERROR_SUCCESS && LastError != ERROR_SEM_TIMEOUT)
+        else if (Connection->DeviceLost)
         {
             //
-            // Removal or cancellation can leave the wrong byte count
+            // Return no bytes so that the caller discards the incomplete USB packet
             //
-            Transferred = 0;
-        }
-
-        if (Transferred > Connection->ReadBufferSize)
-        {
-            Transferred = Connection->ReadBufferSize;
-        }
-
-        if (Transferred != 0 && Connection->Closed == 0)
-        {
-            Connection->ReadLength = Transferred;
-            Connection->ReadOffset = 1;
-            *OutByte               = (CHAR)Connection->ReadBuffer[0];
-            *BytesRead             = 1;
+            Connection->DeviceLost = FALSE;
             Result                 = TRUE;
-            break;
+        }
+        else if (!ReaderEnded)
+        {
+            Connection->ConsumerWaiting = TRUE;
+            ResetEvent(Connection->DataEvent);
         }
 
         if (Result)
         {
+            DbcWakeQueueReader(Connection);
+        }
+
+        LeaveCriticalSection(&Connection->QueueLock);
+
+        if (Result || ReaderEnded)
+        {
             break;
+        }
+
+        //
+        // Stop after the queued bytes if the reader thread ends without a close
+        //
+        if (WaitForMultipleObjects(ARRAYSIZE(Events), Events, FALSE, INFINITE) == WAIT_OBJECT_0 + DBC_CONSUMER_EVENT_READER)
+        {
+            ReaderEnded = TRUE;
         }
     }
 
-Out:
     LeaveCriticalSection(&Connection->ReadLock);
     DbcReleaseConnection(Connection);
 
@@ -1344,18 +1949,20 @@ Out:
 BOOLEAN
 DbcWrite(HANDLE Handle, const VOID * Buffer, UINT32 Length)
 {
-    PDBC_CONNECTION Connection  = NULL;
-    PDBC_USB_DEVICE Device      = NULL;
-    UINT32          Offset      = 0;
-    ULONG           ChunkSize   = 0;
-    ULONG           Transferred = 0;
-    DWORD           LastError   = ERROR_SUCCESS;
-    DWORD           CloseStart  = 0;
-    DWORD           Elapsed     = 0;
-    DWORD           WaitTimeout = INFINITE;
-    BOOLEAN         Closing     = FALSE;
-    BOOLEAN         PipeReset   = FALSE;
-    BOOLEAN         Result      = FALSE;
+    PDBC_CONNECTION Connection     = NULL;
+    PDBC_USB_DEVICE Device         = NULL;
+    UINT32          Offset         = 0;
+    ULONG           ChunkSize      = 0;
+    ULONG           Transferred    = 0;
+    DWORD           LastError      = ERROR_SUCCESS;
+    DWORD           CloseStart     = 0;
+    DWORD           Elapsed        = 0;
+    DWORD           WaitTimeout    = INFINITE;
+    BOOLEAN         Closing        = FALSE;
+    BOOLEAN         PipeReset      = FALSE;
+    BOOLEAN         ResetSucceeded = FALSE;
+    BOOLEAN         WriteFailed    = FALSE;
+    BOOLEAN         Result         = FALSE;
 
     if (Length == 0)
     {
@@ -1433,48 +2040,62 @@ DbcWrite(HANDLE Handle, const VOID * Buffer, UINT32 Length)
                                             WaitTimeout,
                                             &Transferred);
 
-            if (LastError != ERROR_SUCCESS && LastError != ERROR_SEM_TIMEOUT)
-            {
-                //
-                // Ignore the failed write count so a retry sends the whole chunk
-                //
-                Transferred = 0;
-            }
-
             if (Transferred > ChunkSize)
             {
                 Transferred = ChunkSize;
             }
 
-            Offset += Transferred;
-            ChunkSize -= Transferred;
-
-            if (Connection->Closed != 0 ||
-                (!Closing && g_SerialConnectionAlreadyClosed) ||
-                (Closing && (LastError != ERROR_SUCCESS || Transferred == 0)))
+            if (LastError == ERROR_SUCCESS || LastError == ERROR_SEM_TIMEOUT)
             {
+                Offset += Transferred;
+                ChunkSize -= Transferred;
+
+                if (Connection->Closed != 0 ||
+                    (!Closing && g_SerialConnectionAlreadyClosed) ||
+                    (Closing && (LastError != ERROR_SUCCESS || Transferred == 0)))
+                {
+                    break;
+                }
+
+                continue;
+            }
+
+            if (Connection->Closed != 0 || Closing || g_SerialConnectionAlreadyClosed)
+            {
+                WriteFailed = TRUE;
                 break;
             }
 
-            if (LastError != ERROR_SUCCESS && LastError != ERROR_SEM_TIMEOUT)
+            ResetSucceeded = FALSE;
+
+            if (!PipeReset && DbcCanResetPipe(LastError))
             {
-                if (!PipeReset && DbcCanResetPipe(LastError) &&
-                    DbcTryResetPipe(Connection, Device, Device->PipeOut))
-                {
-                    PipeReset = TRUE;
-                }
-                else
+                ResetSucceeded = DbcTryResetPipe(Connection, Device, Device->PipeOut);
+            }
+
+            //
+            // Retry only a zero-byte stall at the start of the write
+            //
+            if (ResetSucceeded && Offset == 0 && Transferred == 0 && LastError == ERROR_GEN_FAILURE)
+            {
+                PipeReset = TRUE;
+            }
+            else
+            {
+                if (!ResetSucceeded)
                 {
                     DbcFailUsbDevice(Connection, Device);
-                    break;
                 }
+
+                WriteFailed = TRUE;
+                break;
             }
         }
 
         DbcReleaseUsbDevice(Device);
         Device = NULL;
 
-        if (Closing && (ChunkSize != 0 || LastError != ERROR_SUCCESS))
+        if (WriteFailed || ChunkSize != 0 || (Closing && LastError != ERROR_SUCCESS))
         {
             break;
         }
@@ -1534,6 +2155,14 @@ DbcClose(HANDLE Handle)
     LeaveCriticalSection(&Connection->DeviceLock);
 
     DbcReleaseUsbDevice(Device);
+
+    //
+    // Give the USB reader thread time to cancel its reads
+    //
+    if (WaitForSingleObject(Connection->ReaderThread, DBC_USB_READER_EXIT_TIMEOUT_MS) == WAIT_OBJECT_0)
+    {
+        DbcShowReadStatistics(Connection);
+    }
 
     DbcReleaseConnection(Connection);
 
