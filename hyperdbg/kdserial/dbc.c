@@ -2037,10 +2037,12 @@ DbcCheckState()
  * @brief Poll configured DbC after checking controller readiness
  * @details Falls back to DbcCheckStateInternal in every other state.
  *
+ * @param DrainEvents TRUE to drain pending events during this poll
+ * @param StateChanged TRUE if an earlier drain in this call reported a state change
  * @return BOOLEAN TRUE when the debug host configured the device
  */
 static BOOLEAN
-DbcCheckStateFast()
+DbcCheckStateFastInternal(BOOLEAN DrainEvents, BOOLEAN StateChanged)
 {
     UINT32 Control;
 
@@ -2052,7 +2054,12 @@ DbcCheckStateFast()
             (Control & (DBC_DCCTRL_DCE | DBC_DCCTRL_DCR | DBC_DCCTRL_DRC | DBC_DCCTRL_HOT | DBC_DCCTRL_HIT)) ==
                 (DBC_DCCTRL_DCE | DBC_DCCTRL_DCR))
         {
-            if (DbcProcessEvents())
+            if (DrainEvents)
+            {
+                StateChanged = DbcProcessEvents();
+            }
+
+            if (StateChanged)
             {
                 Control = DbcRead32(DBC_REG_DCCTRL);
                 if (Control == DBC_INVALID_REGISTER_VALUE ||
@@ -2073,7 +2080,19 @@ DbcCheckStateFast()
         }
     }
 
-    return DbcCheckStateInternal(TRUE);
+    return DbcCheckStateInternal(DrainEvents);
+}
+
+/**
+ * @brief Poll configured DbC after checking controller readiness
+ * @details Falls back to DbcCheckStateInternal in every other state.
+ *
+ * @return BOOLEAN TRUE when the debug host configured the device
+ */
+static BOOLEAN
+DbcCheckStateFast()
+{
+    return DbcCheckStateFastInternal(TRUE, FALSE);
 }
 
 /**
@@ -2270,7 +2289,9 @@ DbcTxWriteByte(UCHAR Byte)
 static VOID
 DbcTxEndPacket()
 {
-    BOOLEAN Checked = FALSE;
+    BOOLEAN Checked      = FALSE;
+    BOOLEAN Drained      = FALSE;
+    BOOLEAN StateChanged = FALSE;
 
     if (!g_DbcState.TxDropping && (g_DbcState.LongWait || !g_DbcState.Configured))
     {
@@ -2302,14 +2323,16 @@ DbcTxEndPacket()
     DbcTxCountUncommittedTrbs();
 
     //
-    // Read completions from memory and read a register only to queue packets
+    // Read completions from memory and read a register only to queue packets or check a state change
     //
     if (!Checked && g_DbcState.OutPending != 0)
     {
-        DbcProcessEvents();
+        StateChanged = DbcProcessEvents();
+        Drained      = TRUE;
     }
 
-    if (g_DbcState.LongWait || g_DbcState.OutPending == 0 || g_DbcState.OutPending < g_DbcState.TxCoalescePending ||
+    if (StateChanged || g_DbcState.LongWait || g_DbcState.OutPending == 0 ||
+        g_DbcState.OutPending < g_DbcState.TxCoalescePending ||
         g_DbcState.TxStaged >= g_DbcState.TxCoalesceBytes)
     {
         if (Checked)
@@ -2318,7 +2341,7 @@ DbcTxEndPacket()
         }
         else
         {
-            DbcCheckStateFast();
+            DbcCheckStateFastInternal(!Drained, StateChanged);
         }
     }
 }
