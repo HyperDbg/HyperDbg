@@ -141,6 +141,19 @@ DebuggerVmcallHandler(UINT32 CoreId,
         Result = TRUE;
         break;
     }
+    case DEBUGGER_VMCALL_DBC_OPERATION:
+    {
+        //
+        // Run USB control and non-blocking send steps in vmx-root to avoid deadlock
+        //
+        if (OptionalParam1 != NULL64_ZERO)
+        {
+            SerialConnectionDbcOperationFromVmxRoot((PSERIAL_CONNECTION_DBC_OPERATION)OptionalParam1);
+        }
+
+        Result = TRUE;
+        break;
+    }
     default:
         Result = FALSE;
         LogError("Err, invalid VMCALL in top-level debugger");

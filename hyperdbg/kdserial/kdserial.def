@@ -19,4 +19,13 @@ EXPORTS
     KdHyperDbgPrepareDebuggeeConnectionPort
     KdHyperDbgSendByte
     KdHyperDbgRecvByte
+    KdHyperDbgDbcIsActive
     KdHyperDbgDbcIsReady
+    KdHyperDbgDbcSetLongWait
+    KdHyperDbgDbcSetSendWait
+    KdHyperDbgDbcSetControlPriority
+    KdHyperDbgDbcCanSendPacket
+    KdHyperDbgDbcWaitForSend
+    KdHyperDbgDbcWaitForSendEx
+    KdHyperDbgDbcClearSendLoss
+    KdHyperDbgDbcGetSendLossCount

@@ -28,7 +28,55 @@ BOOLEAN
 KdHyperDbgRecvByte(PUCHAR RecvByte);
 
 BOOLEAN
+KdHyperDbgDbcIsActive();
+
+BOOLEAN
 KdHyperDbgDbcIsReady();
+
+VOID
+KdHyperDbgDbcSetLongWait(BOOLEAN Allow);
+
+BOOLEAN
+KdHyperDbgDbcSetSendWait(BOOLEAN Allow);
+
+VOID
+KdHyperDbgDbcSetControlPriority(BOOLEAN Enable);
+
+BOOLEAN
+KdHyperDbgDbcCanSendPacket(UINT64 Length);
+
+BOOLEAN
+KdHyperDbgDbcWaitForSend(UINT32 Milliseconds);
+
+BOOLEAN
+KdHyperDbgDbcWaitForSendEx(UINT32 Milliseconds, BOOLEAN IgnoreLoss);
+
+VOID
+KdHyperDbgDbcClearSendLoss();
+
+UINT32
+KdHyperDbgDbcGetSendLossCount();
+
+//////////////////////////////////////////////////
+//			  USB VMCALL Structures				//
+//////////////////////////////////////////////////
+
+//
+// Operations performed under DebuggerResponseLock in vmx-root for USB setup and reload
+//
+typedef enum _SERIAL_CONNECTION_DBC_OP
+{
+    SERIAL_CONNECTION_DBC_OP_SET_LONG_WAIT,
+} SERIAL_CONNECTION_DBC_OP;
+
+//
+// Parameters for one USB operation executed through a vmcall
+//
+typedef struct _SERIAL_CONNECTION_DBC_OPERATION
+{
+    SERIAL_CONNECTION_DBC_OP                Type;
+    BOOLEAN                                 Flag;
+} SERIAL_CONNECTION_DBC_OPERATION, *PSERIAL_CONNECTION_DBC_OPERATION;
 
 //////////////////////////////////////////////////
 //					 Functions					//
@@ -75,6 +123,12 @@ SerialConnectionDbcReceive(PDEBUGGEE_DBC_RECEIVE_PACKET DbcReceiveRequest);
 
 VOID
 SerialConnectionDbcReceiveFromVmxRoot(PDEBUGGEE_DBC_RECEIVE_PACKET DbcReceiveRequest);
+
+VOID
+SerialConnectionDbcOperationFromVmxRoot(PSERIAL_CONNECTION_DBC_OPERATION Operation);
+
+VOID
+SerialConnectionDbcSetLongWait(BOOLEAN Allow);
 
 //////////////////////////////////////////////////
 //					 Constants					//

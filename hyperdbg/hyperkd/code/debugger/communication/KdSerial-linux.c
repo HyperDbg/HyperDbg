@@ -41,8 +41,122 @@ KdHyperDbgRecvByte(PUCHAR RecvByte)
     return FALSE;
 }
 
+/**
+ * @brief Report no USB selection without a USB transport
+ *
+ * @return BOOLEAN FALSE
+ */
+BOOLEAN
+KdHyperDbgDbcIsActive()
+{
+    return FALSE;
+}
+
 BOOLEAN
 KdHyperDbgDbcIsReady()
 {
     return FALSE;
+}
+
+/**
+ * @brief Ignore the USB send wait mode without a USB transport
+ *
+ * @param Allow Requested wait mode
+ * @return VOID
+ */
+VOID
+KdHyperDbgDbcSetLongWait(BOOLEAN Allow)
+{
+    UNREFERENCED_PARAMETER(Allow);
+}
+
+/**
+ * @brief Leave the send wait mode unchanged without a USB transport
+ *
+ * @param Allow Requested wait mode
+ * @return BOOLEAN FALSE
+ */
+BOOLEAN
+KdHyperDbgDbcSetSendWait(BOOLEAN Allow)
+{
+    UNREFERENCED_PARAMETER(Allow);
+
+    return FALSE;
+}
+
+/**
+ * @brief Ignore protected send priority without a USB transport
+ *
+ * @param Enable Requested priority scope change
+ * @return VOID
+ */
+VOID
+KdHyperDbgDbcSetControlPriority(BOOLEAN Enable)
+{
+    UNREFERENCED_PARAMETER(Enable);
+}
+
+/**
+ * @brief Leave packet space checks unchanged without a USB transport
+ *
+ * @param Length Total packet length
+ * @return BOOLEAN TRUE
+ */
+BOOLEAN
+KdHyperDbgDbcCanSendPacket(UINT64 Length)
+{
+    UNREFERENCED_PARAMETER(Length);
+
+    return TRUE;
+}
+
+/**
+ * @brief Report no pending USB sends without a USB transport
+ *
+ * @param Milliseconds Requested wait time
+ * @return BOOLEAN TRUE
+ */
+BOOLEAN
+KdHyperDbgDbcWaitForSend(UINT32 Milliseconds)
+{
+    UNREFERENCED_PARAMETER(Milliseconds);
+
+    return TRUE;
+}
+
+/**
+ * @brief Report no pending USB transfers without a USB transport
+ *
+ * @param Milliseconds Requested wait time
+ * @param IgnoreLoss Requested loss check
+ * @return BOOLEAN TRUE
+ */
+BOOLEAN
+KdHyperDbgDbcWaitForSendEx(UINT32 Milliseconds, BOOLEAN IgnoreLoss)
+{
+    UNREFERENCED_PARAMETER(Milliseconds);
+    UNREFERENCED_PARAMETER(IgnoreLoss);
+
+    return TRUE;
+}
+
+/**
+ * @brief Ignore a USB delivery loss reset without a USB transport
+ *
+ * @return VOID
+ */
+VOID
+KdHyperDbgDbcClearSendLoss()
+{
+}
+
+/**
+ * @brief Report no USB delivery loss without a USB transport
+ *
+ * @return UINT32 Zero
+ */
+UINT32
+KdHyperDbgDbcGetSendLossCount()
+{
+    return 0;
 }

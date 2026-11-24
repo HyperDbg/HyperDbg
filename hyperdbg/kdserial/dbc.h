@@ -40,4 +40,31 @@ VOID
 DbcUnload();
 
 BOOLEAN
+KdHyperDbgDbcIsActive();
+
+BOOLEAN
 KdHyperDbgDbcIsReady();
+
+VOID
+KdHyperDbgDbcSetLongWait(BOOLEAN Allow);
+
+BOOLEAN
+KdHyperDbgDbcSetSendWait(BOOLEAN Allow);
+
+VOID
+KdHyperDbgDbcSetControlPriority(BOOLEAN Enable);
+
+BOOLEAN
+KdHyperDbgDbcCanSendPacket(UINT64 Length);
+
+BOOLEAN
+KdHyperDbgDbcWaitForSend(UINT32 Milliseconds);
+
+BOOLEAN
+KdHyperDbgDbcWaitForSendEx(UINT32 Milliseconds, BOOLEAN IgnoreLoss);
+
+VOID
+KdHyperDbgDbcClearSendLoss();
+
+UINT32
+KdHyperDbgDbcGetSendLossCount();

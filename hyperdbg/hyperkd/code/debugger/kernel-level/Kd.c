@@ -78,6 +78,8 @@ KdUninitializeKernelDebugger()
         //
         g_KernelDebuggerState = FALSE;
 
+        SerialConnectionDbcSetLongWait(FALSE);
+
         //
         // Reset pause break requests
         //
@@ -359,6 +361,11 @@ KdResponsePacketToDebugger(
         // Set it to false by zeroing it
         //
         RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
+
+        //
+        // The special wait ends and the debuggee runs, so use short USB send waits
+        //
+        ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcSetLongWait(FALSE));
     }
 
     return Result;
@@ -692,6 +699,11 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     // Clear the halt flag before unlocking cores so late NMIs do not halt them again
     //
     g_DebuggeeHaltInProgress = FALSE;
+
+    //
+    // Use short USB send waits while the debuggee runs
+    //
+    ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcSetLongWait(FALSE));
 
     //
     // Check if we should enable interrupts in this core or not,
@@ -3432,6 +3444,11 @@ StartAgain:
     //
     if (DbgState->MainDebuggingCore)
     {
+        //
+        // Allow long USB send waits while the debuggee is halted
+        //
+        ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcSetLongWait(TRUE));
+
         //
         // *** Current Operating Core  ***
         //

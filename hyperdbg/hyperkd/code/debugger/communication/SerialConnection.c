@@ -566,6 +566,55 @@ SerialConnectionPrepareDbc(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
 }
 
 /**
+ * @brief Execute one short USB control or non-blocking send step in vmx-root
+ * @details Runs inside DEBUGGER_VMCALL_DBC_OPERATION so DebuggerResponseLock is
+ * never held in vmx non-root.
+ *
+ * @param Operation Operation parameters on the caller stack
+ * @return VOID
+ */
+VOID
+SerialConnectionDbcOperationFromVmxRoot(PSERIAL_CONNECTION_DBC_OPERATION Operation)
+{
+    switch (Operation->Type)
+    {
+    case SERIAL_CONNECTION_DBC_OP_SET_LONG_WAIT:
+        SpinlockLock(&DebuggerResponseLock);
+        KdHyperDbgDbcSetLongWait(Operation->Flag);
+        SpinlockUnlock(&DebuggerResponseLock);
+        break;
+
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Update the USB long-wait mode from vmx non-root through a vmcall
+ *
+ * @param Allow TRUE to allow long USB send waits
+ * @return VOID
+ */
+VOID
+SerialConnectionDbcSetLongWait(BOOLEAN Allow)
+{
+    SERIAL_CONNECTION_DBC_OPERATION Operation = {0};
+
+    if (!KdHyperDbgDbcIsActive())
+    {
+        return;
+    }
+
+    Operation.Type = SERIAL_CONNECTION_DBC_OP_SET_LONG_WAIT;
+    Operation.Flag = Allow;
+
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_OPERATION,
+                    (UINT64)&Operation,
+                    0,
+                    0);
+}
+
+/**
  * @brief Send or receive handshake bytes over USB
  * @details Runs before the session starts. A request with no bytes to send
  * reads available bytes without waiting.
@@ -682,7 +731,7 @@ SerialConnectionDbcReceive(PDEBUGGEE_DBC_RECEIVE_PACKET DbcReceiveRequest)
 {
     DbcReceiveRequest->Length = 0;
 
-    if (g_KernelDebuggerState && KdHyperDbgDbcIsReady())
+    if (g_KernelDebuggerState && KdHyperDbgDbcIsActive())
     {
         VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_RECEIVE,
                         (UINT64)DbcReceiveRequest,
