@@ -533,6 +533,7 @@ SerialConnectionPrepareDbc(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     }
 
     g_SerialConnectionDesyncReported = FALSE;
+    g_SerialConnectionDbcSetupPhase  = FALSE;
 
     //
     // Keep the link open if the handshake already set it up
@@ -550,19 +551,101 @@ SerialConnectionPrepareDbc(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
         return STATUS_UNSUCCESSFUL;
     }
 
+    //
+    // Clear leftover loss after any fallback prepare and before starting the session
+    //
+    {
+        SERIAL_CONNECTION_DBC_OPERATION Operation = {0};
+
+        Operation.Type = SERIAL_CONNECTION_DBC_OP_CLEAR_SEND_LOSS;
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_OPERATION,
+                        (UINT64)&Operation,
+                        0,
+                        0);
+    }
+
     KdInitializeKernelDebugger();
+
+    //
+    // Send USB setup data outside vmx-root until the debugger has the symbol details
+    //
+    g_SerialConnectionDbcSetupPhase = TRUE;
 
     //
     // Tell the debugger that the debuggee started and send the OS name
     //
-    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED,
-                               (CHAR *)DebuggeeRequest,
-                               MAXIMUM_CHARACTER_FOR_OS_NAME);
+    if (!SerialConnectionDbcSendAndWaitForHost(DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED,
+                                               (CHAR *)DebuggeeRequest,
+                                               MAXIMUM_CHARACTER_FOR_OS_NAME))
+    {
+        SerialConnectionDbcEndSetup();
+
+        //
+        // Stop the session before the message so that it is not sent over USB
+        //
+        KdUninitializeKernelDebugger();
+
+        LogError("Err, the debugger did not receive the start packet over USB");
+
+        DebuggeeRequest->Result = DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA;
+        return STATUS_UNSUCCESSFUL;
+    }
 
     DebuggeeRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Compute the total framed byte length of a debuggee-to-debugger packet
+ *
+ * @param Buffer Optional payload buffer
+ * @param Length Length of the payload buffer
+ * @return UINT64 Total framed length including the header and end marker
+ */
+static UINT64
+SerialConnectionDbcFramedPacketLength(CHAR * Buffer, UINT32 Length)
+{
+    if (Buffer == NULL || Length == 0)
+    {
+        return sizeof(DEBUGGER_REMOTE_PACKET) + SERIAL_END_OF_BUFFER_CHARS_COUNT;
+    }
+
+    return (UINT64)sizeof(DEBUGGER_REMOTE_PACKET) + Length + SERIAL_END_OF_BUFFER_CHARS_COUNT;
+}
+
+/**
+ * @brief Frame and send one debuggee-to-debugger packet while DebuggerResponseLock is held
+ *
+ * @param Response Requested action of the packet
+ * @param Buffer Optional payload buffer
+ * @param Length Length of the payload buffer
+ * @return BOOLEAN Result from the serial or USB transport
+ */
+static BOOLEAN
+SerialConnectionDbcSendFramedPacket(DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
+                                    CHAR *                                  Buffer,
+                                    UINT32                                  Length)
+{
+    DEBUGGER_REMOTE_PACKET Packet = {0};
+
+    Packet.Indicator                  = INDICATOR_OF_HYPERDBG_PACKET;
+    Packet.TypeOfThePacket            = DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER;
+    Packet.RequestedActionOfThePacket = Response;
+    Packet.Checksum                   = KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                                                              sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+    if (Buffer == NULL || Length == 0)
+    {
+        return SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
+    }
+
+    Packet.Checksum += KdComputeDataChecksum((PVOID)Buffer, Length);
+
+    return SerialConnectionSendTwoBuffers((CHAR *)&Packet,
+                                          sizeof(DEBUGGER_REMOTE_PACKET),
+                                          Buffer,
+                                          Length);
 }
 
 /**
@@ -578,15 +661,295 @@ SerialConnectionDbcOperationFromVmxRoot(PSERIAL_CONNECTION_DBC_OPERATION Operati
 {
     switch (Operation->Type)
     {
+    case SERIAL_CONNECTION_DBC_OP_CLEAR_SEND_LOSS:
+        SpinlockLock(&DebuggerResponseLock);
+        KdHyperDbgDbcClearSendLoss();
+        SpinlockUnlock(&DebuggerResponseLock);
+        break;
+
+    case SERIAL_CONNECTION_DBC_OP_POLL_SEND:
+        //
+        // Poll once without blocking, read the loss count, and release priority when drained
+        //
+        SpinlockLock(&DebuggerResponseLock);
+        Operation->Result    = KdHyperDbgDbcWaitForSendEx(0, TRUE);
+        Operation->LossCount = KdHyperDbgDbcGetSendLossCount();
+        if (Operation->Result && Operation->PriorityHeld)
+        {
+            KdHyperDbgDbcSetControlPriority(FALSE);
+            Operation->PriorityHeld = FALSE;
+        }
+        SpinlockUnlock(&DebuggerResponseLock);
+        break;
+
+    case SERIAL_CONNECTION_DBC_OP_SET_CONTROL_PRIORITY:
+        SpinlockLock(&DebuggerResponseLock);
+        KdHyperDbgDbcSetControlPriority(Operation->Flag);
+        SpinlockUnlock(&DebuggerResponseLock);
+        break;
+
     case SERIAL_CONNECTION_DBC_OP_SET_LONG_WAIT:
         SpinlockLock(&DebuggerResponseLock);
         KdHyperDbgDbcSetLongWait(Operation->Flag);
         SpinlockUnlock(&DebuggerResponseLock);
         break;
 
+    case SERIAL_CONNECTION_DBC_OP_BEGIN_SEND_AND_WAIT:
+    {
+        BOOLEAN PreviousLongWait;
+
+        //
+        // Keep priority during confirmation without clearing earlier loss
+        // and check whether earlier transfers already drained
+        //
+        SpinlockLock(&DebuggerResponseLock);
+        KdHyperDbgDbcSetControlPriority(TRUE);
+        PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+        KdHyperDbgDbcSetLongWait(TRUE);
+        KdHyperDbgDbcSetSendWait(PreviousLongWait);
+        Operation->PriorityHeld = TRUE;
+        Operation->Result       = KdHyperDbgDbcWaitForSendEx(0, TRUE);
+        SpinlockUnlock(&DebuggerResponseLock);
+        break;
+    }
+
+    case SERIAL_CONNECTION_DBC_OP_TRY_SEND_SYMBOL:
+    {
+        BOOLEAN PreviousLongWait;
+        BOOLEAN Usb;
+        BOOLEAN CanFit;
+        BOOLEAN Sent = FALSE;
+        BOOLEAN Lost;
+        UINT64  TotalLength;
+
+        TotalLength = SerialConnectionDbcFramedPacketLength(Operation->Buffer, Operation->Length);
+
+        //
+        // Check earlier loss, try to queue without waiting, and manage retry priority under one lock
+        //
+        SpinlockLock(&DebuggerResponseLock);
+
+        Usb  = KdHyperDbgDbcIsActive();
+        Lost = Usb && KdHyperDbgDbcGetSendLossCount() != 0;
+
+        if (!Lost)
+        {
+            if (!Operation->PriorityHeld)
+            {
+                KdHyperDbgDbcSetControlPriority(TRUE);
+                Operation->PriorityHeld = TRUE;
+            }
+
+            PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+
+            CanFit = (!Usb || KdHyperDbgDbcIsReady()) &&
+                     (!Usb || KdHyperDbgDbcCanSendPacket(TotalLength));
+
+            if (CanFit)
+            {
+                Sent = SerialConnectionDbcSendFramedPacket(
+                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO,
+                    Operation->Buffer,
+                    Operation->Length);
+
+                if (Usb)
+                {
+                    Sent = Sent && KdHyperDbgDbcIsReady() && KdHyperDbgDbcGetSendLossCount() == 0;
+                }
+
+                if (!Sent && Usb)
+                {
+                    Operation->Abort = TRUE;
+                }
+            }
+
+            KdHyperDbgDbcSetSendWait(PreviousLongWait);
+            Lost = Usb && KdHyperDbgDbcGetSendLossCount() != 0;
+        }
+
+        if ((Sent || Lost || Operation->Abort) && Operation->PriorityHeld)
+        {
+            KdHyperDbgDbcSetControlPriority(FALSE);
+            Operation->PriorityHeld = FALSE;
+        }
+
+        Operation->Result = Sent;
+        Operation->Lost   = Lost;
+
+        SpinlockUnlock(&DebuggerResponseLock);
+
+        if (Sent &&
+            g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent &&
+            g_IgnoreBreaksToDebugger.SpeialEventResponse == DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO)
+        {
+            RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
+            ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcSetLongWait(FALSE));
+        }
+
+        break;
+    }
+
+    case SERIAL_CONNECTION_DBC_OP_TRY_SEND_CONFIRMED:
+    {
+        PDEBUGGEE_SYMBOL_UPDATE_RESULT FinishPacket = NULL;
+        BOOLEAN                        PreviousLongWait;
+        BOOLEAN                        Usb;
+        BOOLEAN                        CanFit;
+        BOOLEAN                        CanSend;
+        BOOLEAN                        Sent = FALSE;
+        UINT32                         LossBeforeSend;
+        UINT64                         TotalLength;
+
+        if (Operation->IsFinishPacket)
+        {
+            if (Operation->Buffer == NULL || Operation->Length < sizeof(DEBUGGEE_SYMBOL_UPDATE_RESULT))
+            {
+                Operation->Abort = TRUE;
+                break;
+            }
+
+            FinishPacket = (PDEBUGGEE_SYMBOL_UPDATE_RESULT)Operation->Buffer;
+        }
+
+        TotalLength = SerialConnectionDbcFramedPacketLength(Operation->Buffer, Operation->Length);
+
+        //
+        // Check earlier loss, update finish status, and queue without waiting under one lock
+        //
+        SpinlockLock(&DebuggerResponseLock);
+
+        KdHyperDbgDbcSetControlPriority(TRUE);
+        PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+        Usb              = KdHyperDbgDbcIsActive();
+
+        CanFit = (!Usb || KdHyperDbgDbcIsReady()) &&
+                 (!Usb || KdHyperDbgDbcCanSendPacket(TotalLength));
+
+        LossBeforeSend = Usb ? KdHyperDbgDbcGetSendLossCount() : 0;
+        CanSend        = LossBeforeSend == 0 || (FinishPacket != NULL && !g_SerialConnectionDbcSetupPhase);
+
+        if (!CanSend)
+        {
+            Operation->Abort = TRUE;
+        }
+        else if (CanFit)
+        {
+            if (FinishPacket != NULL && LossBeforeSend != 0)
+            {
+                FinishPacket->KernelStatus = DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA;
+            }
+
+            Sent = SerialConnectionDbcSendFramedPacket(Operation->Response,
+                                                       Operation->Buffer,
+                                                       Operation->Length);
+
+            if (Usb)
+            {
+                Sent = Sent && KdHyperDbgDbcIsReady() && KdHyperDbgDbcGetSendLossCount() == LossBeforeSend;
+            }
+
+            Operation->Result    = Sent;
+            Operation->LossCount = LossBeforeSend;
+
+            if (!Sent && Usb)
+            {
+                Operation->Abort = TRUE;
+            }
+        }
+
+        KdHyperDbgDbcSetSendWait(PreviousLongWait);
+        KdHyperDbgDbcSetControlPriority(FALSE);
+
+        SpinlockUnlock(&DebuggerResponseLock);
+
+        if (Sent &&
+            g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent &&
+            g_IgnoreBreaksToDebugger.SpeialEventResponse == Operation->Response)
+        {
+            RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
+            ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcSetLongWait(FALSE));
+        }
+
+        break;
+    }
+
     default:
         break;
     }
+}
+
+/**
+ * @brief Pause briefly in vmx non-root between short vmcall polls
+ *
+ * @return VOID
+ */
+static VOID
+SerialConnectionDbcPause()
+{
+    for (UINT32 i = 0; i < SERIAL_CONNECTION_DBC_BUSY_POLL_PAUSES; i++)
+    {
+        CpuPause();
+    }
+}
+
+/**
+ * @brief Check whether a short PASSIVE_LEVEL vmcall poll burst expired
+ *
+ * @param StartCounter Initial performance counter reading
+ * @param Frequency Performance counter frequency
+ * @param Microseconds Maximum busy-poll duration in microseconds
+ * @param Polls Poll iteration counter to advance
+ * @return BOOLEAN TRUE when the short poll window ended
+ */
+static BOOLEAN
+SerialConnectionDbcShortPollExpired(LARGE_INTEGER StartCounter,
+                                    LARGE_INTEGER Frequency,
+                                    UINT32        Microseconds,
+                                    UINT32 *      Polls)
+{
+    LARGE_INTEGER Now;
+    UINT64        ElapsedTicks;
+    UINT64        LimitTicks;
+    UINT64        Freq;
+
+    (*Polls)++;
+
+    if (*Polls >= SERIAL_CONNECTION_DBC_BUSY_POLL_MAX_ITERS || Frequency.QuadPart <= 0)
+    {
+        return TRUE;
+    }
+
+    Now = PlatformTimeQueryPerformanceCounter(NULL);
+    if (Now.QuadPart < StartCounter.QuadPart)
+    {
+        return TRUE;
+    }
+
+    Freq         = (UINT64)Frequency.QuadPart;
+    ElapsedTicks = (UINT64)(Now.QuadPart - StartCounter.QuadPart);
+    LimitTicks   = (Freq / 1000000ULL) * Microseconds + ((Freq % 1000000ULL) * Microseconds) / 1000000ULL;
+
+    return ElapsedTicks >= LimitTicks;
+}
+
+/**
+ * @brief Toggle protected USB send priority from vmx non-root through a vmcall
+ *
+ * @param Enable TRUE to raise priority, FALSE to release it
+ * @return VOID
+ */
+static VOID
+SerialConnectionDbcSetControlPriority(BOOLEAN Enable)
+{
+    SERIAL_CONNECTION_DBC_OPERATION Operation = {0};
+
+    Operation.Type = SERIAL_CONNECTION_DBC_OP_SET_CONTROL_PRIORITY;
+    Operation.Flag = Enable;
+
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_OPERATION,
+                    (UINT64)&Operation,
+                    0,
+                    0);
 }
 
 /**
@@ -612,6 +975,372 @@ SerialConnectionDbcSetLongWait(BOOLEAN Allow)
                     (UINT64)&Operation,
                     0,
                     0);
+}
+
+/**
+ * @brief Wait outside vmx-root until queued USB transfers complete
+ * @details Runs at PASSIVE_LEVEL. Polls through short non-blocking vmcalls for
+ * up to SERIAL_CONNECTION_DBC_BUSY_POLL_US before sleeping between retries.
+ *
+ * @param TimeoutMs Time to wait for the host
+ * @param LossCount Optional output for the loss count observed on completion
+ * @param PriorityHeld Optional in/out flag to release control priority when drained
+ * @return BOOLEAN TRUE when all queued USB transfers completed
+ */
+static BOOLEAN
+SerialConnectionDbcWaitForHostInternal(UINT32    TimeoutMs,
+                                       UINT32 *  LossCount,
+                                       BOOLEAN * PriorityHeld)
+{
+    UINT64                          StartMs    = PlatformTimeGetMonotonicMilliseconds();
+    LARGE_INTEGER                   Frequency  = {0};
+    LARGE_INTEGER                   PollStart  = {0};
+    SERIAL_CONNECTION_DBC_OPERATION Operation;
+    BOOLEAN                         BusyPolled = FALSE;
+    UINT32                          PollCount  = 0;
+
+    while (TRUE)
+    {
+        RtlZeroMemory(&Operation, sizeof(Operation));
+        Operation.Type         = SERIAL_CONNECTION_DBC_OP_POLL_SEND;
+        Operation.PriorityHeld = PriorityHeld != NULL ? *PriorityHeld : FALSE;
+
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_OPERATION,
+                        (UINT64)&Operation,
+                        0,
+                        0);
+
+        if (PriorityHeld != NULL)
+        {
+            *PriorityHeld = Operation.PriorityHeld;
+        }
+
+        if (LossCount != NULL)
+        {
+            *LossCount = Operation.LossCount;
+        }
+
+        if (Operation.Result)
+        {
+            return TRUE;
+        }
+
+        if (TimeoutMs > 0 && !BusyPolled)
+        {
+            if (PollCount == 0)
+            {
+                PollStart = PlatformTimeQueryPerformanceCounter(&Frequency);
+            }
+
+            if (!SerialConnectionDbcShortPollExpired(PollStart, Frequency, SERIAL_CONNECTION_DBC_BUSY_POLL_US, &PollCount))
+            {
+                SerialConnectionDbcPause();
+                continue;
+            }
+
+            BusyPolled = TRUE;
+        }
+
+        if (PlatformTimeGetMonotonicMilliseconds() - StartMs >= TimeoutMs)
+        {
+            return FALSE;
+        }
+
+        PlatformTimeDelayMilliseconds(SERIAL_CONNECTION_DBC_POLL_MS);
+    }
+}
+
+/**
+ * @brief Wait outside vmx-root until queued USB transfers complete
+ * @details The caller runs at PASSIVE_LEVEL. Each short poll runs in vmx-root
+ * through a vmcall and retries sleep only after the short poll burst ends.
+ *
+ * @param TimeoutMs Time to wait for the host
+ * @return BOOLEAN TRUE when all queued USB transfers completed
+ */
+BOOLEAN
+SerialConnectionDbcWaitForHost(UINT32 TimeoutMs)
+{
+    return SerialConnectionDbcWaitForHostInternal(TimeoutMs, NULL, NULL);
+}
+
+/**
+ * @brief Queue a USB symbol update and wait at PASSIVE_LEVEL if space is needed
+ * @details When the packet fits, returns immediately after one vmcall without sleeping.
+ * When the send ring is full, polls briefly through vmcalls before sleeping.
+ *
+ * @param Buffer Symbol update packet
+ * @param Length Length of the packet
+ * @return BOOLEAN TRUE if the packet was queued and no delivery loss was recorded
+ */
+BOOLEAN
+SerialConnectionDbcSendSymbolPacket(CHAR * Buffer, UINT32 Length)
+{
+    UINT64                          StartMs;
+    UINT64                          ElapsedMs;
+    LARGE_INTEGER                   Frequency    = {0};
+    LARGE_INTEGER                   PollStart    = {0};
+    SERIAL_CONNECTION_DBC_OPERATION Operation;
+    BOOLEAN                         Result       = FALSE;
+    BOOLEAN                         PriorityHeld = FALSE;
+    BOOLEAN                         BusyPolled   = FALSE;
+    UINT32                          PollCount    = 0;
+
+    if (!KdHyperDbgDbcIsActive())
+    {
+        return FALSE;
+    }
+
+    StartMs = PlatformTimeGetMonotonicMilliseconds();
+
+    while (TRUE)
+    {
+        RtlZeroMemory(&Operation, sizeof(Operation));
+        Operation.Type         = SERIAL_CONNECTION_DBC_OP_TRY_SEND_SYMBOL;
+        Operation.Buffer       = Buffer;
+        Operation.Length       = Length;
+        Operation.PriorityHeld = PriorityHeld;
+
+        VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_OPERATION,
+                        (UINT64)&Operation,
+                        0,
+                        0);
+
+        PriorityHeld = Operation.PriorityHeld;
+
+        if (Operation.Result || Operation.Lost || Operation.Abort)
+        {
+            Result = Operation.Result && !Operation.Lost && !Operation.Abort;
+            break;
+        }
+
+        //
+        // Poll briefly before sleeping when the ring is full
+        //
+        if (!BusyPolled)
+        {
+            if (PollCount == 0)
+            {
+                PollStart = PlatformTimeQueryPerformanceCounter(&Frequency);
+            }
+
+            if (!SerialConnectionDbcShortPollExpired(PollStart, Frequency, SERIAL_CONNECTION_DBC_BUSY_POLL_US, &PollCount))
+            {
+                SerialConnectionDbcPause();
+                continue;
+            }
+
+            BusyPolled = TRUE;
+        }
+
+        ElapsedMs = PlatformTimeGetMonotonicMilliseconds() - StartMs;
+        if (ElapsedMs >= SERIAL_CONNECTION_DBC_SETUP_TIMEOUT_MS)
+        {
+            break;
+        }
+
+        //
+        // Yield before retrying if no packet can be queued after the short poll burst
+        //
+        PlatformTimeDelayMilliseconds(SERIAL_CONNECTION_DBC_POLL_MS);
+    }
+
+    if (PriorityHeld)
+    {
+        SerialConnectionDbcSetControlPriority(FALSE);
+    }
+
+    return Result;
+}
+
+/**
+ * @brief Send a USB packet outside vmx-root and wait for the host to take it
+ * @details The caller runs at PASSIVE_LEVEL. Each locked step runs in vmx-root
+ * through a vmcall and retries poll briefly before sleeping.
+ *
+ * @param Response Requested action of the packet
+ * @param Buffer Buffer to send
+ * @param Length Length of the buffer
+ * @return BOOLEAN TRUE if this packet completed without a new delivery loss
+ */
+BOOLEAN
+SerialConnectionDbcSendAndWaitForHost(DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
+                                      CHAR *                                  Buffer,
+                                      UINT32                                  Length)
+{
+    SERIAL_CONNECTION_DBC_OPERATION Operation;
+    UINT64                          StartMs;
+    UINT64                          ElapsedMs;
+    LARGE_INTEGER                   Frequency      = {0};
+    LARGE_INTEGER                   PollStart      = {0};
+    BOOLEAN                         Result         = FALSE;
+    BOOLEAN                         IsFinishPacket = FALSE;
+    BOOLEAN                         PriorityHeld   = FALSE;
+    BOOLEAN                         BusyPolled     = FALSE;
+    UINT32                          PollCount      = 0;
+    UINT32                          LossBeforeSend = 0;
+    UINT32                          LossAfterSend  = 0;
+
+    if (Response == DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED)
+    {
+        if (Buffer == NULL || Length < sizeof(DEBUGGEE_SYMBOL_UPDATE_RESULT))
+        {
+            return FALSE;
+        }
+
+        IsFinishPacket = TRUE;
+    }
+
+    RtlZeroMemory(&Operation, sizeof(Operation));
+    Operation.Type = SERIAL_CONNECTION_DBC_OP_BEGIN_SEND_AND_WAIT;
+    VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_OPERATION,
+                    (UINT64)&Operation,
+                    0,
+                    0);
+
+    PriorityHeld = Operation.PriorityHeld;
+
+    //
+    // Wait for earlier USB bytes before sending this packet
+    //
+    if (Operation.Result ||
+        SerialConnectionDbcWaitForHostInternal(SERIAL_CONNECTION_DBC_SETUP_TIMEOUT_MS, NULL, NULL))
+    {
+        StartMs = PlatformTimeGetMonotonicMilliseconds();
+
+        while (TRUE)
+        {
+            RtlZeroMemory(&Operation, sizeof(Operation));
+            Operation.Type           = SERIAL_CONNECTION_DBC_OP_TRY_SEND_CONFIRMED;
+            Operation.Response       = Response;
+            Operation.Buffer         = Buffer;
+            Operation.Length         = Length;
+            Operation.IsFinishPacket = IsFinishPacket;
+
+            VmFuncVmxVmcall(DEBUGGER_VMCALL_DBC_OPERATION,
+                            (UINT64)&Operation,
+                            0,
+                            0);
+
+            if (Operation.Result)
+            {
+                Result         = TRUE;
+                LossBeforeSend = Operation.LossCount;
+                break;
+            }
+
+            if (Operation.Abort)
+            {
+                break;
+            }
+
+            //
+            // Poll briefly before sleeping if space is not immediately ready
+            //
+            if (!BusyPolled)
+            {
+                if (PollCount == 0)
+                {
+                    PollStart = PlatformTimeQueryPerformanceCounter(&Frequency);
+                }
+
+                if (!SerialConnectionDbcShortPollExpired(PollStart, Frequency, SERIAL_CONNECTION_DBC_BUSY_POLL_US, &PollCount))
+                {
+                    SerialConnectionDbcPause();
+                    continue;
+                }
+
+                BusyPolled = TRUE;
+            }
+
+            ElapsedMs = PlatformTimeGetMonotonicMilliseconds() - StartMs;
+            if (ElapsedMs >= SERIAL_CONNECTION_DBC_SETUP_TIMEOUT_MS)
+            {
+                break;
+            }
+
+            //
+            // Yield before retrying if no packet can be queued after the short poll burst
+            //
+            PlatformTimeDelayMilliseconds(SERIAL_CONNECTION_DBC_POLL_MS);
+        }
+
+        if (Result)
+        {
+            Result = SerialConnectionDbcWaitForHostInternal(SERIAL_CONNECTION_DBC_SETUP_TIMEOUT_MS,
+                                                            &LossAfterSend,
+                                                            &PriorityHeld) &&
+                     LossAfterSend == LossBeforeSend;
+        }
+    }
+
+    if (PriorityHeld)
+    {
+        SerialConnectionDbcSetControlPriority(FALSE);
+    }
+
+    return Result;
+}
+
+/**
+ * @brief End the USB setup phase and let sends drop bytes again
+ *
+ * @return VOID
+ */
+VOID
+SerialConnectionDbcEndSetup()
+{
+    g_SerialConnectionDbcSetupPhase = FALSE;
+
+    SerialConnectionDbcSetLongWait(FALSE);
+}
+
+/**
+ * @brief Send a buffer of the USB session setup to the debugger
+ * @details Runs outside vmx-root at PASSIVE_LEVEL. The setup ends after the
+ * end of the symbol details or after an error.
+ *
+ * @param DebuggeeBufferRequest Request to buffer that will be sent to the debugger
+ * @return UINT32 Result to return to user mode
+ */
+UINT32
+SerialConnectionDbcSendSetupBuffer(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest)
+{
+    BOOLEAN Sent;
+
+    if (DebuggeeBufferRequest->RequestedAction == DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO)
+    {
+        Sent = SerialConnectionDbcSendSymbolPacket(
+            (CHAR *)((UINT64)DebuggeeBufferRequest + SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER),
+            DebuggeeBufferRequest->LengthOfBuffer);
+    }
+    else
+    {
+        Sent = SerialConnectionDbcSendAndWaitForHost(DebuggeeBufferRequest->RequestedAction,
+                                                    (CHAR *)((UINT64)DebuggeeBufferRequest + SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER),
+                                                    DebuggeeBufferRequest->LengthOfBuffer);
+    }
+
+    if (!Sent)
+    {
+        SerialConnectionDbcEndSetup();
+
+        //
+        // Stop the session before the message so that it is not sent over USB
+        //
+        KdUninitializeKernelDebugger();
+
+        LogError("Err, the debugger did not receive the symbol details over USB");
+
+        return DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA;
+    }
+
+    if (DebuggeeBufferRequest->RequestedAction == DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED)
+    {
+        SerialConnectionDbcEndSetup();
+    }
+
+    return DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 }
 
 /**

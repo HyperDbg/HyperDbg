@@ -193,6 +193,11 @@ StartAgain:
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
 
             //
+            // Track USB symbol loss after the handshake and before the symbol bytes
+            //
+            KdBeginUsbSymbolPass(TRUE);
+
+            //
             // Signal the event that the debugger started
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED);
@@ -845,28 +850,7 @@ StartAgain:
 
             SymbolReloadFinishedPacket = (DEBUGGEE_SYMBOL_UPDATE_RESULT *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            //
-            // Show messages as the result of updating symbols
-            //
-            if (SymbolReloadFinishedPacket->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-            {
-                //
-                // There was an error
-                //
-                ShowErrorMessage((UINT32)SymbolReloadFinishedPacket->KernelStatus);
-            }
-            else
-            {
-                //
-                // Load the symbols
-                //
-                SymbolInitialReload();
-            }
-
-            //
-            // Signal the event relating to receiving result of symbol reload
-            //
-            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+            KdCompleteSymbolReload(SymbolReloadFinishedPacket->KernelStatus);
 
             break;
 

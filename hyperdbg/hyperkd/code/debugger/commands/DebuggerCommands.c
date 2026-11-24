@@ -1674,12 +1674,12 @@ DebuggerCommandSendMessage(PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER Debugger
     //
     // It's better to send the signal from vmx-root mode to avoid deadlock
     //
+    DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
     VmFuncVmxVmcall(DEBUGGER_VMCALL_SEND_MESSAGES_TO_DEBUGGER,
                     (UINT64)DebuggerSendUsermodeMessageRequest + (SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER),
                     DebuggerSendUsermodeMessageRequest->Length,
-                    0);
-
-    DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+                    (UINT64)&DebuggerSendUsermodeMessageRequest->KernelStatus);
 
     return STATUS_SUCCESS;
 }
@@ -1694,14 +1694,69 @@ NTSTATUS
 DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest)
 {
     //
+    // During USB setup, send outside vmx-root and wait for the host
+    //
+    if (g_SerialConnectionDbcSetupPhase && !DebuggeeBufferRequest->PauseDebuggeeWhenSent)
+    {
+        DebuggeeBufferRequest->KernelResult = SerialConnectionDbcSendSetupBuffer(DebuggeeBufferRequest);
+
+        return STATUS_SUCCESS;
+    }
+
+    //
+    // Queue USB symbol updates and confirm delivery only at the finish
+    //
+    if (KdHyperDbgDbcIsActive() &&
+        (DebuggeeBufferRequest->RequestedAction == DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO ||
+         DebuggeeBufferRequest->RequestedAction == DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED))
+    {
+        BOOLEAN Sent;
+        CHAR *  Buffer = (CHAR *)((UINT64)DebuggeeBufferRequest + SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER);
+
+        if (DebuggeeBufferRequest->RequestedAction == DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO)
+        {
+            Sent = SerialConnectionDbcSendSymbolPacket(Buffer, DebuggeeBufferRequest->LengthOfBuffer);
+        }
+        else
+        {
+            Sent = SerialConnectionDbcSendAndWaitForHost(DebuggeeBufferRequest->RequestedAction,
+                                                        Buffer,
+                                                        DebuggeeBufferRequest->LengthOfBuffer);
+        }
+
+        if (!Sent)
+        {
+            DebuggeeBufferRequest->KernelResult = DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA;
+            return STATUS_SUCCESS;
+        }
+
+        if (DebuggeeBufferRequest->PauseDebuggeeWhenSent)
+        {
+            //
+            // The packet was sent, enter the existing halt path without a resend
+            //
+            VmFuncVmxVmcall(DEBUGGER_VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER,
+                            (UINT64)DebuggeeBufferRequest,
+                            TRUE,
+                            0);
+        }
+
+        DebuggeeBufferRequest->KernelResult =
+            DebuggeeBufferRequest->RequestedAction == DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED
+                ? (UINT32)((PDEBUGGEE_SYMBOL_UPDATE_RESULT)Buffer)->KernelStatus
+                : DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        return STATUS_SUCCESS;
+    }
+
+    //
     // It's better to send the signal from vmx-root mode to avoid deadlock
     //
+    DebuggeeBufferRequest->KernelResult = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+
     VmFuncVmxVmcall(DEBUGGER_VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER,
                     (UINT64)DebuggeeBufferRequest,
                     0,
                     0);
-
-    DebuggeeBufferRequest->KernelResult = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }

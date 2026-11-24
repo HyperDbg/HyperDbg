@@ -28,6 +28,13 @@
 #define DBC_DEBUGGEE_HANDSHAKE_READ_TIMEOUT_SECONDS 5
 #define DBC_DEBUGGEE_POLL_INTERVAL_MS               5
 
+//
+// Time limit of the debugger for session setup and pause replies when no byte arrives
+//
+#define DBC_DEBUGGER_REPLY_TIMEOUT_SECONDS    60
+#define DBC_DEBUGGER_REPLY_POLL_MS            1000
+#define DBC_DEBUGGER_LISTENER_EXIT_TIMEOUT_MS 5000
+
 ////////////////////////////////////////////////////////////////////////////
 //                               Functions                                //
 ////////////////////////////////////////////////////////////////////////////

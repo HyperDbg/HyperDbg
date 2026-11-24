@@ -78,6 +78,10 @@ KdUninitializeKernelDebugger()
         //
         g_KernelDebuggerState = FALSE;
 
+        //
+        // Clear any leftover USB setup state and restore short send waits
+        //
+        g_SerialConnectionDbcSetupPhase = FALSE;
         SerialConnectionDbcSetLongWait(FALSE);
 
         //
@@ -882,6 +886,8 @@ KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
     // Check if the priority buffer is full or not
     //
     KdCheckUserModePriorityBuffers();
+
+    ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcClearSendLoss());
 
     //
     // Send one byte buffer and operation codes

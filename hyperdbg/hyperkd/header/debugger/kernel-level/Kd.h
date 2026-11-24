@@ -94,10 +94,6 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
 static VOID
 KdFireDpc(PVOID Routine, PVOID Parameter);
 
-static BYTE
-KdComputeDataChecksum(_In_reads_bytes_(Length) PVOID Buffer,
-                      _In_ UINT32                    Length);
-
 static VOID
 KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState);
 
@@ -206,6 +202,10 @@ KdHandleMtfCallback(UINT32 CoreId);
 
 BOOLEAN
 KdCheckImmediateMessagingMechanism(UINT32 OperationCode);
+
+BYTE
+KdComputeDataChecksum(_In_reads_bytes_(Length) PVOID Buffer,
+                      _In_ UINT32                    Length);
 
 BOOLEAN
 KdResponsePacketToDebugger(_In_ _Strict_type_match_ DEBUGGER_REMOTE_PACKET_TYPE             PacketType,

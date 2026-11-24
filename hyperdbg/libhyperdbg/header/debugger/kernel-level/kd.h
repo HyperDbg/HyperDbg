@@ -138,6 +138,15 @@ BOOLEAN
 KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 
 BOOLEAN
+KdBeginUsbSymbolPass(BOOLEAN NewSession);
+
+BOOLEAN
+KdCancelUsbSymbolPass();
+
+VOID
+KdCompleteSymbolReload(UINT64 KernelStatus);
+
+BOOLEAN
 KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, UINT32 RegBuffSize);
 
 BOOLEAN

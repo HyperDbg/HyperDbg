@@ -226,6 +226,11 @@ BOOLEAN g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer;
  */
 BOOLEAN g_SerialConnectionDesyncReported;
 
+//
+// Set during USB setup until the debugger has the symbol details
+//
+BOOLEAN g_SerialConnectionDbcSetupPhase;
+
 /**
  * @brief Global test flag (for testing purposes)
  *

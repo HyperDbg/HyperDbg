@@ -30,8 +30,6 @@ DebuggerVmcallHandler(UINT32 CoreId,
                       UINT64 OptionalParam2,
                       UINT64 OptionalParam3)
 {
-    UNREFERENCED_PARAMETER(OptionalParam3);
-
     BOOLEAN                     Result   = FALSE;
     PROCESSOR_DEBUGGING_STATE * DbgState = &g_DbgState[CoreId];
 
@@ -84,16 +82,24 @@ DebuggerVmcallHandler(UINT32 CoreId,
     }
     case DEBUGGER_VMCALL_SEND_MESSAGES_TO_DEBUGGER:
     {
+        BOOLEAN Usb  = KdHyperDbgDbcIsActive();
+        BOOLEAN Sent = TRUE;
+
         //
         // Kernel debugger is active, we should send the bytes over serial
         //
 
         if (OptionalParam1 != NULL64_ZERO && OptionalParam2 != NULL64_ZERO)
         {
-            KdLoggingResponsePacketToDebugger(
+            Sent = KdLoggingResponsePacketToDebugger(
                 (CHAR *)OptionalParam1,
                 (UINT32)OptionalParam2,
                 OPERATION_LOG_INFO_MESSAGE);
+        }
+
+        if (Usb && !Sent && OptionalParam3 != NULL64_ZERO)
+        {
+            *(UINT32 *)OptionalParam3 = DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA;
         }
 
         Result = TRUE;
@@ -107,10 +113,23 @@ DebuggerVmcallHandler(UINT32 CoreId,
         //
         PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest = (DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER *)OptionalParam1;
 
-        KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-                                   DebuggeeBufferRequest->RequestedAction,
-                                   (CHAR *)((UINT64)DebuggeeBufferRequest + (SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)),
-                                   DebuggeeBufferRequest->LengthOfBuffer);
+        //
+        // A USB reload sends the packet before this call and only needs the halt
+        //
+        if (!OptionalParam2)
+        {
+            BOOLEAN Usb  = KdHyperDbgDbcIsActive();
+            BOOLEAN Sent = KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                                       DebuggeeBufferRequest->RequestedAction,
+                                                       (CHAR *)((UINT64)DebuggeeBufferRequest + (SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)),
+                                                       DebuggeeBufferRequest->LengthOfBuffer);
+            if (Usb && !Sent)
+            {
+                DebuggeeBufferRequest->KernelResult = DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA;
+                Result = TRUE;
+                break;
+            }
+        }
 
         //
         // Check if we expect a buffer and command from the debugger or the
