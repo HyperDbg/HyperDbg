@@ -416,7 +416,10 @@ BreakpointClearAndDeallocateMemory(PDEBUGGEE_BP_DESCRIPTOR BreakpointDesc)
     //
     // Clear the breakpoint
     //
-    BreakpointClear(BreakpointDesc);
+    if (BreakpointDesc->Enabled)
+    {
+        BreakpointClear(BreakpointDesc);
+    }
 
     //
     // Remove breakpoint from the list of breakpoints
@@ -453,10 +456,13 @@ BreakpointCheckAndHandleReApplyingBreakpoint(PROCESSOR_DEBUGGING_STATE * DbgStat
         //
         // Restore previous breakpoint byte
         //
-        MemoryMapperWriteMemorySafeByPhysicalAddress(
-            DbgState->SoftwareBreakpointState->PhysAddress,
-            (UINT64)&BreakpointByte,
-            sizeof(BYTE));
+        if (!DbgState->SoftwareBreakpointState->AvoidReApplyBreakpoint)
+        {
+            MemoryMapperWriteMemorySafeByPhysicalAddress(
+                DbgState->SoftwareBreakpointState->PhysAddress,
+                (UINT64)&BreakpointByte,
+                sizeof(BYTE));
+        }
 
         DbgState->SoftwareBreakpointState = NULL;
     }
@@ -487,6 +493,12 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
     DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext         = {0};
     BOOLEAN                          AvoidUnsetMtf         = FALSE;
     BOOLEAN                          IgnoreUserHandling    = FALSE;
+    BOOLEAN                          DeferredUserReapply   = FALSE;
+
+    if (g_UserDebuggerUninitializing && !g_KernelDebuggerState)
+    {
+        return FALSE;
+    }
 
     //
     // ***** Check breakpoint for 'bp' command *****
@@ -514,6 +526,8 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
 
         if (CurrentBreakpointDesc->PhysAddress == GuestRipPhysical)
         {
+            UINT64  BreakpointId      = CurrentBreakpointDesc->BreakpointId;
+            BOOLEAN CheckForCallbacks = CurrentBreakpointDesc->CheckForCallbacks;
             //
             // It's a breakpoint by 'bp' command
             //
@@ -565,7 +579,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                 //
                 // Check if it needs to check for callbacks or not
                 //
-                if (CurrentBreakpointDesc->CheckForCallbacks)
+                if (CheckForCallbacks)
                 {
                     //
                     // check callbacks
@@ -590,7 +604,47 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
                     }
                     else if (g_UserDebuggerState)
                     {
-                        UdHandleInstantBreak(DbgState, Reason, NULL);
+                        PUSERMODE_DEBUGGING_THREAD_DETAILS Thread   = NULL;
+                        BOOLEAN                            CanPause = TRUE;
+                        CurrentBreakpointDesc                       = BreakpointGetEntryByBreakpointId(BreakpointId);
+                        if (CurrentBreakpointDesc != NULL && !CurrentBreakpointDesc->AvoidReApplyBreakpoint)
+                        {
+                            PUSERMODE_DEBUGGING_PROCESS_DETAILS Process =
+                                AttachingFindProcessDebuggingDetailsByProcessId(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
+                            if (Process != NULL)
+                            {
+                                Thread = ThreadHolderFindOrCreateThreadDebuggingDetail(
+                                    HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()),
+                                    Process);
+                            }
+                            if (Thread != NULL && ConfigureExecTrapAddProcessToWatchingList(Process->ProcessId))
+                            {
+                                //
+                                // MBEC blocks execution while paused. Do not suppress
+                                // interrupts waiting for an instruction that cannot run.
+                                // Keep the work on the thread, which may migrate CPUs.
+                                // Its watch reference is separate from the pause phase.
+                                //
+                                CpuInterlockedExchange64(&Thread->PendingSoftwareBreakpointId, (INT64)BreakpointId);
+                            }
+                            else
+                            {
+                                LogError("Err, unable to retain the breakpoint execution watch");
+                                Thread   = NULL;
+                                CanPause = FALSE;
+                            }
+                        }
+                        if (CanPause && UdHandleInstantBreak(DbgState, Reason, NULL))
+                        {
+                            DeferredUserReapply = Thread != NULL;
+                        }
+                        else if (Thread != NULL)
+                        {
+                            if (CpuInterlockedExchange64(&Thread->PendingSoftwareBreakpointId, 0))
+                            {
+                                ConfigureExecTrapRemoveProcessFromWatchingList(HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()));
+                            }
+                        }
                     }
                     else
                     {
@@ -607,8 +661,10 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(PROCESSOR_DEBUGGING_STATE * D
             //
             // Check if we should re-apply the breakpoint after this instruction
             // or not (in other words, is breakpoint still valid)
+            // A one-shot breakpoint or a callback may have removed the descriptor.
             //
-            if (!CurrentBreakpointDesc->AvoidReApplyBreakpoint)
+            CurrentBreakpointDesc = BreakpointGetEntryByBreakpointId(BreakpointId);
+            if (CurrentBreakpointDesc != NULL && !CurrentBreakpointDesc->AvoidReApplyBreakpoint && !DeferredUserReapply)
             {
                 //
                 // We should re-apply the breakpoint on next mtf
@@ -666,6 +722,18 @@ BreakpointHandleBreakpoints(UINT32 CoreId)
     PROCESSOR_DEBUGGING_STATE *      DbgState      = &g_DbgState[CoreId];
 
     GuestRip = VmFuncGetRip();
+
+    //
+    // An emulated instruction can reach another #BP before its MTF exit.
+    // Settle the previous local restoration before publishing a new pause.
+    // Leave shared MTF work for its normal callback.
+    //
+    if (g_UserDebuggerState && !g_KernelDebuggerState &&
+        BreakpointCheckAndHandleReApplyingBreakpoint(DbgState))
+    {
+        VmFuncEnableAndCheckForPreviousExternalInterrupts(CoreId);
+        VmFuncChangeIgnoreOneMtfState(CoreId, TRUE);
+    }
 
     //
     // A breakpoint triggered and two things might be happened,

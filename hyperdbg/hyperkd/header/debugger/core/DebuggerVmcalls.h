@@ -48,6 +48,21 @@
  */
 #define DEBUGGER_VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER (TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x00000005)
 
+/**
+ * @brief Serialize user-debugger pause/continue with VMX-root thread handling
+ */
+#define DEBUGGER_VMCALL_CONFIGURE_USER_THREADS (TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x00000006)
+
+/**
+ * @brief Rendezvous before removing user-debugger breakpoints
+ */
+#define DEBUGGER_VMCALL_UNINITIALIZE_USER_DEBUGGER (TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x00000007)
+
+/**
+ * @brief Cancel pending thread restoration after unlinking and draining readers
+ */
+#define DEBUGGER_VMCALL_CANCEL_PENDING_USER_BREAKPOINTS (TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x00000008)
+
 //////////////////////////////////////////////////
 //				     Functions		      		//
 //////////////////////////////////////////////////

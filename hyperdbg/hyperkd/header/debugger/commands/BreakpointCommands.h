@@ -28,6 +28,12 @@ volatile LONG BreakpointCommandTrapListLock;
 VOID
 BreakpointRemoveAllBreakpoints();
 
+PDEBUGGEE_BP_DESCRIPTOR
+BreakpointGetEntryByBreakpointId(UINT64 BreakpointId);
+
+BOOLEAN
+BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor);
+
 BOOLEAN
 BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemoryLayout);
 
