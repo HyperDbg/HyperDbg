@@ -1024,6 +1024,19 @@ VmFuncEventInjectBreakpoint()
 }
 
 /**
+ * @brief Reinject the #DB from the current vm-exit
+ *
+ * @param CoreId Target core's ID
+ *
+ * @return VOID
+ */
+VOID
+VmFuncEventReinjectDebugBreakpoint(UINT32 CoreId)
+{
+    EventReinjectDebugBreakpoint(&g_GuestState[CoreId]);
+}
+
+/**
  * @brief VMX-root compatible strcmp
  * @param Address1
  * @param Address2

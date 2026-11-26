@@ -79,6 +79,12 @@ KdUninitializeKernelDebugger()
         g_KernelDebuggerState = FALSE;
 
         //
+        // Clear any leftover USB setup state and restore short send waits
+        //
+        g_SerialConnectionDbcSetupPhase = FALSE;
+        SerialConnectionDbcSetLongWait(FALSE);
+
+        //
         // Reset pause break requests
         //
         RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
@@ -302,8 +308,33 @@ KdResponsePacketToDebugger(
     CHAR *                                  OptionalBuffer,
     UINT32                                  OptionalBufferLength)
 {
+    return KdResponsePacketToDebuggerWithPolicy(PacketType, Response, OptionalBuffer, OptionalBufferLength, TRUE);
+}
+
+/**
+ * @brief Send a response with an optional check for USB packet space
+ *
+ * @param PacketType Type of the response
+ * @param Response Requested action of the response
+ * @param OptionalBuffer Optional response data
+ * @param OptionalBufferLength Length of the response data
+ * @param WaitForSpace FALSE to return without sending if the USB ring lacks room
+ * @return BOOLEAN TRUE if the transport accepted the packet without a detected new loss
+ */
+_Use_decl_annotations_
+BOOLEAN
+KdResponsePacketToDebuggerWithPolicy(
+    DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
+    CHAR *                                  OptionalBuffer,
+    UINT32                                  OptionalBufferLength,
+    BOOLEAN                                 WaitForSpace)
+{
     DEBUGGER_REMOTE_PACKET Packet = {0};
     BOOLEAN                Result = FALSE;
+    BOOLEAN                PreviousLongWait;
+    BOOLEAN                Usb;
+    UINT32                 LossBeforeSend;
 
     //
     // Make the packet's structure
@@ -330,8 +361,22 @@ KdResponsePacketToDebugger(
         //
         ScopedSpinlock(
             DebuggerResponseLock,
-            Result = SerialConnectionSend((CHAR *)&Packet,
-                                          sizeof(DEBUGGER_REMOTE_PACKET)));
+            KdHyperDbgDbcSetControlPriority(TRUE);
+            PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+            Usb = KdHyperDbgDbcIsActive();
+            LossBeforeSend = Usb ? KdHyperDbgDbcGetSendLossCount() : 0;
+            if ((!Usb || KdHyperDbgDbcIsReady()) &&
+                (WaitForSpace || KdHyperDbgDbcCanSendPacket(sizeof(DEBUGGER_REMOTE_PACKET) + SERIAL_END_OF_BUFFER_CHARS_COUNT)))
+            {
+                Result = SerialConnectionSend((CHAR *)&Packet,
+                                              sizeof(DEBUGGER_REMOTE_PACKET));
+            }
+            if (Usb)
+            {
+                Result = Result && KdHyperDbgDbcIsReady() && KdHyperDbgDbcGetSendLossCount() == LossBeforeSend;
+            }
+            KdHyperDbgDbcSetSendWait(PreviousLongWait);
+            KdHyperDbgDbcSetControlPriority(FALSE));
     }
     else
     {
@@ -347,18 +392,39 @@ KdResponsePacketToDebugger(
 
         ScopedSpinlock(
             DebuggerResponseLock,
-            Result = SerialConnectionSendTwoBuffers((CHAR *)&Packet,
-                                                    sizeof(DEBUGGER_REMOTE_PACKET),
-                                                    OptionalBuffer,
-                                                    OptionalBufferLength));
+            KdHyperDbgDbcSetControlPriority(TRUE);
+            PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+            Usb = KdHyperDbgDbcIsActive();
+            LossBeforeSend = Usb ? KdHyperDbgDbcGetSendLossCount() : 0;
+            if ((!Usb || KdHyperDbgDbcIsReady()) &&
+                (WaitForSpace || KdHyperDbgDbcCanSendPacket((UINT64)sizeof(DEBUGGER_REMOTE_PACKET) +
+                                                          OptionalBufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT)))
+            {
+                Result = SerialConnectionSendTwoBuffers((CHAR *)&Packet,
+                                                        sizeof(DEBUGGER_REMOTE_PACKET),
+                                                        OptionalBuffer,
+                                                        OptionalBufferLength);
+            }
+            if (Usb)
+            {
+                Result = Result && KdHyperDbgDbcIsReady() && KdHyperDbgDbcGetSendLossCount() == LossBeforeSend;
+            }
+            KdHyperDbgDbcSetSendWait(PreviousLongWait);
+            KdHyperDbgDbcSetControlPriority(FALSE));
     }
 
-    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent && g_IgnoreBreaksToDebugger.SpeialEventResponse == Response)
+    if ((WaitForSpace || Result) &&
+        g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent && g_IgnoreBreaksToDebugger.SpeialEventResponse == Response)
     {
         //
         // Set it to false by zeroing it
         //
         RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
+
+        //
+        // The special wait ends and the debuggee runs, so use short USB send waits
+        //
+        ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcSetLongWait(FALSE));
     }
 
     return Result;
@@ -379,8 +445,34 @@ KdLoggingResponsePacketToDebugger(
     UINT32 OptionalBufferLength,
     UINT32 OperationCode)
 {
+    return KdLoggingResponsePacketToDebuggerWithPolicy(OptionalBuffer,
+                                                       OptionalBufferLength,
+                                                       OperationCode,
+                                                       FALSE);
+}
+
+/**
+ * @brief Send a logging packet with an explicit drop policy
+ *
+ * @param OptionalBuffer Text to send
+ * @param OptionalBufferLength Length of the text
+ * @param OperationCode Logging operation code
+ * @param AllowDrop TRUE to keep the current send wait mode for event output
+ * @return BOOLEAN Result of serializing the packet
+ */
+_Use_decl_annotations_
+BOOLEAN
+KdLoggingResponsePacketToDebuggerWithPolicy(
+    CHAR *  OptionalBuffer,
+    UINT32  OptionalBufferLength,
+    UINT32  OperationCode,
+    BOOLEAN AllowDrop)
+{
     DEBUGGER_REMOTE_PACKET Packet = {0};
     BOOLEAN                Result = FALSE;
+    BOOLEAN                PreviousLongWait = FALSE;
+    BOOLEAN                Usb;
+    UINT32                 LossBeforeSend;
 
     //
     // Make the packet's structure
@@ -409,12 +501,41 @@ KdLoggingResponsePacketToDebugger(
 
     ScopedSpinlock(
         DebuggerResponseLock,
-        Result = SerialConnectionSendThreeBuffers((CHAR *)&Packet,
-                                                  sizeof(DEBUGGER_REMOTE_PACKET),
-                                                  (CHAR *)&OperationCode,
-                                                  sizeof(UINT32),
-                                                  OptionalBuffer,
-                                                  OptionalBufferLength));
+        if (AllowDrop &&
+            KdHyperDbgDbcDropEventPacket(
+                (UINT32)(sizeof(Packet) + sizeof(OperationCode) +
+                         OptionalBufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT)))
+        {
+            Result = TRUE;
+        }
+        else
+        {
+            if (!AllowDrop)
+            {
+                KdHyperDbgDbcSetControlPriority(TRUE);
+                PreviousLongWait = KdHyperDbgDbcSetSendWait(TRUE);
+            }
+            Usb = KdHyperDbgDbcIsActive();
+            LossBeforeSend = !AllowDrop && Usb ? KdHyperDbgDbcGetSendLossCount() : 0;
+            if (AllowDrop || !Usb || KdHyperDbgDbcIsReady())
+            {
+                Result = SerialConnectionSendThreeBuffers((CHAR *)&Packet,
+                                                          sizeof(DEBUGGER_REMOTE_PACKET),
+                                                          (CHAR *)&OperationCode,
+                                                          sizeof(UINT32),
+                                                          OptionalBuffer,
+                                                          OptionalBufferLength);
+            }
+            if (!AllowDrop)
+            {
+                if (Usb)
+                {
+                    Result = Result && KdHyperDbgDbcIsReady() && KdHyperDbgDbcGetSendLossCount() == LossBeforeSend;
+                }
+                KdHyperDbgDbcSetSendWait(PreviousLongWait);
+                KdHyperDbgDbcSetControlPriority(FALSE);
+            }
+        });
 
     return Result;
 }
@@ -476,6 +597,36 @@ KdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLen
 }
 
 /**
+ * @brief End the current step-over
+ * @details Each core disables the breakpoint when it resumes
+ *
+ * @return VOID
+ */
+VOID
+KdClearStepOverHardwareDebugRegister()
+{
+    ULONG ProcessorsCount;
+
+    if (g_HardwareDebugRegisterDetailsForStepOver.Address == (UINT64)NULL)
+    {
+        return;
+    }
+
+    ProcessorsCount = PlatformCpuGetActiveProcessorCount();
+
+    //
+    // Do not treat a later hit at this address as a step
+    //
+    RtlZeroMemory(&g_HardwareDebugRegisterDetailsForStepOver, sizeof(HARDWARE_DEBUG_REGISTER_DETAILS));
+
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
+    {
+        g_DbgState[i].HardwareDebugRegisterForStepping      = (UINT64)NULL;
+        g_DbgState[i].ClearHardwareDebugRegisterForStepping = TRUE;
+    }
+}
+
+/**
  * @brief Handles debug events when kernel-debugger is attached
  *
  * @param DbgState The state of the debugger on the current core
@@ -486,16 +637,47 @@ KdRegularStepOver(UINT64 LastRip, BOOLEAN IsNextInstructionACall, UINT32 CallLen
 VOID
 KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgState, BOOLEAN TrapSetByDebugger)
 {
-    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext    = {0};
-    BOOLEAN                          IgnoreDebugEvent = FALSE;
-    UINT64                           LastVmexitRip    = VmFuncGetLastVmexitRip(DbgState->CoreId);
+    DEBUGGER_TRIGGERED_EVENT_DETAILS TargetContext = {0};
+    BOOLEAN                          HandleAsStep  = TrapSetByDebugger;
+    RFLAGS                           Rflags        = {0};
+    UINT64                           LastVmexitRip = VmFuncGetLastVmexitRip(DbgState->CoreId);
 
     //
     // It's a breakpoint and should be handled by the kernel debugger
     //
     TargetContext.Context = (PVOID)LastVmexitRip;
 
-    if (TrapSetByDebugger)
+    //
+    // A step-over breakpoint does not use the trap flag
+    //
+    if (g_HardwareDebugRegisterDetailsForStepOver.Address != (UINT64)NULL &&
+        g_HardwareDebugRegisterDetailsForStepOver.Address == LastVmexitRip)
+    {
+        if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()) &&
+            g_HardwareDebugRegisterDetailsForStepOver.ThreadId == HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()))
+        {
+            HandleAsStep = TRUE;
+        }
+        else
+        {
+            //
+            // Reapply the breakpoint but do not halt for another thread.
+            // The resume flag lets the instruction run without another #DB
+            //
+            SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                              BREAK_ON_INSTRUCTION_FETCH,
+                              FALSE,
+                              g_HardwareDebugRegisterDetailsForStepOver.Address);
+
+            Rflags.AsUInt     = VmFuncGetRflags();
+            Rflags.ResumeFlag = TRUE;
+            VmFuncSetRflags(Rflags.AsUInt);
+
+            return;
+        }
+    }
+
+    if (HandleAsStep)
     {
         //
         // *** Handle a regular trap flag (most of the times as a result of stepping) set by the debugger ***
@@ -509,59 +691,25 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(PROCESSOR_DEBUGGING_STATE * DbgS
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 FALSE))
         {
-            if (g_HardwareDebugRegisterDetailsForStepOver.Address != (UINT64)NULL)
-            {
-                //
-                // Check if it's caused by a step-over hardware debug breakpoint or not
-                //
-                if (LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
-                {
-                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == HANDLE_TO_UINT32(PlatformProcessGetCurrentProcessId()) &&
-                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == HANDLE_TO_UINT32(PlatformProcessGetCurrentThreadId()))
-                    {
-                        //
-                        // It's a step caused by a debug register breakpoint step-over
-                        //
-                        RtlZeroMemory(&g_HardwareDebugRegisterDetailsForStepOver, sizeof(HARDWARE_DEBUG_REGISTER_DETAILS));
-                    }
-                    else
-                    {
-                        //
-                        // Should be ignored because it's a hardware debug register that is
-                        // likely triggered by other thread
-                        //
-                        IgnoreDebugEvent = TRUE;
-
-                        //
-                        // Also, we should re-apply the hardware debug breakpoint on this thread
-                        //
-                        SetDebugRegisters(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
-                                          BREAK_ON_INSTRUCTION_FETCH,
-                                          FALSE,
-                                          g_HardwareDebugRegisterDetailsForStepOver.Address);
-                    }
-                }
-            }
-
-            if (!IgnoreDebugEvent)
-            {
-                //
-                // Handle a regular step
-                //
-                KdHandleBreakpointAndDebugBreakpoints(DbgState,
-                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                      &TargetContext);
-            }
+            //
+            // Handle a regular step
+            //
+            KdHandleBreakpointAndDebugBreakpoints(DbgState,
+                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                  &TargetContext);
         }
     }
     else
     {
         //
-        // It's a regular debug break event
+        // Halt for a #DB that the debugger did not cause, then deliver it
+        // to the guest when the debugger continues
         //
         KdHandleBreakpointAndDebugBreakpoints(DbgState,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
                                               &TargetContext);
+
+        VmFuncEventReinjectDebugBreakpoint(DbgState->CoreId);
     }
 }
 
@@ -616,6 +764,16 @@ KdApplyTasksPreHaltCore(PROCESSOR_DEBUGGING_STATE * DbgState)
 VOID
 KdApplyTasksPostContinueCore(PROCESSOR_DEBUGGING_STATE * DbgState)
 {
+    if (DbgState->ClearHardwareDebugRegisterForStepping)
+    {
+        //
+        // Clear both enable bits for the step-over breakpoint before resuming
+        //
+        CpuWriteDr(7, CpuReadDr(7) & ~(3ULL << (DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER * 2)));
+
+        DbgState->ClearHardwareDebugRegisterForStepping = FALSE;
+    }
+
     //
     // Check to apply hardware debug register breakpoints for step-over
     //
@@ -652,6 +810,16 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     }
 
     //
+    // Clear the halt flag before unlocking cores so late NMIs do not halt them again
+    //
+    g_DebuggeeHaltInProgress = FALSE;
+
+    //
+    // Use short USB send waits while the debuggee runs
+    //
+    ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcSetLongWait(FALSE));
+
+    //
     // Check if we should enable interrupts in this core or not,
     // we have another same check in SWITCHING CORES too
     //
@@ -664,6 +832,17 @@ KdContinueDebuggee(PROCESSOR_DEBUGGING_STATE *             DbgState,
     for (SIZE_T i = 0; i < ProcessorsCount; i++)
     {
         SpinlockUnlock(&g_DbgState[i].Lock);
+    }
+
+    //
+    // Wait for cores to leave this halt loop before the next halt starts
+    //
+    for (SIZE_T i = 0; i < ProcessorsCount; i++)
+    {
+        while (g_DbgState[i].IsWaitingInHaltLoop)
+        {
+            CpuPause();
+        }
     }
 }
 
@@ -817,6 +996,8 @@ KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
     // Check if the priority buffer is full or not
     //
     KdCheckUserModePriorityBuffers();
+
+    ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcClearSendLoss());
 
     //
     // Send one byte buffer and operation codes
@@ -1314,6 +1495,16 @@ KdHandleBreakpointAndDebugBreakpoints(PROCESSOR_DEBUGGING_STATE *       DbgState
     }
 
     //
+    // Set the halt flag before sending halt NMIs to the other cores
+    //
+    g_DebuggeeHaltInProgress = TRUE;
+
+    //
+    // Any halt ends the step-over
+    //
+    KdClearStepOverHardwareDebugRegister();
+
+    //
     // Set it as the main core
     //
     DbgState->MainDebuggingCore = TRUE;
@@ -1413,6 +1604,15 @@ KdHandleNmi(PROCESSOR_DEBUGGING_STATE * DbgState)
     //
     DbgState->NmiState.WaitingToBeLocked = FALSE;
     SpinlockLock(&DbgState->Lock);
+
+    //
+    // Take the lock first so a late halt NMI cannot leave this core locked
+    //
+    if (!g_DebuggeeHaltInProgress)
+    {
+        SpinlockUnlock(&DbgState->Lock);
+        return;
+    }
 
     //
     // All the cores should go and manage through the following function
@@ -2466,9 +2666,15 @@ KdDispatchAndPerformCommandsFromDebugger(PROCESSOR_DEBUGGING_STATE * DbgState)
                 KdCloseConnectionAndUnloadDebuggee();
 
                 //
-                // Unlock other cores
+                // Remove the breakpoints while all cores are halted
                 //
-                KdContinueDebuggee(DbgState, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+                BreakpointRemoveAllBreakpoints();
+
+                //
+                // Unlock other cores and ignore new halts until the debugger module
+                // unloads, as the debugger no longer reads packets
+                //
+                KdContinueDebuggee(DbgState, TRUE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CLOSE_AND_UNLOAD_DEBUGGEE);
 
                 //
                 // No need to wait for new commands
@@ -3355,6 +3561,11 @@ StartAgain:
     if (DbgState->MainDebuggingCore)
     {
         //
+        // Allow long USB send waits while the debuggee is halted
+        //
+        ScopedSpinlock(DebuggerResponseLock, KdHyperDbgDbcSetLongWait(TRUE));
+
+        //
         // *** Current Operating Core  ***
         //
         RtlZeroMemory(&PausePacket, sizeof(DEBUGGEE_KD_PAUSED_PACKET));
@@ -3471,6 +3682,8 @@ StartAgain:
         //
         DbgState->NmiState.WaitingToBeLocked = FALSE;
 
+        DbgState->IsWaitingInHaltLoop = TRUE;
+
         ScopedSpinlock(
             DbgState->Lock,
 
@@ -3483,22 +3696,20 @@ StartAgain:
                 //
                 g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED;
 
+                DbgState->IsWaitingInHaltLoop = FALSE;
+
                 goto StartAgain;
             }
 
         );
+
+        DbgState->IsWaitingInHaltLoop = FALSE;
 
         //
         // Check if any task needs to be executed on this core or not
         //
         if (DbgState->HaltedCoreTask.PerformHaltedTask)
         {
-            //
-            // Indicate that the halted core is no longer needed to execute a task
-            // as the current task is executed once
-            //
-            DbgState->HaltedCoreTask.PerformHaltedTask = FALSE;
-
             //
             // Perform the target task
             //
@@ -3516,7 +3727,25 @@ StartAgain:
                 //
                 SpinlockLock(&DbgState->Lock);
 
-                goto StartAgain;
+                //
+                // The broadcast loop waits for the task flag to clear after
+                // this core takes its lock again
+                //
+                DbgState->HaltedCoreTask.PerformHaltedTask = FALSE;
+
+                //
+                // If the debugger continued during the task, do not halt again
+                //
+                if (g_DebuggeeHaltInProgress)
+                {
+                    goto StartAgain;
+                }
+
+                SpinlockUnlock(&DbgState->Lock);
+            }
+            else
+            {
+                DbgState->HaltedCoreTask.PerformHaltedTask = FALSE;
             }
         }
     }

@@ -138,6 +138,15 @@ BOOLEAN
 KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 
 BOOLEAN
+KdBeginUsbSymbolPass(BOOLEAN NewSession);
+
+BOOLEAN
+KdCancelUsbSymbolPass();
+
+VOID
+KdCompleteSymbolReload(UINT64 KernelStatus);
+
+BOOLEAN
 KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, UINT32 RegBuffSize);
 
 BOOLEAN
@@ -253,6 +262,9 @@ KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pc
 BOOLEAN
 KdResyncStreamToNextFrame(DEBUGGER_PACKET_RESYNC_ENUM ReSyncType);
 
+BOOLEAN
+KdReadByteFromDebuggeeDbc(CHAR * ReadData, DWORD * NoBytesRead);
+
 VOID
 KdUninitializeConnection();
 
@@ -272,6 +284,9 @@ KdTheRemoteSystemIsRunning();
 
 VOID
 KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag);
+
+VOID
+KdBreakControlStopWaitingForUsbDebuggee();
 
 VOID
 KdBreakControlCheckAndContinueDebugger();

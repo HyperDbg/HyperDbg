@@ -33,6 +33,11 @@ MtfHandleVmexit(VIRTUAL_MACHINE_STATE * VCpu)
     VCpu->IgnoreMtfUnset = FALSE;
 
     //
+    // The MTF vm-exit completes the request from the halt NMI
+    //
+    VCpu->MtfRequestedByHaltNmi = FALSE;
+
+    //
     // Check for KD related MTFs
     //
     if (VmmCallbackHandleMtfCallback(VCpu->CoreId))

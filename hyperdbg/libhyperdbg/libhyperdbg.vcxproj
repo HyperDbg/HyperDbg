@@ -78,7 +78,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)libraries\keystone\$(Configuration)-lib\keystone.lib;$(SolutionDir)libraries\libipt\libipt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)libraries\keystone\$(Configuration)-lib\keystone.lib;$(SolutionDir)libraries\libipt\libipt.lib;winusb.lib;setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
     </Link>
@@ -116,7 +116,7 @@ msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="R
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)libraries\keystone\$(Configuration)-lib\keystone.lib;$(SolutionDir)libraries\libipt\libipt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)libraries\zydis\user\Zycore.lib;$(SolutionDir)libraries\zydis\user\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;$(SolutionDir)libraries\keystone\$(Configuration)-lib\keystone.lib;$(SolutionDir)libraries\libipt\libipt.lib;winusb.lib;setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
@@ -149,6 +149,7 @@ msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="R
     <ClInclude Include="header\debugger\commands\commands.h" />
     <ClInclude Include="header\debugger\commands\help.h" />
     <ClInclude Include="header\debugger\communication\communication.h" />
+    <ClInclude Include="header\debugger\communication\dbc.h" />
     <ClInclude Include="header\debugger\communication\forwarding.h" />
     <ClInclude Include="header\debugger\communication\namedpipe.h" />
     <ClInclude Include="header\debugger\core\debugger.h" />
@@ -324,6 +325,7 @@ msbuild "$(SolutionDir)dependencies\zydis\msvc\Zydis.sln" /m /p:Configuration="R
     <ClCompile Include="code\debugger\commands\meta-commands\status.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\sym.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\sympath.cpp" />
+    <ClCompile Include="code\debugger\communication\dbc.cpp" />
     <ClCompile Include="code\debugger\communication\forwarding.cpp" />
     <ClCompile Include="code\debugger\communication\namedpipe.cpp" />
     <ClCompile Include="code\debugger\communication\remote-connection.cpp" />

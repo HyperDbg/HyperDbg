@@ -463,41 +463,31 @@ IdtEmulationHandleExceptionAndNmi(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 }
 
 /**
- * @brief if the guest is not interruptible, then we save the details of each
- * interrupt so we can re-inject them to the guest whenever the interrupt window
- * is open
+ * @brief Queue an acknowledged external interrupt for later delivery
  *
  * @param VCpu The virtual processor's state
- * @param InterruptExit interrupt info from vm-exit
- * @return BOOLEAN
+ * @param InterruptExit Interrupt information from the vm-exit
+ * @return BOOLEAN TRUE if the queue accepts the interrupt
  */
 BOOLEAN
 IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                                      _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    BOOLEAN FoundAPlaceForFutureInjection = FALSE;
+    if (!InterruptExit.Valid || InterruptExit.InterruptionType != INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
+    {
+        return FALSE;
+    }
 
-    //
-    // We can't inject interrupt because the guest's state is not interruptible
-    // we have to queue it an re-inject it when the interrupt window is opened !
-    //
     for (SIZE_T i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
     {
-        //
-        // Find an empty space
-        //
         if (VCpu->PendingExternalInterrupts[i] == NULL_ZERO)
         {
-            //
-            // Save it for future re-injection (interrupt-window exiting)
-            //
             VCpu->PendingExternalInterrupts[i] = InterruptExit.AsUInt;
-            FoundAPlaceForFutureInjection      = TRUE;
-            break;
+            return TRUE;
         }
     }
 
-    return FoundAPlaceForFutureInjection;
+    return FALSE;
 }
 
 /**
@@ -512,19 +502,14 @@ VOID
 IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
                                     _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    BOOLEAN                    Interruptible         = TRUE;
+    BOOLEAN                    InjectNow             = TRUE;
     VMX_INTERRUPTIBILITY_STATE InterruptibilityState = {0};
     RFLAGS                     GuestRflags           = {0};
+    INTERRUPT_INFO             EntryInterruptionInfo = {0};
 
     //
-    // In order to enable External Interrupt Exiting we have to set
-    // IA32_VMX_PINBASED_CTLS_EXTERNAL_INTERRUPT_EXITING_FLAG in vmx
-    // pin-based controls (PIN_BASED_VM_EXEC_CONTROL) and also
-    // we should enable IA32_VMX_EXIT_CTLS_ACKNOWLEDGE_INTERRUPT_ON_EXIT_FLAG
-    // on vmx vm-exit controls (VMCS_CTRL_VMEXIT_CONTROLS), also this function
-    // might not always be successful if the guest is not in the interruptible
-    // state so it wait for and interrupt-window exiting to re-inject
-    // the interrupt into the guest
+    // Acknowledgment on vm-exit supplies the interrupt vector.
+    // Queue the interrupt if the guest cannot take it on this vm-entry
     //
     if (VCpu->EnableExternalInterruptsOnContinue ||
         VCpu->EnableExternalInterruptsOnContinueMtf)
@@ -555,12 +540,35 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
 
         //
         // External interrupts cannot be injected into the
-        // guest if guest isn't interruptible (e.g.: guest
-        // is blocked by "mov ss", or EFLAGS.IF == 0).
+        // guest while STI or MOV SS blocks delivery or the interrupt flag is clear
         //
-        Interruptible = GuestRflags.InterruptEnableFlag && !InterruptibilityState.BlockingByMovSs;
+        InjectNow = GuestRflags.InterruptEnableFlag &&
+                    !InterruptibilityState.BlockingBySti &&
+                    !InterruptibilityState.BlockingByMovSs;
 
-        if (Interruptible)
+        if (InjectNow)
+        {
+            SIZE_T HighestIndex = HvFindHighestPendingExternalInterrupt(VCpu, NULL);
+
+            if (HighestIndex != PENDING_INTERRUPTS_BUFFER_CAPACITY)
+            {
+                VMEXIT_INTERRUPT_INFORMATION Highest;
+
+                //
+                // Keep queued interrupts ahead of new ones of equal or lower priority
+                //
+                Highest.AsUInt = VCpu->PendingExternalInterrupts[HighestIndex];
+                InjectNow      = InterruptExit.Vector > Highest.Vector;
+            }
+        }
+
+        //
+        // A vmx-root NMI can use the vm-entry field during this vm-exit.
+        // Queue the interrupt instead of replacing the NMI
+        //
+        VmxVmread32P(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, &EntryInterruptionInfo.Flags);
+
+        if (InjectNow && !EntryInterruptionInfo.Fields.Valid)
         {
             //
             // Re-inject the interrupt/exception
@@ -569,16 +577,7 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
         }
         else
         {
-            //
-            // We can't inject interrupt because the guest's state is not interruptible
-            // we have to queue it an re-inject it when the interrupt window is opened!
-            //
             IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VCpu, InterruptExit);
-
-            //
-            // Enable Interrupt-window exiting.
-            //
-            HvSetInterruptWindowExiting(TRUE);
         }
 
         //
@@ -588,8 +587,6 @@ IdtEmulationHandleExternalInterrupt(_Inout_ VIRTUAL_MACHINE_STATE *   VCpu,
     }
     else
     {
-        Interruptible = FALSE;
-
         LogError("Err, why we are here? it's a vm-exit due to the external"
                  "interrupt and its type is not external interrupt? weird!");
     }
@@ -661,61 +658,55 @@ IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(_Inout_ VIRTUAL_MACHINE_ST
 VOID
 IdtEmulationHandleInterruptWindowExiting(_Inout_ VIRTUAL_MACHINE_STATE * VCpu)
 {
-    VMEXIT_INTERRUPT_INFORMATION InterruptExit   = {0};
-    BOOLEAN                      InjectPageFault = FALSE;
+    VMEXIT_INTERRUPT_INFORMATION InterruptExit         = {0};
+    INTERRUPT_INFO              EntryInterruptionInfo = {0};
+    SIZE_T                      HighestIndex;
 
     //
-    // Check if page-fault needs to be injected or not
-    //
-    if (g_WaitingForInterruptWindowToInjectPageFault)
-    {
-        InjectPageFault = IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(VCpu);
-    }
-
-    //
-    // Check if another interrupt (page-fault) needed to injected or not
-    //
-    if (!InjectPageFault)
-    {
-        for (SIZE_T i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
-        {
-            //
-            // Find an empty space
-            //
-            if (VCpu->PendingExternalInterrupts[i] != NULL_ZERO)
-            {
-                //
-                // Save it for re-injection (interrupt-window exiting)
-                //
-                InterruptExit.AsUInt = VCpu->PendingExternalInterrupts[i];
-
-                //
-                // Free the entry
-                //
-                VCpu->PendingExternalInterrupts[i] = NULL_ZERO;
-                break;
-            }
-        }
-
-        if (InterruptExit.AsUInt == 0)
-        {
-            //
-            // Nothing left in pending state, let's disable the interrupt window exiting
-            //
-            HvSetInterruptWindowExiting(FALSE);
-        }
-        else
-        {
-            //
-            // Inject the interrupt/exception
-            //
-
-            EventInjectInterruptOrException(InterruptExit);
-        }
-    }
-
-    //
-    // avoid incrementing rip
+    // An interrupt-window vm-exit occurs before the next guest instruction
     //
     HvSuppressRipIncrement(VCpu);
+
+    if (g_WaitingForInterruptWindowToInjectPageFault)
+    {
+        //
+        // Keep any event already set for vm-entry
+        //
+        VmxVmread32P(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, &EntryInterruptionInfo.Flags);
+        if (EntryInterruptionInfo.Fields.Valid || IdtEmulationInjectPageFaultWhenInterruptWindowsIsOpen(VCpu))
+        {
+            return;
+        }
+    }
+
+    if (VCpu->EnableExternalInterruptsOnContinue || VCpu->EnableExternalInterruptsOnContinueMtf)
+    {
+        return;
+    }
+
+    HighestIndex = HvFindHighestPendingExternalInterrupt(VCpu, NULL);
+    if (HighestIndex == PENDING_INTERRUPTS_BUFFER_CAPACITY)
+    {
+        return;
+    }
+
+    //
+    // The interrupt window ignores TPR. If TPR blocks the highest vector,
+    // leave the whole queue pending
+    //
+    InterruptExit.AsUInt = VCpu->PendingExternalInterrupts[HighestIndex];
+    if ((InterruptExit.Vector >> 4) <= GetGuestCr8())
+    {
+        return;
+    }
+
+    //
+    // Keep any event already set for vm-entry
+    //
+    VmxVmread32P(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, &EntryInterruptionInfo.Flags);
+    if (!EntryInterruptionInfo.Fields.Valid)
+    {
+        VCpu->PendingExternalInterrupts[HighestIndex] = NULL_ZERO;
+        EventInjectInterruptOrException(InterruptExit);
+    }
 }

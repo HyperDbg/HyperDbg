@@ -129,6 +129,9 @@ VOID
 EventInjectDebugBreakpoint();
 
 VOID
+EventReinjectDebugBreakpoint(VIRTUAL_MACHINE_STATE * VCpu);
+
+VOID
 EventInjectPageFaultWithCr2(VIRTUAL_MACHINE_STATE * VCpu, UINT64 Address, UINT32 PageFaultCode);
 
 VOID

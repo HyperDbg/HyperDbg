@@ -3215,7 +3215,8 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         //
         // Call the target function
         //
-        ScriptEngineFunctionPrint(ActionDetail->Tag,
+        ScriptEngineFunctionPrint(ActionDetail,
+                                  ActionDetail->Tag,
                                   ActionDetail->ImmediatelySendTheResults,
                                   SrcVal0);
         break;
@@ -3312,6 +3313,7 @@ ScriptEngineExecute(PGUEST_REGS                      GuestRegs,
         // Call the target function
         //
         ScriptEngineFunctionFormats(
+            ActionDetail,
             ActionDetail->Tag,
             ActionDetail->ImmediatelySendTheResults,
             SrcVal0);

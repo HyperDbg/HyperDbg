@@ -19,6 +19,7 @@ extern BOOLEAN                  g_IsKdModuleLoaded;
 extern BOOLEAN                  g_AutoUnpause;
 extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsDebuggerConnectedToDbc;
 extern BOOLEAN                  g_IsExecutingSymbolLoadingRoutines;
 extern BOOLEAN                  g_IsInstrumentingInstructions;
 extern BOOLEAN                  g_IgnorePauseRequests;
@@ -78,6 +79,13 @@ BreakController(DWORD CtrlType)
             {
                 KdBreakControlCheckAndPauseDebugger(TRUE);
             }
+        }
+        else if (g_IsDebuggerConnectedToDbc)
+        {
+            //
+            // Stop waiting in '.debug remote usb' for a debuggee that does not connect
+            //
+            KdBreakControlStopWaitingForUsbDebuggee();
         }
         else if (!g_IsKdModuleLoaded && !g_IsConnectedToRemoteDebuggee)
         {

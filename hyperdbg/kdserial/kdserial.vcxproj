@@ -31,6 +31,7 @@
     <ClCompile Include="spimax311.c" />
     <ClCompile Include="uart16550.c" />
     <ClCompile Include="usif.c" />
+    <ClCompile Include="dbc.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="kdserial.def" />
@@ -42,6 +43,7 @@
     <ClInclude Include="uartp.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="win11sdk.h" />
+    <ClInclude Include="dbc.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2D988267-CC53-41E3-936A-48CEF9049DF5}</ProjectGuid>
@@ -82,6 +84,7 @@
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
+    <SignMode>TestSign</SignMode>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
     <TargetName>kdserial</TargetName>
@@ -90,11 +93,15 @@
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
+    <SignMode>TestSign</SignMode>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
+    <DriverSign>
+      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
+    </DriverSign>
     <ClCompile>
       <ForcedIncludeFiles />
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(KM_IncludePath);$(ProjectDir)..\..\inc</AdditionalIncludeDirectories>
@@ -119,6 +126,9 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
+    <DriverSign>
+      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
+    </DriverSign>
     <ClCompile>
       <ForcedIncludeFiles />
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(KM_IncludePath);$(ProjectDir)..\..\inc</AdditionalIncludeDirectories>

@@ -306,6 +306,18 @@ ULONG g_CurrentRemoteCore = DEBUGGER_DEBUGGEE_IS_RUNNING_NO_CORE;
 BOOLEAN g_IsDebuggerConntectedToNamedPipe = FALSE;
 
 /**
+ * @brief TRUE if the debugger connects over USB
+ *
+ */
+BOOLEAN g_IsDebuggerConnectedToDbc = FALSE;
+
+/**
+ * @brief TRUE if the debuggee connects over USB
+ *
+ */
+BOOLEAN g_IsDebuggeeConnectedToDbc = FALSE;
+
+/**
  * @brief An event to make sure that the user won't give any command in debuggee
  * and all the commands are coming from just the debugger
  *

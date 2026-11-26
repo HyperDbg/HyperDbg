@@ -17,10 +17,12 @@ set(SourceFiles
     "spimax311.c"
     "uart16550.c"
     "usif.c"
+    "dbc.c"
     "kdcom.h"
     "uartp.h"
     "common.h"
     "win11sdk.h"
+    "dbc.h"
     "kdserial.def"
 )
 wdk_add_library(kdserial SHARED

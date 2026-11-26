@@ -312,6 +312,16 @@ VOID
 HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set);
 
 /**
+ * @brief Find the highest-priority vector in the external interrupt queue
+ *
+ * @param VCpu The virtual processor's state
+ * @param LowestPriorityClass If not NULL, receives the lowest priority class
+ * @return SIZE_T Index of the highest-priority vector or queue capacity if empty
+ */
+SIZE_T
+HvFindHighestPendingExternalInterrupt(VIRTUAL_MACHINE_STATE * VCpu, UINT32 * LowestPriorityClass);
+
+/**
  * @brief Checks to enable and reinject previous interrupts
  *
  * @param VCpu The virtual processor's state

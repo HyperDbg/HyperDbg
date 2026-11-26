@@ -183,6 +183,9 @@ IMPORT_EXPORT_VMM VOID
 VmFuncEventInjectBreakpoint();
 
 IMPORT_EXPORT_VMM VOID
+VmFuncEventReinjectDebugBreakpoint(UINT32 CoreId);
+
+IMPORT_EXPORT_VMM VOID
 VmFuncInvalidateEptSingleContext(UINT32 CoreId);
 
 IMPORT_EXPORT_VMM VOID

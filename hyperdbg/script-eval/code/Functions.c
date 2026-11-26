@@ -587,18 +587,59 @@ ScriptEngineFunctionPhysicalToVirtual(UINT64 Address)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+/**
+ * @brief Send script output and allow drops only for immediate event output
+ *
+ * @param ActionDetail Script action context
+ * @param Tag Logging operation code
+ * @param ImmediateMessagePassing TRUE to send the output now
+ * @param Buffer Text to send
+ * @param Length Length of the text
+ * @return VOID
+ */
+static VOID
+ScriptEngineSendOutput(ACTION_BUFFER * ActionDetail,
+                       UINT64          Tag,
+                       BOOLEAN         ImmediateMessagePassing,
+                       CHAR *          Buffer,
+                       UINT32          Length)
+{
+#    if !UseWPPTracing && !UseDbgPrintInsteadOfUsermodeMessageTracking
+    //
+    // Only an event action in vmx-root can use the short send budget
+    //
+    if (ActionDetail != NULL && ActionDetail->CurrentAction != 0 &&
+        ImmediateMessagePassing && Length != 0 && Length <= PacketChunkSize - 1 &&
+        KdCheckImmediateMessagingMechanism((UINT32)Tag) &&
+        VmFuncVmxGetCurrentExecutionMode() &&
+        KdHyperDbgDbcIsActive())
+    {
+        KdLoggingResponsePacketToDebuggerWithPolicy(Buffer, Length, (UINT32)Tag, TRUE);
+        return;
+    }
+#    else
+    UNREFERENCED_PARAMETER(ActionDetail);
+#    endif
+
+    LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, Buffer, Length);
+}
+#endif
+
 /**
  * @brief Implementation of print function
  *
+ * @param ActionDetail
  * @param Tag
  * @param ImmediateMessagePassing
  * @param Value
  * @return VOID
  */
 VOID
-ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
+ScriptEngineFunctionPrint(ACTION_BUFFER * ActionDetail, UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
+    UNREFERENCED_PARAMETER(ActionDetail);
     ShowMessages("%llx\n", Value);
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -610,7 +651,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
     char   TempBuffer[20] = {0};
     UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx\n", Value);
 
-    LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
+    ScriptEngineSendOutput(ActionDetail, Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1203,15 +1244,17 @@ ScriptEngineFunctionShortCircuitingEvent(UINT64 State, ACTION_BUFFER * ActionDet
 /**
  * @brief Implementation of formats function
  *
+ * @param ActionDetail
  * @param Tag
  * @param ImmediateMessagePassing
  * @param Value
  * @return VOID
  */
 VOID
-ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
+ScriptEngineFunctionFormats(ACTION_BUFFER * ActionDetail, UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
+    UNREFERENCED_PARAMETER(ActionDetail);
 
     ScriptEngineFunctionTestStatement(Tag, ImmediateMessagePassing, Value);
 
@@ -1234,7 +1277,7 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
         char   TempBuffer[20] = {0};
         UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx\n", Value);
 
-        LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
+        ScriptEngineSendOutput(ActionDetail, Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -2100,7 +2143,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS                       GuestRegs,
     //
     // Prepare a buffer to bypass allocating a huge stack space for logging
     //
-    LogSimpleWithTag((UINT32)Tag, ImmediateMessagePassing, FinalBuffer, (UINT32)strlen(FinalBuffer) + 1);
+    ScriptEngineSendOutput(ActionDetail, Tag, ImmediateMessagePassing, FinalBuffer, (UINT32)strlen(FinalBuffer) + 1);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

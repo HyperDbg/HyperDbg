@@ -10,6 +10,7 @@
  *
  */
 #include "pch.h"
+#include <mutex>
 
 //
 // Global Variables
@@ -33,6 +34,8 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_KdReceiveFromDebuggerDesyncReported;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
+extern BOOLEAN g_IsDebuggerConnectedToDbc;
+extern BOOLEAN g_IsDebuggeeConnectedToDbc;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsKdModuleLoaded;
 extern BOOLEAN g_IsVmmModuleLoaded;
@@ -45,6 +48,46 @@ extern BOOLEAN g_IsDebuggeeInHandshakingPhase;
 extern BOOLEAN g_ShouldPreviousCommandBeContinued;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
+
+static DEBUGGEE_DBC_RECEIVE_PACKET   g_DebuggeeDbcReceivePacket        = {0};
+static UINT32                        g_DebuggeeDbcReceivePosition      = 0;
+static DEBUGGEE_DBC_HANDSHAKE_PACKET g_DebuggeeDbcHandshakePacket      = {0};
+static UINT32                        g_DebuggeeDbcHandshakePosition    = 0;
+static BOOLEAN                       g_IsDebuggeeDbcInHandshakingPhase = FALSE;
+static BOOLEAN                       g_DebuggeeDbcResetConnection      = FALSE;
+static UINT64                        g_DebuggeeDbcHandshakeStartTime   = 0;
+
+//
+// Set while the USB debuggee sends a pass of symbol details
+//
+static BOOLEAN g_DebuggeeDbcSendingSymbols = FALSE;
+static BOOLEAN g_DebuggeeDbcSymbolsFailed  = FALSE;
+
+//
+// Set for a command whose wait ended without a reply
+//
+static volatile BOOLEAN g_KdReplyLost[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS] = {0};
+
+//
+// Set while the CLI waits for the end of a step
+//
+static volatile BOOLEAN g_KdWaitingForStep = FALSE;
+
+//
+// State of the USB reader for the time limits of the debugger
+// ReadStartState is 0 while idle or StartTime + 1 while waiting for a byte
+//
+static volatile INT64   g_KdDbcReadStartState     = 0;
+static volatile UINT32  g_KdDbcPingsAnswered      = 0;
+static volatile BOOLEAN g_KdWaitingForUsbPause    = FALSE;
+static volatile BOOLEAN g_KdDbcSetupStopRequested = FALSE;
+
+//
+// Count USB stream gaps and track one pending symbol pass
+//
+static volatile INT64 g_KdDbcGapGeneration         = 0;
+static volatile INT64 g_KdDbcSymbolPassGeneration  = -1;
+static std::mutex     g_KdDbcSymbolPassMutex;
 
 /**
  * @brief compares the buffer with a string
@@ -133,6 +176,326 @@ KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
 }
 
 /**
+ * @brief Stop waits for replies that the USB debuggee does not send
+ *
+ * @param Message Error to show if a command was waiting
+ * @return VOID
+ */
+static VOID
+KdStopWaitingForReplies(const CHAR * Message)
+{
+    BOOLEAN Shown = FALSE;
+
+    for (UINT32 i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    {
+        //
+        // Keep waiting for a debuggee to connect or for a running debuggee to pause
+        //
+        if (!g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState ||
+            g_KernelSyncronizationObjectsHandleTable[i].EventHandle == NULL ||
+            i == DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED ||
+            (i == DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING && !g_KdWaitingForStep))
+        {
+            continue;
+        }
+
+        if (!Shown)
+        {
+            ShowMessages("%s", Message);
+            Shown = TRUE;
+        }
+
+        //
+        // A late reply must not be copied into the buffer of a finished command
+        //
+        g_KernelSyncronizationObjectsHandleTable[i].RequestData = NULL;
+        g_KernelSyncronizationObjectsHandleTable[i].RequestSize = 0;
+
+        g_KdReplyLost[i] = TRUE;
+        if (i == DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD)
+        {
+            KdCancelUsbSymbolPass();
+        }
+        DbgReceivedKernelResponse(i);
+    }
+}
+
+/**
+ * @brief Drop USB replies that arrived after their command stopped waiting
+ *
+ * @return VOID
+ */
+static VOID
+KdDropLateReplies()
+{
+    for (UINT32 i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS; i++)
+    {
+        if (!g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState &&
+            g_KernelSyncronizationObjectsHandleTable[i].EventHandle != NULL)
+        {
+            PlatformResetEvent(g_KernelSyncronizationObjectsHandleTable[i].EventHandle);
+        }
+    }
+}
+
+/**
+ * @brief Check whether the reply of a finished wait arrived
+ *
+ * @param KernelSyncObjectId
+ * @return BOOLEAN FALSE if the wait ended without a reply
+ */
+static BOOLEAN
+KdReplyArrived(UINT32 KernelSyncObjectId)
+{
+    g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId].IsOnWaitingState = FALSE;
+
+    if (g_KdReplyLost[KernelSyncObjectId])
+    {
+        if (KernelSyncObjectId == DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD)
+        {
+            KdCancelUsbSymbolPass();
+        }
+        g_KdReplyLost[KernelSyncObjectId] = FALSE;
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Read a clock in seconds for the USB time limits
+ * @details Uses the performance counter when available and otherwise uses system time.
+ *
+ * @return UINT64
+ */
+static UINT64
+KdDbcGetSeconds()
+{
+    LARGE_INTEGER Counter   = {0};
+    LARGE_INTEGER Frequency = {0};
+
+    if (!PlatformQueryPerformanceFrequency(&Frequency) || Frequency.QuadPart == 0 ||
+        !PlatformQueryPerformanceCounter(&Counter))
+    {
+        return (UINT64)time(NULL);
+    }
+
+    return (UINT64)(Counter.QuadPart / Frequency.QuadPart);
+}
+
+/**
+ * @brief Capture USB stream continuity at the start packet or a reload request
+ *
+ * @param NewSession TRUE to replace state from an earlier connection
+ * @return BOOLEAN FALSE if another symbol pass is still pending
+ */
+BOOLEAN
+KdBeginUsbSymbolPass(BOOLEAN NewSession)
+{
+    if (!g_IsDebuggerConnectedToDbc)
+    {
+        return TRUE;
+    }
+
+    std::lock_guard<std::mutex> Lock(g_KdDbcSymbolPassMutex);
+    if (!NewSession && CpuInterlockedCompareExchange64(&g_KdDbcSymbolPassGeneration, 0, 0) != -1)
+    {
+        ShowMessages("err, the previous symbol reload over USB has not finished yet\n");
+        return FALSE;
+    }
+
+    CpuInterlockedExchange64(&g_KdDbcSymbolPassGeneration,
+                             CpuInterlockedCompareExchange64(&g_KdDbcGapGeneration, 0, 0));
+    g_KdReplyLost[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD] = FALSE;
+    if (g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD].EventHandle != NULL)
+    {
+        PlatformResetEvent(g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD].EventHandle);
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Clear a pending USB symbol pass after an aborted wait
+ *
+ * @return BOOLEAN TRUE if a pending pass was cleared
+ */
+BOOLEAN
+KdCancelUsbSymbolPass()
+{
+    if (!g_IsDebuggerConnectedToDbc ||
+        CpuInterlockedCompareExchange64(&g_KdDbcSymbolPassGeneration, 0, 0) == -1)
+    {
+        return FALSE;
+    }
+
+    std::lock_guard<std::mutex> Lock(g_KdDbcSymbolPassMutex);
+    if (CpuInterlockedCompareExchange64(&g_KdDbcSymbolPassGeneration, 0, 0) == -1)
+    {
+        return FALSE;
+    }
+
+    CpuInterlockedExchange64(&g_KdDbcSymbolPassGeneration, -1);
+    g_KdReplyLost[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD] = TRUE;
+
+    return TRUE;
+}
+
+/**
+ * @brief Finish a symbol pass without loading USB symbols across a stream gap
+ *
+ * @param KernelStatus Status in the symbol finish packet
+ * @return VOID
+ */
+VOID
+KdCompleteSymbolReload(UINT64 KernelStatus)
+{
+    BOOLEAN                      Usb = g_IsDebuggerConnectedToDbc;
+    BOOLEAN                      Lost = FALSE;
+    std::unique_lock<std::mutex> Lock(g_KdDbcSymbolPassMutex, std::defer_lock);
+
+    if (Usb)
+    {
+        Lock.lock();
+        INT64 Start = CpuInterlockedCompareExchange64(&g_KdDbcSymbolPassGeneration, 0, 0);
+        if (Start == -1)
+        {
+            Lock.unlock();
+            ShowMessages("err, ignoring a late USB symbol finish with no active reload\n");
+            return;
+        }
+
+        Lost = Start != CpuInterlockedCompareExchange64(&g_KdDbcGapGeneration, 0, 0);
+        CpuInterlockedExchange64(&g_KdDbcSymbolPassGeneration, -1);
+        if (Lost || KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            g_KdReplyLost[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD] = TRUE;
+        }
+        Lock.unlock();
+    }
+
+    if (KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+    {
+        ShowErrorMessage((UINT32)KernelStatus);
+    }
+    else if (Lost)
+    {
+        ShowErrorMessage(DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA);
+    }
+    else
+    {
+        SymbolInitialReload();
+    }
+
+    DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+}
+
+/**
+ * @brief Wait for a reply from the USB debuggee with a time limit
+ * @details The time limit counts only while the reader waits for a byte. CTRL+C
+ * and a closed connection end the wait as a reply does.
+ *
+ * @param KernelSyncObjectId
+ * @param WaitForHandshake Wait without a time limit until a ping is answered
+ * @return BOOLEAN FALSE if no byte arrived within the time limit
+ */
+static BOOLEAN
+KdWaitForUsbReply(UINT32 KernelSyncObjectId, BOOLEAN WaitForHandshake)
+{
+    UINT32 PingsAnswered = g_KdDbcPingsAnswered;
+    HANDLE EventHandle   = g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId].EventHandle;
+    UINT32 WaitResult;
+
+    if (g_SerialConnectionAlreadyClosed || EventHandle == NULL)
+    {
+        return TRUE;
+    }
+
+    g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId].IsOnWaitingState = TRUE;
+
+    while ((WaitResult = PlatformWaitForSingleObject(EventHandle,
+                                                     DBC_DEBUGGER_REPLY_POLL_MS)) == WAIT_TIMEOUT)
+    {
+        if (g_SerialConnectionAlreadyClosed)
+        {
+            break;
+        }
+
+        //
+        // A debuggee that has not started the handshake is not late
+        //
+        if (WaitForHandshake && g_KdDbcPingsAnswered == PingsAnswered)
+        {
+            continue;
+        }
+
+        INT64 ReadStartState = CpuInterlockedCompareExchange64(&g_KdDbcReadStartState, 0, 0);
+        if (ReadStartState > 0)
+        {
+            UINT64 StartTime = (UINT64)(ReadStartState - 1);
+            UINT64 Now       = KdDbcGetSeconds();
+
+            if (Now >= StartTime && Now - StartTime >= DBC_DEBUGGER_REPLY_TIMEOUT_SECONDS)
+            {
+                g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId].IsOnWaitingState = FALSE;
+                if (KernelSyncObjectId == DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD)
+                {
+                    KdCancelUsbSymbolPass();
+                }
+                return FALSE;
+            }
+        }
+    }
+
+    if (WaitResult != WAIT_OBJECT_0 && !g_SerialConnectionAlreadyClosed &&
+        KernelSyncObjectId == DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD)
+    {
+        KdCancelUsbSymbolPass();
+        g_KdReplyLost[KernelSyncObjectId] = TRUE;
+        ShowMessages("err, unable to wait for the symbol details over USB\n");
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Release modules after USB setup fails and retain ownership on failure
+ *
+ * @return VOID
+ */
+static VOID
+KdCleanupFailedUsbSetup()
+{
+    if (!g_IsVmmModuleLoaded || HyperDbgUnloadVmm() == 0)
+    {
+        if (g_IsKdModuleLoaded)
+        {
+            HyperDbgUnloadKd();
+        }
+    }
+
+    g_IsConnectedToHyperDbgLocally = g_DeviceHandle != NULL;
+}
+
+/**
+ * @brief Close a USB connection that has no session yet
+ *
+ * @param Message Error to show
+ * @return VOID
+ */
+static VOID
+KdCloseUsbConnectionBeforeSession(const CHAR * Message)
+{
+    ShowMessages("%s", Message);
+
+    //
+    // No session exists yet, so close the USB connection without a close packet
+    //
+    g_SerialConnectionAlreadyClosed = TRUE;
+    KdUninitializeConnection();
+}
+
+/**
  * @brief Interpret the packets from debuggee in the case of paused
  *
  * @return VOID
@@ -140,6 +503,28 @@ KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
 VOID
 KdInterpretPausedDebuggee()
 {
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        //
+        // Do not wait forever for a USB debuggee that does not answer
+        //
+        g_KdWaitingForUsbPause = TRUE;
+
+        if (!KdWaitForUsbReply(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS, FALSE))
+        {
+            ShowMessages("err, the debuggee did not answer the pause request over USB in %d seconds, "
+                         "the debuggee can still be running (use 'g' and press CTRL+C to try again, "
+                         "or use '.debug close')\n",
+                         DBC_DEBUGGER_REPLY_TIMEOUT_SECONDS);
+
+            g_KdReplyLost[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS] = TRUE;
+        }
+
+        g_KdWaitingForUsbPause = FALSE;
+
+        return;
+    }
+
     //
     // Wait for handshake to complete or in other words
     // get the receive packet
@@ -214,7 +599,7 @@ KdSendSwitchCorePacketToDebuggee(UINT32 NewCore)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT);
 }
 
 /**
@@ -250,7 +635,7 @@ KdSendShortCircuitingEventToDebuggee(BOOLEAN IsEnabled)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE);
 }
 
 /**
@@ -333,7 +718,7 @@ KdSendFlushPacketToDebuggee()
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT);
 }
 
 /**
@@ -368,7 +753,7 @@ KdSendUserCpuidPacketToDebuggee(UINT32 FunctionId, UINT32 SubFunctionId)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_CPUID_RESULT);
 }
 
 /**
@@ -398,7 +783,7 @@ KdSendUserInPacketToDebuggee(DEBUGGER_USER_IN_REQUEST_RESPONSE InRequest)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_IN_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_IN_RESULT);
 }
 
 /**
@@ -428,7 +813,7 @@ KdSendUserOutPacketToDebuggee(DEBUGGER_USER_OUT_REQUEST_RESPONSE OutRequest)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_OUT_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_USER_OUT_RESULT);
 }
 
 /**
@@ -541,7 +926,7 @@ KdSendTestQueryPacketToDebuggee(DEBUGGER_TEST_QUERY_STATE Type)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 }
 
 /**
@@ -577,7 +962,7 @@ KdSendTestQueryPacketWithContextToDebuggee(DEBUGGER_TEST_QUERY_STATE Type, UINT6
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 }
 
 /**
@@ -590,6 +975,11 @@ KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId)
 {
     DEBUGGEE_SYMBOL_REQUEST_PACKET SymbolRequest = {0};
 
+    if (g_IsDebuggerConnectedToDbc && !KdBeginUsbSymbolPass(FALSE))
+    {
+        return FALSE;
+    }
+
     SymbolRequest.ProcessId = ProcessId;
 
     //
@@ -601,15 +991,29 @@ KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId)
             (CHAR *)&SymbolRequest,
             sizeof(DEBUGGEE_SYMBOL_REQUEST_PACKET)))
     {
+        KdCancelUsbSymbolPass();
         return FALSE;
     }
 
     //
     // Wait until all of the symbol packets are received
     //
-    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        if (!KdWaitForUsbReply(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD, FALSE))
+        {
+            ShowMessages("err, the symbol details from the debuggee did not arrive over USB in %d seconds\n",
+                         DBC_DEBUGGER_REPLY_TIMEOUT_SECONDS);
+            KdCancelUsbSymbolPass();
+            return FALSE;
+        }
+    }
+    else
+    {
+        DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+    }
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
 }
 
 /**
@@ -645,7 +1049,7 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes, U
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
 }
 
 /**
@@ -679,7 +1083,7 @@ KdSendWriteRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_WRITE_DESCRIPTION RegDes)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_WRITE_REGISTER);
 }
 
 /**
@@ -715,7 +1119,7 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem, UINT32 RequestSi
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 }
 
 /**
@@ -750,7 +1154,7 @@ KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY);
 }
 
 /**
@@ -937,7 +1341,7 @@ KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Act
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT);
 }
 
 /**
@@ -990,7 +1394,7 @@ KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE Actio
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_THREAD_SWITCHING_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_THREAD_SWITCHING_RESULT);
 }
 
 /**
@@ -1019,7 +1423,7 @@ KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
 }
 
 /**
@@ -1048,7 +1452,7 @@ KdSendPageinPacketToDebuggee(PDEBUGGER_PAGE_IN_REQUEST PageinPacket)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAGE_IN_STATE);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAGE_IN_STATE);
 }
 
 /**
@@ -1077,7 +1481,7 @@ KdSendVa2paAndPa2vaPacketToDebuggee(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paAndP
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT);
 }
 
 /**
@@ -1113,7 +1517,7 @@ KdSendApicActionPacketsToDebuggee(PDEBUGGER_APIC_REQUEST ApicRequest, UINT32 Exp
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_APIC_ACTIONS);
 }
 
 /**
@@ -1148,7 +1552,7 @@ KdSendSmiPacketsToDebuggee(PSMI_OPERATION_PACKETS SmiOperationRequest, UINT32 Ex
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SMI_OPERATION_RESULT);
 }
 
 /**
@@ -1183,7 +1587,7 @@ KdSendHyperTraceLbrdumpPacketsToDebuggee(PHYPERTRACE_LBR_DUMP_PACKETS HyperTrace
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_LBR_DUMP_RESULT);
 }
 
 /**
@@ -1218,7 +1622,7 @@ KdSendHyperTracePtPacketsToDebuggee(PHYPERTRACE_PT_OPERATION_PACKETS HyperTraceP
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_HYPERTRACE_PT_OPERATION_RESULT);
 }
 
 /**
@@ -1252,7 +1656,7 @@ KdSendQueryIdtPacketsToDebuggee(PINTERRUPT_DESCRIPTOR_TABLE_ENTRIES_PACKETS IdtR
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IDT_ENTRIES);
 }
 
 /**
@@ -1281,7 +1685,7 @@ KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP);
 }
 
 /**
@@ -1311,7 +1715,7 @@ KdSendListOrModifyPacketToDebuggee(
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_LIST_OR_MODIFY_BREAKPOINTS);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_LIST_OR_MODIFY_BREAKPOINTS);
 }
 
 /**
@@ -1465,7 +1869,7 @@ KdSendSearchRequestPacketToDebuggee(UINT64 * SearchRequestBuffer, UINT32 SearchR
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT);
 }
 
 /**
@@ -1544,7 +1948,18 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType)
     //
     // Wait until the result of user-input received
     //
+    g_KdWaitingForStep = TRUE;
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
+    g_KdWaitingForStep = FALSE;
+
+    //
+    // After a lost step reply the debuggee most likely waits for commands again
+    //
+    if (!KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING))
+    {
+        g_IsDebuggeeRunning = FALSE;
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -1571,6 +1986,14 @@ KdSendPausePacketToDebuggee()
     // Handle the paused state (show rip, instructions, etc.)
     //
     KdInterpretPausedDebuggee();
+
+    //
+    // A paused debuggee ignores another pause request, so treat a lost reply as a pause
+    //
+    if (!KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS))
+    {
+        g_IsDebuggeeRunning = FALSE;
+    }
 
     return TRUE;
 }
@@ -1676,6 +2099,26 @@ static BOOLEAN g_KdSerialReceiverDesyncReported = FALSE;
 static BOOLEAN
 KdReadByteFromDebuggeeSerial(CHAR * ReadData, DWORD * NoBytesRead)
 {
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        BOOLEAN Result;
+
+        //
+        // The time limits of the debugger count only while the reader waits
+        //
+        CpuInterlockedExchange64(&g_KdDbcReadStartState, (INT64)(KdDbcGetSeconds() + 1));
+
+        Result = DbcReadByte(g_SerialRemoteComPortHandle, ReadData, NoBytesRead);
+
+        CpuInterlockedExchange64(&g_KdDbcReadStartState, 0);
+        if (Result && *NoBytesRead == 0)
+        {
+            CpuInterlockedIncrement64(&g_KdDbcGapGeneration);
+        }
+
+        return Result;
+    }
+
 #ifdef _WIN32
     //
     // Try to read one byte in overlapped I/O (in debugger)
@@ -1722,6 +2165,126 @@ KdReadByteFromDebuggeeSerial(CHAR * ReadData, DWORD * NoBytesRead)
 }
 
 /**
+ * @brief Send USB handshake bytes to the debugger through the driver
+ *
+ * @param Buffer Bytes to send
+ * @param Length Number of bytes to send
+ *
+ * @return BOOLEAN
+ */
+static BOOLEAN
+KdSendHandshakeBytesToDebuggerDbc(const CHAR * Buffer, UINT32 Length)
+{
+    DEBUGGEE_DBC_HANDSHAKE_PACKET HandshakePacket = {0};
+    ULONG                         ReturnedLength  = 0;
+    UINT32                        Offset          = 0;
+    UINT32                        ChunkSize       = 0;
+
+    while (Offset < Length)
+    {
+        ChunkSize = Length - Offset;
+
+        if (ChunkSize > DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE)
+        {
+            ChunkSize = DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE;
+        }
+
+        PlatformZeroMemory(&HandshakePacket, SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET);
+
+        //
+        // Reset DbC on the first request
+        //
+        HandshakePacket.ResetConnection = g_DebuggeeDbcResetConnection;
+        HandshakePacket.SendLength      = ChunkSize;
+        memcpy(HandshakePacket.SendBuffer, Buffer + Offset, ChunkSize);
+
+        g_DebuggeeDbcResetConnection = FALSE;
+
+        if (!PlatformDeviceIoControl(g_DeviceHandle,
+                                     IOCTL_DEBUGGEE_DBC_HANDSHAKE,
+                                     &HandshakePacket,
+                                     SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                     &HandshakePacket,
+                                     SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                     &ReturnedLength,
+                                     NULL) ||
+            HandshakePacket.Result != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            return FALSE;
+        }
+
+        Offset += ChunkSize;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Read one USB handshake byte from the debugger
+ *
+ * @details Return TRUE with no bytes if the read times out.
+ *
+ * @param ReadData Receives the byte that was read
+ * @param NoBytesRead Receives the number of bytes read
+ *
+ * @return BOOLEAN
+ */
+static BOOLEAN
+KdReadHandshakeByteFromDebuggerDbc(CHAR * ReadData, DWORD * NoBytesRead)
+{
+    ULONG  ReturnedLength = 0;
+    UINT64 StartTime      = KdDbcGetSeconds();
+
+    *ReadData    = NULL_ZERO;
+    *NoBytesRead = 0;
+
+    while (g_DebuggeeDbcHandshakePosition >= g_DebuggeeDbcHandshakePacket.ReceiveLength)
+    {
+        //
+        // Stop at the end of the whole handshake time too, so that one attempt cannot exceed it
+        //
+        if (KdDbcGetSeconds() - StartTime >= DBC_DEBUGGEE_HANDSHAKE_READ_TIMEOUT_SECONDS ||
+            KdDbcGetSeconds() - g_DebuggeeDbcHandshakeStartTime >= DBC_DEBUGGEE_HANDSHAKE_TIMEOUT_SECONDS)
+        {
+            return TRUE;
+        }
+
+        PlatformZeroMemory(&g_DebuggeeDbcHandshakePacket, SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET);
+        g_DebuggeeDbcHandshakePosition = 0;
+
+        if (!PlatformDeviceIoControl(g_DeviceHandle,
+                                     IOCTL_DEBUGGEE_DBC_HANDSHAKE,
+                                     &g_DebuggeeDbcHandshakePacket,
+                                     SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                     &g_DebuggeeDbcHandshakePacket,
+                                     SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET,
+                                     &ReturnedLength,
+                                     NULL) ||
+            g_DebuggeeDbcHandshakePacket.Result != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            g_DebuggeeDbcHandshakePacket.ReceiveLength = 0;
+            return FALSE;
+        }
+
+        if (g_DebuggeeDbcHandshakePacket.ReceiveLength > DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE)
+        {
+            g_DebuggeeDbcHandshakePacket.ReceiveLength = DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE;
+        }
+
+        if (g_DebuggeeDbcHandshakePacket.ReceiveLength == 0)
+        {
+            PlatformSleep(DBC_DEBUGGEE_POLL_INTERVAL_MS);
+        }
+    }
+
+    *ReadData = (CHAR)g_DebuggeeDbcHandshakePacket.ReceiveBuffer[g_DebuggeeDbcHandshakePosition];
+    g_DebuggeeDbcHandshakePosition++;
+    *NoBytesRead = sizeof(CHAR);
+
+    return TRUE;
+}
+
+/**
  * @brief Read a single byte from the debugger over the serial link
  *
  * @details Debuggee-side counterpart of KdReadByteFromDebuggeeSerial(); reads
@@ -1736,6 +2299,11 @@ KdReadByteFromDebuggeeSerial(CHAR * ReadData, DWORD * NoBytesRead)
 static BOOLEAN
 KdReadByteFromDebuggerSerial(CHAR * ReadData, DWORD * NoBytesRead)
 {
+    if (g_IsDebuggeeDbcInHandshakingPhase)
+    {
+        return KdReadHandshakeByteFromDebuggerDbc(ReadData, NoBytesRead);
+    }
+
 #ifdef _WIN32
     //
     // Try to read one byte in overlapped I/O (in debuggee)
@@ -1780,6 +2348,68 @@ KdReadByteFromDebuggerSerial(CHAR * ReadData, DWORD * NoBytesRead)
                                   NoBytesRead,
                                   PLATFORM_SERIAL_IO_DEBUGGEE);
 #endif // _WIN32
+}
+
+/**
+ * @brief Read one USB byte from the debugger
+ *
+ * @details Fetch a block from the driver when the receive buffer is empty.
+ * Return FALSE if the connection closes or the driver read fails.
+ *
+ * @param ReadData Receives the byte that was read
+ * @param NoBytesRead Receives the number of bytes read
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdReadByteFromDebuggeeDbc(CHAR * ReadData, DWORD * NoBytesRead)
+{
+    ULONG   ReturnedLength = 0;
+    BOOLEAN StatusIoctl    = FALSE;
+
+    while (g_DebuggeeDbcReceivePosition >= g_DebuggeeDbcReceivePacket.Length)
+    {
+        if (!g_IsDebuggeeConnectedToDbc || g_SerialConnectionAlreadyClosed || !g_DeviceHandle)
+        {
+            *NoBytesRead = 0;
+            return FALSE;
+        }
+
+        g_DebuggeeDbcReceivePacket.Result = 0;
+        g_DebuggeeDbcReceivePacket.Length = 0;
+        g_DebuggeeDbcReceivePosition      = 0;
+
+        StatusIoctl = PlatformDeviceIoControl(g_DeviceHandle,
+                                              IOCTL_DEBUGGEE_DBC_RECEIVE,
+                                              &g_DebuggeeDbcReceivePacket,
+                                              SIZEOF_DEBUGGEE_DBC_RECEIVE_PACKET,
+                                              &g_DebuggeeDbcReceivePacket,
+                                              SIZEOF_DEBUGGEE_DBC_RECEIVE_PACKET,
+                                              &ReturnedLength,
+                                              NULL);
+
+        if (!StatusIoctl || g_DebuggeeDbcReceivePacket.Result != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
+        {
+            *NoBytesRead = 0;
+            return FALSE;
+        }
+
+        if (g_DebuggeeDbcReceivePacket.Length > DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE)
+        {
+            g_DebuggeeDbcReceivePacket.Length = DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE;
+        }
+
+        if (g_DebuggeeDbcReceivePacket.Length == 0)
+        {
+            PlatformSleep(5);
+        }
+    }
+
+    *ReadData = (CHAR)g_DebuggeeDbcReceivePacket.Buffer[g_DebuggeeDbcReceivePosition];
+    g_DebuggeeDbcReceivePosition++;
+    *NoBytesRead = sizeof(CHAR);
+
+    return TRUE;
 }
 
 /**
@@ -1829,17 +2459,24 @@ KdResyncStreamToNextFrame(DEBUGGER_PACKET_RESYNC_ENUM ReSyncType)
         }
         else if (ReSyncType == DEBUGGER_PACKET_RESYNC_LISTENING)
         {
+            if (g_IsDebuggeeConnectedToDbc)
+            {
+                Status = KdReadByteFromDebuggeeDbc(&ReadData, &NoBytesRead);
+            }
+            else
+            {
 #ifdef _WIN32
-            Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
+                Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
 #else
-            //
-            // Linux: read one byte through the cross-platform serial transport
-            //
-            Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle,
-                                            &ReadData,
-                                            &NoBytesRead,
-                                            PLATFORM_SERIAL_IO_DEBUGGEE);
+                //
+                // Linux: read one byte through the cross-platform serial transport
+                //
+                Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                                &ReadData,
+                                                &NoBytesRead,
+                                                PLATFORM_SERIAL_IO_DEBUGGEE);
 #endif // _WIN32
+            }
 
             if (!Status)
             {
@@ -1917,6 +2554,21 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
         if (!KdReadByteFromDebuggeeSerial(&ReadData, &NoBytesRead))
         {
             return FALSE;
+        }
+
+        //
+        // A USB read with no bytes means that the device was lost with the packet in progress
+        //
+        if (NoBytesRead == 0 && g_IsDebuggerConnectedToDbc)
+        {
+            KdStopWaitingForReplies("err, the reply from the debuggee was lost because the USB debug device disconnected\n");
+
+            //
+            // Drop the partial packet and keep reading
+            //
+            Loop        = 0;
+            NoBytesRead = 1;
+            continue;
         }
 
         //
@@ -2111,12 +2763,45 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
     }
 
     //
+    // USB handshake packets bypass the serial handle
+    //
+    if (g_IsDebuggeeDbcInHandshakingPhase)
+    {
+        if (!KdSendHandshakeBytesToDebuggerDbc(Buffer, Length))
+        {
+            return FALSE;
+        }
+
+        goto Out;
+    }
+
+    //
     // Check if the remote code's handle found or not
     //
     if (g_SerialRemoteComPortHandle == NULL)
     {
         ShowMessages("err, handle to remote debuggee's com port is not found\n");
         return FALSE;
+    }
+
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        //
+        // No reply to this packet exists yet, so any signal left now is from a late reply
+        //
+        KdDropLateReplies();
+
+        if (!DbcWrite(g_SerialRemoteComPortHandle, Buffer, Length))
+        {
+            if (!g_SerialConnectionAlreadyClosed)
+            {
+                ShowMessages("err, unable to send to the USB debug device\n");
+            }
+
+            return FALSE;
+        }
+
+        goto Out;
     }
 
 #ifdef _WIN32
@@ -2346,6 +3031,26 @@ KdCommandPacketAndBufferToDebuggee(
 VOID
 KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag)
 {
+    if (KdCancelUsbSymbolPass())
+    {
+        ShowMessages("stopped waiting for the symbol details over USB\n");
+        DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+        return;
+    }
+
+    //
+    // A second CTRL+C stops waiting for the USB pause reply
+    //
+    if (g_IsDebuggerConnectedToDbc && g_KdWaitingForUsbPause)
+    {
+        ShowMessages("stopped waiting for the pause reply\n");
+
+        g_KdReplyLost[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS] = TRUE;
+        DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS);
+
+        return;
+    }
+
     //
     // Check if debuggee is running, otherwise the user
     // pressed CTRL+C multiple times
@@ -2355,7 +3060,9 @@ KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag)
         //
         // Send the pause request to the remote computer
         //
-        if (!KdSendPausePacketToDebuggee())
+        BOOLEAN Paused = KdSendPausePacketToDebuggee();
+
+        if (!Paused)
         {
             ShowMessages("err, unable to pause the debuggee\n");
         }
@@ -2367,7 +3074,43 @@ KdBreakControlCheckAndPauseDebugger(BOOLEAN SignalRunningFlag)
         {
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
         }
+
+        //
+        // After a failed USB pause the prompt returns while the debuggee runs
+        // A running debuggee does not answer commands, so stop waiting for them
+        //
+        if (Paused && g_IsDebuggerConnectedToDbc)
+        {
+            KdStopWaitingForReplies("err, the debuggee was running and did not run the command\n");
+        }
     }
+}
+
+/**
+ * @brief Stop waiting for a USB debuggee that has not connected yet
+ *
+ * @return VOID
+ */
+VOID
+KdBreakControlStopWaitingForUsbDebuggee()
+{
+    if (!g_IsDebuggerConnectedToDbc || g_IsSerialConnectedToRemoteDebuggee ||
+        g_SerialConnectionAlreadyClosed || g_KdDbcSetupStopRequested)
+    {
+        return;
+    }
+
+    g_KdDbcSetupStopRequested = TRUE;
+
+    ShowMessages("stopped waiting for the debuggee\n");
+
+    //
+    // Wake the setup wait so the main thread closes the USB connection
+    //
+    g_SerialConnectionAlreadyClosed = TRUE;
+    KdCancelUsbSymbolPass();
+    DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED);
+    DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
 }
 
 /**
@@ -2465,6 +3208,8 @@ KdSendResponseOfThePingPacket()
         return FALSE;
     }
 
+    g_KdDbcPingsAnswered++;
+
     return TRUE;
 }
 
@@ -2513,7 +3258,7 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     ShowMessages("waiting for debuggee to connect...\n");
 
-    if (!IsNamedPipe)
+    if (!IsNamedPipe && !g_IsDebuggerConnectedToDbc)
     {
 #ifdef _WIN32
         //
@@ -2568,6 +3313,8 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     // Create the listening thread in debugger
     //
+    CpuInterlockedExchange64(&g_KdDbcReadStartState, 0);
+    g_KdDbcSetupStopRequested = FALSE;
 
     g_SerialListeningThreadHandle =
         PlatformCreateThread(ListeningSerialPauseDebuggerThread, NULL);
@@ -2575,7 +3322,33 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     // Wait for the 'Start' packet on the listener side
     //
-    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED);
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        if (!KdWaitForUsbReply(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED, TRUE))
+        {
+            ShowMessages("err, the debuggee answered the handshake but its start packet did not arrive over USB "
+                         "in %d seconds\n",
+                         DBC_DEBUGGER_REPLY_TIMEOUT_SECONDS);
+
+            KdCloseUsbConnectionBeforeSession("the connection is closed, run '.debug prepare usb' on the debuggee "
+                                              "and '.debug remote usb' here again\n");
+            return FALSE;
+        }
+
+        if (g_SerialConnectionAlreadyClosed)
+        {
+            if (g_KdDbcSetupStopRequested)
+            {
+                KdUninitializeConnection();
+            }
+
+            return FALSE;
+        }
+    }
+    else
+    {
+        DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED);
+    }
 
     //
     // Check to make sure the connection not close before starting a session
@@ -2583,9 +3356,9 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     if (!g_SerialConnectionAlreadyClosed)
     {
         //
-        // Ignore handling breaks
+        // Ignore handling breaks, but let CTRL+C stop the USB wait
         //
-        g_IgnorePauseRequests = TRUE;
+        g_IgnorePauseRequests = !g_IsDebuggerConnectedToDbc;
 
         //
         // The next step is getting symbol details
@@ -2595,7 +3368,57 @@ KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
         //
         // Wait to receive symbol details
         //
-        DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+        if (g_IsDebuggerConnectedToDbc)
+        {
+            BOOLEAN WaitFinished = KdWaitForUsbReply(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD, FALSE);
+            BOOLEAN ReplyArrived = KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+
+            if (g_SerialConnectionAlreadyClosed)
+            {
+                //
+                // CTRL+C or the debuggee closed the connection
+                //
+                if (g_KdDbcSetupStopRequested)
+                {
+                    KdUninitializeConnection();
+                }
+
+                return FALSE;
+            }
+
+            if (!WaitFinished || !ReplyArrived)
+            {
+                if (!WaitFinished)
+                {
+                    ShowMessages("err, the symbol details from the debuggee did not arrive over USB in %d seconds\n",
+                                 DBC_DEBUGGER_REPLY_TIMEOUT_SECONDS);
+                }
+
+                KdCloseUsbConnectionBeforeSession("the connection is closed, run '.debug prepare usb' on the debuggee "
+                                                  "and '.debug remote usb' here again\n");
+                return FALSE;
+            }
+
+            //
+            // Ignore CTRL+C until the session state is set
+            //
+            g_IgnorePauseRequests = TRUE;
+
+            if (g_SerialConnectionAlreadyClosed)
+            {
+                if (g_KdDbcSetupStopRequested)
+                {
+                    KdUninitializeConnection();
+                }
+
+                g_IgnorePauseRequests = FALSE;
+                return FALSE;
+            }
+        }
+        else
+        {
+            DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+        }
 
         //
         // Connected to the debuggee
@@ -2687,6 +3510,12 @@ StartAgain:
     //
     if (!KdReceivePacketFromDebugger(BufferToReceive, &LengthReceived))
     {
+        if (g_IsDebuggeeDbcInHandshakingPhase)
+        {
+            ShowMessages("err, unable to read the USB handshake\n");
+            return FALSE;
+        }
+
         if (LengthReceived == 0 && BufferToReceive[0] == NULL)
         {
             //
@@ -2708,6 +3537,15 @@ StartAgain:
     //
     if (LengthReceived == 1 && BufferToReceive[0] == NULL)
     {
+        if (g_IsDebuggeeDbcInHandshakingPhase &&
+            KdDbcGetSeconds() - g_DebuggeeDbcHandshakeStartTime >= DBC_DEBUGGEE_HANDSHAKE_TIMEOUT_SECONDS)
+        {
+            ShowMessages("err, no USB reply in %d seconds.\n"
+                         "Run '.debug remote usb' on the debugger. Then retry '.debug prepare usb'.\n",
+                         DBC_DEBUGGEE_HANDSHAKE_TIMEOUT_SECONDS);
+            return FALSE;
+        }
+
         ShowMessages("is the debugger listening? retry handshaking with the debugger... (timeout: 5 seconds)\n");
         goto StartAgain;
     }
@@ -2798,6 +3636,16 @@ StartAgain:
 static BOOLEAN
 KdCloseSerialHandle(HANDLE Handle)
 {
+    if (Handle == NULL)
+    {
+        return TRUE;
+    }
+
+    if (g_IsDebuggerConnectedToDbc)
+    {
+        return DbcClose(Handle);
+    }
+
 #ifdef _WIN32
     return PlatformCloseHandle(Handle);
 #else
@@ -2833,8 +3681,11 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
     CHAR         PortNo[20]   = {0}; /* contain friendly name */
 #endif                               // _WIN32
     BOOLEAN                    StatusIoctl;
+    BOOLEAN                    SymbolsSent;
     ULONG                      ReturnedLength;
     PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest;
+    BOOLEAN                    IsDebuggeeDbc = IsPreparing && Port == SERIAL_PORT_DBC;
+    BOOLEAN                    IsDebuggerDbc = !IsPreparing && Port == SERIAL_PORT_DBC;
 
     //
     // Check if the debugger or debuggee is already active
@@ -2850,7 +3701,23 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         return FALSE;
     }
 
-    if (!IsNamedPipe)
+    if (IsDebuggeeDbc)
+    {
+        //
+        // The driver owns DbC on the debuggee
+        //
+        Comm = NULL;
+    }
+    else if (IsDebuggerDbc)
+    {
+        Comm = DbcConnect();
+
+        if (Comm == NULL)
+        {
+            return FALSE;
+        }
+    }
+    else if (!IsNamedPipe)
     {
 #ifdef _WIN32
         //
@@ -3019,32 +3886,35 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         //
 
         //
-        // We entered the handshaking phase
-        //
-        g_IsDebuggeeInHandshakingPhase = TRUE;
-
-        //
         // Set handle to serial device
         //
         g_SerialRemoteComPortHandle = Comm;
 
         //
-        // Check if debuggee is listening before loading module
+        // Start the serial handshake before the driver loads
         //
-        if (!KdCheckIfDebuggerIsListening(Comm))
+        if (!IsDebuggeeDbc)
         {
-            KdCloseSerialHandle(Comm);
-            g_SerialRemoteComPortHandle    = NULL;
-            g_IsDebuggeeInHandshakingPhase = FALSE;
+            //
+            // We entered the handshaking phase
+            //
+            g_IsDebuggeeInHandshakingPhase = TRUE;
 
-            return FALSE;
-        }
-        else
-        {
-            //
-            // Not in handshaking phase anymore (The handshaking phase was successful)
-            //
-            g_IsDebuggeeInHandshakingPhase = FALSE;
+            if (!KdCheckIfDebuggerIsListening(Comm))
+            {
+                KdCloseSerialHandle(Comm);
+                g_SerialRemoteComPortHandle    = NULL;
+                g_IsDebuggeeInHandshakingPhase = FALSE;
+
+                return FALSE;
+            }
+            else
+            {
+                //
+                // Not in handshaking phase anymore (The handshaking phase was successful)
+                //
+                g_IsDebuggeeInHandshakingPhase = FALSE;
+            }
         }
 
         //
@@ -3059,8 +3929,16 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         if (HyperDbgInstallKdDriver() == 1 || HyperDbgLoadVmmModule() == 1)
         {
             KdCloseSerialHandle(Comm);
-            g_SerialRemoteComPortHandle    = NULL;
-            g_IsConnectedToHyperDbgLocally = FALSE;
+            g_SerialRemoteComPortHandle = NULL;
+
+            if (IsDebuggeeDbc)
+            {
+                KdCleanupFailedUsbSetup();
+            }
+            else
+            {
+                g_IsConnectedToHyperDbgLocally = FALSE;
+            }
 
             ShowMessages("failed to install or load the driver\n");
             return FALSE;
@@ -3080,6 +3958,39 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         }
 
         //
+        // The USB handshake needs the driver
+        //
+        if (IsDebuggeeDbc)
+        {
+            g_IsDebuggeeInHandshakingPhase             = TRUE;
+            g_IsDebuggeeDbcInHandshakingPhase          = TRUE;
+            g_DebuggeeDbcResetConnection               = TRUE;
+            g_DebuggeeDbcHandshakeStartTime            = KdDbcGetSeconds();
+            g_DebuggeeDbcHandshakePosition             = 0;
+            g_DebuggeeDbcHandshakePacket.ReceiveLength = 0;
+
+            if (!KdCheckIfDebuggerIsListening(Comm))
+            {
+                g_IsDebuggeeInHandshakingPhase    = FALSE;
+                g_IsDebuggeeDbcInHandshakingPhase = FALSE;
+
+                //
+                // Release the driver so '.debug prepare usb' can run again
+                //
+                KdCleanupFailedUsbSetup();
+
+                g_SerialRemoteComPortHandle = NULL;
+
+                return FALSE;
+            }
+            else
+            {
+                g_IsDebuggeeInHandshakingPhase    = FALSE;
+                g_IsDebuggeeDbcInHandshakingPhase = FALSE;
+            }
+        }
+
+        //
         // Allocate buffer
         //
         DebuggeeRequest =
@@ -3088,10 +3999,19 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         if (DebuggeeRequest == NULL)
         {
             KdCloseSerialHandle(Comm);
-            g_SerialRemoteComPortHandle    = NULL;
-            g_IsConnectedToHyperDbgLocally = FALSE;
+            g_SerialRemoteComPortHandle = NULL;
 
             ShowMessages("err, unable to allocate memory for request packet");
+
+            if (IsDebuggeeDbc)
+            {
+                KdCleanupFailedUsbSetup();
+            }
+            else
+            {
+                g_IsConnectedToHyperDbgLocally = FALSE;
+            }
+
             return FALSE;
         }
 
@@ -3138,8 +4058,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         if (!StatusIoctl)
         {
             KdCloseSerialHandle(Comm);
-            g_SerialRemoteComPortHandle    = NULL;
-            g_IsConnectedToHyperDbgLocally = FALSE;
+            g_SerialRemoteComPortHandle = NULL;
 
             ShowMessages("ioctl failed with code 0x%x\n", PlatformGetLastError());
 
@@ -3147,6 +4066,15 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
             // Free the buffer
             //
             free(DebuggeeRequest);
+
+            if (IsDebuggeeDbc)
+            {
+                KdCleanupFailedUsbSetup();
+            }
+            else
+            {
+                g_IsConnectedToHyperDbgLocally = FALSE;
+            }
 
             return FALSE;
         }
@@ -3164,15 +4092,42 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
             ShowMessages("synchronizing modules' symbol details\n");
 
             //
+            // Record failures while the USB debuggee queues the symbol details
+            //
+            g_DebuggeeDbcSendingSymbols = IsDebuggeeDbc;
+            g_DebuggeeDbcSymbolsFailed  = FALSE;
+
+            //
             // Do not pause debugger after finish
             //
-            KdReloadSymbolsInDebuggee(FALSE, PlatformGetCurrentProcessId());
+            SymbolsSent = KdReloadSymbolsInDebuggee(FALSE, PlatformGetCurrentProcessId());
+
+            g_DebuggeeDbcSendingSymbols = FALSE;
+            g_DebuggeeDbcSymbolsFailed  = FALSE;
+
+            if (IsDebuggeeDbc && !SymbolsSent)
+            {
+                g_IgnorePauseRequests = FALSE;
+
+                ShowMessages("err, the debugger did not receive the symbol details over USB, "
+                             "the connection is closed, you can run '.debug prepare usb' again\n");
+
+                free(DebuggeeRequest);
+
+                //
+                // Release the driver so '.debug prepare usb' can run again
+                //
+                KdCleanupFailedUsbSetup();
+
+                g_SerialRemoteComPortHandle = NULL;
+
+                return FALSE;
+            }
         }
         else
         {
             KdCloseSerialHandle(Comm);
-            g_SerialRemoteComPortHandle    = NULL;
-            g_IsConnectedToHyperDbgLocally = FALSE;
+            g_SerialRemoteComPortHandle = NULL;
 
             ShowErrorMessage(DebuggeeRequest->Result);
 
@@ -3180,6 +4135,20 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
             // Free the buffer
             //
             free(DebuggeeRequest);
+
+            //
+            // Release the driver so '.debug prepare usb' can run again
+            //
+            if (IsDebuggeeDbc)
+            {
+                ShowMessages("the connection is closed, you can run '.debug prepare usb' again\n");
+
+                KdCleanupFailedUsbSetup();
+            }
+            else
+            {
+                g_IsConnectedToHyperDbgLocally = FALSE;
+            }
 
             return FALSE;
         }
@@ -3201,6 +4170,9 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         // Indicate that we connected to the debugger
         //
         g_IsSerialConnectedToRemoteDebugger = TRUE;
+        g_DebuggeeDbcReceivePacket.Length   = 0;
+        g_DebuggeeDbcReceivePosition        = 0;
+        g_IsDebuggeeConnectedToDbc          = IsDebuggeeDbc;
 
         //
         // Free the buffer
@@ -3256,6 +4228,7 @@ KdPrepareAndConnectDebugPort(const CHAR * PortName,
         // Save the handler
         //
         g_SerialRemoteComPortHandle = Comm;
+        g_IsDebuggerConnectedToDbc  = IsDebuggerDbc;
 
         //
         // If we are here, then it's a debugger (not debuggee)
@@ -3361,7 +4334,17 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
     if (GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult !=
         DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
-        ShowErrorMessage(GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult);
+        if (GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult == DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA)
+        {
+            //
+            // Report the USB error locally instead of sending another USB packet
+            //
+            printf("err, the debugger did not receive USB data\n");
+        }
+        else
+        {
+            ShowErrorMessage(GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult);
+        }
 
         //
         // Free the buffer
@@ -3387,6 +4370,9 @@ BOOLEAN
 KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId)
 {
     DEBUGGEE_SYMBOL_UPDATE_RESULT SymReload = {0};
+    BOOLEAN                       WasSendingSymbols = g_DebuggeeDbcSendingSymbols;
+    BOOLEAN                       SymbolsFailed;
+    BOOLEAN                       FinishSent;
 
     //
     // In kernel debugger, if the process id is not specified
@@ -3398,23 +4384,45 @@ KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId)
     }
 
     //
+    // Capture a failed symbol update during setup or an ordinary USB reload
+    //
+    g_DebuggeeDbcSendingSymbols = WasSendingSymbols || g_IsDebuggeeConnectedToDbc;
+    if (g_DebuggeeDbcSendingSymbols)
+    {
+        g_DebuggeeDbcSymbolsFailed = FALSE;
+    }
+
+    //
     // Request debuggee to send new symbol packets
     //
     SymbolPrepareDebuggerWithSymbolInfo(UserProcessId);
 
+    SymbolsFailed              = g_DebuggeeDbcSendingSymbols && g_DebuggeeDbcSymbolsFailed;
+    g_DebuggeeDbcSendingSymbols = WasSendingSymbols;
+
+    //
+    // Setup closes the connection on failure without a finish packet
+    //
+    if (SymbolsFailed && WasSendingSymbols)
+    {
+        return FALSE;
+    }
+
     //
     // Set the status
     //
-    SymReload.KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+    SymReload.KernelStatus = SymbolsFailed ? DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA : DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     //
     // Send the finished request packet
     //
-    return KdSendGeneralBuffersFromDebuggeeToDebugger(
+    FinishSent = KdSendGeneralBuffersFromDebuggeeToDebugger(
         DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED,
         &SymReload,
         sizeof(DEBUGGEE_SYMBOL_UPDATE_RESULT),
         PauseDebuggee);
+
+    return FinishSent && !SymbolsFailed;
 }
 
 /**
@@ -3427,6 +4435,8 @@ KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId)
 BOOLEAN
 KdCloseConnection()
 {
+    KdCancelUsbSymbolPass();
+
     //
     // The process of closing connection already started
     //
@@ -3454,13 +4464,24 @@ KdCloseConnection()
             g_IsSerialConnectedToRemoteDebugger = FALSE;
 
             //
-            // Unload VMM
+            // Close the KD device handle so the next .debug prepare can run
             //
-            HyperDbgUnloadVmm();
+            if (HyperDbgUnloadVmm() == 0)
+            {
+                HyperDbgUnloadKd();
+            }
         }
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
     {
+        //
+        // A running USB debuggee reads only pause requests, so pause it before the close packet
+        //
+        if (g_IsDebuggerConnectedToDbc && g_IsDebuggeeRunning)
+        {
+            KdSendPausePacketToDebuggee();
+        }
+
         //
         // Send close & unload packet to debuggee (vmx-root)
         //
@@ -3781,6 +4802,14 @@ KdSendUsermodePrints(CHAR * Input, UINT32 Length)
         return;
     }
 
+    if (UsermodeMessageRequest->KernelStatus == DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA)
+    {
+        //
+        // Report the USB error locally instead of sending another USB packet
+        //
+        printf("err, the debugger did not receive USB data\n");
+    }
+
     free(UsermodeMessageRequest);
 }
 
@@ -3797,6 +4826,14 @@ KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket, UINT32 Curren
 {
     BOOLEAN                       Result;
     PDEBUGGER_UPDATE_SYMBOL_TABLE UsermodeSymDetailRequest;
+
+    //
+    // Stop queuing USB symbol updates after the first failure
+    //
+    if (g_DebuggeeDbcSendingSymbols && g_DebuggeeDbcSymbolsFailed)
+    {
+        return;
+    }
 
     UsermodeSymDetailRequest =
         (DEBUGGER_UPDATE_SYMBOL_TABLE *)malloc(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE));
@@ -3827,7 +4864,16 @@ KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket, UINT32 Curren
 
     if (!Result)
     {
-        ShowMessages("err, sending symbol packets failed in debuggee");
+        if (g_DebuggeeDbcSendingSymbols)
+        {
+            printf("err, sending symbol packets failed in debuggee\n");
+            g_DebuggeeDbcSymbolsFailed = TRUE;
+        }
+        else
+        {
+            ShowMessages("err, sending symbol packets failed in debuggee");
+        }
+
         free(UsermodeSymDetailRequest);
         return;
     }
@@ -3845,11 +4891,42 @@ KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket, UINT32 Curren
 VOID
 KdUninitializeConnection()
 {
+    HANDLE  ListenerThread = g_SerialListeningThreadHandle;
+    BOOLEAN WasDbc         = g_IsDebuggerConnectedToDbc;
+
+    KdCancelUsbSymbolPass();
+    CpuInterlockedExchange64(&g_KdDbcReadStartState, 0);
+    g_KdDbcSetupStopRequested = FALSE;
+
     //
-    // Close the handles of the listening threads
+    // On USB, close the handle and wait for the listener thread before closing sync events
     //
-    if (g_SerialListeningThreadHandle != NULL)
+    if (WasDbc)
     {
+        if (g_SerialRemoteComPortHandle != NULL)
+        {
+            HANDLE SerialHandle         = g_SerialRemoteComPortHandle;
+            g_SerialRemoteComPortHandle = NULL;
+            KdCloseSerialHandle(SerialHandle);
+        }
+
+        if (ListenerThread != NULL)
+        {
+            g_SerialListeningThreadHandle = NULL;
+#ifdef _WIN32
+            if (GetThreadId(ListenerThread) != GetCurrentThreadId())
+            {
+                WaitForSingleObject(ListenerThread, DBC_DEBUGGER_LISTENER_EXIT_TIMEOUT_MS);
+            }
+#endif // _WIN32
+            PlatformCloseHandle(ListenerThread);
+        }
+    }
+    else if (g_SerialListeningThreadHandle != NULL)
+    {
+        //
+        // Close the handles of the listening threads
+        //
         PlatformCloseHandle(g_SerialListeningThreadHandle);
         g_SerialListeningThreadHandle = NULL;
     }
@@ -3924,6 +5001,9 @@ KdUninitializeConnection()
     // If connected to debugger
     //
     g_IsSerialConnectedToRemoteDebugger = FALSE;
+    g_IsDebuggeeConnectedToDbc          = FALSE;
+    g_DebuggeeDbcReceivePacket.Length   = 0;
+    g_DebuggeeDbcReceivePosition        = 0;
 
     //
     // No longer connected to the debuggee
@@ -3958,6 +5038,7 @@ KdUninitializeConnection()
     // Is serial handle for a named pipe
     //
     g_IsDebuggerConntectedToNamedPipe = FALSE;
+    g_IsDebuggerConnectedToDbc        = FALSE;
 }
 
 /**
@@ -3986,7 +5067,7 @@ KdSendPcitreePacketToDebuggee(PDEBUGGEE_PCITREE_REQUEST_RESPONSE_PACKET PcitreeP
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCITREE_RESULT);
 }
 
 /**
@@ -4015,5 +5096,5 @@ KdSendPcidevinfoPacketToDebuggee(PDEBUGGEE_PCIDEVINFO_REQUEST_RESPONSE_PACKET Pc
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT);
 
-    return TRUE;
+    return KdReplyArrived(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PCIDEVINFO_RESULT);
 }

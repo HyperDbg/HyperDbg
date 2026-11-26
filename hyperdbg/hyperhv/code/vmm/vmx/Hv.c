@@ -215,6 +215,56 @@ HvHandleControlRegisterAccess(VIRTUAL_MACHINE_STATE *         VCpu,
 
             break;
 
+        case VMX_EXIT_QUALIFICATION_REGISTER_CR8:
+        {
+            UINT64 Interruptibility;
+            UINT64 NextInterruptibility;
+            RFLAGS GuestRflags;
+
+            if (*RegPtr > 0xf)
+            {
+                INTERRUPT_INFO EntryInterruptionInfo = {0};
+
+                //
+                // A write to a reserved bit faults. If vm-entry already has an
+                // event to deliver, retry the write after that event
+                //
+                HvSuppressRipIncrement(VCpu);
+                VmxVmread32P(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, &EntryInterruptionInfo.Flags);
+                if (!EntryInterruptionInfo.Fields.Valid)
+                {
+                    EventInjectGeneralProtection();
+                }
+
+                break;
+            }
+
+            //
+            // Without TPR shadow, CR8 writes update the local APIC directly
+            //
+            SetGuestCr8(*RegPtr);
+
+            Interruptibility     = HvGetInterruptibilityState();
+            NextInterruptibility = HvClearSteppingBits(Interruptibility);
+            if (Interruptibility != NextInterruptibility)
+            {
+                HvSetInterruptibilityState(NextInterruptibility);
+            }
+
+            GuestRflags.AsUInt = GetGuestRFlags();
+            if (GuestRflags.ResumeFlag)
+            {
+                GuestRflags.ResumeFlag = FALSE;
+                SetGuestRFlags(GuestRflags.AsUInt);
+            }
+
+            if (GuestRflags.TrapFlag)
+            {
+                HvHandleTrapFlag();
+            }
+            break;
+        }
+
         default:
             LogWarning("Unsupported register 0x%x in handling control registers access",
                        CrExitQualification->ControlRegister);
@@ -1116,6 +1166,50 @@ HvSetExternalInterruptExiting(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN Set)
 }
 
 /**
+ * @brief Find the highest-priority vector in the external interrupt queue
+ *
+ * @param VCpu The virtual processor's state
+ * @param LowestPriorityClass If not NULL, receives the lowest priority class
+ * @return SIZE_T Index of the highest-priority vector or queue capacity if empty
+ */
+SIZE_T
+HvFindHighestPendingExternalInterrupt(VIRTUAL_MACHINE_STATE * VCpu, UINT32 * LowestPriorityClass)
+{
+    SIZE_T HighestIndex  = PENDING_INTERRUPTS_BUFFER_CAPACITY;
+    UINT32 HighestVector = 0;
+    UINT32 LowestClass   = 0xf;
+
+    for (SIZE_T i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
+    {
+        VMEXIT_INTERRUPT_INFORMATION Entry;
+
+        Entry.AsUInt = VCpu->PendingExternalInterrupts[i];
+        if (Entry.AsUInt == NULL_ZERO)
+        {
+            continue;
+        }
+
+        if (HighestIndex == PENDING_INTERRUPTS_BUFFER_CAPACITY || Entry.Vector > HighestVector)
+        {
+            HighestIndex  = i;
+            HighestVector = Entry.Vector;
+        }
+
+        if ((Entry.Vector >> 4) < LowestClass)
+        {
+            LowestClass = Entry.Vector >> 4;
+        }
+    }
+
+    if (LowestPriorityClass != NULL)
+    {
+        *LowestPriorityClass = LowestClass;
+    }
+
+    return HighestIndex;
+}
+
+/**
  * @brief Checks to enable and reinject previous interrupts
  *
  * @param VCpu The virtual processor's state
@@ -1136,18 +1230,8 @@ HvEnableAndCheckForPreviousExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         HvSetExternalInterruptExiting(VCpu, FALSE);
 
-        //
-        // Check if there is at least an interrupt that needs to be delivered
-        //
-        if (VCpu->PendingExternalInterrupts[0] != NULL_ZERO)
-        {
-            //
-            // Enable Interrupt-window exiting.
-            //
-            HvSetInterruptWindowExiting(TRUE);
-        }
-
         VCpu->EnableExternalInterruptsOnContinueMtf = FALSE;
+        HvInjectPendingExternalInterrupts(VCpu);
     }
 }
 
@@ -1293,7 +1377,7 @@ HvSetInterruptibilityState(UINT64 InterruptibilityState)
 }
 
 /**
- * @brief Inject pending external interrupts
+ * @brief Set vm-exit controls for pending external interrupts
  *
  * @param VCpu The virtual processor's state
  *
@@ -1302,15 +1386,66 @@ HvSetInterruptibilityState(UINT64 InterruptibilityState)
 VOID
 HvInjectPendingExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
 {
+    UINT32  LowestPriorityClass = 0;
+    SIZE_T  HighestIndex        = HvFindHighestPendingExternalInterrupt(VCpu, &LowestPriorityClass);
+    BOOLEAN EnableWindow        = FALSE;
+    BOOLEAN ExitOnCr8Write      = FALSE;
+    UINT32  CurrentControls     = 0;
+    UINT32  NewControls;
+
     //
-    // Check if there is at least an interrupt that needs to be delivered
+    // Clear queue controls when an interrupt-window vm-exit drains the queue.
+    // Other vm-exits leave the controls alone when the queue is empty
     //
-    if (VCpu->PendingExternalInterrupts[0] != NULL_ZERO)
+    if (HighestIndex == PENDING_INTERRUPTS_BUFFER_CAPACITY && VCpu->ExitReason != VMX_EXIT_REASON_INTERRUPT_WINDOW)
     {
-        //
-        // Enable Interrupt-window exiting.
-        //
-        HvSetInterruptWindowExiting(TRUE);
+        return;
+    }
+
+    if (HighestIndex != PENDING_INTERRUPTS_BUFFER_CAPACITY &&
+        !VCpu->EnableExternalInterruptsOnContinue &&
+        !VCpu->EnableExternalInterruptsOnContinueMtf)
+    {
+        VMEXIT_INTERRUPT_INFORMATION Highest;
+        UINT64                        GuestTpr = GetGuestCr8();
+
+        Highest.AsUInt = VCpu->PendingExternalInterrupts[HighestIndex];
+        EnableWindow   = (Highest.Vector >> 4) > GuestTpr;
+        ExitOnCr8Write = LowestPriorityClass <= GuestTpr;
+    }
+
+    VmxVmread32P(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CurrentControls);
+    NewControls = CurrentControls & ~IA32_VMX_PROCBASED_CTLS_CR8_LOAD_EXITING_FLAG;
+
+    //
+    // The interrupt window ignores TPR. If TPR blocks the entire queue,
+    // wait for a CR8 write instead of exiting again at the same guest RIP
+    //
+    if (EnableWindow)
+    {
+        NewControls |= IA32_VMX_PROCBASED_CTLS_INTERRUPT_WINDOW_EXITING_FLAG;
+    }
+    else if (!g_WaitingForInterruptWindowToInjectPageFault)
+    {
+        NewControls &= ~IA32_VMX_PROCBASED_CTLS_INTERRUPT_WINDOW_EXITING_FLAG;
+    }
+
+    if (ExitOnCr8Write)
+    {
+        NewControls |= IA32_VMX_PROCBASED_CTLS_CR8_LOAD_EXITING_FLAG;
+    }
+
+    if ((NewControls ^ CurrentControls) & IA32_VMX_PROCBASED_CTLS_CR8_LOAD_EXITING_FLAG)
+    {
+        IA32_VMX_BASIC_REGISTER VmxBasicMsr;
+
+        VmxBasicMsr.AsUInt = CpuReadMsr(IA32_VMX_BASIC);
+        NewControls      = HvAdjustControls(NewControls, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PROCBASED_CTLS : IA32_VMX_PROCBASED_CTLS);
+    }
+
+    if (NewControls != CurrentControls)
+    {
+        VmxVmwrite64(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, NewControls);
     }
 }
 
@@ -1334,12 +1469,8 @@ HvCheckAndEnableExternalInterrupts(VIRTUAL_MACHINE_STATE * VCpu)
         //
         HvSetExternalInterruptExiting(VCpu, FALSE);
 
-        //
-        // Check if there is at least an interrupt that needs to be delivered
-        //
-        HvInjectPendingExternalInterrupts(VCpu);
-
         VCpu->EnableExternalInterruptsOnContinue = FALSE;
+        HvInjectPendingExternalInterrupts(VCpu);
     }
 }
 

@@ -15,6 +15,8 @@
 #    include "../../../../include/SDK/HyperDbgSdk.h"
 #endif // defined(__linux__)
 
+#define PLATFORM_TIME_HUNDRED_NS_PER_MS 10000LL
+
 //////////////////////////////////////////////////
 //                  Functions                   //
 //////////////////////////////////////////////////
@@ -34,3 +36,9 @@ PlatformTimeConvertToTimeFields(PLARGE_INTEGER Time, PTIME_FIELDS TimeFields);
 //
 LARGE_INTEGER
 PlatformTimeQueryPerformanceCounter(PLARGE_INTEGER PerformanceFrequency);
+
+UINT64
+PlatformTimeGetMonotonicMilliseconds();
+
+VOID
+PlatformTimeDelayMilliseconds(UINT32 Milliseconds);

@@ -1,4 +1,5 @@
 #include <ntddk.h>
+#include "dbc.h"
 
 //
 // We'll add these functions, so whenever HyperDbg's driver is unloaded
@@ -22,5 +23,10 @@ DllInitialize(
 NTSTATUS
 DllUnload(void)
 {
+    //
+    // Disable DbC before freeing its memory
+    //
+    DbcUnload();
+
     return STATUS_SUCCESS;
 }

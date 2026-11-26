@@ -48,6 +48,18 @@
  */
 #define DEBUGGER_VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER (TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x00000005)
 
+/**
+ * @brief vmcall to read debugger bytes over USB
+ *
+ */
+#define DEBUGGER_VMCALL_DBC_RECEIVE (TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x00000006)
+
+/**
+ * @brief vmcall to run a short USB operation under DebuggerResponseLock
+ *
+ */
+#define DEBUGGER_VMCALL_DBC_OPERATION (TOP_LEVEL_DRIVERS_VMCALL_STARTING_NUMBER + 0x00000007)
+
 //////////////////////////////////////////////////
 //				     Functions		      		//
 //////////////////////////////////////////////////

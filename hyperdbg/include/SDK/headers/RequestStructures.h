@@ -644,6 +644,43 @@ typedef struct _DEBUGGER_PREPARE_DEBUGGEE
 
 // ==============================================================================================
 
+#define DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE 256
+
+#define SIZEOF_DEBUGGEE_DBC_RECEIVE_PACKET sizeof(DEBUGGEE_DBC_RECEIVE_PACKET)
+
+/**
+ * @brief Request to read debugger bytes over USB
+ *
+ */
+typedef struct _DEBUGGEE_DBC_RECEIVE_PACKET
+{
+    UINT32 Result;
+    UINT32 Length;
+    BYTE   Buffer[DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE];
+
+} DEBUGGEE_DBC_RECEIVE_PACKET, *PDEBUGGEE_DBC_RECEIVE_PACKET;
+
+// ==============================================================================================
+
+#define SIZEOF_DEBUGGEE_DBC_HANDSHAKE_PACKET sizeof(DEBUGGEE_DBC_HANDSHAKE_PACKET)
+
+/**
+ * @brief USB handshake request
+ *
+ */
+typedef struct _DEBUGGEE_DBC_HANDSHAKE_PACKET
+{
+    UINT32  Result;
+    BOOLEAN ResetConnection; // Reset DbC before the transfer
+    UINT32  SendLength;      // Zero to read available bytes
+    UINT32  ReceiveLength;
+    BYTE    SendBuffer[DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE];
+    BYTE    ReceiveBuffer[DEBUGGEE_DBC_RECEIVE_BUFFER_SIZE];
+
+} DEBUGGEE_DBC_HANDSHAKE_PACKET, *PDEBUGGEE_DBC_HANDSHAKE_PACKET;
+
+// ==============================================================================================
+
 /**
  * @brief The structure of changing core packet in HyperDbg
  *

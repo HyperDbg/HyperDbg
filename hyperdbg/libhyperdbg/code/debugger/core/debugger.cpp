@@ -638,6 +638,12 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_DEBUGGER_DID_NOT_RECEIVE_USB_DATA:
+        ShowMessages("err, the debugger did not receive the data over USB in time, "
+                     "make sure that '.debug remote usb' is running on the debugger (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

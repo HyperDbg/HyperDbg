@@ -18,6 +18,7 @@
 extern BYTE                             g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern HANDLE                           g_SerialRemoteComPortHandle;
 extern BOOLEAN                          g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                          g_IsDebuggeeConnectedToDbc;
 extern BOOLEAN                          g_ListeningDebuggeeDesyncReported;
 extern BOOLEAN                          g_IsDebuggeeRunning;
 extern BOOLEAN                          g_IgnoreNewLoggingMessages;
@@ -190,6 +191,11 @@ StartAgain:
             g_KernelBaseAddress = InitPacket->KernelBaseAddress;
 
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
+
+            //
+            // Track USB symbol loss after the handshake and before the symbol bytes
+            //
+            KdBeginUsbSymbolPass(TRUE);
 
             //
             // Signal the event that the debugger started
@@ -844,28 +850,7 @@ StartAgain:
 
             SymbolReloadFinishedPacket = (DEBUGGEE_SYMBOL_UPDATE_RESULT *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
 
-            //
-            // Show messages as the result of updating symbols
-            //
-            if (SymbolReloadFinishedPacket->KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFUL)
-            {
-                //
-                // There was an error
-                //
-                ShowErrorMessage((UINT32)SymbolReloadFinishedPacket->KernelStatus);
-            }
-            else
-            {
-                //
-                // Load the symbols
-                //
-                SymbolInitialReload();
-            }
-
-            //
-            // Signal the event relating to receiving result of symbol reload
-            //
-            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
+            KdCompleteSymbolReload(SymbolReloadFinishedPacket->KernelStatus);
 
             break;
 
@@ -1525,32 +1510,35 @@ StartAgain:
     PDEBUGGER_REMOTE_PACKET TheActualPacket = (PDEBUGGER_REMOTE_PACKET)SerialBuffer;
 
 #ifdef _WIN32
-    //
-    // Setting Receive Mask
-    //
-    Status = SetCommMask(g_SerialRemoteComPortHandle, EV_RXCHAR);
-    if (Status == FALSE)
-    {
-        // ShowMessages("warning, there is an error in setting CommMask\n");
-
-        //
-        // Sometimes, this error happens
-        //
-        // return FALSE;
-    }
-
-    //
-    // Setting WaitComm() Event
-    //
-    Status = WaitCommEvent(g_SerialRemoteComPortHandle, &EventMask, NULL); /* Wait for the character to be received */
-
-    if (Status == FALSE)
+    if (!g_IsDebuggeeConnectedToDbc)
     {
         //
-        // Can be ignored
+        // Setting Receive Mask
         //
-        // ShowMessages("err, in setting WaitCommEvent\n");
-        // return FALSE;
+        Status = SetCommMask(g_SerialRemoteComPortHandle, EV_RXCHAR);
+        if (Status == FALSE)
+        {
+            // ShowMessages("warning, there is an error in setting CommMask\n");
+
+            //
+            // Sometimes, this error happens
+            //
+            // return FALSE;
+        }
+
+        //
+        // Setting WaitComm() Event
+        //
+        Status = WaitCommEvent(g_SerialRemoteComPortHandle, &EventMask, NULL); /* Wait for the character to be received */
+
+        if (Status == FALSE)
+        {
+            //
+            // Can be ignored
+            //
+            // ShowMessages("err, in setting WaitCommEvent\n");
+            // return FALSE;
+        }
     }
 #else
     //
@@ -1564,25 +1552,37 @@ StartAgain:
     //
     do
     {
+        if (g_IsDebuggeeConnectedToDbc)
+        {
+            Status = KdReadByteFromDebuggeeDbc(&ReadData, &NoBytesRead);
+
+            if (!Status)
+            {
+                return FALSE;
+            }
+        }
+        else
+        {
 #ifdef _WIN32
-        Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
+            Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
 #else
-        //
-        // Linux: read one byte through the cross-platform serial transport
-        //
-        Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle,
-                                        &ReadData,
-                                        &NoBytesRead,
-                                        PLATFORM_SERIAL_IO_DEBUGGEE);
+            //
+            // Linux: read one byte through the cross-platform serial transport
+            //
+            Status = PlatformSerialReadByte(g_SerialRemoteComPortHandle,
+                                            &ReadData,
+                                            &NoBytesRead,
+                                            PLATFORM_SERIAL_IO_DEBUGGEE);
 #endif // _WIN32
 
-        //
-        // Hard read error: restart the listen. StartAgain re-arms the wait,
-        // which blocks until data arrives, so it cannot busy-loop.
-        //
-        if (!Status)
-        {
-            goto StartAgain;
+            //
+            // Hard read error: restart the listen. StartAgain re-arms the wait,
+            // which blocks until data arrives, so it cannot busy-loop.
+            //
+            if (!Status)
+            {
+                goto StartAgain;
+            }
         }
 
         //

@@ -2511,14 +2511,25 @@ DebuggerClearAllEvents(BOOLEAN InputFromVmxRoot, BOOLEAN PoolManagerAllocatedMem
     DebuggerEnableOrDisableAllEvents(FALSE);
 
     //
-    // Second, terminate all events
+    // Second, terminate and remove the events one by one because terminating an
+    // event re-applies the other events of the same type that are still in the list
     //
-    DebuggerTerminateAllEvents(InputFromVmxRoot);
+    for (SIZE_T i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    {
+        PLIST_ENTRY ListHead = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
 
-    //
-    // Third, remove all events
-    //
-    DebuggerRemoveAllEvents(PoolManagerAllocatedMemory);
+        while (ListHead != ListHead->Flink)
+        {
+            UINT64 Tag = CONTAINING_RECORD(ListHead->Flink, DEBUGGER_EVENT, EventsOfSameTypeList)->Tag;
+
+            DebuggerTerminateEvent(Tag, InputFromVmxRoot);
+
+            if (!DebuggerRemoveEvent(Tag, PoolManagerAllocatedMemory))
+            {
+                break;
+            }
+        }
+    }
 }
 
 /**

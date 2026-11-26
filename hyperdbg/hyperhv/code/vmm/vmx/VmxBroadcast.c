@@ -224,6 +224,15 @@ VmxBroadcastNmiHandler(VIRTUAL_MACHINE_STATE * VCpu, BOOLEAN IsOnVmxNmiHandler)
         VmmCallbackNmiBroadcastRequestHandler(VCpu->CoreId, IsOnVmxNmiHandler);
         IsHandled = TRUE;
 
+        //
+        // A vmx-root NMI can interrupt a control update that overwrites MTF.
+        // Keep the request so the vm-exit handler can set MTF again
+        //
+        if (IsOnVmxNmiHandler)
+        {
+            VCpu->MtfRequestedByHaltNmi = TRUE;
+        }
+
         break;
 
     case NMI_BROADCAST_ACTION_INVALIDATE_EPT_CACHE_SINGLE_CONTEXT:

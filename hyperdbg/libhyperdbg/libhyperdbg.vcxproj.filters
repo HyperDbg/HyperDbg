@@ -233,6 +233,9 @@
     <ClInclude Include="header\debugger\communication\communication.h">
       <Filter>header\debugger\communication</Filter>
     </ClInclude>
+    <ClInclude Include="header\debugger\communication\dbc.h">
+      <Filter>header\debugger\communication</Filter>
+    </ClInclude>
     <ClInclude Include="header\debugger\communication\forwarding.h">
       <Filter>header\debugger\communication</Filter>
     </ClInclude>
@@ -495,6 +498,9 @@
     </ClCompile>
     <ClCompile Include="code\debugger\commands\meta-commands\sympath.cpp">
       <Filter>code\debugger\commands\meta-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\communication\dbc.cpp">
+      <Filter>code\debugger\communication</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\communication\forwarding.cpp">
       <Filter>code\debugger\communication</Filter>

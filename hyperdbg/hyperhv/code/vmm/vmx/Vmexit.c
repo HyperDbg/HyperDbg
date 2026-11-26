@@ -87,6 +87,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
+    case VMX_EXIT_REASON_ERROR_INVALID_GUEST_STATE:
+    case VMX_EXIT_REASON_ERROR_MSR_LOAD:
+    {
+        VmxHandleVmentryFailures(VCpu);
+
+        break;
+    }
         //
         // 25.1.2  Instructions That Cause VM Exits Unconditionally
         // The following instructions cause VM exits when they are executed in VMX non-root operation: CPUID, GETSEC,
@@ -365,6 +372,21 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     if (VCpu->VmxoffState.IsVmxoffExecuted)
     {
         Result = TRUE;
+    }
+    else
+    {
+        //
+        // Recheck pending interrupts after CR8 writes and other vm-exits
+        //
+        HvInjectPendingExternalInterrupts(VCpu);
+    }
+
+    //
+    // Restore MTF before vm-entry if a halt NMI requested it
+    //
+    if (VCpu->MtfRequestedByHaltNmi && !VCpu->VmxoffState.IsVmxoffExecuted)
+    {
+        HvSetMonitorTrapFlag(TRUE);
     }
 
     //

@@ -175,6 +175,12 @@ BOOLEAN g_InterceptDebugBreaks;
 DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
 
 /**
+ * @brief Whether a debuggee halt is in progress
+ *
+ */
+volatile BOOLEAN g_DebuggeeHaltInProgress;
+
+/**
  * @brief Trigger event details
  *
  */
@@ -219,6 +225,11 @@ BOOLEAN g_InterceptBreakpointsAndEventsForCommandsInRemoteComputer;
  *
  */
 BOOLEAN g_SerialConnectionDesyncReported;
+
+//
+// Set during USB setup until the debugger has the symbol details
+//
+BOOLEAN g_SerialConnectionDbcSetupPhase;
 
 /**
  * @brief Global test flag (for testing purposes)
