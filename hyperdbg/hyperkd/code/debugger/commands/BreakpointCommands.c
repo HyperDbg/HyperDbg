@@ -781,6 +781,15 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor, BOOLEAN SwitchToTa
 {
     BYTE PreviousByte   = NULL_ZERO;
     BYTE BreakpointByte = 0xcc; // int 3
+    BOOLEAN Result;
+    BOOLEAN WasEnabled = BreakpointDescriptor->Enabled;
+    BOOLEAN AvoidReApply = BreakpointDescriptor->AvoidReApplyBreakpoint;
+    BYTE SavedPreviousByte = BreakpointDescriptor->PreviousByte;
+
+    if (BreakpointDescriptor->PhysAddress == 0 || !CheckAddressPhysical(BreakpointDescriptor->PhysAddress))
+    {
+        return FALSE;
+    }
 
     //
     // Check if address is safe (only one byte for 0xcc)
@@ -806,18 +815,18 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor, BOOLEAN SwitchToTa
     //
     if (SwitchToTargetMemoryLayout)
     {
-        MemoryMapperReadMemoryUnsafe(
-            BreakpointDescriptor->Address,
-            &PreviousByte,
-            sizeof(BYTE),
-            BreakpointDescriptor->Pid);
+        Result = MemoryMapperReadMemorySafeFromVmxNonRootByPhysicalAddress(
+            BreakpointDescriptor->PhysAddress, &PreviousByte, sizeof(BYTE));
     }
     else
     {
-        MemoryMapperReadMemorySafeOnTargetProcess(
-            BreakpointDescriptor->Address,
-            &PreviousByte,
-            sizeof(BYTE));
+        Result = MemoryMapperReadMemorySafeByPhysicalAddress(
+            BreakpointDescriptor->PhysAddress, (UINT64)&PreviousByte, sizeof(BYTE));
+    }
+
+    if (!Result)
+    {
+        return FALSE;
     }
 
     //
@@ -825,9 +834,7 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor, BOOLEAN SwitchToTa
     //
     BreakpointDescriptor->PreviousByte = PreviousByte;
 
-    //
-    // Set breakpoint to enabled
-    //
+    // Prepare hit handling before the breakpoint byte can execute.
     BreakpointDescriptor->Enabled                = TRUE;
     BreakpointDescriptor->AvoidReApplyBreakpoint = FALSE;
 
@@ -836,16 +843,25 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor, BOOLEAN SwitchToTa
     //
     if (SwitchToTargetMemoryLayout)
     {
-        MemoryMapperWriteMemorySafeFromVmxNonRootyPhysicalAddress(BreakpointDescriptor->PhysAddress,
+        Result = MemoryMapperWriteMemorySafeFromVmxNonRootyPhysicalAddress(BreakpointDescriptor->PhysAddress,
                                                                   (PVOID)&BreakpointByte,
                                                                   sizeof(BYTE));
     }
     else
     {
-        MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
+        Result = MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
                                                      (UINT64)&BreakpointByte,
                                                      sizeof(BYTE));
     }
+
+    if (!Result)
+    {
+        BreakpointDescriptor->Enabled                = WasEnabled;
+        BreakpointDescriptor->AvoidReApplyBreakpoint = AvoidReApply;
+        BreakpointDescriptor->PreviousByte           = SavedPreviousByte;
+        return FALSE;
+    }
+
 
     return TRUE;
 }
@@ -1062,6 +1078,12 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemo
     BreakpointDescriptor->Address           = BpDescriptorArg->Address;
     BreakpointDescriptor->PhysAddress       = VirtualAddressToPhysicalAddressByProcessCr3((PVOID)BpDescriptorArg->Address,
                                                                                     GuestCr3);
+    if (BreakpointDescriptor->PhysAddress == 0 || !CheckAddressPhysical(BreakpointDescriptor->PhysAddress))
+    {
+        PoolManagerFreePool((UINT64)BreakpointDescriptor);
+        BpDescriptorArg->Result = DEBUGGER_ERROR_INVALID_PHYSICAL_ADDRESS;
+        return FALSE;
+    }
     BreakpointDescriptor->Core              = BpDescriptorArg->Core;
     BreakpointDescriptor->Pid               = BpDescriptorArg->Pid;
     BreakpointDescriptor->Tid               = BpDescriptorArg->Tid;
@@ -1112,9 +1134,10 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemo
     }
 
     //
-    // Breakpoints are enabled by default
+    // Keep the descriptor inactive until BreakpointWrite prepares hit handling
     //
-    BreakpointDescriptor->Enabled = TRUE;
+    BreakpointDescriptor->Enabled                = FALSE;
+    BreakpointDescriptor->AvoidReApplyBreakpoint = TRUE;
 
     //
     // Now we should add the breakpoint to the list of breakpoints (LIST_ENTRY)
@@ -1124,7 +1147,14 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg, BOOLEAN SwitchToTargetMemo
     //
     // Apply the breakpoint
     //
-    BreakpointWrite(BreakpointDescriptor, SwitchToTargetMemoryLayout);
+    if (!BreakpointWrite(BreakpointDescriptor, SwitchToTargetMemoryLayout))
+    {
+        // No breakpoint byte was installed; do not invoke the clear path.
+        RemoveEntryList(&BreakpointDescriptor->BreakpointsList);
+        PoolManagerFreePool((UINT64)BreakpointDescriptor);
+        BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+        return FALSE;
+    }
 
     //
     // Show that operation was successful
@@ -1226,7 +1256,11 @@ BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoint
         //
         // Set the breakpoint (without removing from list)
         //
-        BreakpointWrite(BreakpointDescriptor, SwitchToTargetMemoryLayout);
+        if (!BreakpointWrite(BreakpointDescriptor, SwitchToTargetMemoryLayout))
+        {
+            ListOrModifyBreakpoints->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+            return FALSE;
+        }
     }
     else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_DISABLE)
     {
