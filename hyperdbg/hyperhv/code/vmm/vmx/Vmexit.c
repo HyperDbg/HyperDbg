@@ -285,6 +285,19 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 
         break;
     }
+    case VMX_EXIT_REASON_EXECUTE_UMWAIT:
+    case VMX_EXIT_REASON_EXECUTE_TPAUSE:
+    {
+        //
+        // With RDTSC exiting (e.g., the !tsc event), these exit as well. They are
+        // only hints to wait: complete them as a wait that ended before the
+        // deadline, which clears CF, OF, SF, ZF, AF and PF
+        //
+        HvSetRflags(HvGetRflags() & ~(UINT64)(X86_FLAGS_CF | X86_FLAGS_OF | X86_FLAGS_SF |
+                                               X86_FLAGS_ZF | X86_FLAGS_AF | X86_FLAGS_PF));
+
+        break;
+    }
     case VMX_EXIT_REASON_EXECUTE_RDPMC:
     {
         //

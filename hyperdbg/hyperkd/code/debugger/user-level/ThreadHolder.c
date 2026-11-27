@@ -413,6 +413,15 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
                                                                                            ActionRequest->TargetThreadId);
 
         //
+        // Only a paused thread looks for commands (UdCheckForCommand), so a
+        // command for any other thread would never run
+        //
+        if (!ThreadDebuggingDetails || !ThreadDebuggingDetails->IsPaused)
+        {
+            return FALSE;
+        }
+
+        //
         // Apply the command
         //
         for (SIZE_T i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)

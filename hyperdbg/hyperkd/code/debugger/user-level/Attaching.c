@@ -361,8 +361,13 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
     //
     BpRequest.Address = ProcessDebuggingDetail->EntrypointOfMainModule;
     BpRequest.Core    = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
-    BpRequest.Pid     = DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES;
     BpRequest.Tid     = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
+
+    //
+    // The image page is shared by every process running the same module, so
+    // the breakpoint is only for this process: another one passes over it
+    //
+    BpRequest.Pid = ProcessDebuggingDetail->ProcessId;
 
     //
     // Remove the breakpoint after hit
@@ -391,6 +396,12 @@ AttachingReachedToValidLoadedModule(PROCESSOR_DEBUGGING_STATE *         DbgState
         LogError("Err, unable to set breakpoint on the entrypoint module");
         return FALSE;
     }
+
+    //
+    // Keep it, to remove it if the process is killed or detached before the
+    // breakpoint is hit
+    //
+    ProcessDebuggingDetail->EntrypointBreakpointId = g_MaximumBreakpointId;
 
     //
     // Finish the starting point of the thread
@@ -1067,6 +1078,20 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 BOOLEAN
 AttachingPauseProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest)
 {
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
+
+    //
+    // It may be paused already, e.g., right after it is started, a request to
+    // pause it races with its entrypoint breakpoint
+    //
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByToken(PauseRequest->Token);
+
+    if (ProcessDebuggingDetails != NULL && ProcessDebuggingDetails->IsOnThreadInterceptingPhase)
+    {
+        PauseRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
+        return TRUE;
+    }
+
     if (AttachingConfigureInterceptingThreads(PauseRequest->Token, TRUE))
     {
         //
@@ -1109,8 +1134,11 @@ AttachingContinueProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ContinueReque
     }
 
     //
-    // Configure the intercepting threads to be disabled
+    // Configure the intercepting threads to be disabled, and remove a step's
+    // breakpoint that was not hit
     //
+    UdDisarmStepOverBreakpoint();
+
     if (AttachingConfigureInterceptingThreads(ContinueRequest->Token, FALSE))
     {
         //
@@ -1123,6 +1151,39 @@ AttachingContinueProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ContinueReque
     {
         ContinueRequest->Result = DEBUGGER_ERROR_UNABLE_TO_PAUSE_THE_PROCESS_THREADS;
         return FALSE;
+    }
+}
+
+/**
+ * @brief Remove the entrypoint breakpoint of a process if it was not hit
+ * @details this function should not be called in vmx-root. It must be called
+ * while the process still runs: the 0xcc is in its (shared) image page, which
+ * may be reused once the process is gone, and a later start of the same module
+ * would take the 0xcc for the original byte and restore it on a hit
+ *
+ * @param ProcessDebuggingDetail
+ * @return VOID
+ */
+static VOID
+AttachingRemoveEntrypointBreakpoint(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+{
+    PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor;
+
+    if (ProcessDebuggingDetail->EntrypointBreakpointId == 0)
+    {
+        return;
+    }
+
+    //
+    // A hit already removed it (it is removed after the hit)
+    //
+    BreakpointDescriptor = BreakpointGetEntryByBreakpointId(ProcessDebuggingDetail->EntrypointBreakpointId);
+
+    ProcessDebuggingDetail->EntrypointBreakpointId = 0;
+
+    if (BreakpointDescriptor != NULL)
+    {
+        BreakpointClearAndDeallocateMemory(BreakpointDescriptor);
     }
 }
 
@@ -1152,6 +1213,23 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
         KillRequest->Result = DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS;
         return FALSE;
     }
+
+    UdDisarmStepOverBreakpoint();
+
+    //
+    // Remove the entrypoint breakpoint while the process still runs
+    //
+    if (CommonIsProcessExist(ProcessDebuggingDetail->ProcessId))
+    {
+        AttachingRemoveEntrypointBreakpoint(ProcessDebuggingDetail);
+    }
+
+    //
+    // Stop intercepting its threads and unpause them first, as a detach does: a
+    // paused thread never leaves the kernel, so a terminated process could not
+    // exit, and a new process may get the same id
+    //
+    AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE);
 
     //
     // Check if process exists or not
@@ -1245,21 +1323,16 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
     }
 
     //
-    // If the threads are paused, we can't detach from the target process
-    // before sending this request, the debugger should continued all the
-    // threads by sending a continue packet
+    // Remove the entrypoint breakpoint first: the debugger continues the
+    // threads before it detaches, and one on the entrypoint paused again on
+    // it right away, so the detach was refused (paused threads)
     //
-    if (ThreadHolderIsAnyPausedThreadInProcess(ProcessDebuggingDetail))
-    {
-        //
-        // We found a thread that is still pause
-        //
-        DetachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS;
-        return FALSE;
-    }
+    AttachingRemoveEntrypointBreakpoint(ProcessDebuggingDetail);
+    UdDisarmStepOverBreakpoint();
 
     //
-    // Remove the process from interception mechanisms
+    // Remove the process from interception mechanisms, which also unpauses
+    // its threads
     //
     AttachingConfigureInterceptingThreads(ProcessDebuggingDetail->Token, FALSE);
 

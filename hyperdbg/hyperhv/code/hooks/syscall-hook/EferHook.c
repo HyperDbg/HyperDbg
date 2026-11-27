@@ -331,6 +331,8 @@ SyscallHookHandleUD(VIRTUAL_MACHINE_STATE * VCpu)
         }
         else
         {
+            CpuWriteCr3(OriginalCr3);
+
             //
             // The page is not present, we have to inject a #PF
             //

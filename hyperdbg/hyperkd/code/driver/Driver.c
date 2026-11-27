@@ -101,6 +101,27 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     IoDeleteDevice(DriverObject->DeviceObject);
 
     //
+    // The VMM is normally terminated by IOCTL_TERMINATE_VMX, but if the process
+    // that loaded it exits without sending it (crash, kill), the service can still
+    // be stopped. hyperhv is unloaded right after this function returns, so VMX
+    // must be off by then: every core's VMCS host RIP points into hyperhv and the
+    // next VM-exit would run unloaded code
+    //
+    if (g_VmmInitialized)
+    {
+        LoaderUninitVmm();
+    }
+    else if (g_HyperTraceInitialized)
+    {
+        LoaderUninitHyperTrace();
+    }
+
+    if (g_KdInitialized)
+    {
+        LoaderUninitKd();
+    }
+
+    //
     // Unloading Log Tracer
     //
     LoaderUninitLogTracer();

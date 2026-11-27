@@ -183,7 +183,12 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         //
         Status = PlatformProcessTerminate(ProcessHandle, 0);
 
-        if (!NT_SUCCESS(Status))
+        PlatformProcessCloseHandle(ProcessHandle);
+
+        //
+        // A process that is already terminating is as good as killed
+        //
+        if (!NT_SUCCESS(Status) && Status != STATUS_PROCESS_IS_TERMINATING)
         {
             return FALSE;
         }
@@ -208,7 +213,12 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         //
         Status = PlatformProcessTerminate(ProcessHandle, 0);
 
-        if (!NT_SUCCESS(Status))
+        PlatformProcessCloseHandle(ProcessHandle);
+
+        //
+        // A process that is already terminating is as good as killed
+        //
+        if (!NT_SUCCESS(Status) && Status != STATUS_PROCESS_IS_TERMINATING)
         {
             return FALSE;
         }
@@ -216,6 +226,14 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         break;
 
     case PROCESS_KILL_METHOD_3:
+
+        //
+        // Find the target process
+        //
+        if (PlatformProcessLookupByProcessId((HANDLE)ProcessId, &Process) != STATUS_SUCCESS)
+        {
+            return FALSE;
+        }
 
         //
         // Get the base address of process's executable image and unmap it
@@ -226,6 +244,11 @@ CommonKillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
         // Dereference the target process
         //
         PlatformObjectDereference(Process);
+
+        if (!NT_SUCCESS(Status))
+        {
+            return FALSE;
+        }
 
         break;
 

@@ -276,7 +276,17 @@ BOOLEAN
 DpcRoutineSetHardwareDebugRegisters(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     UNREFERENCED_PARAMETER(Dpc);
-    UNREFERENCED_PARAMETER(DeferredContext);
+
+    //
+    // Every VM-exit loads DR7 with 400H, so without the save and load debug
+    // controls the breakpoint was gone after the first VM-exit on the core and
+    // a step over a call never stopped. Turn them on before setting it
+    //
+    if (VmFuncCheckCpuSupportForSaveAndLoadDebugControls())
+    {
+        VmFuncSetSaveDebugControlsVmcallOnTargetCore(TRUE);
+        VmFuncSetLoadDebugControlsVmcallOnTargetCore(TRUE);
+    }
 
     //
     // Apply hardware debug registers

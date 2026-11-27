@@ -189,3 +189,9 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
 
 VOID
 LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+
+PNOTIFY_RECORD
+LogTakeGlobalNotifyRecord(PNOTIFY_RECORD Expected);
+
+VOID
+LogCancelPendingNotifyIrp(PDEVICE_OBJECT DeviceObject, PIRP Irp);

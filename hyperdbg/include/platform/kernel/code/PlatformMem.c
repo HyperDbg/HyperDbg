@@ -249,6 +249,32 @@ PlatformMemAllocateZeroedNonPagedPool(SIZE_T NumberOfBytes)
 }
 
 /**
+ * @brief Allocates zeroed non-paged pool memory that code can run from.
+ * @details For code built at runtime (e.g. !epthook2 trampolines). The other
+ * allocators return no-execute memory.
+ * @param NumberOfBytes Size in bytes.
+ * @return PVOID Pointer to memory.
+ */
+PVOID
+PlatformMemAllocateZeroedNonPagedExecutablePool(SIZE_T NumberOfBytes)
+{
+#ifdef _WIN32
+    PVOID Result = ExAllocatePool2(
+        POOL_FLAG_NON_PAGED_EXECUTE,
+        NumberOfBytes,
+        POOLTAG);
+    if (Result != NULL)
+        RtlSecureZeroMemory(Result, NumberOfBytes);
+    return Result;
+#else
+    //
+    // Not executable: Linux has no executable heap for modules
+    //
+    return kzalloc(NumberOfBytes, GFP_KERNEL);
+#endif
+}
+
+/**
  * @brief Frees a memory pool.
  * @param BufferAddress Pointer to the memory to free.
  * @return PVOID (Void pointer in original API, usually ignored).
