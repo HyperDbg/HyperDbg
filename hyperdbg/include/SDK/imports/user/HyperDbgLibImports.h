@@ -120,6 +120,9 @@ IMPORT_EXPORT_LIBHYPERDBG INT
 hyperdbg_u_run_command(CHAR * command);
 
 IMPORT_EXPORT_LIBHYPERDBG VOID
+hyperdbg_u_get_signature(CHAR * buffer, UINT32 buffer_size);
+
+IMPORT_EXPORT_LIBHYPERDBG VOID
 hyperdbg_u_show_signature();
 
 IMPORT_EXPORT_LIBHYPERDBG VOID
