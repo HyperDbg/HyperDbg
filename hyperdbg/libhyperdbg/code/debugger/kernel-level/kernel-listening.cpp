@@ -21,6 +21,8 @@ extern BOOLEAN                          g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN                          g_ListeningDebuggeeDesyncReported;
 extern BOOLEAN                          g_IsDebuggeeRunning;
 extern BOOLEAN                          g_IgnoreNewLoggingMessages;
+extern BOOLEAN                          g_SerialHandshakePingReceived;
+extern UINT32                           g_DebuggeePausedPacketCount;
 extern BOOLEAN                          g_SharedEventStatus;
 extern BOOLEAN                          g_IsRunningInstruction32Bit;
 extern BOOLEAN                          g_OutputSourcesInitialized;
@@ -174,6 +176,11 @@ StartAgain:
         case DEBUGGER_REMOTE_PACKET_PING_AND_SEND_SUPPORTED_VERSION:
 
             //
+            // The debuggee is still waiting for a debugger
+            //
+            g_SerialHandshakePingReceived = TRUE;
+
+            //
             // Send the handshake response
             //
             KdSendResponseOfThePingPacket();
@@ -222,6 +229,8 @@ StartAgain:
             break;
 
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION:
+
+            g_DebuggeePausedPacketCount++;
 
             //
             // Pause logging mechanism

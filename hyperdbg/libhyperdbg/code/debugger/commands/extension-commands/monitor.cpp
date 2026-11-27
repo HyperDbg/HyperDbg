@@ -39,7 +39,7 @@ CommandMonitorHelp()
     ShowMessages("\t\te.g : !monitor pa rw c01000 l 1000\n");
     ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 fffff801deadbfff\n");
     ShowMessages("\t\te.g : !monitor rwx fffff801deadb000 l 230d0\n");
-    ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask Kd_DEFAULT_Mask+5\n");
+    ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask nt!Kd_DEFAULT_Mask+5\n");
     ShowMessages("\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");
     ShowMessages("\t\te.g : !monitor w fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
     ShowMessages("\t\te.g : !monitor w c01000 c01000+2500 core 2 pid 400\n");
