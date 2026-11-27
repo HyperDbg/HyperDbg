@@ -2495,6 +2495,25 @@ KdTheRemoteSystemIsRunning()
 }
 
 /**
+ * @brief Set the global state as if we are connected to a debuggee that is already running
+ * @details Used when reattaching to a debuggee session that already completed its handshake
+ * with a previous debugger, so the connection state is restored without redoing the handshake
+ *
+ * @param SerialHandle
+ * @param IsNamedPipe
+ *
+ * @return VOID
+ */
+static VOID
+KdSetStateToAlreadyConnectedDebuggee(HANDLE SerialHandle, BOOLEAN IsNamedPipe)
+{
+    g_SerialRemoteComPortHandle         = SerialHandle;
+    g_IsDebuggerConntectedToNamedPipe   = IsNamedPipe;
+    g_IsSerialConnectedToRemoteDebuggee = TRUE;
+    g_IsDebuggeeRunning                 = TRUE;
+}
+
+/**
  * @brief Finish a debugger session once the debuggee's 'started' packet arrived
  * @details Shared by a regular connection and a reattach that found the debuggee
  * still waiting for a debugger
@@ -2524,24 +2543,9 @@ KdStartSessionAfterStartedPacket(HANDLE SerialHandle, BOOLEAN IsNamedPipe, BOOLE
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
 
     //
-    // Connected to the debuggee
+    // We are now connected to the debuggee, which is running
     //
-    g_IsSerialConnectedToRemoteDebuggee = TRUE;
-
-    //
-    // And debuggee is running
-    //
-    g_IsDebuggeeRunning = TRUE;
-
-    //
-    // Save the handler
-    //
-    g_SerialRemoteComPortHandle = SerialHandle;
-
-    //
-    // Is serial handle for a named pipe
-    //
-    g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
+    KdSetStateToAlreadyConnectedDebuggee(SerialHandle, IsNamedPipe);
 
     //
     // Process CTRL+C breaks again
@@ -2760,13 +2764,10 @@ KdReattachSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
     //
     // The session already exists on the debuggee side, so we are connected now
     //
-    g_SerialConnectionAlreadyClosed     = FALSE;
-    g_SerialRemoteComPortHandle         = SerialHandle;
-    g_IsDebuggerConntectedToNamedPipe   = IsNamedPipe;
-    g_IsSerialConnectedToRemoteDebuggee = TRUE;
-    g_IsDebuggeeRunning                 = TRUE;
+    KdSetStateToAlreadyConnectedDebuggee(SerialHandle, IsNamedPipe);
 
-    g_SerialHandshakePingReceived = FALSE;
+    g_SerialConnectionAlreadyClosed = FALSE;
+    g_SerialHandshakePingReceived   = FALSE;
 
     g_SerialListeningThreadHandle =
         PlatformCreateThread(ListeningSerialPauseDebuggerThread, NULL);
